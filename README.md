@@ -6,6 +6,7 @@ senhas fortes e o armazenamento seguro de credenciais, protegidos por uma senha
 mestra e por criptografia AES-256-GCM. Foi desenvolvido em C# com .NET 10 e
 Windows Forms.
 
+[![CI](https://github.com/dcCarreto/CofreDeSenhas/actions/workflows/ci.yml/badge.svg)](https://github.com/dcCarreto/CofreDeSenhas/actions/workflows/ci.yml)
 ![Licença](https://img.shields.io/badge/licen%C3%A7a-MIT-blue)
 ![Plataforma](https://img.shields.io/badge/plataforma-Windows%2010%2F11-0078D6)
 ![.NET](https://img.shields.io/badge/.NET-10-512BD4)
@@ -18,6 +19,7 @@ MIT. Você pode usá-lo, estudá-lo, modificá-lo e compartilhá-lo livremente.
 
 - [Sobre o projeto e o software livre](#sobre-o-projeto-e-o-software-livre)
 - [Visão geral](#visão-geral)
+- [Capturas de tela](#capturas-de-tela)
 - [Funcionalidades](#funcionalidades)
 - [Modelo de segurança](#modelo-de-segurança)
 - [Download e instalação](#download-e-instalação)
@@ -63,6 +65,20 @@ sendo gravada em disco.
 
 A interface é dividida em dois painéis: à esquerda, o gerador de senhas; à
 direita, o cofre, com a lista de credenciais, busca, filtros e ações por item.
+
+## Capturas de tela
+
+O gerador de senhas fica à esquerda e o cofre à direita. A aplicação oferece
+tema claro e tema escuro, com a preferência persistida entre sessões. As imagens
+abaixo usam dados fictícios apenas para demonstração.
+
+Tema claro:
+
+![Cofre de Senhas no tema claro](docs/captura-clara.png)
+
+Tema escuro:
+
+![Cofre de Senhas no tema escuro](docs/captura-escura.png)
 
 ## Funcionalidades
 
