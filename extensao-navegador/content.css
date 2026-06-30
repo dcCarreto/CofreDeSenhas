@@ -1,0 +1,68 @@
+.cofre-icone {
+  position: fixed;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  margin: 0;
+  border: none;
+  border-radius: 4px;
+  background-color: transparent;
+  background-size: 16px 16px;
+  background-position: center;
+  background-repeat: no-repeat;
+  cursor: pointer;
+  opacity: 0.85;
+  z-index: 2147483646;
+}
+
+.cofre-icone:hover {
+  opacity: 1;
+}
+
+.cofre-menu {
+  position: fixed;
+  z-index: 2147483647;
+  min-width: 200px;
+  max-width: 320px;
+  overflow: hidden;
+  background: #2b2d31;
+  color: #e8e8e8;
+  border: 1px solid #3a3c40;
+  border-radius: 8px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
+  font-family: "Segoe UI", system-ui, sans-serif;
+  font-size: 13px;
+}
+
+.cofre-menu-item {
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.cofre-menu-item:hover {
+  background: #126e82;
+}
+
+.cofre-menu-servico {
+  font-weight: 600;
+}
+
+.cofre-menu-usuario {
+  color: #a0a0a0;
+  font-size: 12px;
+  word-break: break-all;
+}
+
+.cofre-tooltip {
+  position: fixed;
+  z-index: 2147483647;
+  max-width: 240px;
+  padding: 6px 10px;
+  background: #2b2d31;
+  color: #e8e8e8;
+  border: 1px solid #3a3c40;
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  font-family: "Segoe UI", system-ui, sans-serif;
+  font-size: 12px;
+}

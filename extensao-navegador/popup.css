@@ -1,0 +1,98 @@
+:root {
+  --fundo: #1e1f22;
+  --fundo-cartao: #2b2d31;
+  --texto: #e8e8e8;
+  --texto-fraco: #a0a0a0;
+  --acento: #126e82;
+  --acento-claro: #1899b3;
+  --erro: #e06c6c;
+  --borda: #3a3c40;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  width: 320px;
+  margin: 0;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  font-size: 13px;
+  background: var(--fundo);
+  color: var(--texto);
+}
+
+.cabecalho {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: var(--fundo-cartao);
+  border-bottom: 1px solid var(--borda);
+}
+
+.logo { width: 28px; height: 28px; }
+.titulo { font-weight: 600; }
+.dominio {
+  color: var(--texto-fraco);
+  font-size: 12px;
+  word-break: break-all;
+}
+
+.conteudo { padding: 12px 14px; min-height: 72px; }
+
+.aviso { color: var(--texto-fraco); margin: 6px 0; }
+.erro { color: var(--erro); }
+
+.botao {
+  display: inline-block;
+  width: 100%;
+  padding: 9px 12px;
+  border: none;
+  border-radius: 6px;
+  background: var(--acento);
+  color: #fff;
+  font-size: 13px;
+  cursor: pointer;
+}
+.botao:hover { background: var(--acento-claro); }
+.botao:disabled { opacity: 0.6; cursor: default; }
+
+.lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+
+.cartao {
+  background: var(--fundo-cartao);
+  border: 1px solid var(--borda);
+  border-radius: 8px;
+  padding: 10px;
+}
+.cartao-servico { font-weight: 600; }
+.cartao-usuario { color: var(--texto-fraco); font-size: 12px; margin-top: 2px; word-break: break-all; }
+
+.cartao-acoes { display: flex; gap: 6px; margin-top: 8px; }
+.acao {
+  flex: 1;
+  padding: 6px 8px;
+  border: 1px solid var(--borda);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--texto);
+  font-size: 12px;
+  cursor: pointer;
+}
+.acao:hover { border-color: var(--acento-claro); color: var(--acento-claro); }
+
+.contagem { color: var(--texto-fraco); font-size: 12px; margin: 0 0 10px; }
+
+.rodape {
+  padding: 8px 14px 12px;
+  border-top: 1px solid var(--borda);
+  text-align: right;
+}
+.link {
+  background: none;
+  border: none;
+  color: var(--texto-fraco);
+  font-size: 12px;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.link:hover { color: var(--texto); }

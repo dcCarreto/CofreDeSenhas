@@ -1,0 +1,44 @@
+{
+  "manifest_version": 3,
+  "name": "Cofre de Senhas",
+  "version": "0.1.0",
+  "description": "Preenche usuário e senha a partir do seu Cofre de Senhas local. Offline, via host nativo.",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv9ws9xx13MrL3wmI2vr71LhCUWYj3GRUS8Zrak3Tm51cKnCTD/Zd2uS5Bh3xAakocXfvvcQIk0JQbdgcmDY1BP8vMddIQ9stg7FEjW+B3bnQZvQVIaxtUgNddTWkKGTz6b7qkVCI2hiYfD6q7B5TeyZDQ7E2UY1ds2KWgN0w5pSs9dTRrAVU83MBHcwEOA8+/q+Jk8joRgOcO+sQpp7ySI2/ebT0fZdou7fqeuYZ4UYnkm1LoUtzxD/4Vr3MKuIFvmPrdcFU4q/i4dZsMu/0+bt5hfN/bafdaF9x5QrMybz8lTfMXNtMjjWhlJphkm9/8QqkXFoIiqKYn3dMtwd/fQIDAQAB",
+  "icons": {
+    "16": "icones/icone16.png",
+    "48": "icones/icone48.png",
+    "128": "icones/icone128.png"
+  },
+  "action": {
+    "default_title": "Cofre de Senhas",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icones/icone16.png",
+      "32": "icones/icone32.png",
+      "48": "icones/icone48.png",
+      "128": "icones/icone128.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["content.js"],
+      "css": ["content.css"],
+      "run_at": "document_idle",
+      "all_frames": false
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["icones/*.png"],
+      "matches": ["http://*/*", "https://*/*"]
+    }
+  ],
+  "permissions": [
+    "nativeMessaging",
+    "activeTab"
+  ]
+}

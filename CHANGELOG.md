@@ -4,6 +4,26 @@ Todas as mudanças notáveis deste projeto são documentadas aqui.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [Não lançado]
+
+### Adicionado
+- Extensão de navegador para Chromium (Chrome, Edge, Brave): preenchimento de
+  usuário e senha **sob clique**, a partir do cofre local, via host nativo
+  (Native Messaging). A senha mestra é pedida uma única vez por sessão, em um
+  diálogo nativo, e a chave derivada permanece apenas na memória do processo Agent.
+  - Popup com desbloqueio, lista das credenciais do site e cópia de usuário/senha.
+  - Content script com ícone nos campos de senha e preenchimento sem auto-submit,
+    com menu de escolha quando há mais de uma credencial.
+  - Auto-bloqueio do host por inatividade (15 minutos).
+  - Scripts de instalação e registro do host nativo para Chrome, Edge e Brave.
+- Correspondência de domínio por eTLD+1, considerando sufixos públicos compostos
+  (ex.: `com.br`, `co.uk`).
+
+### Segurança
+- O host nativo é somente-leitura sobre o cofre; a senha em claro só é entregue à
+  extensão sob ação explícita do usuário (clique).
+- `allowed_origins` restringe o host à extensão, cujo ID é fixado pelo campo `key`.
+
 ## [1.0.0] - 2026-06-28
 
 Primeira versão estável — transformação do gerador de senhas em um

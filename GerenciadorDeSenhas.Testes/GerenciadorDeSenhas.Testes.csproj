@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\GerenciadorDeSenhas\GerenciadorDeSenhas.csproj" />
+    <ProjectReference Include="..\CofreDeSenhas.Nucleo\CofreDeSenhas.Nucleo.csproj" />
   </ItemGroup>
 
 </Project>

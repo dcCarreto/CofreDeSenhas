@@ -31,6 +31,14 @@ gerenciador de senhas seguro:
 - Suíte de testes automatizados (unitários, integração, segurança e desempenho).
 - Distribuição como executável único e autocontido para Windows.
 
+## Em desenvolvimento
+
+- Extensão de navegador para Chromium (Chrome, Edge, Brave): preenchimento de
+  usuário e senha sob clique, conversando com o cofre local por um host nativo
+  (Native Messaging), com a senha mestra pedida uma única vez por sessão. Inclui
+  bloqueio automático por inatividade no host da extensão e correspondência de
+  domínio por eTLD+1.
+
 ## Planejado
 
 Ideias e melhorias consideradas para versões futuras, sem ordem definitiva de
