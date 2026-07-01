@@ -30,6 +30,8 @@ gerenciador de senhas seguro:
   minimizar para a bandeja.
 - Suíte de testes automatizados (unitários, integração, segurança e desempenho).
 - Distribuição como executável único e autocontido para Windows.
+- Versão dedicada para Linux (Avalonia), com a mesma interface e o mesmo núcleo,
+  atalho no menu de aplicativos e script de instalação por usuário.
 
 ## Planejado
 
@@ -46,7 +48,7 @@ prioridade:
 - Internacionalização da interface (além do português).
 - Sincronização opcional e criptografada de ponta a ponta entre dispositivos.
 - Desbloqueio por biometria ou Windows Hello.
-- Versões para outras plataformas (Linux e macOS).
+- Versão para macOS.
 - Empacotamento em instalador e publicação em gerenciadores de pacotes.
 
 ## Como sugerir

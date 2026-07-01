@@ -3,6 +3,10 @@
 ###############################################################################
 * text=auto
 
+# Arquivos destinados ao Linux precisam manter fim de linha LF
+*.sh      text eol=lf
+*.desktop text eol=lf
+
 ###############################################################################
 # Set default behavior for command prompt diff.
 #

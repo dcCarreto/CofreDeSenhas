@@ -1,14 +1,15 @@
 # Cofre de Senhas
 
-Gerenciador de senhas para Windows, com gerador de senhas integrado e cofre
-local criptografado. A aplicação reúne, em uma única interface, a criação de
-senhas fortes e o armazenamento seguro de credenciais, protegidos por uma senha
-mestra e por criptografia AES-256-GCM. Foi desenvolvido em C# com .NET 10 e
-Windows Forms.
+Gerenciador de senhas para Windows e Linux, com gerador de senhas integrado e
+cofre local criptografado. A aplicação reúne, em uma única interface, a criação
+de senhas fortes e o armazenamento seguro de credenciais, protegidos por uma
+senha mestra e por criptografia AES-256-GCM. Foi desenvolvido em C# com .NET 10:
+a versão Windows usa Windows Forms e a versão Linux usa Avalonia, ambas sobre a
+mesma biblioteca de domínio.
 
 [![CI](https://github.com/dcCarreto/CofreDeSenhas/actions/workflows/ci.yml/badge.svg)](https://github.com/dcCarreto/CofreDeSenhas/actions/workflows/ci.yml)
 ![Licença](https://img.shields.io/badge/licen%C3%A7a-MIT-blue)
-![Plataforma](https://img.shields.io/badge/plataforma-Windows%2010%2F11-0078D6)
+![Plataforma](https://img.shields.io/badge/plataforma-Windows%2010%2F11%20%7C%20Linux-0078D6)
 ![.NET](https://img.shields.io/badge/.NET-10-512BD4)
 ![Versão](https://img.shields.io/badge/vers%C3%A3o-1.0.0-success)
 
@@ -23,6 +24,7 @@ MIT. Você pode usá-lo, estudá-lo, modificá-lo e compartilhá-lo livremente.
 - [Funcionalidades](#funcionalidades)
 - [Modelo de segurança](#modelo-de-segurança)
 - [Download e instalação](#download-e-instalação)
+- [Versão para Linux](#versão-para-linux)
 - [Estrutura do projeto](#estrutura-do-projeto)
 - [Arquitetura](#arquitetura)
 - [Tecnologias](#tecnologias)
@@ -160,14 +162,49 @@ A forma mais simples de usar o programa é baixar o executável pronto na págin
 No primeiro uso, o programa pedirá a criação de uma senha mestra. Guarde-a com
 cuidado: ela é a única forma de abrir o cofre.
 
+## Versão para Linux
+
+O projeto `App.Linux` é a versão do aplicativo dedicada a distribuições Linux
+(X11 e Wayland), com a mesma interface, o mesmo tema claro/escuro e as mesmas
+funcionalidades da versão Windows. A interface é renderizada com Avalonia e o
+executável publicado é autocontido: não é preciso ter o .NET instalado.
+
+Para compilar, publicar e instalar para o usuário atual (sem sudo), basta rodar
+o script de instalação em uma máquina Linux com o .NET 10 SDK:
+
+```
+./App.Linux/distribuicao/instalar.sh
+```
+
+O script publica o binário em `~/.local/opt/cofre-de-senhas`, registra o atalho
+"Cofre de Senhas" no menu de aplicativos e instala o ícone. Para remover,
+execute `./App.Linux/distribuicao/desinstalar.sh` (o cofre em
+`~/.config/GerenciadorSenhas` é preservado).
+
+Também é possível publicar manualmente:
+
+```
+dotnet publish App.Linux/App.Linux.csproj -c Release -r linux-x64 --self-contained -o publish-linux
+```
+
+Os dados ficam em `~/.config/GerenciadorSenhas/`, com os mesmos arquivos e o
+mesmo formato da versão Windows — um cofre exportado (`.gsenhas`) em uma
+plataforma pode ser importado na outra.
+
 ## Estrutura do projeto
 
 ```
 CofreDeSenhas.sln
-├─ App/                          Interface (Windows Forms)
+├─ App/                          Interface Windows (Windows Forms)
 │  ├─ Formularios/               Telas e diálogos da aplicação
 │  ├─ Controles/                 Controles customizados de UI
 │  └─ Infraestrutura/            Tema, preferências, recursos e utilitários
+├─ App.Linux/                    Interface Linux (Avalonia)
+│  ├─ Janelas/                   Telas e diálogos da aplicação
+│  ├─ Controles/                 Controles customizados de UI
+│  ├─ Infraestrutura/            Tema, preferências, recursos e utilitários
+│  ├─ Ativos/                    Ícone do aplicativo
+│  └─ distribuicao/              Atalho .desktop e scripts de instalação
 ├─ GerenciadorDeSenhas/          Biblioteca de domínio
 │  ├─ Modelos/                   Entidades (Senha, Categoria, SenhaExportada)
 │  ├─ Repositorios/              Acesso e gerência das credenciais
@@ -176,9 +213,10 @@ CofreDeSenhas.sln
 └─ GerenciadorDeSenhas.Testes/   Testes automatizados (xUnit)
 ```
 
-A solução separa a interface (projeto `App`) da lógica de domínio (projeto
-`GerenciadorDeSenhas`). Isso mantém as regras de negócio e a criptografia
-independentes do Windows Forms e permite testá-las de forma isolada.
+A solução separa as interfaces (projetos `App` e `App.Linux`) da lógica de
+domínio (projeto `GerenciadorDeSenhas`). Isso mantém as regras de negócio e a
+criptografia independentes da camada gráfica, permite testá-las de forma
+isolada e faz com que as duas versões compartilhem exatamente o mesmo núcleo.
 
 ## Arquitetura
 
@@ -206,8 +244,9 @@ Fluxo resumido da senha mestra:
 
 ## Tecnologias
 
-- C# e .NET 10 (Windows).
-- Windows Forms, com interface construída por código.
+- C# e .NET 10.
+- Windows Forms na versão Windows, com interface construída por código.
+- Avalonia na versão Linux, com o mesmo desenho de interface.
 - Criptografia da biblioteca padrão (`System.Security.Cryptography`):
   AES-256-GCM e PBKDF2-SHA256.
 - Serialização com `System.Text.Json`.
@@ -216,17 +255,23 @@ Fluxo resumido da senha mestra:
 
 ## Requisitos
 
-- Windows 10 ou 11.
+- Windows 10 ou 11, ou uma distribuição Linux com X11 ou Wayland.
 - Para compilar a partir do código-fonte: .NET 10 SDK.
 - Para executar o binário publicado: nada além do próprio executável, que é
   autocontido.
 
 ## Compilação e execução
 
-A partir da raiz do repositório:
+A partir da raiz do repositório, no Windows:
 
 ```
 dotnet run --project App/App.csproj
+```
+
+No Linux:
+
+```
+dotnet run --project App.Linux/App.Linux.csproj
 ```
 
 ## Testes
@@ -248,11 +293,13 @@ Para gerar um executável único e autocontido para Windows x64:
 dotnet publish App/App.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true -o publish
 ```
 
-O arquivo `CofreDeSenhas.exe` será criado na pasta `publish`.
+O arquivo `CofreDeSenhas.exe` será criado na pasta `publish`. Para o
+executável Linux, consulte a seção [Versão para Linux](#versão-para-linux).
 
 ## Armazenamento de dados
 
-Os arquivos da aplicação ficam em `%APPDATA%\GerenciadorSenhas\`:
+Os arquivos da aplicação ficam em `%APPDATA%\GerenciadorSenhas\` no Windows e
+em `~/.config/GerenciadorSenhas/` no Linux:
 
 - `auth.dat`: salt e verificador da senha mestra.
 - `senhas.json.enc`: cofre criptografado com as credenciais.

@@ -1,0 +1,76 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="AppLinux.Janelas.JanelaSenhaExportacao"
+        Width="440"
+        SizeToContent="Height"
+        CanResize="False"
+        SystemDecorations="None"
+        Background="Transparent"
+        TransparencyLevelHint="Transparent"
+        WindowStartupLocation="CenterOwner">
+
+  <Border CornerRadius="12"
+          ClipToBounds="True"
+          Background="{DynamicResource CardBackground}"
+          BorderBrush="{DynamicResource CardBorder}"
+          BorderThickness="1">
+
+    <DockPanel>
+      <Border DockPanel.Dock="Top"
+              Height="56"
+              BorderBrush="{DynamicResource CardBorder}"
+              BorderThickness="0,0,0,1"
+              PointerPressed="Arrastar">
+        <Grid>
+          <TextBlock Name="LblTitulo"
+                     FontSize="17" FontWeight="Bold"
+                     Foreground="{DynamicResource TextPrimary}"
+                     VerticalAlignment="Center"
+                     Margin="24,0,0,0" />
+          <Button Classes="fechar-dialogo" Content="✕"
+                  HorizontalAlignment="Right" VerticalAlignment="Center"
+                  Margin="0,0,14,0"
+                  Click="Cancelar_Click" />
+        </Grid>
+      </Border>
+
+      <Border DockPanel.Dock="Bottom"
+              Height="72"
+              BorderBrush="{DynamicResource CardBorder}"
+              BorderThickness="0,1,0,0">
+        <Grid Margin="24,0">
+          <Button Name="BtnPrincipal" Classes="primario"
+                  Width="200" Height="40"
+                  HorizontalAlignment="Left" VerticalAlignment="Center"
+                  Click="Principal_Click" />
+          <Button Classes="secundario" Content="Cancelar"
+                  Width="150" Height="40"
+                  HorizontalAlignment="Right" VerticalAlignment="Center"
+                  Click="Cancelar_Click" />
+        </Grid>
+      </Border>
+
+      <StackPanel Margin="24,16,24,10" Spacing="4">
+        <TextBlock Name="LblInfo"
+                   FontSize="12"
+                   Foreground="{DynamicResource TextSecondary}"
+                   TextWrapping="Wrap"
+                   Margin="0,0,0,12" />
+
+        <TextBlock Name="LblSenha" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
+        <TextBox Name="TxtSenha" Classes="campo revealPasswordButton" PasswordChar="●" Margin="0,0,0,10" />
+
+        <StackPanel Name="PainelConfirmar" Spacing="4">
+          <TextBlock Text="Confirmar senha" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
+          <TextBox Name="TxtConfirmar" Classes="campo revealPasswordButton" PasswordChar="●" Margin="0,0,0,10" />
+        </StackPanel>
+
+        <TextBlock Name="LblErro"
+                   FontSize="12"
+                   Foreground="{DynamicResource StrengthWeak}"
+                   TextWrapping="Wrap"
+                   MinHeight="20" />
+      </StackPanel>
+    </DockPanel>
+  </Border>
+</Window>

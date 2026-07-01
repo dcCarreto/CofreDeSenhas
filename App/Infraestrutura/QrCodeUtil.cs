@@ -14,7 +14,7 @@ namespace App
         {
             var resp = MessageBox.Show(owner,
                 "Deseja salvar um QR code de backup da sua senha mestra?\n\n" +
-                "⚠ ATENÇÃO: o QR code contém a sua senha mestra de forma legível. " +
+                "ATENÇÃO: o QR code contém a sua senha mestra de forma legível. " +
                 "Qualquer pessoa que escaneie a imagem terá acesso ao seu cofre.\n\n" +
                 "Guarde o arquivo em local seguro e offline (ou impresso) — " +
                 "nunca em nuvem, e-mail ou pastas compartilhadas.",

@@ -1,0 +1,270 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="AppLinux.App"
+             RequestedThemeVariant="Light">
+
+  <Application.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Light">
+          <SolidColorBrush x:Key="WorkspaceBackground" Color="#EAEBF1" />
+          <SolidColorBrush x:Key="CardBackground" Color="#FFFFFF" />
+          <SolidColorBrush x:Key="CardBorder" Color="#ECECF0" />
+          <SolidColorBrush x:Key="TitleBar" Color="#FFFFFF" />
+          <SolidColorBrush x:Key="TitleBarBorder" Color="#EEEEF1" />
+          <SolidColorBrush x:Key="InputBackground" Color="#F7F7FB" />
+          <SolidColorBrush x:Key="InputBorder" Color="#DFDFE9" />
+          <SolidColorBrush x:Key="RowHover" Color="#FAF9FE" />
+          <SolidColorBrush x:Key="Separator" Color="#F5F5F7" />
+          <SolidColorBrush x:Key="Footer" Color="#FCFCFD" />
+          <SolidColorBrush x:Key="AccentPrimary" Color="#7C3AED" />
+          <SolidColorBrush x:Key="AccentHover" Color="#6D28D9" />
+          <SolidColorBrush x:Key="AccentLight" Color="#F3EEFE" />
+          <SolidColorBrush x:Key="TextPrimary" Color="#20232B" />
+          <SolidColorBrush x:Key="TextSecondary" Color="#8D909A" />
+          <SolidColorBrush x:Key="TextTertiary" Color="#A0A0A9" />
+          <SolidColorBrush x:Key="TextHeader" Color="#A0A0A9" />
+          <SolidColorBrush x:Key="TrailInactive" Color="#E6E6EC" />
+          <SolidColorBrush x:Key="ToggleOff" Color="#D6D6DD" />
+          <SolidColorBrush x:Key="HoverBackground" Color="#F1F1F4" />
+          <SolidColorBrush x:Key="IconHoverBackground" Color="#EFEFF4" />
+          <SolidColorBrush x:Key="FavoriteBorderColor" Color="#CDCDD4" />
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Dark">
+          <SolidColorBrush x:Key="WorkspaceBackground" Color="#111218" />
+          <SolidColorBrush x:Key="CardBackground" Color="#1F212A" />
+          <SolidColorBrush x:Key="CardBorder" Color="#30323D" />
+          <SolidColorBrush x:Key="TitleBar" Color="#181921" />
+          <SolidColorBrush x:Key="TitleBarBorder" Color="#2C2E39" />
+          <SolidColorBrush x:Key="InputBackground" Color="#282A35" />
+          <SolidColorBrush x:Key="InputBorder" Color="#3A3C49" />
+          <SolidColorBrush x:Key="RowHover" Color="#282A37" />
+          <SolidColorBrush x:Key="Separator" Color="#2C2E39" />
+          <SolidColorBrush x:Key="Footer" Color="#1B1C25" />
+          <SolidColorBrush x:Key="AccentPrimary" Color="#9569F4" />
+          <SolidColorBrush x:Key="AccentHover" Color="#7C3AED" />
+          <SolidColorBrush x:Key="AccentLight" Color="#372F54" />
+          <SolidColorBrush x:Key="TextPrimary" Color="#EDEEF3" />
+          <SolidColorBrush x:Key="TextSecondary" Color="#9698A4" />
+          <SolidColorBrush x:Key="TextTertiary" Color="#787A86" />
+          <SolidColorBrush x:Key="TextHeader" Color="#787A86" />
+          <SolidColorBrush x:Key="TrailInactive" Color="#383A46" />
+          <SolidColorBrush x:Key="ToggleOff" Color="#444654" />
+          <SolidColorBrush x:Key="HoverBackground" Color="#2C2E3A" />
+          <SolidColorBrush x:Key="IconHoverBackground" Color="#323440" />
+          <SolidColorBrush x:Key="FavoriteBorderColor" Color="#585A67" />
+        </ResourceDictionary>
+      </ResourceDictionary.ThemeDictionaries>
+
+      <SolidColorBrush x:Key="StrengthWeak" Color="#EF4444" />
+      <SolidColorBrush x:Key="StrengthMedium" Color="#F59E0B" />
+      <SolidColorBrush x:Key="StrengthStrong" Color="#16A34A" />
+      <SolidColorBrush x:Key="CloseButtonHover" Color="#E81123" />
+      <SolidColorBrush x:Key="FavoriteColor" Color="#F5A623" />
+
+      <FontFamily x:Key="FonteMono">DejaVu Sans Mono, Liberation Mono, Noto Sans Mono, Ubuntu Mono, Consolas, monospace</FontFamily>
+    </ResourceDictionary>
+  </Application.Resources>
+
+  <Application.Styles>
+    <FluentTheme />
+
+    <!-- Botão de ação principal (roxo) -->
+    <Style Selector="Button.primario">
+      <Setter Property="Background" Value="{DynamicResource AccentPrimary}" />
+      <Setter Property="Foreground" Value="White" />
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="FontSize" Value="15" />
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+      <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="Button.primario:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AccentHover}" />
+      <Setter Property="Foreground" Value="White" />
+    </Style>
+    <Style Selector="Button.primario:pressed /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AccentHover}" />
+      <Setter Property="Foreground" Value="White" />
+    </Style>
+
+    <!-- Botão secundário (fundo claro, borda) -->
+    <Style Selector="Button.secundario">
+      <Setter Property="Background" Value="{DynamicResource InputBackground}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
+      <Setter Property="FontSize" Value="15" />
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="BorderBrush" Value="{DynamicResource InputBorder}" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+      <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="Button.secundario:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource HoverBackground}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
+    </Style>
+
+    <!-- Botão de ícone quadrado (copiar, olho, importar…) -->
+    <Style Selector="Button.icone">
+      <Setter Property="Background" Value="{DynamicResource InputBackground}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextSecondary}" />
+      <Setter Property="FontSize" Value="14" />
+      <Setter Property="CornerRadius" Value="7" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+      <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="Button.icone:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource IconHoverBackground}" />
+      <Setter Property="Foreground" Value="{DynamicResource AccentPrimary}" />
+    </Style>
+
+    <!-- Variante com borda, usada no header do cofre -->
+    <Style Selector="Button.icone.borda">
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="BorderBrush" Value="{DynamicResource InputBorder}" />
+    </Style>
+
+    <!-- Botão de ação dentro de uma linha do cofre -->
+    <Style Selector="Button.icone-linha">
+      <Setter Property="Width" Value="30" />
+      <Setter Property="Height" Value="30" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Foreground" Value="{DynamicResource TextSecondary}" />
+      <Setter Property="FontSize" Value="13" />
+      <Setter Property="CornerRadius" Value="6" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+      <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="Button.icone-linha:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource IconHoverBackground}" />
+      <Setter Property="Foreground" Value="{DynamicResource AccentPrimary}" />
+    </Style>
+
+    <!-- Botão de texto sem fundo (Limpar, Copiar todas) -->
+    <Style Selector="Button.plano">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Foreground" Value="{DynamicResource TextSecondary}" />
+      <Setter Property="FontSize" Value="13" />
+      <Setter Property="CornerRadius" Value="7" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+      <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="Button.plano:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource HoverBackground}" />
+    </Style>
+
+    <!-- Botões da barra de título -->
+    <Style Selector="Button.janela">
+      <Setter Property="Width" Value="40" />
+      <Setter Property="Height" Value="32" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
+      <Setter Property="FontSize" Value="15" />
+      <Setter Property="CornerRadius" Value="6" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.janela:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource HoverBackground}" />
+    </Style>
+
+    <Style Selector="Button.fechar">
+      <Setter Property="Background" Value="{DynamicResource CloseButtonHover}" />
+      <Setter Property="Foreground" Value="White" />
+    </Style>
+    <Style Selector="Button.fechar:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="#C50F1F" />
+      <Setter Property="Foreground" Value="White" />
+    </Style>
+
+    <!-- ✕ dos diálogos -->
+    <Style Selector="Button.fechar-dialogo">
+      <Setter Property="Width" Value="36" />
+      <Setter Property="Height" Value="36" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Foreground" Value="{DynamicResource TextSecondary}" />
+      <Setter Property="FontSize" Value="14" />
+      <Setter Property="CornerRadius" Value="7" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+      <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="Button.fechar-dialogo:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource HoverBackground}" />
+    </Style>
+
+    <!-- Campos de texto -->
+    <Style Selector="TextBox.campo">
+      <Setter Property="Background" Value="{DynamicResource InputBackground}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource InputBorder}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="MinHeight" Value="38" />
+      <Setter Property="Padding" Value="12,8" />
+      <Setter Property="FontSize" Value="14" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="TextBox.campo:pointerover /template/ Border#PART_BorderElement">
+      <Setter Property="Background" Value="{DynamicResource InputBackground}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource InputBorder}" />
+    </Style>
+    <Style Selector="TextBox.campo:focus /template/ Border#PART_BorderElement">
+      <Setter Property="Background" Value="{DynamicResource InputBackground}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentPrimary}" />
+    </Style>
+
+    <!-- Campo sem moldura própria, usado dentro de caixas desenhadas à parte -->
+    <Style Selector="TextBox.embutido">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="MinHeight" Value="0" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="TextBox.embutido:pointerover /template/ Border#PART_BorderElement">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+    </Style>
+    <Style Selector="TextBox.embutido:focus /template/ Border#PART_BorderElement">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+    </Style>
+
+    <!-- Combos -->
+    <Style Selector="ComboBox.campo">
+      <Setter Property="Background" Value="{DynamicResource InputBackground}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource InputBorder}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="MinHeight" Value="34" />
+      <Setter Property="Padding" Value="10,0" />
+      <Setter Property="FontSize" Value="13" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+
+    <Style Selector="ToolTip">
+      <Setter Property="Background" Value="{DynamicResource CardBackground}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource CardBorder}" />
+      <Setter Property="FontSize" Value="12" />
+    </Style>
+  </Application.Styles>
+</Application>

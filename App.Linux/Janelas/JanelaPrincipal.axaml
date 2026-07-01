@@ -1,0 +1,278 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:c="using:AppLinux.Controles"
+        x:Class="AppLinux.Janelas.JanelaPrincipal"
+        Title="Cofre de Senhas"
+        Width="1160" Height="720"
+        MinWidth="900" MinHeight="600"
+        SystemDecorations="None"
+        Background="Transparent"
+        TransparencyLevelHint="Transparent"
+        WindowStartupLocation="CenterScreen">
+
+  <Grid>
+    <Border Name="Moldura"
+            CornerRadius="10"
+            ClipToBounds="True"
+            Background="{DynamicResource WorkspaceBackground}"
+            BorderBrush="{DynamicResource CardBorder}"
+            BorderThickness="1">
+
+      <DockPanel>
+        <!-- Barra de título -->
+        <Border DockPanel.Dock="Top"
+                Height="44"
+                Background="{DynamicResource TitleBar}"
+                BorderBrush="{DynamicResource TitleBarBorder}"
+                BorderThickness="0,0,0,1"
+                PointerPressed="BarraTitulo_PointerPressed">
+          <Grid>
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="14,0,0,0" Spacing="8">
+              <Image Source="/Ativos/app.png" Width="26" Height="26" />
+              <TextBlock Text="Cofre de Senhas"
+                         FontSize="16" FontWeight="Bold"
+                         Foreground="{DynamicResource TextPrimary}"
+                         VerticalAlignment="Center" />
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,5,0">
+              <Button Name="BtnConfig" Classes="janela" Content="⚙" FontSize="14"
+                      Foreground="{DynamicResource TextSecondary}"
+                      ToolTip.Tip="Configurações">
+                <Button.Flyout>
+                  <MenuFlyout Placement="BottomEdgeAlignedRight">
+                    <MenuItem Header="Alterar senha mestra…" Click="AlterarSenhaMestra_Click" />
+                  </MenuFlyout>
+                </Button.Flyout>
+              </Button>
+              <Button Name="BtnTema" Classes="janela" Content="🌙" FontSize="13"
+                      Foreground="{DynamicResource TextSecondary}"
+                      Click="Tema_Click" />
+              <Button Classes="janela" Content="−" Click="Minimizar_Click" />
+              <Button Name="BtnMaximizar" Classes="janela" Content="□" FontSize="14" Click="Maximizar_Click" />
+              <Button Classes="janela fechar" Content="✕" Click="Fechar_Click" />
+            </StackPanel>
+          </Grid>
+        </Border>
+
+        <!-- Corpo -->
+        <Grid Margin="18" ColumnDefinitions="3*,18,7*">
+
+          <!-- Gerador -->
+          <Border Grid.Column="0"
+                  MinWidth="280"
+                  CornerRadius="12"
+                  Background="{DynamicResource CardBackground}"
+                  BorderBrush="{DynamicResource CardBorder}"
+                  BorderThickness="1"
+                  BoxShadow="0 3 16 0 #21262840">
+            <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+              <StackPanel Margin="24,22">
+                <TextBlock Text="Gerador de senha" FontSize="20" FontWeight="Bold"
+                           Foreground="{DynamicResource TextPrimary}" />
+				  <Border Height="60"
+                        CornerRadius="11"
+                        Background="{DynamicResource InputBackground}"
+                        BorderBrush="{DynamicResource InputBorder}"
+                        BorderThickness="1"
+                        Margin="0,0,0,18">
+                  <Grid ColumnDefinitions="*,Auto,Auto,Auto" Margin="14,0,8,0">
+                    <TextBox Name="TxtSenhaGerada"
+                             Classes="embutido"
+                             FontFamily="{StaticResource FonteMono}"
+                             FontSize="18" FontWeight="Bold"
+                             IsReadOnly="True"
+                             VerticalAlignment="Center"
+                             Margin="0,0,6,0" />
+                    <Button Grid.Column="1" Classes="icone" Content="👁" Width="32" Height="32"
+                            VerticalAlignment="Center" Click="OlhoGerada_Click" />
+                    <Button Grid.Column="2" Classes="icone" Content="⧉" Width="32" Height="32"
+                            VerticalAlignment="Center" Margin="2,0" Click="CopiarGerada_Click" />
+                    <Button Grid.Column="3" Classes="icone" Content="⟳" Width="32" Height="32" FontSize="16"
+                            VerticalAlignment="Center" Click="Gerar_Click" />
+                  </Grid>
+                </Border>
+
+                <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,6">
+                  <TextBlock Text="Força da senha" FontSize="13" Foreground="{DynamicResource TextSecondary}" />
+                  <TextBlock Name="LblForca" Grid.Column="1" Text="—" FontSize="13" FontWeight="Bold"
+                             Foreground="{DynamicResource TextSecondary}" />
+                </Grid>
+
+                <Grid ColumnDefinitions="*,6,*,6,*,6,*" Margin="0,0,0,20">
+                  <Border Name="SegForca1" Height="6" CornerRadius="3" Background="{DynamicResource TrailInactive}" />
+                  <Border Name="SegForca2" Grid.Column="2" Height="6" CornerRadius="3" Background="{DynamicResource TrailInactive}" />
+                  <Border Name="SegForca3" Grid.Column="4" Height="6" CornerRadius="3" Background="{DynamicResource TrailInactive}" />
+                  <Border Name="SegForca4" Grid.Column="6" Height="6" CornerRadius="3" Background="{DynamicResource TrailInactive}" />
+                </Grid>
+
+                <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,4">
+                  <TextBlock Text="Comprimento" FontSize="13" Foreground="{DynamicResource TextSecondary}" />
+                  <TextBlock Name="LblTamanhoValor" Grid.Column="1" Text="12"
+                             FontFamily="{StaticResource FonteMono}" FontSize="13" FontWeight="Bold"
+                             Foreground="{DynamicResource AccentPrimary}" />
+                </Grid>
+                <c:CustomSlider Name="SliderTamanho" Minimum="4" Maximum="64" Value="12" Margin="0,0,0,18" />
+
+                <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,4">
+                  <TextBlock Text="Quantidade de senhas" FontSize="13" Foreground="{DynamicResource TextSecondary}" />
+                  <TextBlock Name="LblQuantidadeValor" Grid.Column="1" Text="1"
+                             FontFamily="{StaticResource FonteMono}" FontSize="13" FontWeight="Bold"
+                             Foreground="{DynamicResource AccentPrimary}" />
+                </Grid>
+                <c:CustomSlider Name="SliderQuantidade" Minimum="1" Maximum="10" Value="1" Margin="0,0,0,18" />
+
+                <Grid ColumnDefinitions="*,Auto" Height="30" Margin="0,0,0,6">
+                  <TextBlock Text="Letras maiúsculas (A-Z)" FontSize="13"
+                             Foreground="{DynamicResource TextPrimary}" VerticalAlignment="Center" />
+                  <c:CustomToggle Name="ToggleMaiusculas" Grid.Column="1" Checked="True" VerticalAlignment="Center" />
+                </Grid>
+                <Grid ColumnDefinitions="*,Auto" Height="30" Margin="0,0,0,6">
+                  <TextBlock Text="Letras minúsculas (a-z)" FontSize="13"
+                             Foreground="{DynamicResource TextPrimary}" VerticalAlignment="Center" />
+                  <c:CustomToggle Name="ToggleMinusculas" Grid.Column="1" Checked="True" VerticalAlignment="Center" />
+                </Grid>
+                <Grid ColumnDefinitions="*,Auto" Height="30" Margin="0,0,0,6">
+                  <TextBlock Text="Números (0-9)" FontSize="13"
+                             Foreground="{DynamicResource TextPrimary}" VerticalAlignment="Center" />
+                  <c:CustomToggle Name="ToggleNumeros" Grid.Column="1" Checked="True" VerticalAlignment="Center" />
+                </Grid>
+                <Grid ColumnDefinitions="*,Auto" Height="30" Margin="0,0,0,22">
+                  <TextBlock Text="Caracteres especiais (!@#)" FontSize="13"
+                             Foreground="{DynamicResource TextPrimary}" VerticalAlignment="Center" />
+                  <c:CustomToggle Name="ToggleEspeciais" Grid.Column="1" VerticalAlignment="Center" />
+                </Grid>
+
+                <Button Classes="primario" Content="Gerar nova senha" Height="44"
+                        HorizontalAlignment="Stretch" Margin="0,0,0,10"
+                        Click="Gerar_Click" />
+
+                <Grid ColumnDefinitions="*,10,90">
+                  <Button Classes="secundario" Content="Salvar no cofre" Height="38" FontSize="13"
+                          HorizontalAlignment="Stretch" Click="SalvarNoCofre_Click" />
+                  <Button Grid.Column="2" Classes="plano" Content="Limpar" Height="38"
+                          HorizontalAlignment="Stretch" Click="Limpar_Click" />
+                </Grid>
+
+                <StackPanel Name="PainelGeradas" Margin="0,8,0,0" />
+              </StackPanel>
+            </ScrollViewer>
+          </Border>
+
+          <!-- Cofre -->
+          <Border Grid.Column="2"
+                  CornerRadius="12"
+                  Background="{DynamicResource CardBackground}"
+                  BorderBrush="{DynamicResource CardBorder}"
+                  BorderThickness="1"
+                  BoxShadow="0 3 16 0 #21262840">
+            <DockPanel>
+              <!-- Rodapé -->
+              <Border DockPanel.Dock="Bottom"
+                      Height="42"
+                      Background="{DynamicResource Footer}"
+                      BorderBrush="{DynamicResource CardBorder}"
+                      BorderThickness="0,1,0,0"
+                      CornerRadius="0,0,12,12">
+                <Grid Margin="24,0">
+                  <TextBlock Name="LblStatus" Text="0 senhas • 0 favoritas"
+                             FontSize="12" Foreground="{DynamicResource TextSecondary}"
+                             VerticalAlignment="Center" />
+                  <StackPanel Orientation="Horizontal" Spacing="6"
+                              HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <Ellipse Width="8" Height="8" Fill="#22C55E" VerticalAlignment="Center" />
+                    <TextBlock Text="Cofre criptografado" FontSize="12"
+                               Foreground="{DynamicResource TextSecondary}" VerticalAlignment="Center" />
+                  </StackPanel>
+                </Grid>
+              </Border>
+
+              <DockPanel Margin="24,22,24,0">
+                <!-- Header -->
+                <Grid DockPanel.Dock="Top" Height="48" ColumnDefinitions="Auto,Auto,*,Auto">
+                  <TextBlock Text="Cofre de senhas" FontSize="20" FontWeight="Bold"
+                             Foreground="{DynamicResource TextPrimary}" VerticalAlignment="Top" />
+                  <TextBlock Name="LblContadorHeader" Grid.Column="1" Text="0 itens" FontSize="13"
+                             Foreground="{DynamicResource TextSecondary}"
+                             Margin="12,5,0,0" />
+                  <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="7" VerticalAlignment="Top">
+                    <Button Classes="icone borda" Content="📥" Width="40" Height="38"
+                            ToolTip.Tip="Importar senhas de um arquivo"
+                            Click="Importar_Click" />
+                    <Button Classes="icone borda" Content="📤" Width="40" Height="38"
+                            ToolTip.Tip="Exportar senhas para um arquivo criptografado"
+                            Click="Exportar_Click" />
+                    <Button Classes="primario" Content="+  Nova senha" Width="130" Height="38" FontSize="13"
+                            Click="NovaSenha_Click" />
+                  </StackPanel>
+                </Grid>
+
+                <!-- Filtros -->
+                <Grid DockPanel.Dock="Top" Height="46" ColumnDefinitions="140,10,*,10,40,6,40">
+                  <ComboBox Name="CmbCategoria" Classes="campo"
+                            Height="34" VerticalAlignment="Center" HorizontalAlignment="Stretch"
+                            SelectionChanged="Filtro_Alterado" />
+                  <TextBox Name="TxtBusca" Grid.Column="2" Classes="campo"
+                           MinHeight="34" Height="34" VerticalAlignment="Center"
+                           Watermark="Buscar por serviço ou usuário"
+                           TextChanged="Busca_Alterada">
+                    <TextBox.InnerLeftContent>
+                      <TextBlock Text="🔍" FontSize="12" Margin="10,0,0,0"
+                                 Foreground="{DynamicResource TextSecondary}"
+                                 VerticalAlignment="Center" />
+                    </TextBox.InnerLeftContent>
+                  </TextBox>
+                  <Button Name="BtnVazamentos" Grid.Column="4" Classes="icone borda" Content="🛡"
+                          Width="40" Height="34" VerticalAlignment="Center"
+                          ToolTip.Tip="Verificar senhas vazadas (Have I Been Pwned)"
+                          Click="VerificarVazamentos_Click" />
+                  <Button Name="BtnFavoritos" Grid.Column="6" Classes="icone borda" Content="★"
+                          Width="40" Height="34" FontSize="15" VerticalAlignment="Center"
+                          ToolTip.Tip="Somente favoritas"
+                          Click="FiltroFavoritos_Click" />
+                </Grid>
+
+                <!-- Cabeçalho das colunas -->
+                <Border DockPanel.Dock="Top" Height="30"
+                        BorderBrush="{DynamicResource Separator}" BorderThickness="0,0,0,1">
+                  <Grid>
+                    <TextBlock Text="SERVIÇO" FontSize="10" FontWeight="Bold"
+                               Foreground="{DynamicResource TextHeader}"
+                               VerticalAlignment="Center" Margin="96,0,0,0" />
+                    <TextBlock Text="AÇÕES" FontSize="10" FontWeight="Bold"
+                               Foreground="{DynamicResource TextHeader}"
+                               HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,56,0" />
+                  </Grid>
+                </Border>
+
+                <!-- Lista -->
+                <Grid>
+                  <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Name="PainelLista" />
+                  </ScrollViewer>
+                  <TextBlock Name="LblVazio"
+                             Text="Nenhuma senha no cofre.&#x0a;Clique em &quot;Nova senha&quot; para começar."
+                             FontSize="13"
+                             Foreground="{DynamicResource TextSecondary}"
+                             TextAlignment="Center"
+                             HorizontalAlignment="Center" VerticalAlignment="Center"
+                             IsVisible="False" />
+                </Grid>
+              </DockPanel>
+            </DockPanel>
+          </Border>
+        </Grid>
+      </DockPanel>
+    </Border>
+
+    <!-- Bordas invisíveis para redimensionar a janela sem decoração do sistema -->
+    <Border Name="RedimN" Background="Transparent" Height="6" VerticalAlignment="Top" Margin="6,0" Cursor="SizeNorthSouth" Tag="North" PointerPressed="Redimensionar" />
+    <Border Name="RedimS" Background="Transparent" Height="6" VerticalAlignment="Bottom" Margin="6,0" Cursor="SizeNorthSouth" Tag="South" PointerPressed="Redimensionar" />
+    <Border Name="RedimO" Background="Transparent" Width="6" HorizontalAlignment="Left" Margin="0,6" Cursor="SizeWestEast" Tag="West" PointerPressed="Redimensionar" />
+    <Border Name="RedimL" Background="Transparent" Width="6" HorizontalAlignment="Right" Margin="0,6" Cursor="SizeWestEast" Tag="East" PointerPressed="Redimensionar" />
+    <Border Name="RedimNO" Background="Transparent" Width="10" Height="10" HorizontalAlignment="Left" VerticalAlignment="Top" Cursor="TopLeftCorner" Tag="NorthWest" PointerPressed="Redimensionar" />
+    <Border Name="RedimNL" Background="Transparent" Width="10" Height="10" HorizontalAlignment="Right" VerticalAlignment="Top" Cursor="TopRightCorner" Tag="NorthEast" PointerPressed="Redimensionar" />
+    <Border Name="RedimSO" Background="Transparent" Width="10" Height="10" HorizontalAlignment="Left" VerticalAlignment="Bottom" Cursor="BottomLeftCorner" Tag="SouthWest" PointerPressed="Redimensionar" />
+    <Border Name="RedimSL" Background="Transparent" Width="10" Height="10" HorizontalAlignment="Right" VerticalAlignment="Bottom" Cursor="BottomRightCorner" Tag="SouthEast" PointerPressed="Redimensionar" />
+  </Grid>
+</Window>

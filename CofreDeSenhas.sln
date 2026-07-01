@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GerenciadorDeSenhas", "Gere
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GerenciadorDeSenhas.Testes", "GerenciadorDeSenhas.Testes\GerenciadorDeSenhas.Testes.csproj", "{26945577-FA3C-4108-9756-E5EB445CFE18}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "App.Linux", "App.Linux\App.Linux.csproj", "{28EFF420-BC4D-4A71-9924-DDDBF3907DAF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -55,6 +57,18 @@ Global
 		{26945577-FA3C-4108-9756-E5EB445CFE18}.Release|x64.Build.0 = Release|Any CPU
 		{26945577-FA3C-4108-9756-E5EB445CFE18}.Release|x86.ActiveCfg = Release|Any CPU
 		{26945577-FA3C-4108-9756-E5EB445CFE18}.Release|x86.Build.0 = Release|Any CPU
+		{28EFF420-BC4D-4A71-9924-DDDBF3907DAF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{28EFF420-BC4D-4A71-9924-DDDBF3907DAF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{28EFF420-BC4D-4A71-9924-DDDBF3907DAF}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{28EFF420-BC4D-4A71-9924-DDDBF3907DAF}.Debug|x64.Build.0 = Debug|Any CPU
+		{28EFF420-BC4D-4A71-9924-DDDBF3907DAF}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{28EFF420-BC4D-4A71-9924-DDDBF3907DAF}.Debug|x86.Build.0 = Debug|Any CPU
+		{28EFF420-BC4D-4A71-9924-DDDBF3907DAF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{28EFF420-BC4D-4A71-9924-DDDBF3907DAF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{28EFF420-BC4D-4A71-9924-DDDBF3907DAF}.Release|x64.ActiveCfg = Release|Any CPU
+		{28EFF420-BC4D-4A71-9924-DDDBF3907DAF}.Release|x64.Build.0 = Release|Any CPU
+		{28EFF420-BC4D-4A71-9924-DDDBF3907DAF}.Release|x86.ActiveCfg = Release|Any CPU
+		{28EFF420-BC4D-4A71-9924-DDDBF3907DAF}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
