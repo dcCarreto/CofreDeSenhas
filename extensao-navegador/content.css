@@ -53,6 +53,12 @@
   word-break: break-all;
 }
 
+.cofre-menu-url {
+  color: #a0a0a0;
+  font-size: 12px;
+  word-break: break-all;
+}
+
 .cofre-tooltip {
   position: fixed;
   z-index: 2147483647;

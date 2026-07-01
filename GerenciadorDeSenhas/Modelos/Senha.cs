@@ -1,4 +1,8 @@
 using System;
+using System.Collections.Generic;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using GerenciadorDeSenhas.Servicos;
 
 namespace GerenciadorDeSenhas.Modelos
 {
@@ -16,10 +20,13 @@ namespace GerenciadorDeSenhas.Modelos
 
         public bool Favorito { get; set; }
 
-        public byte[] IV { get; set; } = new byte[12];
-        public byte[] AuthTag { get; set; } = new byte[16];
+        public byte[] IV { get; set; } = new byte[EspecificacaoCriptografica.TamanhoIvAesGcm];
+        public byte[] AuthTag { get; set; } = new byte[EspecificacaoCriptografica.TamanhoTagAesGcm];
 
         public DateTime DataCriacao { get; set; } = DateTime.UtcNow;
         public DateTime DataAtualizacao { get; set; } = DateTime.UtcNow;
+
+        [JsonExtensionData]
+        public Dictionary<string, JsonElement>? CamposExtras { get; set; }
     }
 }

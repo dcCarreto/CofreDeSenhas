@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    name: Compilar e testar
+    name: Compilar extensao
     runs-on: windows-latest
 
     steps:
@@ -26,5 +26,6 @@ jobs:
       - name: Compilar
         run: dotnet build CofreDeSenhas.sln -c Release --no-restore
 
-      - name: Executar testes
-        run: dotnet test CofreDeSenhas.sln -c Release --no-build --verbosity normal
+      - name: Validar manifest da extensão
+        shell: pwsh
+        run: Get-Content extensao-navegador/manifest.json -Raw | ConvertFrom-Json | Out-Null

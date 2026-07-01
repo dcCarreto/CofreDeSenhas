@@ -50,11 +50,47 @@
     input.dispatchEvent(new Event("change", { bubbles: true }));
   }
 
+  function textoErro(erro) {
+    switch (erro) {
+      case "bloqueado":
+        return "Cofre bloqueado.";
+      case "cofre_nao_encontrado":
+        return "Cofre não encontrado.";
+      case "cofre_sem_permissao":
+        return "Sem acesso aos arquivos do cofre.";
+      case "cofre_formato_invalido":
+        return "Formato do cofre incompatível.";
+      case "permissao_negada":
+        return "Operação bloqueada pela extensão.";
+      case "credencial_indisponivel":
+      case "nao_encontrado":
+        return "Credencial indisponível.";
+      case "sem_resposta":
+        return "Host nativo sem resposta.";
+      default:
+        return "Não foi possível preencher.";
+    }
+  }
+
   async function preencher(campo, id) {
     const c = await nativo({ tipo: "getCredential", id });
-    if (!c.ok) return;
+    if (!c.ok) return { ok: false, erro: c.erro ?? "credencial_indisponivel" };
     if (campo.usuario && c.usuario) definirValor(campo.usuario, c.usuario);
     definirValor(campo.senha, c.senha);
+    return { ok: true };
+  }
+
+  function campoParaPreenchimento() {
+    const ativo = document.activeElement;
+    if (ativo instanceof HTMLInputElement) {
+      const porSenha = registros.find((r) => r.campo.senha === ativo && visivel(r.campo.senha));
+      if (porSenha) return porSenha.campo;
+
+      const porUsuario = registros.find((r) => r.campo.usuario === ativo && visivel(r.campo.senha));
+      if (porUsuario) return porUsuario.campo;
+    }
+
+    return registros.find((r) => document.contains(r.campo.senha) && visivel(r.campo.senha))?.campo ?? null;
   }
 
   async function aoClicarIcone(campo, botao) {
@@ -63,12 +99,19 @@
 
     if (!r.ok && r.erro === "bloqueado") {
       const u = await nativo({ tipo: "unlock" });
-      if (!(u.ok && u.status === "unlocked")) return;
+      if (u.ok && u.status === "cancelled") {
+        mostrarTooltip(botao, "Desbloqueio cancelado.");
+        return;
+      }
+      if (!(u.ok && u.status === "unlocked")) {
+        mostrarTooltip(botao, textoErro(u.erro));
+        return;
+      }
       r = await nativo({ tipo: "query", dominio });
     }
 
     if (!r.ok) {
-      mostrarTooltip(botao, "Não foi possível acessar o Cofre.");
+      mostrarTooltip(botao, textoErro(r.erro));
       return;
     }
 
@@ -78,7 +121,8 @@
       return;
     }
     if (itens.length === 1) {
-      await preencher(campo, itens[0].id);
+      const preenchido = await preencher(campo, itens[0].id);
+      if (!preenchido.ok) mostrarTooltip(botao, textoErro(preenchido.erro));
       return;
     }
     mostrarMenu(campo, botao, itens);
@@ -136,10 +180,18 @@
       usuario.textContent = item.usuario;
 
       linha.append(servico, usuario);
+      if (item.url) {
+        const url = document.createElement("div");
+        url.className = "cofre-menu-url";
+        url.textContent = item.url;
+        linha.append(url);
+      }
+
       linha.addEventListener("mousedown", (e) => e.preventDefault());
       linha.addEventListener("click", async () => {
         fecharMenu();
-        await preencher(campo, item.id);
+        const preenchido = await preencher(campo, item.id);
+        if (!preenchido.ok) mostrarTooltip(botao, textoErro(preenchido.erro));
       });
       menu.append(linha);
     }
@@ -202,6 +254,26 @@
   new MutationObserver(agendar).observe(document.documentElement, {
     childList: true,
     subtree: true,
+  });
+
+  chrome.runtime.onMessage.addListener((mensagem, _remetente, responder) => {
+    if (mensagem?.canal !== "cofre" || mensagem.tipo !== "preencher") {
+      return false;
+    }
+
+    escanear();
+    reposicionarTodos();
+
+    const campo = campoParaPreenchimento();
+    if (!campo) {
+      responder({ ok: false, erro: "campo_nao_encontrado" });
+      return false;
+    }
+
+    preencher(campo, mensagem.id)
+      .then(responder)
+      .catch((e) => responder({ ok: false, erro: e?.message ?? String(e) }));
+    return true;
   });
 
   escanear();

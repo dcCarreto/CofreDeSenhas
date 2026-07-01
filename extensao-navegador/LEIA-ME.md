@@ -4,17 +4,33 @@ Extensão MV3 offline que preenche/copiar credenciais do seu Cofre de Senhas loc
 conversando com um host nativo (Bridge → Agent) via Native Messaging. Veja o design
 em [../docs/extensao-arquitetura.md](../docs/extensao-arquitetura.md).
 
-> Estado atual (Fase 4): além do popup (que destranca e lista credenciais, com
-> botões de copiar), há um **content script** que desenha o ícone do Cofre dentro
-> dos campos de senha. Ao clicar no ícone, usuário e senha são preenchidos — com um
-> menu de escolha quando há mais de uma credencial para o site. Nada é preenchido
-> sem o clique do usuário e o formulário nunca é enviado automaticamente.
+> Estado atual (Fase 10): o popup destranca o cofre, lista credenciais da aba
+> atual, busca manualmente por serviço/usuário/URL, preenche a aba atual por
+> clique, copia usuário/senha tentando limpar o clipboard após 30 segundos e
+> adiciona/edita credenciais do cofre. O content script desenha o ícone do Cofre
+> dentro dos campos de senha e também preenche por clique. Nada é preenchido sem
+> ação do usuário, o formulário nunca é enviado automaticamente e a extensão não
+> oferece remoção de credenciais. As gravações criam backup local, usam
+> substituição atômica e recusam salvar quando o arquivo foi alterado fora da
+> extensão desde o desbloqueio. O background valida os comandos permitidos por
+> origem antes de chamar o host nativo. Os estados de cofre ausente, senha mestra
+> incorreta, cofre bloqueado, conflito de escrita, falta de permissão e formato
+> incompatível têm mensagens próprias no fluxo.
 
 ## Pré-requisitos
 
-- Ter o app desktop **Cofre de Senhas** com a senha mestra já criada e ao menos uma
-  credencial salva **com URL** (ex.: `https://github.com`).
+- Ter um cofre já criado em `%APPDATA%\GerenciadorSenhas\`, com a senha mestra
+  configurada e ao menos uma credencial salva **com URL** (ex.:
+  `https://github.com`).
 - Windows com .NET 10 SDK (para compilar Bridge e Agent).
+
+## Permissões
+
+A extensão declara `nativeMessaging`, `activeTab`, `clipboardWrite` e
+`clipboardRead`. O content script roda apenas em páginas `http://` e `https://`.
+O JavaScript da extensão não lê arquivos locais; o acesso ao cofre é feito pelo
+Bridge/Agent registrado como host nativo e limitado ao ID fixo da extensão por
+`allowed_origins`.
 
 ## Como testar em desenvolvimento
 
@@ -44,7 +60,10 @@ em [../docs/extensao-arquitetura.md](../docs/extensao-arquitetura.md).
 5. **Usar pelo popup**: navegue até um site para o qual você tem credencial salva
    (ex.: `github.com`), clique no ícone da extensão → **Desbloquear cofre** → digite
    a senha mestra no diálogo nativo → as credenciais do site aparecem. Use
-   **Copiar senha** / **Copiar usuário**.
+   **Preencher**, **Editar**, **Copiar usuário** ou **Copiar senha**. Use
+   **Adicionar senha** para salvar uma nova credencial; a URL da aba atual é
+   sugerida no formulário. As cópias tentam limpar o clipboard após 30 segundos
+   quando o navegador permite.
 
 6. **Usar o preenchimento na página**: numa tela de login do mesmo site, o ícone do
    Cofre aparece dentro do campo de senha. Clique nele → (desbloqueie, se pedido) →
@@ -84,4 +103,10 @@ Para validar o protocolo direto no Agent (sem a extensão):
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File tools/testar-protocolo.ps1 -Dominio github.com
+```
+
+Para validar compatibilidade criptográfica entre a biblioteca base e a extensão:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File tools/testar-compatibilidade.ps1
 ```

@@ -6,10 +6,6 @@ namespace GerenciadorDeSenhas.Servicos
 {
     public class AutenticacaoMestra
     {
-        private const int SaltSize = 16;
-        private const int KeySize = 32;
-        private const int Iterations = 100_000;
-
         private readonly string _caminhoAuth;
 
         public AutenticacaoMestra(string? pastaApp = null)
@@ -33,13 +29,13 @@ namespace GerenciadorDeSenhas.Servicos
             if (senha.Length < 8)
                 throw new ArgumentException("A senha mestra deve ter pelo menos 8 caracteres.");
 
-            var salt = RandomNumberGenerator.GetBytes(SaltSize);
+            var salt = RandomNumberGenerator.GetBytes(EspecificacaoCriptografica.TamanhoSalt);
             var chave = DerivarChave(senha, salt);
             var verificador = SHA256.HashData(chave);
 
-            var dados = new byte[SaltSize + verificador.Length];
-            Buffer.BlockCopy(salt, 0, dados, 0, SaltSize);
-            Buffer.BlockCopy(verificador, 0, dados, SaltSize, verificador.Length);
+            var dados = new byte[EspecificacaoCriptografica.TamanhoSalt + verificador.Length];
+            Buffer.BlockCopy(salt, 0, dados, 0, EspecificacaoCriptografica.TamanhoSalt);
+            Buffer.BlockCopy(verificador, 0, dados, EspecificacaoCriptografica.TamanhoSalt, verificador.Length);
 
             File.WriteAllText(_caminhoAuth, Convert.ToBase64String(dados));
             return chave;
@@ -53,12 +49,12 @@ namespace GerenciadorDeSenhas.Servicos
             try
             {
                 var dados = Convert.FromBase64String(File.ReadAllText(_caminhoAuth));
-                if (dados.Length < SaltSize + 32) return null;
+                if (dados.Length < EspecificacaoCriptografica.TamanhoMinimoAuth) return null;
 
-                var salt = new byte[SaltSize];
-                var verificadorArmazenado = new byte[32];
-                Buffer.BlockCopy(dados, 0, salt, 0, SaltSize);
-                Buffer.BlockCopy(dados, SaltSize, verificadorArmazenado, 0, 32);
+                var salt = new byte[EspecificacaoCriptografica.TamanhoSalt];
+                var verificadorArmazenado = new byte[EspecificacaoCriptografica.TamanhoVerificador];
+                Buffer.BlockCopy(dados, 0, salt, 0, EspecificacaoCriptografica.TamanhoSalt);
+                Buffer.BlockCopy(dados, EspecificacaoCriptografica.TamanhoSalt, verificadorArmazenado, 0, EspecificacaoCriptografica.TamanhoVerificador);
 
                 var chave = DerivarChave(senha, salt);
                 var verificador = SHA256.HashData(chave);
@@ -75,6 +71,11 @@ namespace GerenciadorDeSenhas.Servicos
         }
 
         private static byte[] DerivarChave(string senha, byte[] salt) =>
-            Rfc2898DeriveBytes.Pbkdf2(senha, salt, Iterations, HashAlgorithmName.SHA256, KeySize);
+            Rfc2898DeriveBytes.Pbkdf2(
+                senha,
+                salt,
+                EspecificacaoCriptografica.IteracoesPbkdf2,
+                HashAlgorithmName.SHA256,
+                EspecificacaoCriptografica.TamanhoChave);
     }
 }

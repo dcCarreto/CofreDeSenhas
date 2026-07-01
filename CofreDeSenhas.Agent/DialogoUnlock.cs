@@ -71,7 +71,11 @@ internal sealed class DialogoUnlock : Form
         _btnOk.Enabled = false;
         _lblErro.Text = string.Empty;
 
-        var destrancou = await _sessao.DestrancarAsync(_txtSenha.Text);
+        var senhaMestra = _txtSenha.Text;
+        _txtSenha.Clear();
+
+        var destrancou = await _sessao.DestrancarAsync(senhaMestra);
+        senhaMestra = string.Empty;
         if (destrancou)
         {
             DialogResult = DialogResult.OK;
@@ -80,7 +84,6 @@ internal sealed class DialogoUnlock : Form
         }
 
         _lblErro.Text = "Senha mestra incorreta.";
-        _txtSenha.SelectAll();
         _txtSenha.Focus();
         _btnOk.Enabled = true;
     }

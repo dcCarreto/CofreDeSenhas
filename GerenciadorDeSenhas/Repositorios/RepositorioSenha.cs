@@ -3,14 +3,14 @@ using GerenciadorDeSenhas.Servicos;
 
 namespace GerenciadorDeSenhas.Repositorios
 {
-    public class RepositorioSenha : IRepositorioSenha
+    public class RepositorioSenha
     {
-        private readonly IPersistenciaLocal _persistencia;
+        private readonly PersistenciaLocal _persistencia;
         private readonly byte[] _chave;
         private List<Senha> _senhas = new();
         private bool _carregado = false;
 
-        public RepositorioSenha(IPersistenciaLocal persistencia, byte[] chave)
+        public RepositorioSenha(PersistenciaLocal persistencia, byte[] chave)
         {
             _persistencia = persistencia ?? throw new ArgumentNullException(nameof(persistencia));
             _chave = chave ?? throw new ArgumentNullException(nameof(chave));
@@ -59,17 +59,6 @@ namespace GerenciadorDeSenhas.Repositorios
             existente.IV = senha.IV;
             existente.AuthTag = senha.AuthTag;
             existente.DataAtualizacao = DateTime.UtcNow;
-        }
-
-        public async Task RemoverAsync(Guid id)
-        {
-            await CarregarSeNecessarioAsync();
-
-            var senha = _senhas.FirstOrDefault(s => s.Id == id);
-            if (senha == null)
-                throw new InvalidOperationException($"Senha com ID {id} não encontrada");
-
-            _senhas.Remove(senha);
         }
 
         public async Task<Senha?> ObterPorIdAsync(Guid id)

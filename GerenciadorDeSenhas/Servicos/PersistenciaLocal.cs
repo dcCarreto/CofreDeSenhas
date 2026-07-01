@@ -1,18 +1,41 @@
 using System;
+using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using GerenciadorDeSenhas.Modelos;
 
 namespace GerenciadorDeSenhas.Servicos
 {
-    public class PersistenciaLocal : IPersistenciaLocal
+    public readonly record struct EstadoArquivoCofre(
+        bool Existe,
+        long Tamanho,
+        DateTime UltimaEscritaUtc,
+        string Hash);
+
+    public class ConflitoGravacaoCofreException : IOException
     {
-        private readonly IServicoCriptografia _criptografia;
+        public ConflitoGravacaoCofreException()
+            : base("O arquivo do cofre foi alterado por outro processo.")
+        {
+        }
+    }
+
+    public class IntegridadeCofreException : IOException
+    {
+        public IntegridadeCofreException(string mensagem, Exception? innerException = null)
+            : base(mensagem, innerException)
+        {
+        }
+    }
+
+    public class PersistenciaLocal
+    {
+        private readonly ServicoCriptografia _criptografia;
         private readonly string _pastaApp;
         private readonly string _caminhoSenhas;
         private readonly string _pastaBackup;
 
-        public PersistenciaLocal(IServicoCriptografia criptografia, string? pastaApp = null)
+        public PersistenciaLocal(ServicoCriptografia criptografia, string? pastaApp = null)
         {
             _criptografia = criptografia ?? throw new ArgumentNullException(nameof(criptografia));
 
@@ -37,6 +60,14 @@ namespace GerenciadorDeSenhas.Servicos
 
         public async Task SalvarSenhasAsync(List<Senha> senhas, byte[] chave)
         {
+            await SalvarSenhasComSegurancaAsync(senhas, chave, null);
+        }
+
+        public async Task<EstadoArquivoCofre> SalvarSenhasComSegurancaAsync(
+            List<Senha> senhas,
+            byte[] chave,
+            EstadoArquivoCofre? estadoEsperado)
+        {
             if (senhas == null)
                 throw new ArgumentNullException(nameof(senhas));
 
@@ -53,20 +84,7 @@ namespace GerenciadorDeSenhas.Servicos
 
             var criptografado = _criptografia.Criptografar(json);
 
-            int tentativas = 3;
-            while (tentativas > 0)
-            {
-                try
-                {
-                    await File.WriteAllTextAsync(_caminhoSenhas, criptografado);
-                    break;
-                }
-                catch (IOException) when (tentativas > 1)
-                {
-                    tentativas--;
-                    await Task.Delay(100);
-                }
-            }
+            return await SalvarCriptografadoAsync(criptografado, estadoEsperado);
         }
 
         public async Task<List<Senha>> CarregarSenhasAsync(byte[] chave)
@@ -163,6 +181,105 @@ namespace GerenciadorDeSenhas.Servicos
             catch
             {
                 return false;
+            }
+        }
+
+        public EstadoArquivoCofre ObterEstadoArquivo()
+        {
+            if (!File.Exists(_caminhoSenhas))
+                return new EstadoArquivoCofre(false, 0, DateTime.MinValue, string.Empty);
+
+            using var stream = new FileStream(_caminhoSenhas, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            var hash = Convert.ToHexString(SHA256.HashData(stream));
+            var info = new FileInfo(_caminhoSenhas);
+            return new EstadoArquivoCofre(true, info.Length, info.LastWriteTimeUtc, hash);
+        }
+
+        private async Task<EstadoArquivoCofre> SalvarCriptografadoAsync(
+            string criptografado,
+            EstadoArquivoCofre? estadoEsperado)
+        {
+            if (estadoEsperado.HasValue)
+                ValidarEstadoEsperado(estadoEsperado.Value);
+
+            var temp = Path.Combine(_pastaApp, $"senhas.{Guid.NewGuid():N}.tmp");
+            var backup = File.Exists(_caminhoSenhas) ? CaminhoBackup() : null;
+
+            try
+            {
+                await File.WriteAllTextAsync(temp, criptografado);
+                ValidarArquivo(temp);
+
+                if (File.Exists(_caminhoSenhas))
+                {
+                    File.Copy(_caminhoSenhas, backup!, overwrite: false);
+                    if (estadoEsperado.HasValue)
+                        ValidarEstadoEsperado(estadoEsperado.Value);
+                    File.Replace(temp, _caminhoSenhas, null);
+                }
+                else
+                {
+                    File.Move(temp, _caminhoSenhas);
+                }
+
+                try
+                {
+                    ValidarArquivo(_caminhoSenhas);
+                }
+                catch (Exception ex)
+                {
+                    RestaurarBackup(backup);
+                    throw new IntegridadeCofreException("A gravação do cofre falhou na validação de integridade.", ex);
+                }
+
+                LimparBackupsAntigos();
+                return ObterEstadoArquivo();
+            }
+            finally
+            {
+                try
+                {
+                    if (File.Exists(temp))
+                        File.Delete(temp);
+                }
+                catch
+                {
+                }
+            }
+        }
+
+        private void ValidarEstadoEsperado(EstadoArquivoCofre estadoEsperado)
+        {
+            var atual = ObterEstadoArquivo();
+            if (!atual.Equals(estadoEsperado))
+                throw new ConflitoGravacaoCofreException();
+        }
+
+        private string CaminhoBackup()
+        {
+            var timestamp = DateTime.UtcNow.ToString("yyyy-MM-dd_HH-mm-ss-fff");
+            return Path.Combine(_pastaBackup, $"senhas_backup_{timestamp}_{Guid.NewGuid():N}.json.enc");
+        }
+
+        private void ValidarArquivo(string caminho)
+        {
+            var texto = File.ReadAllText(caminho);
+            var json = _criptografia.Descriptografar(texto);
+            _ = JsonSerializer.Deserialize<List<Senha>>(json)
+                ?? throw new IntegridadeCofreException("O cofre gravado não contém uma lista válida.");
+        }
+
+        private void RestaurarBackup(string? backup)
+        {
+            if (string.IsNullOrWhiteSpace(backup) || !File.Exists(backup))
+                return;
+
+            try
+            {
+                File.Copy(backup, _caminhoSenhas, overwrite: true);
+            }
+            catch
+            {
             }
         }
     }

@@ -39,6 +39,8 @@
   ],
   "permissions": [
     "nativeMessaging",
-    "activeTab"
+    "activeTab",
+    "clipboardRead",
+    "clipboardWrite"
   ]
 }

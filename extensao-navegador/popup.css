@@ -40,7 +40,39 @@ body {
 .conteudo { padding: 12px 14px; min-height: 72px; }
 
 .aviso { color: var(--texto-fraco); margin: 6px 0; }
+.detalhe { font-size: 12px; word-break: break-word; }
 .erro { color: var(--erro); }
+.sucesso { color: var(--acento-claro); font-size: 12px; margin: -4px 0 10px; }
+
+.busca {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.campo-busca {
+  min-width: 0;
+  padding: 8px 9px;
+  border: 1px solid var(--borda);
+  border-radius: 6px;
+  background: var(--fundo-cartao);
+  color: var(--texto);
+  font-size: 12px;
+}
+.campo-busca:focus { outline: 1px solid var(--acento-claro); }
+.botao-busca,
+.limpar-busca {
+  padding: 8px 9px;
+  border: 1px solid var(--borda);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--texto);
+  font-size: 12px;
+  cursor: pointer;
+}
+.limpar-busca { grid-column: 1 / -1; }
+.botao-busca:hover,
+.limpar-busca:hover { border-color: var(--acento-claro); color: var(--acento-claro); }
 
 .botao {
   display: inline-block;
@@ -56,6 +88,65 @@ body {
 .botao:hover { background: var(--acento-claro); }
 .botao:disabled { opacity: 0.6; cursor: default; }
 
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.grupo-form {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.rotulo-form {
+  color: var(--texto-fraco);
+  font-size: 12px;
+}
+.campo-form {
+  width: 100%;
+  min-width: 0;
+  padding: 8px 9px;
+  border: 1px solid var(--borda);
+  border-radius: 6px;
+  background: var(--fundo-cartao);
+  color: var(--texto);
+  font-size: 12px;
+}
+textarea.campo-form {
+  min-height: 62px;
+  resize: vertical;
+}
+.campo-form:focus { outline: 1px solid var(--acento-claro); }
+.check-form {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--texto);
+  font-size: 12px;
+}
+.check-form input {
+  width: 14px;
+  height: 14px;
+  accent-color: var(--acento-claro);
+}
+.form-acoes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.botao-secundario {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--borda);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--texto);
+  font-size: 13px;
+  cursor: pointer;
+}
+.botao-secundario:hover { border-color: var(--acento-claro); color: var(--acento-claro); }
+.botao-secundario:disabled { opacity: 0.6; cursor: default; }
+
 .lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
 
 .cartao {
@@ -66,10 +157,15 @@ body {
 }
 .cartao-servico { font-weight: 600; }
 .cartao-usuario { color: var(--texto-fraco); font-size: 12px; margin-top: 2px; word-break: break-all; }
+.cartao-url { color: var(--texto-fraco); font-size: 12px; margin-top: 2px; word-break: break-all; }
 
-.cartao-acoes { display: flex; gap: 6px; margin-top: 8px; }
+.cartao-acoes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-top: 8px;
+}
 .acao {
-  flex: 1;
   padding: 6px 8px;
   border: 1px solid var(--borda);
   border-radius: 6px;
@@ -78,14 +174,18 @@ body {
   font-size: 12px;
   cursor: pointer;
 }
+.acao-principal { grid-column: 1 / -1; }
 .acao:hover { border-color: var(--acento-claro); color: var(--acento-claro); }
 
 .contagem { color: var(--texto-fraco); font-size: 12px; margin: 0 0 10px; }
+.sessao { color: var(--texto-fraco); font-size: 12px; margin: -4px 0 10px; }
 
 .rodape {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
   padding: 8px 14px 12px;
   border-top: 1px solid var(--borda);
-  text-align: right;
 }
 .link {
   background: none;
@@ -96,3 +196,4 @@ body {
   text-decoration: underline;
 }
 .link:hover { color: var(--texto); }
+.link:disabled { opacity: 0.45; cursor: default; }
