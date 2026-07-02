@@ -1,7 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="CofreDeSenhas.Janelas.JanelaConfirmarSenhaMestra"
-        Title="Regerar QR code"
+        Title="{DynamicResource Qr.RegenerateTitle}"
         Width="440"
         SizeToContent="Height"
         CanResize="False"
@@ -23,7 +23,7 @@
               BorderThickness="0,0,0,1"
               PointerPressed="Arrastar">
         <Grid>
-          <TextBlock Text="Regerar QR code"
+          <TextBlock Text="{DynamicResource Qr.RegenerateTitle}"
                      FontSize="17" FontWeight="Bold"
                      Foreground="{DynamicResource TextPrimary}"
                      VerticalAlignment="Center"
@@ -40,11 +40,11 @@
               BorderBrush="{DynamicResource CardBorder}"
               BorderThickness="0,1,0,0">
         <Grid Margin="24,0">
-          <Button Name="BtnGerar" Classes="primario" Content="Gerar QR code"
+          <Button Name="BtnGerar" Classes="primario" Content="{DynamicResource Qr.GenerateButton}"
                   Width="200" Height="40"
                   HorizontalAlignment="Left" VerticalAlignment="Center"
                   Click="Gerar_Click" />
-          <Button Classes="secundario" Content="Cancelar"
+          <Button Classes="secundario" Content="{DynamicResource Common.Cancel}"
                   Width="150" Height="40"
                   HorizontalAlignment="Right" VerticalAlignment="Center"
                   Click="Cancelar_Click" />
@@ -52,13 +52,13 @@
       </Border>
 
       <StackPanel Margin="24,16,24,10" Spacing="4">
-        <TextBlock Text="Confirme sua senha mestra para gerar um novo QR code de backup."
+        <TextBlock Text="{DynamicResource Qr.RegenerateInstruction}"
                    FontSize="12"
                    Foreground="{DynamicResource TextSecondary}"
                    TextWrapping="Wrap"
                    Margin="0,0,0,12" />
 
-        <TextBlock Text="Senha mestra" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
+        <TextBlock Text="{DynamicResource Login.MasterPassword}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
         <TextBox Name="TxtSenha" Classes="campo revealPasswordButton" PasswordChar="●" Margin="0,0,0,8" />
 
         <TextBlock Name="LblErro"

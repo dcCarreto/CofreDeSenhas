@@ -124,7 +124,9 @@ namespace CofreDeSenhas.Controles
                 VerticalAlignment = VerticalAlignment.Center,
                 Cursor = new Cursor(StandardCursorType.Hand)
             };
-            ToolTip.SetTip(estrela, _senha.Favorito ? "Remover dos favoritos" : "Adicionar aos favoritos");
+            ToolTip.SetTip(estrela, _senha.Favorito
+                ? Idioma.Texto("Row.FavoriteRemove")
+                : Idioma.Texto("Row.FavoriteAdd"));
             estrela.PointerPressed += (s, e) => _onFavoritar(_senha);
             Grid.SetColumn(estrela, 0);
             _grid.Children.Add(estrela);
@@ -157,7 +159,7 @@ namespace CofreDeSenhas.Controles
                 Margin = new Thickness(4, 0, 10, 0)
             };
             _lblUsuario.Cursor = new Cursor(StandardCursorType.Hand);
-            ToolTip.SetTip(_lblUsuario, "Copiar usuário");
+            ToolTip.SetTip(_lblUsuario, Idioma.Texto("Row.CopyUser"));
             _lblUsuario.PointerPressed += async (s, e) =>
             {
                 e.Handled = true;
@@ -180,16 +182,16 @@ namespace CofreDeSenhas.Controles
             Grid.SetColumn(data, 6);
             _grid.Children.Add(data);
 
-            _btnOlho = CriarBotaoAcao(IconeOlho, "Revelar senha");
+            _btnOlho = CriarBotaoAcao(IconeOlho, Idioma.Texto("Row.RevealPassword"));
             _btnOlho.Click += (s, e) => AlternarRevelar();
 
-            _btnCopiar = CriarBotaoAcao(IconeCopiar, "Copiar senha");
+            _btnCopiar = CriarBotaoAcao(IconeCopiar, Idioma.Texto("Row.CopyPassword"));
             _btnCopiar.Click += async (s, e) => await CopiarAsync();
 
-            var btnEditar = CriarBotaoAcao(IconeEditar, "Editar entrada");
+            var btnEditar = CriarBotaoAcao(IconeEditar, Idioma.Texto("Row.EditEntry"));
             btnEditar.Click += (s, e) => _onEditar(_senha);
 
-            var btnExcluir = CriarBotaoAcao(IconeExcluir, "Excluir entrada");
+            var btnExcluir = CriarBotaoAcao(IconeExcluir, Idioma.Texto("Row.DeleteEntry"));
             btnExcluir.Click += async (s, e) => await _onExcluir(_senha);
 
             var acoes = new StackPanel
@@ -203,7 +205,7 @@ namespace CofreDeSenhas.Controles
 
             if (_senha.TotpSegredo != null)
             {
-                _btnTotp = CriarBotaoAcao(IconeChave, "Copiar código 2FA");
+                _btnTotp = CriarBotaoAcao(IconeChave, Idioma.Texto("Row.CopyTotp"));
                 _btnTotp.Click += async (s, e) => await CopiarCodigoTotpAsync();
                 acoes.Children.Add(_btnTotp);
             }
@@ -275,7 +277,7 @@ namespace CofreDeSenhas.Controles
                 VerticalAlignment = VerticalAlignment.Center,
                 Cursor = new Cursor(StandardCursorType.Hand)
             };
-            ToolTip.SetTip(_lblServico, "Editar serviço");
+            ToolTip.SetTip(_lblServico, Idioma.Texto("Row.EditService"));
             _lblServico.PointerPressed += (s, e) =>
             {
                 if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
@@ -310,8 +312,8 @@ namespace CofreDeSenhas.Controles
             var temEtiquetas = _senha.Categoria == Categoria.Other && _senha.Etiquetas.Count > 0;
             var textoChip = temEtiquetas ? TextoResumoEtiquetas(_senha.Etiquetas) : textoCategoria;
             var dica = temEtiquetas
-                ? $"Etiquetas: {Etiquetas.Formatar(_senha.Etiquetas)}\nCategoria: {textoCategoria}"
-                : $"Categoria: {textoCategoria}";
+                ? Idioma.Formatar("Row.TagsTooltip", Etiquetas.Formatar(_senha.Etiquetas), textoCategoria)
+                : Idioma.Formatar("Row.CategoryTooltip", textoCategoria);
 
             var painel = new StackPanel
             {
@@ -528,7 +530,7 @@ namespace CofreDeSenhas.Controles
             {
                 _lblIndicador.Text = "⚠";
                 _lblIndicador.Foreground = Tema.Pincel(Color.FromUInt32(0xFFDC2626));
-                ToolTip.SetTip(_lblIndicador, $"Senha comprometida — encontrada em {_vazamentos:N0} vazamento(s). Troque-a!");
+                ToolTip.SetTip(_lblIndicador, Idioma.Formatar("Row.PasswordCompromised", _vazamentos));
                 return;
             }
 
@@ -538,29 +540,29 @@ namespace CofreDeSenhas.Controles
                     || _achadosAuditoria.Contains(TipoAchadoAuditoriaSenha.Repetida);
                 _lblIndicador.Text = "⚠";
                 _lblIndicador.Foreground = Tema.Pincel(critico ? Tema.StrengthWeak : Tema.StrengthMedium);
-                ToolTip.SetTip(_lblIndicador, "Auditoria: " + string.Join("; ", DescreverAchadosAuditoria()));
+                ToolTip.SetTip(_lblIndicador, Idioma.Formatar("Row.AuditPrefix", string.Join("; ", DescreverAchadosAuditoria())));
                 return;
             }
 
-            string sufixo = _vazamentos == 0 ? " (não encontrada em vazamentos)" : "";
+            string sufixo = _vazamentos == 0 ? Idioma.Texto("Row.NotFoundInBreaches") : "";
             switch (_nivelForca)
             {
                 case 0:
                 case 1:
                     _lblIndicador.Text = "●";
                     _lblIndicador.Foreground = Tema.Pincel(Tema.StrengthWeak);
-                    ToolTip.SetTip(_lblIndicador, "Senha fraca" + sufixo);
+                    ToolTip.SetTip(_lblIndicador, Idioma.Texto("Row.PasswordWeak") + sufixo);
                     break;
                 case 2:
                     _lblIndicador.Text = "●";
                     _lblIndicador.Foreground = Tema.Pincel(Tema.StrengthMedium);
-                    ToolTip.SetTip(_lblIndicador, "Senha média" + sufixo);
+                    ToolTip.SetTip(_lblIndicador, Idioma.Texto("Row.PasswordMedium") + sufixo);
                     break;
                 case 3:
                 case 4:
                     _lblIndicador.Text = "●";
                     _lblIndicador.Foreground = Tema.Pincel(Tema.StrengthStrong);
-                    ToolTip.SetTip(_lblIndicador, "Senha forte" + sufixo);
+                    ToolTip.SetTip(_lblIndicador, Idioma.Texto("Row.PasswordStrong") + sufixo);
                     break;
                 default:
                     _lblIndicador.Text = "";
@@ -575,12 +577,12 @@ namespace CofreDeSenhas.Controles
             {
                 yield return achado switch
                 {
-                    TipoAchadoAuditoriaSenha.Fraca => "senha fraca",
+                    TipoAchadoAuditoriaSenha.Fraca => Idioma.Texto("Row.AuditWeak"),
                     TipoAchadoAuditoriaSenha.Repetida when _ocorrenciasSenhaRepetida > 0 =>
-                        $"senha repetida em {_ocorrenciasSenhaRepetida} entradas",
-                    TipoAchadoAuditoriaSenha.Repetida => "senha repetida",
-                    TipoAchadoAuditoriaSenha.Antiga => $"sem atualização há {_diasSemAtualizacao} dias",
-                    _ => "alerta"
+                        Idioma.Formatar("Row.AuditRepeatedWithCount", _ocorrenciasSenhaRepetida),
+                    TipoAchadoAuditoriaSenha.Repetida => Idioma.Texto("Row.AuditRepeated"),
+                    TipoAchadoAuditoriaSenha.Antiga => Idioma.Formatar("Row.AuditOld", _diasSemAtualizacao),
+                    _ => Idioma.Texto("Row.AuditAlert")
                 };
             }
         }
@@ -595,7 +597,7 @@ namespace CofreDeSenhas.Controles
                 _lblUsuario.FontWeight = FontWeight.Bold;
                 _lblUsuario.Foreground = Tema.Pincel(Tema.AccentPrimary);
                 DefinirIcone(_btnOlho, IconeOlhoFechado);
-                ToolTip.SetTip(_btnOlho, "Ocultar senha");
+                ToolTip.SetTip(_btnOlho, Idioma.Texto("Row.HidePassword"));
             }
             else
             {
@@ -604,7 +606,7 @@ namespace CofreDeSenhas.Controles
                 _lblUsuario.FontWeight = FontWeight.Normal;
                 _lblUsuario.Foreground = Tema.Pincel(Tema.TextSecondary);
                 DefinirIcone(_btnOlho, IconeOlho);
-                ToolTip.SetTip(_btnOlho, "Revelar senha");
+                ToolTip.SetTip(_btnOlho, Idioma.Texto("Row.RevealPassword"));
             }
         }
 
@@ -674,17 +676,17 @@ namespace CofreDeSenhas.Controles
             }
 
             _timerFeedbackUsuario?.Stop();
-            _lblUsuario.Text = "Usuário copiado";
+            _lblUsuario.Text = Idioma.Texto("Row.UserCopied");
             _lblUsuario.FontFamily = FontFamily.Default;
             _lblUsuario.FontWeight = FontWeight.Bold;
             _lblUsuario.Foreground = Tema.Pincel(Tema.StrengthStrong);
-            ToolTip.SetTip(_lblUsuario, "Usuário copiado");
+            ToolTip.SetTip(_lblUsuario, Idioma.Texto("Row.UserCopied"));
 
             _timerFeedbackUsuario = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(1100) };
             _timerFeedbackUsuario.Tick += (s, e) =>
             {
                 RestaurarTextoUsuario();
-                ToolTip.SetTip(_lblUsuario, "Copiar usuário");
+                ToolTip.SetTip(_lblUsuario, Idioma.Texto("Row.CopyUser"));
                 _timerFeedbackUsuario?.Stop();
                 _timerFeedbackUsuario = null;
             };
@@ -724,17 +726,16 @@ namespace CofreDeSenhas.Controles
 
         private static (Color bg, Color fg, string texto) InfoCategoria(Categoria cat) => cat switch
         {
-            Categoria.Personal => (Color.FromUInt32(0xFFEAF1FF), Color.FromUInt32(0xFF2563EB), "Pessoal"),
-            Categoria.Work => (Color.FromUInt32(0xFFF1ECFE), Color.FromUInt32(0xFF7C3AED), "Trabalho"),
-            Categoria.Finance => (Color.FromUInt32(0xFFE7F7EE), Color.FromUInt32(0xFF16A34A), "Finanças"),
-            Categoria.Social => (Color.FromUInt32(0xFFFDEAF3), Color.FromUInt32(0xFFDB2777), "Social"),
-            _ => (Color.FromUInt32(0xFFFDEEE0), Color.FromUInt32(0xFFEA580C), "Outro"),
+            Categoria.Personal => (Color.FromUInt32(0xFFEAF1FF), Color.FromUInt32(0xFF2563EB), CategoriasUI.Rotulo(Categoria.Personal)),
+            Categoria.Work => (Color.FromUInt32(0xFFF1ECFE), Color.FromUInt32(0xFF7C3AED), CategoriasUI.Rotulo(Categoria.Work)),
+            Categoria.Finance => (Color.FromUInt32(0xFFE7F7EE), Color.FromUInt32(0xFF16A34A), CategoriasUI.Rotulo(Categoria.Finance)),
+            Categoria.Social => (Color.FromUInt32(0xFFFDEAF3), Color.FromUInt32(0xFFDB2777), CategoriasUI.Rotulo(Categoria.Social)),
+            _ => (Color.FromUInt32(0xFFFDEEE0), Color.FromUInt32(0xFFEA580C), CategoriasUI.Rotulo(Categoria.Other)),
         };
 
         private static string FormatarData(DateTime data)
         {
-            var ptBR = CultureInfo.GetCultureInfo("pt-BR");
-            return data.ToLocalTime().ToString("dd MMM yyyy", ptBR);
+            return data.ToLocalTime().ToString("dd MMM yyyy", Idioma.CulturaAtual);
         }
     }
 }

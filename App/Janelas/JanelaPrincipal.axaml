@@ -2,7 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:c="using:CofreDeSenhas.Controles"
         x:Class="CofreDeSenhas.Janelas.JanelaPrincipal"
-        Title="Cofre de Senhas"
+        Title="{DynamicResource App.Title}"
         Width="1160" Height="720"
         MinWidth="900" MinHeight="600"
         SystemDecorations="None"
@@ -28,7 +28,7 @@
           <Grid>
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="14,0,0,0" Spacing="8">
               <Image Source="/Ativos/app.png" Width="26" Height="26" />
-              <TextBlock Text="Cofre de Senhas"
+              <TextBlock Text="{DynamicResource App.Title}"
                          FontSize="16" FontWeight="Bold"
                          Foreground="{DynamicResource TextPrimary}"
                          VerticalAlignment="Center" />
@@ -37,24 +37,33 @@
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,5,0">
               <Button Name="BtnConfig" Classes="janela" Content="⚙" FontSize="14"
                       Foreground="{DynamicResource TextSecondary}"
-                      ToolTip.Tip="Configurações">
+                      ToolTip.Tip="{DynamicResource Settings.Tooltip}">
                 <Button.Flyout>
                   <MenuFlyout Placement="BottomEdgeAlignedRight">
-                    <MenuItem Header="Alterar senha mestra…" Click="AlterarSenhaMestra_Click" />
-                    <MenuItem Header="Regerar QR code…" Click="RegerarQrCode_Click" />
+                    <MenuItem Header="{DynamicResource Settings.ChangeMasterPassword}" Click="AlterarSenhaMestra_Click" />
+                    <MenuItem Header="{DynamicResource Settings.RegenerateQr}" Click="RegerarQrCode_Click" />
                     <Separator />
-                    <MenuItem Name="MenuBloqueio" Header="Bloqueio automático">
-                      <MenuItem Header="Desativado" ToggleType="Radio" Tag="0" Click="Bloqueio_Alterado" />
-                      <MenuItem Header="Após 1 minuto" ToggleType="Radio" Tag="1" Click="Bloqueio_Alterado" />
-                      <MenuItem Header="Após 5 minutos" ToggleType="Radio" Tag="5" Click="Bloqueio_Alterado" />
-                      <MenuItem Header="Após 15 minutos" ToggleType="Radio" Tag="15" Click="Bloqueio_Alterado" />
-                      <MenuItem Header="Após 30 minutos" ToggleType="Radio" Tag="30" Click="Bloqueio_Alterado" />
+                    <MenuItem Name="MenuBloqueio" Header="{DynamicResource Settings.AutoLock}">
+                      <MenuItem Header="{DynamicResource Settings.Disabled}" ToggleType="Radio" Tag="0" Click="Bloqueio_Alterado" />
+                      <MenuItem Header="{DynamicResource Settings.AfterOneMinute}" ToggleType="Radio" Tag="1" Click="Bloqueio_Alterado" />
+                      <MenuItem Header="{DynamicResource Settings.AfterMinutes5}" ToggleType="Radio" Tag="5" Click="Bloqueio_Alterado" />
+                      <MenuItem Header="{DynamicResource Settings.AfterMinutes15}" ToggleType="Radio" Tag="15" Click="Bloqueio_Alterado" />
+                      <MenuItem Header="{DynamicResource Settings.AfterMinutes30}" ToggleType="Radio" Tag="30" Click="Bloqueio_Alterado" />
                     </MenuItem>
                     <Separator />
-                    <MenuItem Header="Importar de CSV / outro gerenciador…" Click="ImportarCsv_Click" />
+                    <MenuItem Name="MenuIdioma" Header="{DynamicResource Settings.Language}">
+                      <MenuItem Header="Português (Brasil)" ToggleType="Radio" Tag="pt-BR" Click="Idioma_Alterado" />
+                      <MenuItem Header="English" ToggleType="Radio" Tag="en" Click="Idioma_Alterado" />
+                      <MenuItem Header="Español" ToggleType="Radio" Tag="es" Click="Idioma_Alterado" />
+                      <MenuItem Header="Français" ToggleType="Radio" Tag="fr" Click="Idioma_Alterado" />
+                      <MenuItem Header="Deutsch" ToggleType="Radio" Tag="de" Click="Idioma_Alterado" />
+                      <MenuItem Header="Italiano" ToggleType="Radio" Tag="it" Click="Idioma_Alterado" />
+                    </MenuItem>
                     <Separator />
-                    <MenuItem Header="Conectar banco de dados…" Click="ConectarBanco_Click" />
-                    <MenuItem Name="MenuDesconectarBanco" Header="Desconectar do banco"
+                    <MenuItem Header="{DynamicResource Settings.ImportCsv}" Click="ImportarCsv_Click" />
+                    <Separator />
+                    <MenuItem Header="{DynamicResource Settings.ConnectDatabase}" Click="ConectarBanco_Click" />
+                    <MenuItem Name="MenuDesconectarBanco" Header="{DynamicResource Settings.DisconnectDatabase}"
                               IsVisible="False" Click="DesconectarBanco_Click" />
                   </MenuFlyout>
                 </Button.Flyout>
@@ -95,13 +104,13 @@
                       BorderThickness="0,1,0,0"
                       CornerRadius="0,0,12,12">
                 <Grid Margin="24,0">
-                  <TextBlock Name="LblStatus" Text="0 senhas • 0 favoritas"
+                  <TextBlock Name="LblStatus"
                              FontSize="12" Foreground="{DynamicResource TextSecondary}"
                              VerticalAlignment="Center" />
                   <StackPanel Orientation="Horizontal" Spacing="6"
                               HorizontalAlignment="Right" VerticalAlignment="Center">
                     <Ellipse Name="PontoConexao" Width="8" Height="8" Fill="#22C55E" VerticalAlignment="Center" />
-                    <TextBlock Name="LblConexao" Text="Cofre criptografado" FontSize="12"
+                    <TextBlock Name="LblConexao" Text="{DynamicResource Vault.Connection.Local}" FontSize="12"
                                Foreground="{DynamicResource TextSecondary}" VerticalAlignment="Center" />
                   </StackPanel>
                 </Grid>
@@ -109,19 +118,19 @@
 
               <DockPanel Margin="24,22,24,0">
                 <Grid DockPanel.Dock="Top" Height="54" ColumnDefinitions="Auto,Auto,*,Auto">
-                  <TextBlock Text="Cofre de senhas" FontSize="20" FontWeight="Bold"
+                  <TextBlock Text="{DynamicResource Vault.Header}" FontSize="20" FontWeight="Bold"
                              Foreground="{DynamicResource TextPrimary}" VerticalAlignment="Center" />
-                  <TextBlock Name="LblContadorHeader" Grid.Column="1" Text="0 itens" FontSize="13"
+                  <TextBlock Name="LblContadorHeader" Grid.Column="1" FontSize="13"
                              Foreground="{DynamicResource TextSecondary}"
                              Margin="12,2,0,0" VerticalAlignment="Center" />
                   <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                     <Button Classes="icone borda" Width="40" Height="38"
-                            ToolTip.Tip="Importar senhas de um arquivo"
+                            ToolTip.Tip="{DynamicResource Vault.ImportTooltip}"
                             Click="Importar_Click">
                       <PathIcon Width="15" Height="15" Data="M12 3 L12 13 M7 8 L12 13 L17 8 M5 17 L5 20 L19 20 L19 17" />
                     </Button>
                     <Button Classes="icone borda" Width="40" Height="38"
-                            ToolTip.Tip="Exportar senhas para um arquivo criptografado"
+                            ToolTip.Tip="{DynamicResource Vault.ExportTooltip}"
                             Click="Exportar_Click">
                       <PathIcon Width="15" Height="15" Data="M12 21 L12 11 M7 16 L12 11 L17 16 M5 7 L5 4 L19 4 L19 7" />
                     </Button>
@@ -129,7 +138,7 @@
                             Click="NovaSenha_Click">
                       <StackPanel Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
                         <PathIcon Width="14" Height="14" Data="M12 5 L12 19 M5 12 L19 12" />
-                        <TextBlock Text="Nova senha" VerticalAlignment="Center" />
+                        <TextBlock Text="{DynamicResource Vault.NewPassword}" VerticalAlignment="Center" />
                       </StackPanel>
                     </Button>
                   </StackPanel>
@@ -141,7 +150,7 @@
                             SelectionChanged="Filtro_Alterado" />
                   <TextBox Name="TxtBusca" Grid.Column="2" Classes="campo"
                            MinHeight="36" Height="36" VerticalAlignment="Center"
-                           Watermark="Buscar por serviço, usuário ou categoria"
+                           Watermark="{DynamicResource Vault.SearchWatermark}"
                            TextChanged="Busca_Alterada">
                     <TextBox.InnerLeftContent>
                       <PathIcon Width="15" Height="15" Margin="10,0,0,0"
@@ -152,21 +161,21 @@
                   </TextBox>
                   <Button Name="BtnVazamentos" Grid.Column="4" Classes="icone borda"
                           Width="40" Height="36" VerticalAlignment="Center"
-                          ToolTip.Tip="Verificar senhas vazadas (Have I Been Pwned)"
+                          ToolTip.Tip="{DynamicResource Vault.BreachTooltip}"
                           Click="VerificarVazamentos_Click">
                     <PathIcon Width="17" Height="17"
                               Data="M12 1 L3 5 L3 11 C3 16.55 6.84 21.74 12 23 C17.16 21.74 21 16.55 21 11 L21 5 Z M13 17 L11 17 L11 15 L13 15 Z M13 13 L11 13 L11 7 L13 7 Z" />
                   </Button>
                   <Button Name="BtnAuditoria" Grid.Column="6" Classes="icone borda"
                           Width="40" Height="36" VerticalAlignment="Center"
-                          ToolTip.Tip="Auditar senhas fracas, repetidas ou antigas"
+                          ToolTip.Tip="{DynamicResource Vault.AuditTooltip}"
                           Click="AuditarCofre_Click">
                     <PathIcon Width="17" Height="17"
                               Data="M20 3 L4 3 C2.9 3 2 3.9 2 5 L2 19 C2 20.1 2.9 21 4 21 L20 21 C21.1 21 22 20.1 22 19 L22 5 C22 3.9 21.1 3 20 3 Z M10 17 L5 17 L5 15 L10 15 Z M10 13 L5 13 L5 11 L10 11 Z M10 9 L5 9 L5 7 L10 7 Z M14.82 15 L12 12.16 L13.41 10.75 L14.82 12.17 L18.59 8.4 L20 9.82 Z" />
                   </Button>
                   <Button Name="BtnFavoritos" Grid.Column="8" Classes="icone borda"
                           Width="40" Height="36" VerticalAlignment="Center"
-                          ToolTip.Tip="Somente favoritas"
+                          ToolTip.Tip="{DynamicResource Vault.FavoritesOnlyTooltip}"
                           Click="FiltroFavoritos_Click">
                     <PathIcon Width="15" Height="15" Data="M12 3.5 L14.6 8.8 L20.4 9.6 L16.2 13.7 L17.2 19.5 L12 16.8 L6.8 19.5 L7.8 13.7 L3.6 9.6 L9.4 8.8 Z" />
                   </Button>
@@ -177,7 +186,7 @@
                   <Grid Name="GridCabecalhoTabela"
                         ColumnDefinitions="42,44,26,150,6,330,6,108,6,92,6,170"
                         Margin="4,0,8,0">
-                    <TextBlock Text="SERVIÇO" FontSize="10" FontWeight="Bold"
+                    <TextBlock Text="{DynamicResource Vault.Table.Service}" FontSize="10" FontWeight="Bold"
                                Foreground="{DynamicResource TextHeader}"
                                VerticalAlignment="Center" Grid.Column="3" Margin="10,0,0,0" />
                     <Border Grid.Column="4" Background="Transparent" Cursor="SizeWestEast"
@@ -186,7 +195,7 @@
                             PointerPressed="RedimensionarColuna_PointerPressed"
                             PointerMoved="RedimensionarColuna_PointerMoved"
                             PointerReleased="RedimensionarColuna_PointerReleased" />
-                    <TextBlock Text="USUÁRIO" FontSize="10" FontWeight="Bold"
+                    <TextBlock Text="{DynamicResource Vault.Table.User}" FontSize="10" FontWeight="Bold"
                                Foreground="{DynamicResource TextHeader}"
                                VerticalAlignment="Center" Grid.Column="5" Margin="4,0,0,0" />
                     <Border Grid.Column="6" Background="Transparent" Cursor="SizeWestEast"
@@ -195,7 +204,7 @@
                             PointerPressed="RedimensionarColuna_PointerPressed"
                             PointerMoved="RedimensionarColuna_PointerMoved"
                             PointerReleased="RedimensionarColuna_PointerReleased" />
-                    <TextBlock Text="CATEGORIA" FontSize="10" FontWeight="Bold"
+                    <TextBlock Text="{DynamicResource Vault.Table.Category}" FontSize="10" FontWeight="Bold"
                                Foreground="{DynamicResource TextHeader}"
                                VerticalAlignment="Center" Grid.Column="7" />
                     <Border Grid.Column="8" Background="Transparent" Cursor="SizeWestEast"
@@ -204,7 +213,7 @@
                             PointerPressed="RedimensionarColuna_PointerPressed"
                             PointerMoved="RedimensionarColuna_PointerMoved"
                             PointerReleased="RedimensionarColuna_PointerReleased" />
-                    <TextBlock Text="CRIADO EM" FontSize="10" FontWeight="Bold"
+                    <TextBlock Text="{DynamicResource Vault.Table.CreatedAt}" FontSize="10" FontWeight="Bold"
                                Foreground="{DynamicResource TextHeader}"
                                VerticalAlignment="Center" Grid.Column="9" />
                     <Border Grid.Column="10" Background="Transparent" Cursor="SizeWestEast"
@@ -213,7 +222,7 @@
                             PointerPressed="RedimensionarColuna_PointerPressed"
                             PointerMoved="RedimensionarColuna_PointerMoved"
                             PointerReleased="RedimensionarColuna_PointerReleased" />
-                    <TextBlock Text="AÇÕES" FontSize="10" FontWeight="Bold"
+                    <TextBlock Text="{DynamicResource Vault.Table.Actions}" FontSize="10" FontWeight="Bold"
                                Foreground="{DynamicResource TextHeader}"
                                HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Column="11" />
                   </Grid>
@@ -224,7 +233,7 @@
                     <StackPanel Name="PainelLista" />
                   </ScrollViewer>
                   <TextBlock Name="LblVazio"
-                             Text="Nenhuma senha no cofre.&#x0a;Clique em &quot;Nova senha&quot; para começar."
+                             Text="{DynamicResource Vault.Empty}"
                              FontSize="13"
                              Foreground="{DynamicResource TextSecondary}"
                              TextAlignment="Center"

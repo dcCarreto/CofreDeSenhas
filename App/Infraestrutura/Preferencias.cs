@@ -21,6 +21,7 @@ namespace CofreDeSenhas
             public bool ModoEscuro { get; set; }
             public PerfilBanco? UltimoBanco { get; set; }
             public int MinutosBloqueio { get; set; } = 5;
+            public string? Idioma { get; set; }
         }
 
         private static readonly string _caminho = Path.Combine(
@@ -30,6 +31,7 @@ namespace CofreDeSenhas
         public static bool ModoEscuro { get; set; }
         public static PerfilBanco? UltimoBanco { get; set; }
         public static int MinutosBloqueio { get; set; } = 5;
+        public static string? Idioma { get; set; }
 
         public static void Carregar()
         {
@@ -43,6 +45,7 @@ namespace CofreDeSenhas
                         ModoEscuro = d.ModoEscuro;
                         UltimoBanco = d.UltimoBanco;
                         MinutosBloqueio = d.MinutosBloqueio;
+                        Idioma = d.Idioma;
                     }
                 }
             }
@@ -55,7 +58,7 @@ namespace CofreDeSenhas
             {
                 var dir = Path.GetDirectoryName(_caminho)!;
                 if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
-                File.WriteAllText(_caminho, JsonSerializer.Serialize(new Dados { ModoEscuro = ModoEscuro, UltimoBanco = UltimoBanco, MinutosBloqueio = MinutosBloqueio }));
+                File.WriteAllText(_caminho, JsonSerializer.Serialize(new Dados { ModoEscuro = ModoEscuro, UltimoBanco = UltimoBanco, MinutosBloqueio = MinutosBloqueio, Idioma = Idioma }));
             }
             catch { }
         }

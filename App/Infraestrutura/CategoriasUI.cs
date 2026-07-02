@@ -4,7 +4,18 @@ namespace CofreDeSenhas
 {
     internal static class CategoriasUI
     {
-        public static readonly string[] Rotulos = { "Trabalho", "Pessoal", "Finanças", "Social", "Outro" };
+        private static readonly Categoria[] Categorias =
+        {
+            Categoria.Work,
+            Categoria.Personal,
+            Categoria.Finance,
+            Categoria.Social,
+            Categoria.Other
+        };
+
+        public static string[] Rotulos => Categorias.Select(Idioma.RotuloCategoria).ToArray();
+
+        public static string Rotulo(Categoria categoria) => Idioma.RotuloCategoria(categoria);
 
         public static bool TentarObterCategoria(string? rotulo, out Categoria categoria)
         {
@@ -12,12 +23,13 @@ namespace CofreDeSenhas
             if (string.IsNullOrWhiteSpace(rotulo))
                 return false;
 
-            for (int i = 0; i < Rotulos.Length; i++)
+            for (int i = 0; i < Categorias.Length; i++)
             {
-                if (!string.Equals(Rotulos[i], rotulo.Trim(), StringComparison.OrdinalIgnoreCase))
+                if (!Idioma.RotulosCategoria(Categorias[i]).Any(r =>
+                    string.Equals(r, rotulo.Trim(), StringComparison.OrdinalIgnoreCase)))
                     continue;
 
-                categoria = (Categoria)i;
+                categoria = Categorias[i];
                 return true;
             }
 

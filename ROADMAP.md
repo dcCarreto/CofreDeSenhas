@@ -83,6 +83,8 @@ gerenciador de senhas seguro:
   Chrome/Edge, Firefox, KeePass, Dashlane e NordPass, além de CSVs genéricos.
   Preserva segredos TOTP e favoritos, ignora entradas já existentes e confirma o
   formato detectado antes de importar.
+- Internacionalização da interface com seleção persistida de idioma e suporte a
+  português do Brasil, inglês, espanhol, francês, alemão e italiano.
 
 ## Planejado
 
@@ -90,7 +92,6 @@ Ideias e melhorias consideradas para versões futuras, sem ordem definitiva de
 prioridade:
 
 - Histórico de alterações por credencial.
-- Internacionalização da interface (além do português).
 - Sincronização opcional e criptografada de ponta a ponta entre dispositivos.
 - Desbloqueio por biometria ou Windows Hello.
 - Versão para macOS.

@@ -24,7 +24,7 @@ namespace CofreDeSenhas.Janelas
             InitializeComponent();
             Icon = Recursos.IconeApp();
 
-            LblTitulo.Text = $"Editar senha — {_senhaAtual.NomeServico}";
+            AtualizarTitulo();
             TxtNomeServico.Text = _senhaAtual.NomeServico;
             TxtUsuario.Text = _senhaAtual.Usuario;
             TxtUrl.Text = _senhaAtual.Url ?? "";
@@ -32,13 +32,18 @@ namespace CofreDeSenhas.Janelas
             TxtCategoriaPersonalizada.Text = CategoriaPersonalizadaAtual();
             TxtTotp.Text = TotpAtualPlain();
 
-            CmbCategoria.ItemsSource = CategoriasUI.Rotulos;
+            AtualizarCategorias();
             CmbCategoria.SelectedIndex = (int)_senhaAtual.Categoria;
             CmbCategoria.SelectionChanged += Categoria_Alterada;
             AtualizarCampoCategoriaPersonalizada();
 
             TxtTotp.TextChanged += (s, e) => AtualizarPreviewTotp();
-            Closed += (s, e) => PararTimerTotp();
+            Idioma.Alterado += Idioma_Alterado;
+            Closed += (s, e) =>
+            {
+                PararTimerTotp();
+                Idioma.Alterado -= Idioma_Alterado;
+            };
             AtualizarPreviewTotp();
         }
 
@@ -59,6 +64,26 @@ namespace CofreDeSenhas.Janelas
 
         private void Cancelar_Click(object? sender, RoutedEventArgs e) => Close(false);
 
+        private void Idioma_Alterado(object? sender, EventArgs e)
+        {
+            AtualizarTitulo();
+            AtualizarCategorias();
+            AtualizarPreviewTotp();
+        }
+
+        private void AtualizarTitulo()
+        {
+            Title = Idioma.Texto("Entry.EditTitle");
+            LblTitulo.Text = Idioma.Formatar("Entry.EditTitleWithService", _senhaAtual.NomeServico);
+        }
+
+        private void AtualizarCategorias()
+        {
+            var selecionado = Math.Max(0, CmbCategoria.SelectedIndex);
+            CmbCategoria.ItemsSource = CategoriasUI.Rotulos;
+            CmbCategoria.SelectedIndex = selecionado;
+        }
+
         private async void Salvar_Click(object? sender, RoutedEventArgs e)
         {
             try
@@ -66,7 +91,7 @@ namespace CofreDeSenhas.Janelas
                 if (string.IsNullOrWhiteSpace(TxtNomeServico.Text) || string.IsNullOrWhiteSpace(TxtUsuario.Text))
                 {
                     await CaixaMensagem.MostrarAsync(this,
-                        "Preencha os campos obrigatórios.", "Validação", TipoMensagem.Aviso);
+                        Idioma.Texto("Entry.EditRequired"), Idioma.Texto("Common.Validation"), TipoMensagem.Aviso);
                     return;
                 }
 
@@ -74,8 +99,8 @@ namespace CofreDeSenhas.Janelas
                 if (!string.IsNullOrWhiteSpace(totp) && !_totp.SegredoValido(totp))
                 {
                     await CaixaMensagem.MostrarAsync(this,
-                        "A chave de autenticação em duas etapas é inválida. Cole a chave secreta (Base32) ou um link otpauth://.",
-                        "Validação", TipoMensagem.Aviso);
+                        Idioma.Texto("Entry.TotpInvalid"),
+                        Idioma.Texto("Common.Validation"), TipoMensagem.Aviso);
                     return;
                 }
 
@@ -86,8 +111,8 @@ namespace CofreDeSenhas.Janelas
                     if (string.IsNullOrEmpty(novaSenha))
                     {
                         await CaixaMensagem.MostrarAsync(this,
-                            "Não foi possível recuperar a senha atual. Digite uma nova senha.",
-                            "Editar senha", TipoMensagem.Aviso);
+                            Idioma.Texto("Entry.RecoverCurrentPasswordError"),
+                            Idioma.Texto("Entry.EditTitle"), TipoMensagem.Aviso);
                         return;
                     }
                 }
@@ -111,7 +136,7 @@ namespace CofreDeSenhas.Janelas
             catch (Exception ex)
             {
                 await CaixaMensagem.MostrarAsync(this,
-                    $"Erro ao atualizar senha: {ex.Message}", "Erro", TipoMensagem.Erro);
+                    Idioma.Formatar("Entry.UpdateError", ex.Message), Idioma.Texto("Common.Error"), TipoMensagem.Erro);
             }
         }
 
@@ -129,7 +154,7 @@ namespace CofreDeSenhas.Janelas
             {
                 var codigo = _totp.Gerar(entrada);
                 LblCodigoTotp.Text = FormatarCodigo(codigo.Codigo);
-                LblContagemTotp.Text = $"expira em {codigo.SegundosRestantes}s";
+                LblContagemTotp.Text = Idioma.Formatar("Entry.TotpExpiresIn", codigo.SegundosRestantes);
                 PainelTotp.IsVisible = true;
                 GarantirTimerTotp();
             }

@@ -1,7 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="CofreDeSenhas.Janelas.JanelaConexaoBanco"
-        Title="Conexão"
+        Title="{DynamicResource Db.ConnectionTitle}"
         Width="470"
         SizeToContent="Height"
         CanResize="False"
@@ -23,7 +23,7 @@
               BorderThickness="0,0,0,1"
               PointerPressed="Arrastar">
         <Grid>
-          <TextBlock Name="LblTitulo" Text="Conexão"
+          <TextBlock Name="LblTitulo" Text="{DynamicResource Db.ConnectionTitle}"
                      FontSize="17" FontWeight="Bold"
                      Foreground="{DynamicResource TextPrimary}"
                      VerticalAlignment="Center"
@@ -40,15 +40,15 @@
               BorderBrush="{DynamicResource CardBorder}"
               BorderThickness="0,1,0,0">
         <Grid Margin="24,0">
-          <Button Name="BtnTestar" Classes="secundario" Content="Testar conexão"
+          <Button Name="BtnTestar" Classes="secundario" Content="{DynamicResource Db.TestConnection}"
                   Width="150" Height="40"
                   HorizontalAlignment="Left" VerticalAlignment="Center"
                   Click="Testar_Click" />
           <StackPanel Orientation="Horizontal" Spacing="10"
                       HorizontalAlignment="Right" VerticalAlignment="Center">
-            <Button Classes="secundario" Content="Cancelar"
+            <Button Classes="secundario" Content="{DynamicResource Common.Cancel}"
                     Width="100" Height="40" Click="Cancelar_Click" />
-            <Button Name="BtnConectar" Classes="primario" Content="Conectar"
+            <Button Name="BtnConectar" Classes="primario" Content="{DynamicResource Common.Connect}"
                     Width="120" Height="40" Click="Conectar_Click" />
           </StackPanel>
         </Grid>

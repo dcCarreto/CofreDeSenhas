@@ -167,6 +167,8 @@ Tema escuro:
 
 - Janela sem moldura, com cantos arredondados e redimensionamento livre.
 - Tema claro e tema escuro, com a preferência persistida entre sessões.
+- Interface internacionalizada, com seleção persistida entre português do
+  Brasil, inglês, espanhol, francês, alemão e italiano.
 - Layout do cofre com distribuição ajustada para priorizar a leitura do usuário,
   ícones de ação mais legíveis e distintivos de categoria compactos.
 - Banco visual de ícones por serviço, com favicons reais quando disponíveis e
@@ -349,8 +351,8 @@ em `~/.config/GerenciadorSenhas/` no Linux:
 
 - `auth.dat`: salt e verificador da senha mestra.
 - `senhas.json.enc`: cofre criptografado com as credenciais.
-- `config.json`: preferências da interface (como o tema) e o último perfil de
-  conexão a banco, sem a senha do servidor.
+- `config.json`: preferências da interface (como o tema e o idioma) e o último
+  perfil de conexão a banco, sem a senha do servidor.
 - `backups/`: cópias de segurança do cofre.
 
 Esses arquivos não fazem parte do repositório e contêm dados sensíveis.

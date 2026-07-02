@@ -2,7 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:c="using:CofreDeSenhas.Controles"
         x:Class="CofreDeSenhas.Janelas.JanelaLogin"
-        Title="Cofre de Senhas"
+        Title="{DynamicResource App.Title}"
         Width="800" Height="700"
         CanResize="False"
         SystemDecorations="None"
@@ -39,7 +39,7 @@
                       Margin="40" MaxWidth="360">
             <Image Source="/Ativos/app.png" Width="64" Height="64" HorizontalAlignment="Center" />
 
-            <TextBlock Text="Cofre de Senhas"
+            <TextBlock Text="{DynamicResource App.Title}"
                        FontSize="23" FontWeight="Bold"
                        Foreground="{DynamicResource TextPrimary}"
                        HorizontalAlignment="Center"
@@ -53,7 +53,13 @@
                        TextWrapping="Wrap"
                        Margin="0,0,0,26" />
 
-            <TextBlock Text="Senha mestra"
+            <ComboBox Name="CmbIdioma"
+                      Classes="campo"
+                      Height="36"
+                      HorizontalAlignment="Stretch"
+                      Margin="0,0,0,18" />
+
+            <TextBlock Text="{DynamicResource Login.MasterPassword}"
                        FontSize="12"
                        Foreground="{DynamicResource TextSecondary}"
                        Margin="0,0,0,6" />
@@ -63,7 +69,7 @@
                      MinHeight="42" />
 
             <StackPanel Name="PainelConfirmar" IsVisible="False" Margin="0,14,0,0">
-              <TextBlock Text="Confirmar senha"
+              <TextBlock Text="{DynamicResource Login.ConfirmPassword}"
                          FontSize="12"
                          Foreground="{DynamicResource TextSecondary}"
                          Margin="0,0,0,6" />

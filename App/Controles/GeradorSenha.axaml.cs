@@ -25,16 +25,16 @@ namespace CofreDeSenhas.Controles
         {
             InitializeComponent();
 
-            CmbModoGerador.ItemsSource = new[] { "Senha", "Frase-senha" };
-            CmbModoGerador.SelectedIndex = 0;
-            CmbSeparadorFrase.ItemsSource = new[] { "-", "_", ".", "espaço" };
-            CmbSeparadorFrase.SelectedIndex = 0;
-
             SliderTamanho.ValueChanged += (s, e) => LblTamanhoValor.Text = SliderTamanho.Value.ToString();
             SliderQuantidade.ValueChanged += (s, e) => LblQuantidadeValor.Text = SliderQuantidade.Value.ToString();
             SliderPalavras.ValueChanged += (s, e) => LblPalavrasValor.Text = SliderPalavras.Value.ToString();
             CmbModoGerador.SelectionChanged += ModoGerador_Alterado;
+            Idioma.Alterado += Idioma_Alterado;
+            DetachedFromVisualTree += (s, e) => Idioma.Alterado -= Idioma_Alterado;
 
+            AtualizarTextos();
+            CmbModoGerador.SelectedIndex = 0;
+            CmbSeparadorFrase.SelectedIndex = 0;
             AtualizarModoGerador();
             AplicarPermiteSalvar();
         }
@@ -64,7 +64,31 @@ namespace CofreDeSenhas.Controles
 
         private bool ModoFraseSenha => CmbModoGerador.SelectedIndex == 1;
 
-        private string ItemGeradoNome => ModoFraseSenha ? "frase-senha" : "senha";
+        private string ItemGeradoNome => ModoFraseSenha
+            ? Idioma.Texto("Generator.Item.Passphrase")
+            : Idioma.Texto("Generator.Item.Password");
+
+        private void Idioma_Alterado(object? sender, EventArgs e) => AtualizarTextos();
+
+        private void AtualizarTextos()
+        {
+            var modo = Math.Max(0, CmbModoGerador.SelectedIndex);
+            var separador = Math.Max(0, CmbSeparadorFrase.SelectedIndex);
+
+            CmbModoGerador.ItemsSource = new[]
+            {
+                Idioma.Texto("Generator.Mode.Password"),
+                Idioma.Texto("Generator.Mode.Passphrase")
+            };
+            CmbModoGerador.SelectedIndex = modo;
+
+            CmbSeparadorFrase.ItemsSource = new[] { "-", "_", ".", Idioma.Texto("Generator.Separator.Space") };
+            CmbSeparadorFrase.SelectedIndex = separador;
+
+            AtualizarModoGerador();
+            AtualizarBarraForca();
+            AtualizarListaSenhasGeradas();
+        }
 
         private void ModoGerador_Alterado(object? sender, SelectionChangedEventArgs e)
         {
@@ -77,7 +101,9 @@ namespace CofreDeSenhas.Controles
             bool fraseSenha = ModoFraseSenha;
             PainelSenhaCaracteres.IsVisible = !fraseSenha;
             PainelFraseSenha.IsVisible = fraseSenha;
-            BtnGerar.Content = fraseSenha ? "Gerar frase-senha" : "Gerar nova senha";
+            BtnGerar.Content = Idioma.Texto(fraseSenha
+                ? "Generator.GeneratePassphrase"
+                : "Generator.GeneratePassword");
         }
 
         private string SeparadorFraseSelecionado()
@@ -119,7 +145,7 @@ namespace CofreDeSenhas.Controles
             catch (ArgumentException ex)
             {
                 if (JanelaDona is { } janela)
-                    await CaixaMensagem.MostrarAsync(janela, ex.Message, "Aviso", TipoMensagem.Aviso);
+                    await CaixaMensagem.MostrarAsync(janela, ex.Message, Idioma.Texto("Common.Warning"), TipoMensagem.Aviso);
                 return;
             }
 
@@ -152,7 +178,9 @@ namespace CofreDeSenhas.Controles
 
             var titulo = new TextBlock
             {
-                Text = $"{(ModoFraseSenha ? "Frases-senha" : "Senhas")} geradas ({_senhasGeradas.Count})",
+                Text = Idioma.Formatar(ModoFraseSenha
+                    ? "Generator.PassphrasesGenerated"
+                    : "Generator.PasswordsGenerated", _senhasGeradas.Count),
                 FontSize = 13,
                 FontWeight = FontWeight.Bold,
                 Foreground = Tema.Pincel(Tema.TextPrimary),
@@ -161,7 +189,7 @@ namespace CofreDeSenhas.Controles
 
             var btnCopiarTodas = new Button
             {
-                Content = "Copiar todas",
+                Content = Idioma.Texto("Generator.CopyAll"),
                 Height = 26,
                 FontSize = 12,
                 Foreground = Tema.Pincel(Tema.AccentPrimary),
@@ -238,10 +266,10 @@ namespace CofreDeSenhas.Controles
             _nivelForca = ForcaSenha.Calcular(_senhaGerada);
             var (texto, cor) = _nivelForca switch
             {
-                1 => ("Fraca", Tema.StrengthWeak),
-                2 => ("Média", Tema.StrengthMedium),
-                3 => ("Forte", Tema.StrengthStrong),
-                4 => ("Excelente", Tema.StrengthExcelent),
+                1 => (Idioma.Texto("Generator.StrengthWeak"), Tema.StrengthWeak),
+                2 => (Idioma.Texto("Generator.StrengthMedium"), Tema.StrengthMedium),
+                3 => (Idioma.Texto("Generator.StrengthStrong"), Tema.StrengthStrong),
+                4 => (Idioma.Texto("Generator.StrengthExcellent"), Tema.StrengthExcelent),
                 _ => ("—", Tema.TextSecondary)
             };
 
@@ -267,8 +295,8 @@ namespace CofreDeSenhas.Controles
             await AreaTransferencia.SetTextAsync(_senhaGerada);
             if (JanelaDona is { } janela)
                 await CaixaMensagem.MostrarAsync(janela,
-                    ModoFraseSenha ? "Frase-senha copiada!" : "Senha copiada!",
-                    "Sucesso");
+                    ModoFraseSenha ? Idioma.Texto("Generator.PassphraseCopied") : Idioma.Texto("Generator.PasswordCopied"),
+                    Idioma.Texto("Common.Success"));
         }
 
         private void Limpar_Click(object? sender, RoutedEventArgs e)
@@ -292,7 +320,7 @@ namespace CofreDeSenhas.Controles
             {
                 if (JanelaDona is { } janela)
                     await CaixaMensagem.MostrarAsync(janela,
-                        $"Gere uma {ItemGeradoNome} primeiro", "Aviso", TipoMensagem.Aviso);
+                        Idioma.Formatar("Generator.GenerateFirst", ItemGeradoNome), Idioma.Texto("Common.Warning"), TipoMensagem.Aviso);
                 return;
             }
 

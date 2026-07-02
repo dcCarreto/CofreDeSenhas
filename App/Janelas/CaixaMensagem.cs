@@ -95,11 +95,11 @@ namespace CofreDeSenhas.Janelas
 
             if (simNao)
             {
-                var btnNao = new Button { Content = "Não", Width = 110, Height = 38 };
+                var btnNao = new Button { Content = Idioma.Texto("Common.No"), Width = 110, Height = 38 };
                 btnNao.Classes.Add("secundario");
                 btnNao.Click += (s, e) => Close(false);
 
-                var btnSim = new Button { Content = "Sim", Width = 110, Height = 38 };
+                var btnSim = new Button { Content = Idioma.Texto("Common.Yes"), Width = 110, Height = 38 };
                 btnSim.Classes.Add("primario");
                 btnSim.Click += (s, e) => Close(true);
 

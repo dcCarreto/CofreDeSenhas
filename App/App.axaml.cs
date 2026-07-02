@@ -12,13 +12,17 @@ namespace CofreDeSenhas
     public partial class App : Application
     {
         private TrayIcon? _bandeja;
+        private NativeMenuItem? _itemAbrirBandeja;
+        private NativeMenuItem? _itemSairBandeja;
 
         public override void Initialize() => AvaloniaXamlLoader.Load(this);
 
         public override void OnFrameworkInitializationCompleted()
         {
             Preferencias.Carregar();
+            Idioma.Definir(Preferencias.Idioma);
             AplicarTema(Preferencias.ModoEscuro);
+            Idioma.Alterado += (s, e) => AtualizarTextosBandeja();
 
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
@@ -83,29 +87,39 @@ namespace CofreDeSenhas
                     janela.Activate();
                 }
 
-                var itemAbrir = new NativeMenuItem("Abrir cofre");
-                itemAbrir.Click += (s, e) => Restaurar();
-                var itemSair = new NativeMenuItem("Sair");
-                itemSair.Click += (s, e) => desktop.Shutdown();
+                _itemAbrirBandeja = new NativeMenuItem();
+                _itemAbrirBandeja.Click += (s, e) => Restaurar();
+                _itemSairBandeja = new NativeMenuItem();
+                _itemSairBandeja.Click += (s, e) => desktop.Shutdown();
 
                 var menu = new NativeMenu();
-                menu.Add(itemAbrir);
+                menu.Add(_itemAbrirBandeja);
                 menu.Add(new NativeMenuItemSeparator());
-                menu.Add(itemSair);
+                menu.Add(_itemSairBandeja);
 
                 _bandeja = new TrayIcon
                 {
                     Icon = Recursos.IconeApp(),
-                    ToolTipText = "Cofre de Senhas",
                     Menu = menu
                 };
                 _bandeja.Clicked += (s, e) => Restaurar();
+                AtualizarTextosBandeja();
                 _bandeja.IsVisible = true;
             }
             catch
             {
                 _bandeja = null;
             }
+        }
+
+        private void AtualizarTextosBandeja()
+        {
+            if (_bandeja != null)
+                _bandeja.ToolTipText = Idioma.Texto("App.Title");
+            if (_itemAbrirBandeja != null)
+                _itemAbrirBandeja.Header = Idioma.Texto("Vault.Header");
+            if (_itemSairBandeja != null)
+                _itemSairBandeja.Header = Idioma.Texto("Common.Exit");
         }
     }
 }

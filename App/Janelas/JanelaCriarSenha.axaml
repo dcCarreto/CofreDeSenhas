@@ -1,7 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="CofreDeSenhas.Janelas.JanelaCriarSenha"
-        Title="Nova senha"
+        Title="{DynamicResource Entry.NewTitle}"
         Width="460"
         SizeToContent="Height"
         CanResize="False"
@@ -23,7 +23,7 @@
               BorderThickness="0,0,0,1"
               PointerPressed="Arrastar">
         <Grid>
-          <TextBlock Text="Nova senha"
+          <TextBlock Text="{DynamicResource Entry.NewTitle}"
                      FontSize="17" FontWeight="Bold"
                      Foreground="{DynamicResource TextPrimary}"
                      VerticalAlignment="Center"
@@ -40,11 +40,11 @@
               BorderBrush="{DynamicResource CardBorder}"
               BorderThickness="0,1,0,0">
         <Grid Margin="24,0">
-          <Button Classes="primario" Content="Salvar"
+          <Button Classes="primario" Content="{DynamicResource Common.Save}"
                   Width="200" Height="40"
                   HorizontalAlignment="Left" VerticalAlignment="Center"
                   Click="Salvar_Click" />
-          <Button Classes="secundario" Content="Cancelar"
+          <Button Classes="secundario" Content="{DynamicResource Common.Cancel}"
                   Width="150" Height="40"
                   HorizontalAlignment="Right" VerticalAlignment="Center"
                   Click="Cancelar_Click" />
@@ -52,18 +52,18 @@
       </Border>
 
       <StackPanel Margin="24,18,24,16" Spacing="4">
-        <TextBlock Text="Nome do serviço" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
+        <TextBlock Text="{DynamicResource Entry.ServiceName}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
         <TextBox Name="TxtNomeServico" Classes="campo" Margin="0,0,0,12" />
 
-        <TextBlock Text="Usuário / E-mail" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
+        <TextBlock Text="{DynamicResource Entry.UserEmail}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
         <TextBox Name="TxtUsuario" Classes="campo" Margin="0,0,0,12" />
 
-        <TextBlock Text="Senha" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
+        <TextBlock Text="{DynamicResource Entry.Password}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
         <TextBox Name="TxtSenha" Classes="campo revealPasswordButton" PasswordChar="●" Margin="0,0,0,12" />
 
-        <TextBlock Text="Autenticação em duas etapas (2FA)  (opcional)" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
+        <TextBlock Text="{DynamicResource Entry.TotpOptional}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
         <TextBox Name="TxtTotp" Classes="campo"
-                 Watermark="Cole a chave secreta ou o link otpauth://" Margin="0,0,0,8" />
+                 Watermark="{DynamicResource Entry.TotpWatermark}" Margin="0,0,0,8" />
         <Border Name="PainelTotp" IsVisible="False"
                 Background="{DynamicResource InputBackground}"
                 BorderBrush="{DynamicResource InputBorder}" BorderThickness="1"
@@ -77,18 +77,18 @@
           </Grid>
         </Border>
 
-        <TextBlock Text="Categoria" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
+        <TextBlock Text="{DynamicResource Entry.Category}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
         <ComboBox Name="CmbCategoria" Classes="campo" HorizontalAlignment="Stretch" Margin="0,0,0,12" />
 
-        <TextBlock Name="LblCategoriaPersonalizada" Text="Categoria personalizada" IsVisible="False"
+        <TextBlock Name="LblCategoriaPersonalizada" Text="{DynamicResource Entry.CustomCategory}" IsVisible="False"
                    FontSize="12" Foreground="{DynamicResource TextSecondary}" />
         <TextBox Name="TxtCategoriaPersonalizada" Classes="campo" IsVisible="False"
-                 Watermark="Ex.: Jogos" Margin="0,0,0,12" />
+                 Watermark="{DynamicResource Entry.CustomCategoryWatermark}" Margin="0,0,0,12" />
 
-        <TextBlock Text="URL  (opcional)" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
+        <TextBlock Text="{DynamicResource Entry.UrlOptional}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
         <TextBox Name="TxtUrl" Classes="campo" Margin="0,0,0,12" />
 
-        <TextBlock Text="Notas  (opcional)" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
+        <TextBlock Text="{DynamicResource Entry.NotesOptional}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
         <TextBox Name="TxtNotas" Classes="campo" AcceptsReturn="True" Height="64" />
       </StackPanel>
     </DockPanel>

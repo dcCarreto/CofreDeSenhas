@@ -40,13 +40,13 @@ namespace CofreDeSenhas.Janelas
             var senha = TxtSenha.Text ?? "";
             if (string.IsNullOrEmpty(senha))
             {
-                MostrarErro("Digite sua senha mestra.");
+                MostrarErro(Idioma.Texto("Qr.ErrorMasterRequired"));
                 return;
             }
 
             if (_auth.Autenticar(senha) == null)
             {
-                MostrarErro("Senha mestra incorreta.");
+                MostrarErro(Idioma.Texto("Qr.ErrorMasterIncorrect"));
                 return;
             }
 

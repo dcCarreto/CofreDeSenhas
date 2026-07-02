@@ -37,17 +37,17 @@ namespace CofreDeSenhas.Janelas
         {
             if (string.IsNullOrWhiteSpace(TxtAtual.Text))
             {
-                LblErro.Text = "Informe a senha mestra atual.";
+                LblErro.Text = Idioma.Texto("Master.ErrorCurrentRequired");
                 return;
             }
             if ((TxtNova.Text ?? "").Length < 8)
             {
-                LblErro.Text = "A nova senha deve ter pelo menos 8 caracteres.";
+                LblErro.Text = Idioma.Texto("Master.ErrorNewLength");
                 return;
             }
             if (TxtNova.Text != TxtConfirmar.Text)
             {
-                LblErro.Text = "A confirmação não coincide com a nova senha.";
+                LblErro.Text = Idioma.Texto("Master.ErrorConfirmMismatch");
                 return;
             }
 

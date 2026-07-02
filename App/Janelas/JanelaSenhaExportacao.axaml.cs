@@ -17,14 +17,10 @@ namespace CofreDeSenhas.Janelas
             InitializeComponent();
             Icon = Recursos.IconeApp();
 
-            Title = modoExportar ? "Exportar senhas" : "Importar senhas";
-            LblTitulo.Text = Title;
-            BtnPrincipal.Content = modoExportar ? "Exportar" : "Importar";
-            LblSenha.Text = modoExportar ? "Senha de exportação" : "Senha";
-            LblInfo.Text = modoExportar
-                ? "Defina uma senha para proteger o arquivo. Ela será exigida na importação — guarde-a bem, pois sem ela o arquivo não pode ser aberto."
-                : "Informe a senha definida quando o arquivo foi exportado.";
+            AtualizarTextos();
             PainelConfirmar.IsVisible = modoExportar;
+            Idioma.Alterado += Idioma_Alterado;
+            Closed += (s, e) => Idioma.Alterado -= Idioma_Alterado;
 
             KeyDown += (s, e) =>
             {
@@ -45,13 +41,30 @@ namespace CofreDeSenhas.Janelas
 
         private void Principal_Click(object? sender, RoutedEventArgs e) => Confirmar();
 
+        private void Idioma_Alterado(object? sender, EventArgs e) => AtualizarTextos();
+
+        private void AtualizarTextos()
+        {
+            Title = Idioma.Texto(_modoExportar
+                ? "ExportDialog.ExportTitle"
+                : "ExportDialog.ImportTitle");
+            LblTitulo.Text = Title;
+            BtnPrincipal.Content = Idioma.Texto(_modoExportar ? "Common.Export" : "Common.Import");
+            LblSenha.Text = Idioma.Texto(_modoExportar
+                ? "ExportDialog.ExportPassword"
+                : "ExportDialog.Password");
+            LblInfo.Text = Idioma.Texto(_modoExportar
+                ? "ExportDialog.InfoExport"
+                : "ExportDialog.InfoImport");
+        }
+
         private void Confirmar()
         {
             var senha = TxtSenha.Text ?? "";
 
             if (string.IsNullOrWhiteSpace(senha))
             {
-                MostrarErro("Informe a senha.");
+                MostrarErro(Idioma.Texto("ExportDialog.PasswordRequired"));
                 return;
             }
 
@@ -59,12 +72,12 @@ namespace CofreDeSenhas.Janelas
             {
                 if (senha.Length < 8)
                 {
-                    MostrarErro("A senha deve ter pelo menos 8 caracteres.");
+                    MostrarErro(Idioma.Texto("ExportDialog.PasswordLength"));
                     return;
                 }
                 if (senha != TxtConfirmar.Text)
                 {
-                    MostrarErro("As senhas não coincidem.");
+                    MostrarErro(Idioma.Texto("ExportDialog.PasswordMismatch"));
                     return;
                 }
             }

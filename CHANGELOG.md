@@ -50,6 +50,8 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 - Categorias personalizadas a partir de `Outro`, com criação/edição, busca,
   filtro no mesmo seletor de categorias, exibição na lista e preservação em
   importação/exportação e banco de dados.
+- Internacionalização da interface, com seletor de idioma persistido e suporte a
+  português do Brasil, inglês, espanhol, francês, alemão e italiano.
 
 ### Alterado
 - Reorganização visual do cofre, com melhor distribuição entre gerador e lista,

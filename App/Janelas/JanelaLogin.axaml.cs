@@ -28,11 +28,14 @@ namespace CofreDeSenhas.Janelas
 
             Gerador.PermiteSalvar = false;
 
-            LblSubtitulo.Text = _primeiroAcesso
-                ? "Crie uma senha mestra para proteger o cofre"
-                : "Digite sua senha mestra para desbloquear";
-            BtnPrincipal.Content = _primeiroAcesso ? "Criar cofre" : "Desbloquear";
+            CmbIdioma.ItemsSource = Idioma.Idiomas;
+            CmbIdioma.SelectedItem = Idioma.Atual;
+            CmbIdioma.SelectionChanged += Idioma_Alterado;
+            Idioma.Alterado += IdiomaGlobal_Alterado;
+
+            AtualizarTextos();
             PainelConfirmar.IsVisible = _primeiroAcesso;
+            Closed += (s, e) => Idioma.Alterado -= IdiomaGlobal_Alterado;
 
             KeyDown += (s, e) =>
             {
@@ -66,6 +69,34 @@ namespace CofreDeSenhas.Janelas
 
         private async void Principal_Click(object? sender, RoutedEventArgs e) => await ConfirmarAsync();
 
+        private void Idioma_Alterado(object? sender, SelectionChangedEventArgs e)
+        {
+            if (CmbIdioma.SelectedItem is not IdiomaDisponivel idioma ||
+                string.Equals(idioma.Codigo, Idioma.Atual.Codigo, StringComparison.OrdinalIgnoreCase))
+                return;
+
+            Idioma.Definir(idioma.Codigo);
+            Preferencias.Idioma = Idioma.Atual.Codigo;
+            Preferencias.Salvar();
+        }
+
+        private void IdiomaGlobal_Alterado(object? sender, EventArgs e)
+        {
+            CmbIdioma.SelectedItem = Idioma.Atual;
+            AtualizarTextos();
+            LblErro.Text = "";
+        }
+
+        private void AtualizarTextos()
+        {
+            LblSubtitulo.Text = Idioma.Texto(_primeiroAcesso
+                ? "Login.SubtitleCreate"
+                : "Login.SubtitleUnlock");
+            BtnPrincipal.Content = Idioma.Texto(_primeiroAcesso
+                ? "Login.CreateVault"
+                : "Login.Unlock");
+        }
+
         private async Task ConfirmarAsync()
         {
             LblErro.Text = "";
@@ -75,12 +106,12 @@ namespace CofreDeSenhas.Janelas
             {
                 if (senha.Length < 8)
                 {
-                    MostrarErro("A senha deve ter pelo menos 8 caracteres.");
+                    MostrarErro(Idioma.Texto("Login.Error.PasswordLength"));
                     return;
                 }
                 if (senha != (TxtConfirmar.Text ?? ""))
                 {
-                    MostrarErro("As senhas não coincidem.");
+                    MostrarErro(Idioma.Texto("Login.Error.PasswordMismatch"));
                     return;
                 }
 
@@ -102,7 +133,7 @@ namespace CofreDeSenhas.Janelas
             {
                 if (string.IsNullOrEmpty(senha))
                 {
-                    MostrarErro("Digite a senha mestra.");
+                    MostrarErro(Idioma.Texto("Login.Error.MasterPasswordRequired"));
                     return;
                 }
 
@@ -116,7 +147,7 @@ namespace CofreDeSenhas.Janelas
                 _tentativas++;
                 if (_tentativas >= 5)
                 {
-                    MostrarErro("Muitas tentativas. Aguarde 5 segundos.");
+                    MostrarErro(Idioma.Texto("Login.Error.TooManyAttempts"));
                     BtnPrincipal.IsEnabled = false;
                     var t = new DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
                     t.Tick += (s, ev) =>
@@ -130,7 +161,7 @@ namespace CofreDeSenhas.Janelas
                 }
                 else
                 {
-                    MostrarErro($"Senha incorreta. Tentativa {_tentativas} de 5.");
+                    MostrarErro(Idioma.Formatar("Login.Error.WrongPassword", _tentativas));
                 }
 
                 TxtSenha.SelectAll();

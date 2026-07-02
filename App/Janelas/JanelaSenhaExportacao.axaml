@@ -43,7 +43,7 @@
                   Width="200" Height="40"
                   HorizontalAlignment="Left" VerticalAlignment="Center"
                   Click="Principal_Click" />
-          <Button Classes="secundario" Content="Cancelar"
+          <Button Classes="secundario" Content="{DynamicResource Common.Cancel}"
                   Width="150" Height="40"
                   HorizontalAlignment="Right" VerticalAlignment="Center"
                   Click="Cancelar_Click" />
@@ -61,7 +61,7 @@
         <TextBox Name="TxtSenha" Classes="campo revealPasswordButton" PasswordChar="●" Margin="0,0,0,10" />
 
         <StackPanel Name="PainelConfirmar" Spacing="4">
-          <TextBlock Text="Confirmar senha" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
+          <TextBlock Text="{DynamicResource Login.ConfirmPassword}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
           <TextBox Name="TxtConfirmar" Classes="campo revealPasswordButton" PasswordChar="●" Margin="0,0,0,10" />
         </StackPanel>
 

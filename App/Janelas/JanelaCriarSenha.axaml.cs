@@ -20,7 +20,7 @@ namespace CofreDeSenhas.Janelas
             InitializeComponent();
             Icon = Recursos.IconeApp();
 
-            CmbCategoria.ItemsSource = CategoriasUI.Rotulos;
+            AtualizarCategorias();
             CmbCategoria.SelectedIndex = (int)Categoria.Personal;
             CmbCategoria.SelectionChanged += Categoria_Alterada;
             AtualizarCampoCategoriaPersonalizada();
@@ -29,7 +29,12 @@ namespace CofreDeSenhas.Janelas
                 TxtSenha.Text = senhaGerada;
 
             TxtTotp.TextChanged += (s, e) => AtualizarPreviewTotp();
-            Closed += (s, e) => PararTimerTotp();
+            Idioma.Alterado += Idioma_Alterado;
+            Closed += (s, e) =>
+            {
+                PararTimerTotp();
+                Idioma.Alterado -= Idioma_Alterado;
+            };
 
             Opened += (s, e) => TxtNomeServico.Focus();
         }
@@ -42,6 +47,19 @@ namespace CofreDeSenhas.Janelas
 
         private void Cancelar_Click(object? sender, RoutedEventArgs e) => Close(false);
 
+        private void Idioma_Alterado(object? sender, EventArgs e)
+        {
+            AtualizarCategorias();
+            AtualizarPreviewTotp();
+        }
+
+        private void AtualizarCategorias()
+        {
+            var selecionado = Math.Max(0, CmbCategoria.SelectedIndex);
+            CmbCategoria.ItemsSource = CategoriasUI.Rotulos;
+            CmbCategoria.SelectedIndex = selecionado;
+        }
+
         private async void Salvar_Click(object? sender, RoutedEventArgs e)
         {
             try
@@ -51,8 +69,8 @@ namespace CofreDeSenhas.Janelas
                     string.IsNullOrWhiteSpace(TxtSenha.Text))
                 {
                     await CaixaMensagem.MostrarAsync(this,
-                        "Preencha os campos obrigatórios (nome, usuário e senha).",
-                        "Validação", TipoMensagem.Aviso);
+                        Idioma.Texto("Entry.CreateRequired"),
+                        Idioma.Texto("Common.Validation"), TipoMensagem.Aviso);
                     return;
                 }
 
@@ -60,8 +78,8 @@ namespace CofreDeSenhas.Janelas
                 if (!string.IsNullOrWhiteSpace(totp) && !_totp.SegredoValido(totp))
                 {
                     await CaixaMensagem.MostrarAsync(this,
-                        "A chave de autenticação em duas etapas é inválida. Cole a chave secreta (Base32) ou um link otpauth://.",
-                        "Validação", TipoMensagem.Aviso);
+                        Idioma.Texto("Entry.TotpInvalid"),
+                        Idioma.Texto("Common.Validation"), TipoMensagem.Aviso);
                     return;
                 }
 
@@ -82,7 +100,7 @@ namespace CofreDeSenhas.Janelas
             catch (Exception ex)
             {
                 await CaixaMensagem.MostrarAsync(this,
-                    $"Erro ao criar senha: {ex.Message}", "Erro", TipoMensagem.Erro);
+                    Idioma.Formatar("Entry.CreateError", ex.Message), Idioma.Texto("Common.Error"), TipoMensagem.Erro);
             }
         }
 
@@ -100,7 +118,7 @@ namespace CofreDeSenhas.Janelas
             {
                 var codigo = _totp.Gerar(entrada);
                 LblCodigoTotp.Text = FormatarCodigo(codigo.Codigo);
-                LblContagemTotp.Text = $"expira em {codigo.SegundosRestantes}s";
+                LblContagemTotp.Text = Idioma.Formatar("Entry.TotpExpiresIn", codigo.SegundosRestantes);
                 PainelTotp.IsVisible = true;
                 GarantirTimerTotp();
             }

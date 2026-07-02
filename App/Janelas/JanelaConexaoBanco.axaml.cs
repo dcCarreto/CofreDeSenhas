@@ -30,6 +30,8 @@ namespace CofreDeSenhas.Janelas
             Icon = Recursos.IconeApp();
 
             MontarFormulario();
+            Idioma.Alterado += Idioma_Alterado;
+            Closed += (s, e) => Idioma.Alterado -= Idioma_Alterado;
 
             KeyDown += (s, e) =>
             {
@@ -41,20 +43,28 @@ namespace CofreDeSenhas.Janelas
 
         private void MontarFormulario()
         {
+            var arquivoAtual = _txtArquivo?.Text;
+            var hostAtual = _txtHost?.Text;
+            var portaAtual = _txtPorta?.Text;
+            var bancoAtual = _txtBanco?.Text;
+            var usuarioAtual = _txtUsuario?.Text;
+            var senhaAtual = _txtSenha?.Text;
+
+            Campos.Children.Clear();
             var provedor = ProvedorBanco.De(_tipo);
-            LblTitulo.Text = $"Conectar — {provedor.Rotulo}";
+            LblTitulo.Text = Idioma.Formatar("Db.ConnectProviderTitle", provedor.Rotulo);
 
             var perfil = Preferencias.UltimoBanco;
             bool temPerfil = perfil != null && perfil.Tipo == _tipo;
 
             if (provedor.UsaArquivo)
             {
-                Campos.Children.Add(Rotulo("Arquivo do banco (.db)"));
+                Campos.Children.Add(Rotulo(Idioma.Texto("Db.DatabaseFile")));
 
-                _txtArquivo = new TextBox { Text = temPerfil ? perfil!.Banco : null };
+                _txtArquivo = new TextBox { Text = arquivoAtual ?? (temPerfil ? perfil!.Banco : null) };
                 _txtArquivo.Classes.Add("campo");
 
-                var btnProcurar = new Button { Content = "Procurar…", Width = 110, Height = 38 };
+                var btnProcurar = new Button { Content = Idioma.Texto("Db.Browse"), Width = 110, Height = 38 };
                 btnProcurar.Classes.Add("secundario");
                 btnProcurar.Margin = new Thickness(8, 0, 0, 0);
                 btnProcurar.Click += Procurar_Click;
@@ -67,13 +77,19 @@ namespace CofreDeSenhas.Janelas
             }
             else
             {
-                _txtHost = AdicionarCampo("Host", temPerfil ? perfil!.Host : "localhost");
-                _txtPorta = AdicionarCampo("Porta",
-                    (temPerfil && perfil!.Porta > 0 ? perfil.Porta : provedor.PortaPadrao).ToString());
-                _txtBanco = AdicionarCampo("Banco de dados", temPerfil ? perfil!.Banco : null);
-                _txtUsuario = AdicionarCampo("Usuário", temPerfil ? perfil!.Usuario : null);
-                _txtSenha = AdicionarCampo("Senha", null, senha: true);
+                _txtHost = AdicionarCampo(Idioma.Texto("Db.Host"), hostAtual ?? (temPerfil ? perfil!.Host : "localhost"));
+                _txtPorta = AdicionarCampo(Idioma.Texto("Db.Port"),
+                    portaAtual ?? (temPerfil && perfil!.Porta > 0 ? perfil.Porta : provedor.PortaPadrao).ToString());
+                _txtBanco = AdicionarCampo(Idioma.Texto("Db.Database"), bancoAtual ?? (temPerfil ? perfil!.Banco : null));
+                _txtUsuario = AdicionarCampo(Idioma.Texto("Db.User"), usuarioAtual ?? (temPerfil ? perfil!.Usuario : null));
+                _txtSenha = AdicionarCampo(Idioma.Texto("Db.Password"), senhaAtual, senha: true);
             }
+        }
+
+        private void Idioma_Alterado(object? sender, EventArgs e)
+        {
+            MontarFormulario();
+            MostrarErro("");
         }
 
         private static TextBlock Rotulo(string texto) => new()
@@ -104,14 +120,14 @@ namespace CofreDeSenhas.Janelas
         {
             var arquivo = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
             {
-                Title = "Arquivo do banco SQLite",
+                Title = Idioma.Texto("Db.SQLitePickerTitle"),
                 SuggestedFileName = "cofre.db",
                 DefaultExtension = "db",
                 ShowOverwritePrompt = false,
                 FileTypeChoices = new[]
                 {
-                    new FilePickerFileType("Banco SQLite") { Patterns = new[] { "*.db", "*.sqlite", "*.sqlite3" } },
-                    new FilePickerFileType("Todos os arquivos") { Patterns = new[] { "*" } }
+                    new FilePickerFileType(Idioma.Texto("Common.SQLiteDatabase")) { Patterns = new[] { "*.db", "*.sqlite", "*.sqlite3" } },
+                    new FilePickerFileType(Idioma.Texto("Common.AllFiles")) { Patterns = new[] { "*" } }
                 }
             });
 
@@ -130,11 +146,11 @@ namespace CofreDeSenhas.Janelas
                 {
                     await _bd.TestarConexaoAsync(cfg);
                     MostrarErro("");
-                    await CaixaMensagem.MostrarAsync(this, "Conexão bem-sucedida.", "Testar conexão");
+                    await CaixaMensagem.MostrarAsync(this, Idioma.Texto("Db.ConnectionSuccess"), Idioma.Texto("Db.TestConnectionTitle"));
                 }
                 catch (Exception ex)
                 {
-                    MostrarErro("Falha na conexão: " + PrimeiraLinha(ex.Message));
+                    MostrarErro(Idioma.Formatar("Db.ConnectionFailed", PrimeiraLinha(ex.Message)));
                 }
             });
         }
@@ -153,11 +169,11 @@ namespace CofreDeSenhas.Janelas
                     if (!await _bd.TabelaExisteAsync(cfg))
                     {
                         var criar = await CaixaMensagem.ConfirmarAsync(this,
-                            $"A tabela \"{ServicoBancoDados.NomeTabela}\" não existe neste banco.\n\nDeseja criá-la agora?",
-                            "Criar tabela");
+                            Idioma.Formatar("Db.TableMissing", ServicoBancoDados.NomeTabela),
+                            Idioma.Texto("Db.CreateTableTitle"));
                         if (!criar)
                         {
-                            MostrarErro("Conexão cancelada: a tabela não existe.");
+                            MostrarErro(Idioma.Texto("Db.ConnectionCanceledNoTable"));
                             return;
                         }
                         await _bd.CriarTabelaAsync(cfg);
@@ -170,7 +186,7 @@ namespace CofreDeSenhas.Janelas
                 }
                 catch (Exception ex)
                 {
-                    MostrarErro("Não foi possível conectar: " + PrimeiraLinha(ex.Message));
+                    MostrarErro(Idioma.Formatar("Db.CannotConnect", PrimeiraLinha(ex.Message)));
                 }
             });
         }
@@ -182,7 +198,7 @@ namespace CofreDeSenhas.Janelas
                 var arquivo = _txtArquivo?.Text?.Trim();
                 if (string.IsNullOrWhiteSpace(arquivo))
                 {
-                    MostrarErro("Informe o arquivo do banco.");
+                    MostrarErro(Idioma.Texto("Db.ErrorFileRequired"));
                     return null;
                 }
                 return new ConexaoBanco { Tipo = _tipo, Banco = arquivo };
@@ -194,13 +210,13 @@ namespace CofreDeSenhas.Janelas
 
             if (string.IsNullOrWhiteSpace(host) || string.IsNullOrWhiteSpace(banco) || string.IsNullOrWhiteSpace(usuario))
             {
-                MostrarErro("Preencha host, banco de dados e usuário.");
+                MostrarErro(Idioma.Texto("Db.ErrorFieldsRequired"));
                 return null;
             }
 
             if (!int.TryParse(_txtPorta?.Text?.Trim(), out var porta) || porta <= 0)
             {
-                MostrarErro("Porta inválida.");
+                MostrarErro(Idioma.Texto("Db.ErrorInvalidPort"));
                 return null;
             }
 

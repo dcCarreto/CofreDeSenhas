@@ -1,7 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="CofreDeSenhas.Janelas.JanelaAlterarSenhaMestra"
-        Title="Alterar senha mestra"
+        Title="{DynamicResource Master.ChangeTitle}"
         Width="440"
         SizeToContent="Height"
         CanResize="False"
@@ -23,7 +23,7 @@
               BorderThickness="0,0,0,1"
               PointerPressed="Arrastar">
         <Grid>
-          <TextBlock Text="Alterar senha mestra"
+          <TextBlock Text="{DynamicResource Master.ChangeTitle}"
                      FontSize="17" FontWeight="Bold"
                      Foreground="{DynamicResource TextPrimary}"
                      VerticalAlignment="Center"
@@ -40,11 +40,11 @@
               BorderBrush="{DynamicResource CardBorder}"
               BorderThickness="0,1,0,0">
         <Grid Margin="24,0">
-          <Button Name="BtnAlterar" Classes="primario" Content="Alterar"
+          <Button Name="BtnAlterar" Classes="primario" Content="{DynamicResource Common.Change}"
                   Width="200" Height="40"
                   HorizontalAlignment="Left" VerticalAlignment="Center"
                   Click="Alterar_Click" />
-          <Button Classes="secundario" Content="Cancelar"
+          <Button Classes="secundario" Content="{DynamicResource Common.Cancel}"
                   Width="150" Height="40"
                   HorizontalAlignment="Right" VerticalAlignment="Center"
                   Click="Cancelar_Click" />
@@ -52,13 +52,13 @@
       </Border>
 
       <StackPanel Margin="24,14,24,10" Spacing="4">
-        <TextBlock Text="Senha mestra atual" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
+        <TextBlock Text="{DynamicResource Master.CurrentPassword}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
         <TextBox Name="TxtAtual" Classes="campo revealPasswordButton" PasswordChar="●" Margin="0,0,0,10" />
 
-        <TextBlock Text="Nova senha mestra" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
+        <TextBlock Text="{DynamicResource Master.NewPassword}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
         <TextBox Name="TxtNova" Classes="campo revealPasswordButton" PasswordChar="●" Margin="0,0,0,10" />
 
-        <TextBlock Text="Confirmar nova senha" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
+        <TextBlock Text="{DynamicResource Master.ConfirmNewPassword}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
         <TextBox Name="TxtConfirmar" Classes="campo revealPasswordButton" PasswordChar="●" Margin="0,0,0,8" />
 
         <TextBlock Name="LblErro"

@@ -1,7 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="CofreDeSenhas.Janelas.JanelaSelecionarBanco"
-        Title="Conectar banco de dados"
+        Title="{DynamicResource Db.SelectTitle}"
         Width="536"
         SizeToContent="Height"
         CanResize="False"
@@ -23,7 +23,7 @@
               BorderThickness="0,0,0,1"
               PointerPressed="Arrastar">
         <Grid>
-          <TextBlock Text="Conectar banco de dados"
+          <TextBlock Text="{DynamicResource Db.SelectTitle}"
                      FontSize="17" FontWeight="Bold"
                      Foreground="{DynamicResource TextPrimary}"
                      VerticalAlignment="Center"
@@ -36,7 +36,7 @@
       </Border>
 
       <StackPanel Margin="24,18,24,10" Spacing="14">
-        <TextBlock Text="Escolha o tipo de banco de dados para conectar."
+        <TextBlock Text="{DynamicResource Db.ChooseType}"
                    FontSize="12"
                    Foreground="{DynamicResource TextSecondary}" />
         <WrapPanel Name="Grade" />

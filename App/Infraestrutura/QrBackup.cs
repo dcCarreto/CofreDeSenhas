@@ -11,24 +11,20 @@ namespace CofreDeSenhas
         public static async Task OferecerSalvarAsync(Window dono, string senhaMestra)
         {
             var aceitou = await CaixaMensagem.ConfirmarAsync(dono,
-                "Deseja salvar um QR code de backup da sua senha mestra?\n\n" +
-                "ATENÇÃO: o QR code contém a versão senha-frase da sua senha mestra. " +
-                "Qualquer pessoa que escaneie a imagem poderá reconstruir a senha e acessar o cofre.\n\n" +
-                "Guarde o arquivo em local seguro e offline (ou impresso) — " +
-                "nunca em nuvem, e-mail ou pastas compartilhadas.",
-                "Backup da senha mestra (QR code)");
+                Idioma.Texto("Qr.Offer"),
+                Idioma.Texto("Qr.BackupTitleWithType"));
 
             if (!aceitou)
                 return;
 
             var arquivo = await dono.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
             {
-                Title = "Salvar QR code da senha mestra",
+                Title = Idioma.Texto("Qr.SavePickerTitle"),
                 SuggestedFileName = $"senha-mestra-qrcode-{DateTime.Now:yyyy-MM-dd}.png",
                 DefaultExtension = "png",
                 FileTypeChoices = new[]
                 {
-                    new FilePickerFileType("Imagem PNG") { Patterns = new[] { "*.png" } }
+                    new FilePickerFileType(Idioma.Texto("Common.PngImage")) { Patterns = new[] { "*.png" } }
                 }
             });
             if (arquivo == null)
@@ -38,14 +34,14 @@ namespace CofreDeSenhas
             {
                 await File.WriteAllBytesAsync(arquivo.Path.LocalPath, GerarFolhaBackupPng(senhaMestra));
                 await CaixaMensagem.MostrarAsync(dono,
-                    "QR code salvo com sucesso. Guarde-o em local seguro.",
-                    "Backup da senha mestra");
+                    Idioma.Texto("Qr.SaveSuccess"),
+                    Idioma.Texto("Qr.BackupTitle"));
             }
             catch (Exception ex)
             {
                 await CaixaMensagem.MostrarAsync(dono,
-                    $"Não foi possível salvar o QR code: {ex.Message}",
-                    "Erro", TipoMensagem.Erro);
+                    Idioma.Formatar("Qr.SaveError", ex.Message),
+                    Idioma.Texto("Common.Error"), TipoMensagem.Erro);
             }
         }
 
@@ -88,9 +84,9 @@ namespace CofreDeSenhas
             using var normal = SKTypeface.FromFamilyName(null, SKFontStyle.Normal);
 
             using (var paint = new SKPaint { Color = escuro, TextSize = 20, IsAntialias = true, Typeface = negrito })
-                canvas.DrawText("Cofre de Senhas", textoX, 31 + 20, paint);
+                canvas.DrawText(Idioma.Texto("App.Title"), textoX, 31 + 20, paint);
             using (var paint = new SKPaint { Color = roxo, TextSize = 14, IsAntialias = true, Typeface = normal })
-                canvas.DrawText("Backup da senha mestra", textoX, 56 + 14, paint);
+                canvas.DrawText(Idioma.Texto("Qr.SheetSubtitle"), textoX, 56 + 14, paint);
 
             int qrX = (largura - qrW) / 2;
             canvas.DrawBitmap(qr, new SKRect(qrX, topo, qrX + qrW, topo + qrH));
@@ -99,14 +95,13 @@ namespace CofreDeSenhas
             {
                 string[] aviso =
                 {
-                    "Contém a versão senha-frase da senha mestra.",
-                    "Guarde em local seguro e offline."
+                    Idioma.Texto("Qr.SheetWarning1"),
+                    Idioma.Texto("Qr.SheetWarning2")
                 };
                 float y = topo + qrH + 18 + paint.TextSize;
                 foreach (var linha in aviso)
                 {
-                    float w = paint.MeasureText(linha);
-                    canvas.DrawText(linha, (largura - w) / 2, y, paint);
+                    DesenharCentralizadoAjustado(canvas, linha, largura / 2f, y, paint, largura - margem * 2);
                     y += paint.TextSize + 5;
                 }
             }
@@ -114,6 +109,18 @@ namespace CofreDeSenhas
             using var imagem = surface.Snapshot();
             using var png = imagem.Encode(SKEncodedImageFormat.Png, 100);
             return png.ToArray();
+        }
+
+        private static void DesenharCentralizadoAjustado(
+            SKCanvas canvas, string texto, float centroX, float y, SKPaint paint, float larguraMaxima)
+        {
+            float tamanhoOriginal = paint.TextSize;
+            while (paint.MeasureText(texto) > larguraMaxima && paint.TextSize > 8)
+                paint.TextSize -= 0.5f;
+
+            float larguraTexto = paint.MeasureText(texto);
+            canvas.DrawText(texto, centroX - larguraTexto / 2, y, paint);
+            paint.TextSize = tamanhoOriginal;
         }
 
         internal static string ConverterSenhaParaFrase(string senha)
