@@ -220,8 +220,8 @@ namespace CofreDeSenhas.Controles
             };
             _avatarImagem = new Image
             {
-                Width = 22,
-                Height = 22,
+                Width = 28,
+                Height = 28,
                 Stretch = Stretch.Uniform,
                 IsVisible = false,
                 HorizontalAlignment = HorizontalAlignment.Center,
@@ -230,8 +230,8 @@ namespace CofreDeSenhas.Controles
 
             var conteudo = new Grid
             {
-                Width = 24,
-                Height = 24,
+                Width = 30,
+                Height = 30,
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center
             };
@@ -240,9 +240,9 @@ namespace CofreDeSenhas.Controles
 
             var avatar = new Border
             {
-                Width = 32,
-                Height = 32,
-                CornerRadius = new CornerRadius(8),
+                Width = 36,
+                Height = 36,
+                CornerRadius = new CornerRadius(9),
                 VerticalAlignment = VerticalAlignment.Center,
                 Child = conteudo
             };
@@ -303,7 +303,7 @@ namespace CofreDeSenhas.Controles
             if (_avatar == null || _avatarTexto == null || _avatarImagem == null)
                 return;
 
-            var icone = IconesServico.Obter(_senha.NomeServico);
+            var icone = IconesServico.Obter(_senha.NomeServico, _senha.Url);
             _avatar.Background = new SolidColorBrush(icone.Fundo);
             _avatar.BorderThickness = new Thickness(0);
             _avatarTexto.Text = icone.Texto;
@@ -340,9 +340,9 @@ namespace CofreDeSenhas.Controles
 
         private static double TamanhoTextoIcone(string texto) => texto.Length switch
         {
-            <= 1 => 16,
-            2 => 13,
-            _ => 10
+            <= 1 => 17,
+            2 => 14,
+            _ => 11
         };
 
         private void IniciarEdicaoServico()

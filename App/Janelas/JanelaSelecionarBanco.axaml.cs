@@ -3,6 +3,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.Threading;
 using GerenciadorDeSenhas.Modelos;
 
 namespace CofreDeSenhas.Janelas
@@ -32,6 +33,30 @@ namespace CofreDeSenhas.Janelas
 
         private Button CriarCartao(ProvedorBanco provedor)
         {
+            var textoFallback = new TextBlock
+            {
+                Text = provedor.Distintivo,
+                Foreground = Brushes.White,
+                FontWeight = FontWeight.Bold,
+                FontSize = 15,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+
+            var imagemIcone = new Image
+            {
+                Width = 34,
+                Height = 34,
+                Stretch = Stretch.Uniform,
+                IsVisible = false,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+
+            var conteudoDistintivo = new Grid();
+            conteudoDistintivo.Children.Add(textoFallback);
+            conteudoDistintivo.Children.Add(imagemIcone);
+
             var distintivo = new Border
             {
                 Width = 44,
@@ -39,16 +64,10 @@ namespace CofreDeSenhas.Janelas
                 CornerRadius = new Avalonia.CornerRadius(10),
                 Background = new SolidColorBrush(Color.Parse(provedor.Cor)),
                 VerticalAlignment = VerticalAlignment.Center,
-                Child = new TextBlock
-                {
-                    Text = provedor.Distintivo,
-                    Foreground = Brushes.White,
-                    FontWeight = FontWeight.Bold,
-                    FontSize = 15,
-                    HorizontalAlignment = HorizontalAlignment.Center,
-                    VerticalAlignment = VerticalAlignment.Center
-                }
+                Child = conteudoDistintivo
             };
+            ToolTip.SetTip(distintivo, provedor.Rotulo);
+            _ = CarregarIconeBancoAsync(provedor, distintivo, textoFallback, imagemIcone);
 
             var rotulo = new TextBlock
             {
@@ -82,6 +101,25 @@ namespace CofreDeSenhas.Janelas
                 Close(true);
             };
             return cartao;
+        }
+
+        private static async Task CarregarIconeBancoAsync(ProvedorBanco provedor, Border distintivo,
+            TextBlock textoFallback, Image imagemIcone)
+        {
+            var icone = IconesServico.Obter(provedor.Rotulo);
+            var bitmap = await IconesServico.ObterBitmapAsync(icone);
+            if (bitmap == null)
+                return;
+
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                imagemIcone.Source = bitmap;
+                imagemIcone.IsVisible = true;
+                textoFallback.IsVisible = false;
+                distintivo.Background = Brushes.White;
+                distintivo.BorderBrush = Tema.Pincel(Tema.CardBorder);
+                distintivo.BorderThickness = new Avalonia.Thickness(1);
+            });
         }
 
         private void Arrastar(object? sender, PointerPressedEventArgs e)
