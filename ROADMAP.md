@@ -95,6 +95,7 @@ prioridade:
 - Desbloqueio por biometria ou Windows Hello.
 - Versão para macOS.
 - Empacotamento em instalador e publicação em gerenciadores de pacotes.
+- Opções de acessibilidade.
 
 ## Como sugerir
 
