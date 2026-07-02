@@ -18,6 +18,7 @@ namespace CofreDeSenhas.Controles
         private readonly Func<Senha, string?> _obterTotpPlain;
         private readonly Action<Senha> _onFavoritar;
         private readonly Action<Senha> _onEditar;
+        private readonly Func<Senha, Task> _onExcluir;
         private readonly Func<Senha, string, Task> _onRenomearServico;
         private readonly ServicoTotp _totp = new();
 
@@ -57,6 +58,8 @@ namespace CofreDeSenhas.Controles
             "M5 12 L10 17 L19 7";
         private const string IconeChave =
             "M12 8 m-4 0 a4 4 0 1 0 8 0 a4 4 0 1 0 -8 0 M12 8 m-1.5 0 a1.5 1.5 0 1 0 3 0 a1.5 1.5 0 1 0 -3 0 M12 12 L12 20 M12 16 L15 16 M12 19 L14 19";
+        private const string IconeExcluir =
+            "M5 6 L19 6 M9 6 L9 4 L15 4 L15 6 M8 9 L8.7 20 L15.3 20 L16 9 M10.5 11 L10.5 18 M13.5 11 L13.5 18";
 
         public Senha Senha => _senha;
 
@@ -82,13 +85,14 @@ namespace CofreDeSenhas.Controles
 
         public LinhaSenha(Senha senha, Func<Senha, string?> obterSenhaPlain,
             Func<Senha, string?> obterTotpPlain, Action<Senha> onFavoritar, Action<Senha> onEditar,
-            Func<Senha, string, Task> onRenomearServico)
+            Func<Senha, Task> onExcluir, Func<Senha, string, Task> onRenomearServico)
         {
             _senha = senha;
             _obterSenhaPlain = obterSenhaPlain;
             _obterTotpPlain = obterTotpPlain;
             _onFavoritar = onFavoritar;
             _onEditar = onEditar;
+            _onExcluir = onExcluir;
             _onRenomearServico = onRenomearServico;
 
             Height = 64;
@@ -162,26 +166,9 @@ namespace CofreDeSenhas.Controles
             Grid.SetColumn(_lblUsuario, 4);
             _grid.Children.Add(_lblUsuario);
 
-            var (chipBg, chipFg, chipTexto) = InfoCategoria(_senha.Categoria);
-            var chip = new Border
-            {
-                Height = 20,
-                CornerRadius = new CornerRadius(10),
-                Background = new SolidColorBrush(chipBg),
-                Padding = new Thickness(9, 0),
-                HorizontalAlignment = HorizontalAlignment.Left,
-                VerticalAlignment = VerticalAlignment.Center,
-                Child = new TextBlock
-                {
-                    Text = chipTexto,
-                    FontSize = 10,
-                    FontWeight = FontWeight.Bold,
-                    Foreground = new SolidColorBrush(chipFg),
-                    VerticalAlignment = VerticalAlignment.Center
-                }
-            };
-            Grid.SetColumn(chip, 5);
-            _grid.Children.Add(chip);
+            var organizacao = CriarCelulaOrganizacao();
+            Grid.SetColumn(organizacao, 5);
+            _grid.Children.Add(organizacao);
 
             var data = new TextBlock
             {
@@ -202,6 +189,9 @@ namespace CofreDeSenhas.Controles
             var btnEditar = CriarBotaoAcao(IconeEditar, "Editar entrada");
             btnEditar.Click += (s, e) => _onEditar(_senha);
 
+            var btnExcluir = CriarBotaoAcao(IconeExcluir, "Excluir entrada");
+            btnExcluir.Click += async (s, e) => await _onExcluir(_senha);
+
             var acoes = new StackPanel
             {
                 Orientation = Orientation.Horizontal,
@@ -219,6 +209,7 @@ namespace CofreDeSenhas.Controles
             }
 
             acoes.Children.Add(btnEditar);
+            acoes.Children.Add(btnExcluir);
             Grid.SetColumn(acoes, 7);
             _grid.Children.Add(acoes);
 
@@ -311,6 +302,49 @@ namespace CofreDeSenhas.Controles
             celula.Children.Add(_lblServico);
             celula.Children.Add(_txtServico);
             return celula;
+        }
+
+        private StackPanel CriarCelulaOrganizacao()
+        {
+            var (chipBg, chipFg, textoCategoria) = InfoCategoria(_senha.Categoria);
+            var temEtiquetas = _senha.Categoria == Categoria.Other && _senha.Etiquetas.Count > 0;
+            var textoChip = temEtiquetas ? TextoResumoEtiquetas(_senha.Etiquetas) : textoCategoria;
+            var dica = temEtiquetas
+                ? $"Etiquetas: {Etiquetas.Formatar(_senha.Etiquetas)}\nCategoria: {textoCategoria}"
+                : $"Categoria: {textoCategoria}";
+
+            var painel = new StackPanel
+            {
+                Orientation = Orientation.Vertical,
+                HorizontalAlignment = HorizontalAlignment.Left,
+                VerticalAlignment = VerticalAlignment.Center,
+                Margin = new Thickness(0, 0, 6, 0)
+            };
+
+            var chip = new Border
+            {
+                Height = 20,
+                CornerRadius = new CornerRadius(10),
+                Background = new SolidColorBrush(chipBg),
+                Padding = new Thickness(9, 0),
+                HorizontalAlignment = HorizontalAlignment.Left,
+                MaxWidth = 104,
+                Child = new TextBlock
+                {
+                    Text = textoChip,
+                    FontSize = 10,
+                    FontWeight = FontWeight.Bold,
+                    Foreground = new SolidColorBrush(chipFg),
+                    TextTrimming = TextTrimming.CharacterEllipsis,
+                    MaxWidth = 86,
+                    VerticalAlignment = VerticalAlignment.Center
+                }
+            };
+            ToolTip.SetTip(chip, dica);
+            ToolTip.SetTip(painel, dica);
+            painel.Children.Add(chip);
+
+            return painel;
         }
 
         private void AtualizarAvatarServico()
@@ -677,6 +711,15 @@ namespace CofreDeSenhas.Controles
         public static Color CorAvatar(string nome)
         {
             return IconesServico.CorFallback(nome);
+        }
+
+        private static string TextoResumoEtiquetas(IReadOnlyList<string> etiquetas)
+        {
+            if (etiquetas.Count == 0)
+                return string.Empty;
+
+            var primeira = etiquetas[0];
+            return etiquetas.Count == 1 ? primeira : $"{primeira} +{etiquetas.Count - 1}";
         }
 
         private static (Color bg, Color fg, string texto) InfoCategoria(Categoria cat) => cat switch

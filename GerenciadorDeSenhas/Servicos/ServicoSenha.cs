@@ -17,7 +17,8 @@ namespace GerenciadorDeSenhas.Servicos
         }
 
         public async Task<Senha> CriarSenhaAsync(string nomeServico, string usuario, string senhaPlaintext,
-            Categoria categoria, string? url = null, string? notas = null, string? totpSegredo = null)
+            Categoria categoria, string? url = null, string? notas = null, string? totpSegredo = null,
+            IEnumerable<string>? etiquetas = null)
         {
             ValidarEntrada(nomeServico, usuario, senhaPlaintext);
 
@@ -28,6 +29,7 @@ namespace GerenciadorDeSenhas.Servicos
                 Usuario = usuario,
                 SenhaHash = _criptografia.Criptografar(senhaPlaintext),
                 Categoria = categoria,
+                Etiquetas = Etiquetas.Normalizar(etiquetas),
                 Url = url,
                 Notas = notas,
                 TotpSegredo = CifrarTotp(totpSegredo),
@@ -41,7 +43,7 @@ namespace GerenciadorDeSenhas.Servicos
         }
 
         public async Task AtualizarSenhaAsync(Guid id, string nomeServico, string usuario, string senhaPlaintext,
-            Categoria categoria, string? url = null, string? notas = null)
+            Categoria categoria, string? url = null, string? notas = null, IEnumerable<string>? etiquetas = null)
         {
             ValidarEntrada(nomeServico, usuario, senhaPlaintext);
 
@@ -53,6 +55,8 @@ namespace GerenciadorDeSenhas.Servicos
             senha.Usuario = usuario;
             senha.SenhaHash = _criptografia.Criptografar(senhaPlaintext);
             senha.Categoria = categoria;
+            if (etiquetas != null)
+                senha.Etiquetas = Etiquetas.Normalizar(etiquetas);
             senha.Url = url;
             senha.Notas = notas;
             senha.DataAtualizacao = DateTime.UtcNow;
@@ -110,6 +114,24 @@ namespace GerenciadorDeSenhas.Servicos
         public async Task<List<Senha>> ListarPorCategoriaAsync(Categoria categoria)
         {
             return await _repositorio.BuscarPorCategoriaAsync(categoria);
+        }
+
+        public async Task<List<Senha>> ListarPorEtiquetaAsync(string etiqueta)
+        {
+            if (string.IsNullOrWhiteSpace(etiqueta))
+                throw new ArgumentException("A etiqueta não pode ser vazia");
+
+            var alvo = etiqueta.Trim();
+            var todas = await _repositorio.ListarTodosAsync();
+            return todas
+                .Where(s => s.Etiquetas.Any(e => string.Equals(e, alvo, StringComparison.OrdinalIgnoreCase)))
+                .ToList();
+        }
+
+        public async Task<List<string>> ListarEtiquetasAsync()
+        {
+            var todas = await _repositorio.ListarTodosAsync();
+            return Etiquetas.Distintas(todas);
         }
 
         public async Task<List<Senha>> ListarFavoritosAsync()

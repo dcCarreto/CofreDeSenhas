@@ -111,8 +111,10 @@ Tema escuro:
   (Base32) ou um link `otpauth://` e o cofre gera o código de seis dígitos
   localmente, com prévia ao vivo e contagem regressiva na criação e edição, além
   de cópia por um clique na lista.
-- Categorias predefinidas (Trabalho, Pessoal, Finanças, Social e Outro).
-- Busca em tempo real e filtro por categoria.
+- Categorias predefinidas (Trabalho, Pessoal, Finanças, Social e Outro), com
+  categoria personalizada quando `Outro` é selecionada.
+- Busca em tempo real por serviço, usuário ou categoria personalizada, com filtro
+  por categoria no mesmo seletor.
 - Indicador de força por senha armazenada.
 - Verificação de senhas comprometidas via Have I Been Pwned.
 - Auditoria local para detectar senhas fracas, repetidas ou sem atualização há

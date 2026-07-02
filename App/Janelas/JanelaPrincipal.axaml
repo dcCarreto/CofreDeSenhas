@@ -141,7 +141,7 @@
                             SelectionChanged="Filtro_Alterado" />
                   <TextBox Name="TxtBusca" Grid.Column="2" Classes="campo"
                            MinHeight="36" Height="36" VerticalAlignment="Center"
-                           Watermark="Buscar por serviço ou usuário"
+                           Watermark="Buscar por serviço, usuário ou categoria"
                            TextChanged="Busca_Alterada">
                     <TextBox.InnerLeftContent>
                       <PathIcon Width="15" Height="15" Margin="10,0,0,0"
@@ -175,7 +175,7 @@
                 <Border DockPanel.Dock="Top" Height="34"
                         BorderBrush="{DynamicResource Separator}" BorderThickness="0,0,0,1">
                   <Grid Name="GridCabecalhoTabela"
-                        ColumnDefinitions="42,44,26,150,6,330,6,108,6,92,6,96"
+                        ColumnDefinitions="42,44,26,150,6,330,6,108,6,92,6,170"
                         Margin="4,0,8,0">
                     <TextBlock Text="SERVIÇO" FontSize="10" FontWeight="Bold"
                                Foreground="{DynamicResource TextHeader}"

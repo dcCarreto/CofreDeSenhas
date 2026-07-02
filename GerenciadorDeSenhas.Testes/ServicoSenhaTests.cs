@@ -135,6 +135,68 @@ public class ServicoSenhaTests : IDisposable
     }
 
     [Fact]
+    public async Task CriarSenhaAsync_ComEtiquetas_NormalizaEListaPorEtiqueta()
+    {
+        var senha = await _servico.CriarSenhaAsync(
+            "Portal Cliente", "cliente@example.com", "Senha@123456",
+            Categoria.Work, etiquetas: new[] { " Clientes ", "Projetos", "clientes", "" });
+
+        Assert.Equal(new[] { "Clientes", "Projetos" }, senha.Etiquetas);
+
+        var porEtiqueta = await _servico.ListarPorEtiquetaAsync("clientes");
+
+        var encontrada = Assert.Single(porEtiqueta);
+        Assert.Equal("Portal Cliente", encontrada.NomeServico);
+    }
+
+    [Fact]
+    public async Task ListarEtiquetasAsync_RetornaEtiquetasDistintas()
+    {
+        await _servico.CriarSenhaAsync("Gmail", "user@gmail.com", "Senha@123456",
+            Categoria.Personal, etiquetas: new[] { "Pessoal", "Email" });
+        await _servico.CriarSenhaAsync("GitHub", "dev@github.com", "GitHubSenha@123",
+            Categoria.Work, etiquetas: new[] { "Dev", "email" });
+
+        var etiquetas = await _servico.ListarEtiquetasAsync();
+
+        Assert.Equal(3, etiquetas.Count);
+        Assert.Contains("Pessoal", etiquetas);
+        Assert.Contains("Email", etiquetas);
+        Assert.Contains("Dev", etiquetas);
+    }
+
+    [Fact]
+    public async Task AtualizarSenhaAsync_SemEtiquetas_PreservaEtiquetasExistentes()
+    {
+        var senha = await _servico.CriarSenhaAsync(
+            "Gmail", "user@gmail.com", "Senha@123456",
+            Categoria.Personal, etiquetas: new[] { "Pessoal", "Email" });
+
+        await _servico.AtualizarSenhaAsync(
+            senha.Id, "Gmail", "novo@gmail.com", "NovaSenha@789", Categoria.Personal);
+
+        var atualizada = await _servico.ObterSenhaAsync(senha.Id);
+
+        Assert.Equal(new[] { "Pessoal", "Email" }, atualizada!.Etiquetas);
+    }
+
+    [Fact]
+    public async Task AtualizarSenhaAsync_ComListaVazia_RemoveEtiquetas()
+    {
+        var senha = await _servico.CriarSenhaAsync(
+            "Gmail", "user@gmail.com", "Senha@123456",
+            Categoria.Personal, etiquetas: new[] { "Pessoal" });
+
+        await _servico.AtualizarSenhaAsync(
+            senha.Id, "Gmail", "novo@gmail.com", "NovaSenha@789",
+            Categoria.Personal, etiquetas: Array.Empty<string>());
+
+        var atualizada = await _servico.ObterSenhaAsync(senha.Id);
+
+        Assert.Empty(atualizada!.Etiquetas);
+    }
+
+    [Fact]
     public async Task ListarFavoritosAsync_RetornaApenasMarkedFavorites()
     {
         var senha1 = await _servico.CriarSenhaAsync("Gmail", "user@gmail.com", "Senha@123456", Categoria.Personal);

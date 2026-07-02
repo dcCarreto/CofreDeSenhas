@@ -86,6 +86,16 @@ public class RepositorioSenhaEspelhadoTests : IDisposable
 
         Assert.Empty(await local.ListarTodosAsync());
         Assert.Empty(await NovoBanco().ListarTodosAsync());
+        Assert.Equal(1, await ContarLinhas("SELECT COUNT(*) FROM CofreDeSenhas WHERE excluido = 1"));
+    }
+
+    private async Task<long> ContarLinhas(string sql)
+    {
+        await using var con = _bd.CriarConexao(_cfg);
+        await con.OpenAsync();
+        await using var cmd = con.CreateCommand();
+        cmd.CommandText = sql;
+        return Convert.ToInt64(await cmd.ExecuteScalarAsync());
     }
 
     public void Dispose()

@@ -40,7 +40,7 @@ namespace CofreDeSenhas.Janelas
         private double _larguraUsuario = 240;
         private double _larguraCategoria = 108;
         private double _larguraData = 92;
-        private double _larguraAcoes = 134;
+        private double _larguraAcoes = 170;
         private string? _colunaEmRedimensionamento;
         private string? _colunaDireitaEmRedimensionamento;
         private double _inicioRedimensionamentoX;
@@ -52,7 +52,7 @@ namespace CofreDeSenhas.Janelas
         private const double LarguraMinimaUsuario = 160;
         private const double LarguraMinimaCategoria = 86;
         private const double LarguraMinimaData = 78;
-        private const double LarguraMinimaAcoes = 134;
+        private const double LarguraMinimaAcoes = 170;
 
         public JanelaPrincipal(IServicoSenha servicoSenha, IServicoCriptografia? criptografia = null,
             IRepositorioSenha? repositorioLocal = null, Action? aoBloquear = null)
@@ -66,7 +66,7 @@ namespace CofreDeSenhas.Janelas
             InitializeComponent();
             Icon = Recursos.IconeApp();
 
-            CmbCategoria.ItemsSource = new[] { "Todas" }.Concat(CategoriasUI.Rotulos).ToArray();
+            CmbCategoria.ItemsSource = ConstruirFiltrosOrganizacao(Array.Empty<Senha>());
             CmbCategoria.SelectedIndex = 0;
 
             Gerador.SolicitouSalvar += Gerador_SolicitouSalvar;
@@ -185,7 +185,7 @@ namespace CofreDeSenhas.Janelas
             double larguraDisponivel = GridCabecalhoTabela.Bounds.Width;
             double fixo = 42 + 44 + 26 + 24;
 
-            _larguraAcoes = Math.Clamp(larguraDisponivel * 0.13, LarguraMinimaAcoes, 152);
+            _larguraAcoes = Math.Clamp(larguraDisponivel * 0.16, LarguraMinimaAcoes, 186);
             _larguraCategoria = Math.Clamp(larguraDisponivel * 0.12, LarguraMinimaCategoria, 116);
             _larguraData = Math.Clamp(larguraDisponivel * 0.10, LarguraMinimaData, 100);
 
@@ -310,6 +310,7 @@ namespace CofreDeSenhas.Janelas
             {
                 LimparAuditoria();
                 _senhasAtuais = await _servicoSenha.ListarTodosAsync();
+                AtualizarFiltroOrganizacao();
                 FiltrarSenhas();
                 AtualizarContador();
             }
@@ -328,7 +329,8 @@ namespace CofreDeSenhas.Janelas
 
             foreach (var senha in lista)
             {
-                var linha = new LinhaSenha(senha, ObterSenhaPlain, ObterTotpPlain, FavoritarToggle, EditarSenha, RenomearServicoAsync);
+                var linha = new LinhaSenha(senha, ObterSenhaPlain, ObterTotpPlain, FavoritarToggle, EditarSenha,
+                    ExcluirSenhaAsync, RenomearServicoAsync);
                 linha.DefinirLargurasColunas(_larguraServico, _larguraUsuario, _larguraCategoria, _larguraData, _larguraAcoes);
 
                 var plain = ObterSenhaPlain(senha);
@@ -364,18 +366,60 @@ namespace CofreDeSenhas.Janelas
         {
             if (PainelLista == null) return;
 
-            var termo = (TxtBusca.Text ?? "").ToLower();
-            Categoria? categoriaFiltro = null;
-            if (CmbCategoria.SelectedIndex > 0)
-                categoriaFiltro = (Categoria)(CmbCategoria.SelectedIndex - 1);
+            var termo = (TxtBusca.Text ?? "").Trim();
+            var filtro = CmbCategoria.SelectedItem as FiltroOrganizacao;
+            var categoriaFiltro = filtro?.Categoria;
+            var etiquetaFiltro = filtro?.Etiqueta;
 
             var filtradas = _senhasAtuais
-                .Where(s => string.IsNullOrEmpty(termo) || s.NomeServico.ToLower().Contains(termo) || s.Usuario.ToLower().Contains(termo))
+                .Where(s => string.IsNullOrEmpty(termo) ||
+                    s.NomeServico.Contains(termo, StringComparison.OrdinalIgnoreCase) ||
+                    s.Usuario.Contains(termo, StringComparison.OrdinalIgnoreCase) ||
+                    s.Etiquetas.Any(e => e.Contains(termo, StringComparison.OrdinalIgnoreCase)))
                 .Where(s => categoriaFiltro == null || s.Categoria == categoriaFiltro)
+                .Where(s => etiquetaFiltro == null ||
+                    s.Etiquetas.Any(e => string.Equals(e, etiquetaFiltro, StringComparison.OrdinalIgnoreCase)))
                 .Where(s => !_somenteFavoritos || s.Favorito)
                 .ToList();
 
             AtualizarLista(filtradas);
+        }
+
+        private void AtualizarFiltroOrganizacao()
+        {
+            if (CmbCategoria == null)
+                return;
+
+            var selecionado = CmbCategoria.SelectedItem as FiltroOrganizacao;
+            var filtros = ConstruirFiltrosOrganizacao(_senhasAtuais);
+            CmbCategoria.ItemsSource = filtros;
+
+            if (selecionado != null)
+            {
+                var indice = filtros.FindIndex(f => f.MesmaSelecao(selecionado));
+                if (indice >= 0)
+                {
+                    CmbCategoria.SelectedIndex = indice;
+                    return;
+                }
+            }
+
+            CmbCategoria.SelectedIndex = 0;
+        }
+
+        private static List<FiltroOrganizacao> ConstruirFiltrosOrganizacao(IEnumerable<Senha> senhas)
+        {
+            var filtros = new List<FiltroOrganizacao> { FiltroOrganizacao.Todas() };
+            for (int i = 0; i < CategoriasUI.Rotulos.Length; i++)
+                filtros.Add(FiltroOrganizacao.ParaCategoria(CategoriasUI.Rotulos[i], (Categoria)i));
+
+            var rotulosCategorias = new HashSet<string>(CategoriasUI.Rotulos, StringComparer.OrdinalIgnoreCase);
+            var categoriasPersonalizadas = senhas.Where(s => s.Categoria == Categoria.Other);
+            foreach (var etiqueta in Etiquetas.Distintas(categoriasPersonalizadas))
+                if (!rotulosCategorias.Contains(etiqueta))
+                    filtros.Add(FiltroOrganizacao.ParaEtiqueta(etiqueta));
+
+            return filtros;
         }
 
         private void FiltroFavoritos_Click(object? sender, RoutedEventArgs e)
@@ -437,6 +481,39 @@ namespace CofreDeSenhas.Janelas
                 await CarregarSenhasAsync();
         }
 
+        private async Task ExcluirSenhaAsync(Senha s)
+        {
+            var complemento = _conectadoAoBanco
+                ? "A entrada será removida da lista e marcada como excluída no banco de dados."
+                : "A entrada será removida do cofre.";
+            var confirmar = await CaixaMensagem.ConfirmarAsync(this,
+                $"Excluir \"{s.NomeServico}\"?\n\n{complemento}",
+                "Excluir senha", TipoMensagem.Aviso);
+
+            if (!confirmar)
+                return;
+
+            try
+            {
+                await _servicoSenha.RemoverSenhaAsync(s.Id);
+                await _servicoSenha.PersistirAsync();
+                RemoverSenhaDaLista(s.Id);
+            }
+            catch (Exception ex)
+            {
+                await CaixaMensagem.MostrarAsync(this, $"Erro ao excluir senha: {ex.Message}", "Erro", TipoMensagem.Erro);
+            }
+        }
+
+        private void RemoverSenhaDaLista(Guid id)
+        {
+            _senhasAtuais.RemoveAll(s => s.Id == id);
+            _itensAuditoria.Remove(id);
+            AtualizarFiltroOrganizacao();
+            FiltrarSenhas();
+            AtualizarContador();
+        }
+
         private async Task RenomearServicoAsync(Senha s, string novoNome)
         {
             try
@@ -450,7 +527,7 @@ namespace CofreDeSenhas.Janelas
                 if (string.IsNullOrEmpty(plain))
                     throw new InvalidOperationException("Não foi possível descriptografar a senha para salvar a alteração.");
 
-                await _servicoSenha.AtualizarSenhaAsync(s.Id, nome, s.Usuario, plain, s.Categoria, s.Url, s.Notas);
+                await _servicoSenha.AtualizarSenhaAsync(s.Id, nome, s.Usuario, plain, s.Categoria, s.Url, s.Notas, s.Etiquetas);
                 await _servicoSenha.PersistirAsync();
                 await CarregarSenhasAsync();
             }
@@ -620,6 +697,7 @@ namespace CofreDeSenhas.Janelas
                         Senha = plain,
                         Url = s.Url,
                         Categoria = s.Categoria,
+                        Etiquetas = s.Etiquetas.ToList(),
                         Notas = s.Notas,
                         TotpSegredo = ObterTotpPlain(s),
                         Favorito = s.Favorito,
@@ -768,7 +846,7 @@ namespace CofreDeSenhas.Janelas
 
                 var totp = _totp.SegredoValido(item.TotpSegredo) ? item.TotpSegredo : null;
                 var nova = await _servicoSenha.CriarSenhaAsync(
-                    item.NomeServico, item.Usuario, item.Senha, item.Categoria, item.Url, item.Notas, totp);
+                    item.NomeServico, item.Usuario, item.Senha, item.Categoria, item.Url, item.Notas, totp, item.Etiquetas);
                 if (item.Favorito)
                     await _servicoSenha.MarcarComoFavoritoAsync(nova.Id);
                 adicionadas++;
@@ -977,6 +1055,34 @@ namespace CofreDeSenhas.Janelas
                 try { Process.Start(executavel); } catch { }
             }
             (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.Shutdown();
+        }
+
+        private sealed class FiltroOrganizacao
+        {
+            private FiltroOrganizacao(string rotulo, Categoria? categoria = null, string? etiqueta = null)
+            {
+                Rotulo = rotulo;
+                Categoria = categoria;
+                Etiqueta = etiqueta;
+            }
+
+            public string Rotulo { get; }
+            public Categoria? Categoria { get; }
+            public string? Etiqueta { get; }
+
+            public static FiltroOrganizacao Todas() => new("Todas");
+
+            public static FiltroOrganizacao ParaCategoria(string rotulo, Categoria categoria) =>
+                new(rotulo, categoria);
+
+            public static FiltroOrganizacao ParaEtiqueta(string etiqueta) =>
+                new(etiqueta, etiqueta: etiqueta);
+
+            public bool MesmaSelecao(FiltroOrganizacao outra) =>
+                Categoria == outra.Categoria &&
+                string.Equals(Etiqueta, outra.Etiqueta, StringComparison.OrdinalIgnoreCase);
+
+            public override string ToString() => Rotulo;
         }
     }
 }

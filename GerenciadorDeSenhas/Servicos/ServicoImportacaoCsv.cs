@@ -66,6 +66,15 @@ namespace GerenciadorDeSenhas.Servicos
                     return string.Empty;
                 }
 
+                IEnumerable<string> PegarTodos(Campo campo)
+                {
+                    if (!colunas.TryGetValue(campo, out var indices))
+                        yield break;
+                    foreach (var indice in indices)
+                        if (indice < valores.Count && !string.IsNullOrWhiteSpace(valores[indice]))
+                            yield return valores[indice];
+                }
+
                 var senha = Pegar(Campo.Senha);
                 var nome = Pegar(Campo.Nome);
                 var url = Pegar(Campo.Url);
@@ -87,6 +96,7 @@ namespace GerenciadorDeSenhas.Servicos
                     Notas = ValorOuNulo(Pegar(Campo.Notas)),
                     TotpSegredo = ValorOuNulo(Pegar(Campo.Totp)),
                     Categoria = MapearCategoria(Pegar(Campo.Categoria)),
+                    Etiquetas = Etiquetas.Analisar(string.Join(",", PegarTodos(Campo.Categoria))),
                     Favorito = InterpretarFavorito(Pegar(Campo.Favorito)),
                     DataCriacao = DateTime.UtcNow,
                     DataAtualizacao = DateTime.UtcNow

@@ -7,6 +7,7 @@ namespace GerenciadorDeSenhas.Modelos
         public string Senha { get; set; } = string.Empty;
         public string? Url { get; set; }
         public Categoria Categoria { get; set; }
+        public List<string> Etiquetas { get; set; } = new();
         public string? Notas { get; set; }
         public string? TotpSegredo { get; set; }
         public bool Favorito { get; set; }

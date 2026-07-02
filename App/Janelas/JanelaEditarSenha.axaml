@@ -81,6 +81,11 @@
         <TextBlock Text="Categoria" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
         <ComboBox Name="CmbCategoria" Classes="campo" HorizontalAlignment="Stretch" Margin="0,0,0,12" />
 
+        <TextBlock Name="LblCategoriaPersonalizada" Text="Categoria personalizada" IsVisible="False"
+                   FontSize="12" Foreground="{DynamicResource TextSecondary}" />
+        <TextBox Name="TxtCategoriaPersonalizada" Classes="campo" IsVisible="False"
+                 Watermark="Ex.: Jogos" Margin="0,0,0,12" />
+
         <TextBlock Text="URL  (opcional)" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
         <TextBox Name="TxtUrl" Classes="campo" Margin="0,0,0,12" />
 

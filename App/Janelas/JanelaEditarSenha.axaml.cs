@@ -29,10 +29,13 @@ namespace CofreDeSenhas.Janelas
             TxtUsuario.Text = _senhaAtual.Usuario;
             TxtUrl.Text = _senhaAtual.Url ?? "";
             TxtNotas.Text = _senhaAtual.Notas ?? "";
+            TxtCategoriaPersonalizada.Text = CategoriaPersonalizadaAtual();
             TxtTotp.Text = TotpAtualPlain();
 
             CmbCategoria.ItemsSource = CategoriasUI.Rotulos;
             CmbCategoria.SelectedIndex = (int)_senhaAtual.Categoria;
+            CmbCategoria.SelectionChanged += Categoria_Alterada;
+            AtualizarCampoCategoriaPersonalizada();
 
             TxtTotp.TextChanged += (s, e) => AtualizarPreviewTotp();
             Closed += (s, e) => PararTimerTotp();
@@ -89,7 +92,7 @@ namespace CofreDeSenhas.Janelas
                     }
                 }
 
-                var categoria = (Categoria)Math.Max(0, CmbCategoria.SelectedIndex);
+                var (categoria, categoriasPersonalizadas) = LerCategoria();
                 await _servicoSenha.AtualizarSenhaAsync(
                     _senhaAtual.Id,
                     TxtNomeServico.Text!,
@@ -97,7 +100,8 @@ namespace CofreDeSenhas.Janelas
                     novaSenha,
                     categoria,
                     string.IsNullOrWhiteSpace(TxtUrl.Text) ? null : TxtUrl.Text,
-                    string.IsNullOrWhiteSpace(TxtNotas.Text) ? null : TxtNotas.Text);
+                    string.IsNullOrWhiteSpace(TxtNotas.Text) ? null : TxtNotas.Text,
+                    categoriasPersonalizadas);
 
                 await _servicoSenha.DefinirTotpAsync(_senhaAtual.Id, totp);
 
@@ -150,6 +154,36 @@ namespace CofreDeSenhas.Janelas
         {
             _timerTotp?.Stop();
             _timerTotp = null;
+        }
+
+        private string CategoriaPersonalizadaAtual() =>
+            _senhaAtual.Categoria == Categoria.Other && _senhaAtual.Etiquetas.Count > 0
+                ? _senhaAtual.Etiquetas[0]
+                : "";
+
+        private void Categoria_Alterada(object? sender, SelectionChangedEventArgs e) =>
+            AtualizarCampoCategoriaPersonalizada();
+
+        private void AtualizarCampoCategoriaPersonalizada()
+        {
+            bool visivel = (Categoria)Math.Max(0, CmbCategoria.SelectedIndex) == Categoria.Other;
+            LblCategoriaPersonalizada.IsVisible = visivel;
+            TxtCategoriaPersonalizada.IsVisible = visivel;
+            if (!visivel)
+                TxtCategoriaPersonalizada.Text = "";
+        }
+
+        private (Categoria categoria, List<string> categoriasPersonalizadas) LerCategoria()
+        {
+            var categoria = (Categoria)Math.Max(0, CmbCategoria.SelectedIndex);
+            if (categoria != Categoria.Other)
+                return (categoria, new List<string>());
+
+            var texto = TxtCategoriaPersonalizada.Text;
+            if (CategoriasUI.TentarObterCategoria(texto, out var existente))
+                return (existente, new List<string>());
+
+            return (Categoria.Other, Etiquetas.Normalizar(new[] { texto ?? "" }));
         }
 
         private static string FormatarCodigo(string codigo) =>

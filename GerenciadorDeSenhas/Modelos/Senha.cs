@@ -12,6 +12,7 @@ namespace GerenciadorDeSenhas.Modelos
 
         public string? Url { get; set; }
         public Categoria Categoria { get; set; }
+        public List<string> Etiquetas { get; set; } = new();
         public string? Notas { get; set; }
 
         public string? TotpSegredo { get; set; }

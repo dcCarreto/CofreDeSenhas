@@ -24,7 +24,7 @@ public class ServicoExportacaoTests : IDisposable
 
     private static List<SenhaExportada> Amostra() => new()
     {
-        new() { NomeServico = "GitHub", Usuario = "dev@git.com", Senha = "GitHub@Secreta123", Categoria = Categoria.Work, Url = "https://github.com", Favorito = true },
+        new() { NomeServico = "GitHub", Usuario = "dev@git.com", Senha = "GitHub@Secreta123", Categoria = Categoria.Work, Etiquetas = new() { "Dev", "Clientes" }, Url = "https://github.com", Favorito = true },
         new() { NomeServico = "Gmail", Usuario = "user@gmail.com", Senha = "Gmail@Forte456", Categoria = Categoria.Personal }
     };
 
@@ -41,6 +41,7 @@ public class ServicoExportacaoTests : IDisposable
         Assert.Equal("dev@git.com", git.Usuario);
         Assert.Equal("GitHub@Secreta123", git.Senha);
         Assert.Equal(Categoria.Work, git.Categoria);
+        Assert.Equal(new[] { "Dev", "Clientes" }, git.Etiquetas);
         Assert.Equal("https://github.com", git.Url);
         Assert.True(git.Favorito);
     }

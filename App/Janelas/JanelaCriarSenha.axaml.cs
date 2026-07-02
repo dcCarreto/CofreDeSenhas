@@ -22,6 +22,8 @@ namespace CofreDeSenhas.Janelas
 
             CmbCategoria.ItemsSource = CategoriasUI.Rotulos;
             CmbCategoria.SelectedIndex = (int)Categoria.Personal;
+            CmbCategoria.SelectionChanged += Categoria_Alterada;
+            AtualizarCampoCategoriaPersonalizada();
 
             if (!string.IsNullOrEmpty(senhaGerada))
                 TxtSenha.Text = senhaGerada;
@@ -63,7 +65,7 @@ namespace CofreDeSenhas.Janelas
                     return;
                 }
 
-                var categoria = (Categoria)Math.Max(0, CmbCategoria.SelectedIndex);
+                var (categoria, categoriasPersonalizadas) = LerCategoria();
                 await _servicoSenha.CriarSenhaAsync(
                     TxtNomeServico.Text!,
                     TxtUsuario.Text!,
@@ -71,7 +73,8 @@ namespace CofreDeSenhas.Janelas
                     categoria,
                     string.IsNullOrWhiteSpace(TxtUrl.Text) ? null : TxtUrl.Text,
                     string.IsNullOrWhiteSpace(TxtNotas.Text) ? null : TxtNotas.Text,
-                    string.IsNullOrWhiteSpace(totp) ? null : totp);
+                    string.IsNullOrWhiteSpace(totp) ? null : totp,
+                    categoriasPersonalizadas);
 
                 await _servicoSenha.PersistirAsync();
                 Close(true);
@@ -122,6 +125,31 @@ namespace CofreDeSenhas.Janelas
         {
             _timerTotp?.Stop();
             _timerTotp = null;
+        }
+
+        private void Categoria_Alterada(object? sender, SelectionChangedEventArgs e) =>
+            AtualizarCampoCategoriaPersonalizada();
+
+        private void AtualizarCampoCategoriaPersonalizada()
+        {
+            bool visivel = (Categoria)Math.Max(0, CmbCategoria.SelectedIndex) == Categoria.Other;
+            LblCategoriaPersonalizada.IsVisible = visivel;
+            TxtCategoriaPersonalizada.IsVisible = visivel;
+            if (!visivel)
+                TxtCategoriaPersonalizada.Text = "";
+        }
+
+        private (Categoria categoria, List<string> categoriasPersonalizadas) LerCategoria()
+        {
+            var categoria = (Categoria)Math.Max(0, CmbCategoria.SelectedIndex);
+            if (categoria != Categoria.Other)
+                return (categoria, new List<string>());
+
+            var texto = TxtCategoriaPersonalizada.Text;
+            if (CategoriasUI.TentarObterCategoria(texto, out var existente))
+                return (existente, new List<string>());
+
+            return (Categoria.Other, Etiquetas.Normalizar(new[] { texto ?? "" }));
         }
 
         private static string FormatarCodigo(string codigo) =>

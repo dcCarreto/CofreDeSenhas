@@ -72,6 +72,10 @@ gerenciador de senhas seguro:
   prévia ao vivo e contagem regressiva na criação e na edição, e cópia rápida
   pela lista. O segredo é cifrado como a senha e acompanha a exportação e o
   banco de dados.
+- Categorias personalizadas além das categorias fixas: ao selecionar `Outro`, a
+  criação/edição libera um campo para nomear a categoria, que passa a aparecer no
+  mesmo seletor de categorias e é preservada na importação/exportação e no banco
+  de dados.
 - Importação a partir de outros gerenciadores e de arquivos CSV: pelo menu de
   configurações, um arquivo CSV é lido com detecção automática de delimitador
   (vírgula, ponto e vírgula ou tabulação) e mapeamento das colunas pelo
@@ -85,7 +89,6 @@ gerenciador de senhas seguro:
 Ideias e melhorias consideradas para versões futuras, sem ordem definitiva de
 prioridade:
 
-- Organização por pastas ou etiquetas personalizadas, além das categorias fixas.
 - Histórico de alterações por credencial.
 - Internacionalização da interface (além do português).
 - Sincronização opcional e criptografada de ponta a ponta entre dispositivos.

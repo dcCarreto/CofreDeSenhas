@@ -1,4 +1,5 @@
 using System.Data.Common;
+using System.Text.Json;
 using GerenciadorDeSenhas.Modelos;
 using GerenciadorDeSenhas.Servicos;
 
@@ -30,7 +31,7 @@ namespace GerenciadorDeSenhas.Repositorios
             await con.OpenAsync();
 
             await using var cmd = con.CreateCommand();
-            cmd.CommandText = $"SELECT id, usuario, senha, dominio, descricao, totp FROM {_tabela} WHERE excluido = @excluido";
+            cmd.CommandText = $"SELECT id, usuario, senha, dominio, descricao, totp, etiquetas FROM {_tabela} WHERE excluido = @excluido";
             Parametro(cmd, "@excluido", false);
 
             await using var leitor = await cmd.ExecuteReaderAsync();
@@ -44,6 +45,7 @@ namespace GerenciadorDeSenhas.Repositorios
                     SenhaHash = (string)leitor["senha"],
                     Notas = leitor["descricao"] is string descricao ? descricao : null,
                     TotpSegredo = leitor["totp"] is string totp ? totp : null,
+                    Etiquetas = DesserializarEtiquetas(leitor["etiquetas"]),
                     Categoria = Categoria.Other
                 };
                 _senhas.Add(senha);
@@ -65,8 +67,8 @@ namespace GerenciadorDeSenhas.Repositorios
             if (_cfg.Tipo == TipoBanco.PostgreSQL)
             {
                 await using var cmd = con.CreateCommand();
-                cmd.CommandText = $"INSERT INTO {_tabela} (usuario, senha, dominio, descricao, totp, excluido) " +
-                                  "VALUES (@usuario, @senha, @dominio, @descricao, @totp, @excluido) RETURNING id";
+                cmd.CommandText = $"INSERT INTO {_tabela} (usuario, senha, dominio, descricao, totp, etiquetas, excluido) " +
+                                  "VALUES (@usuario, @senha, @dominio, @descricao, @totp, @etiquetas, @excluido) RETURNING id";
                 PreencherCampos(cmd, senha);
                 id = Convert.ToInt64(await cmd.ExecuteScalarAsync());
             }
@@ -74,8 +76,8 @@ namespace GerenciadorDeSenhas.Repositorios
             {
                 await using (var cmd = con.CreateCommand())
                 {
-                    cmd.CommandText = $"INSERT INTO {_tabela} (usuario, senha, dominio, descricao, totp, excluido) " +
-                                      "VALUES (@usuario, @senha, @dominio, @descricao, @totp, @excluido)";
+                    cmd.CommandText = $"INSERT INTO {_tabela} (usuario, senha, dominio, descricao, totp, etiquetas, excluido) " +
+                                      "VALUES (@usuario, @senha, @dominio, @descricao, @totp, @etiquetas, @excluido)";
                     PreencherCampos(cmd, senha);
                     await cmd.ExecuteNonQueryAsync();
                 }
@@ -101,7 +103,7 @@ namespace GerenciadorDeSenhas.Repositorios
             await con.OpenAsync();
 
             await using var cmd = con.CreateCommand();
-            cmd.CommandText = $"UPDATE {_tabela} SET usuario = @usuario, senha = @senha, dominio = @dominio, descricao = @descricao, totp = @totp WHERE id = @id";
+            cmd.CommandText = $"UPDATE {_tabela} SET usuario = @usuario, senha = @senha, dominio = @dominio, descricao = @descricao, totp = @totp, etiquetas = @etiquetas WHERE id = @id";
             PreencherCampos(cmd, senha);
             Parametro(cmd, "@id", id);
             await cmd.ExecuteNonQueryAsync();
@@ -114,6 +116,7 @@ namespace GerenciadorDeSenhas.Repositorios
                 existente.SenhaHash = senha.SenhaHash;
                 existente.Notas = senha.Notas;
                 existente.TotpSegredo = senha.TotpSegredo;
+                existente.Etiquetas = senha.Etiquetas;
             }
         }
 
@@ -226,17 +229,18 @@ namespace GerenciadorDeSenhas.Repositorios
             cmd.Transaction = tx;
             if (id.HasValue)
             {
-                cmd.CommandText = $"UPDATE {_tabela} SET senha = @senha, descricao = @descricao, totp = @totp, excluido = @excluido WHERE id = @id";
+                cmd.CommandText = $"UPDATE {_tabela} SET senha = @senha, descricao = @descricao, totp = @totp, etiquetas = @etiquetas, excluido = @excluido WHERE id = @id";
                 Parametro(cmd, "@senha", senha.SenhaHash);
                 Parametro(cmd, "@descricao", senha.Notas);
                 Parametro(cmd, "@totp", senha.TotpSegredo);
+                Parametro(cmd, "@etiquetas", SerializarEtiquetas(senha.Etiquetas));
                 Parametro(cmd, "@excluido", false);
                 Parametro(cmd, "@id", id.Value);
             }
             else
             {
-                cmd.CommandText = $"INSERT INTO {_tabela} (usuario, senha, dominio, descricao, totp, excluido) " +
-                                  "VALUES (@usuario, @senha, @dominio, @descricao, @totp, @excluido)";
+                cmd.CommandText = $"INSERT INTO {_tabela} (usuario, senha, dominio, descricao, totp, etiquetas, excluido) " +
+                                  "VALUES (@usuario, @senha, @dominio, @descricao, @totp, @etiquetas, @excluido)";
                 PreencherCampos(cmd, senha);
             }
             await cmd.ExecuteNonQueryAsync();
@@ -249,7 +253,26 @@ namespace GerenciadorDeSenhas.Repositorios
             Parametro(cmd, "@dominio", senha.NomeServico);
             Parametro(cmd, "@descricao", senha.Notas);
             Parametro(cmd, "@totp", senha.TotpSegredo);
+            Parametro(cmd, "@etiquetas", SerializarEtiquetas(senha.Etiquetas));
             Parametro(cmd, "@excluido", false);
+        }
+
+        private static string? SerializarEtiquetas(List<string> etiquetas) =>
+            etiquetas.Count == 0 ? null : JsonSerializer.Serialize(etiquetas);
+
+        private static List<string> DesserializarEtiquetas(object? valor)
+        {
+            if (valor is not string texto || string.IsNullOrWhiteSpace(texto))
+                return new List<string>();
+
+            try
+            {
+                return Etiquetas.Normalizar(JsonSerializer.Deserialize<List<string>>(texto));
+            }
+            catch
+            {
+                return new List<string>();
+            }
         }
 
         private static void Parametro(DbCommand cmd, string nome, object? valor)

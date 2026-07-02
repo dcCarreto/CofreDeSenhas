@@ -89,6 +89,7 @@ namespace GerenciadorDeSenhas.Servicos
         {
             await GarantirColunaAsync(cfg, "descricao");
             await GarantirColunaAsync(cfg, "totp");
+            await GarantirColunaAsync(cfg, "etiquetas");
         }
 
         private async Task GarantirColunaAsync(ConexaoBanco cfg, string coluna)
@@ -170,6 +171,7 @@ namespace GerenciadorDeSenhas.Servicos
                     dominio TEXT,
                     descricao TEXT,
                     totp TEXT,
+                    etiquetas TEXT,
                     excluido INTEGER NOT NULL DEFAULT 0
                 )",
 
@@ -181,6 +183,7 @@ namespace GerenciadorDeSenhas.Servicos
                     dominio VARCHAR(255),
                     descricao TEXT,
                     totp TEXT,
+                    etiquetas TEXT,
                     excluido BOOLEAN NOT NULL DEFAULT FALSE
                 )",
 
@@ -192,6 +195,7 @@ namespace GerenciadorDeSenhas.Servicos
                     dominio VARCHAR(255),
                     descricao TEXT,
                     totp TEXT,
+                    etiquetas TEXT,
                     excluido TINYINT(1) NOT NULL DEFAULT 0
                 )",
 
@@ -203,6 +207,7 @@ namespace GerenciadorDeSenhas.Servicos
                     dominio NVARCHAR(255),
                     descricao NVARCHAR(MAX),
                     totp NVARCHAR(MAX),
+                    etiquetas NVARCHAR(MAX),
                     excluido BIT NOT NULL DEFAULT 0
                 )",
 

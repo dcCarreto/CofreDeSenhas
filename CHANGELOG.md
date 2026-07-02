@@ -25,9 +25,10 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 - Suporte a SQLite, PostgreSQL, MySQL/MariaDB e SQL Server, com telas de seleção
   do motor e de dados de conexão, incluindo teste de conexão.
 - Detecção da tabela `CofreDeSenhas` e criação sob confirmação, com as colunas
-  id, usuario, senha, dominio, descricao e excluido (exclusão lógica).
-- Migração leve que adiciona a coluna `descricao` a tabelas já existentes ao
-  reconectar.
+  id, usuario, senha, dominio, descricao, totp, etiquetas e excluido (exclusão
+  lógica).
+- Migração leve que adiciona as colunas `descricao`, `totp` e `etiquetas` a
+  tabelas já existentes ao reconectar.
 - Memória do último perfil de conexão para pré-preencher a tela de conexão.
 - Geração de frases-senha (passphrases) a partir de lista de palavras, com
   controles de quantidade de palavras, separador, capitalização e número final.
@@ -44,8 +45,11 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
   temporária na própria linha.
 - Colunas redimensionáveis na lista do cofre, incluindo serviço, usuário,
   categoria, data e ações.
-- Testes de banco (criação da tabela, migração da coluna `descricao` e CRUD com
-  exclusão lógica) executados sobre SQLite.
+- Testes de banco (criação da tabela, migração de colunas e CRUD com exclusão
+  lógica) executados sobre SQLite.
+- Categorias personalizadas a partir de `Outro`, com criação/edição, busca,
+  filtro no mesmo seletor de categorias, exibição na lista e preservação em
+  importação/exportação e banco de dados.
 
 ### Alterado
 - Reorganização visual do cofre, com melhor distribuição entre gerador e lista,

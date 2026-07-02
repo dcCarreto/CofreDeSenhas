@@ -25,6 +25,7 @@ public class ServicoImportacaoCsvTests
         Assert.Equal("minha nota", item.Notas);
         Assert.Equal("JBSWY3DPEHPK3PXP", item.TotpSegredo);
         Assert.Equal(Categoria.Work, item.Categoria);
+        Assert.Equal(new[] { "Work" }, item.Etiquetas);
         Assert.True(item.Favorito);
     }
 
@@ -60,6 +61,19 @@ public class ServicoImportacaoCsvTests
         Assert.Equal("user@x.com", item.Usuario);
         Assert.Equal("secret", item.Senha);
         Assert.Equal("uma nota", item.Notas);
+    }
+
+    [Fact]
+    public void Importar_ColunasDePastaETag_GeramEtiquetasNormalizadas()
+    {
+        var csv = "name,username,password,folder,tags\n" +
+                  "Portal,alice,pw,Financeiro,\"Clientes, Alto valor\"";
+
+        var resultado = _servico.Importar(csv);
+
+        var item = Assert.Single(resultado.Itens);
+        Assert.Equal(new[] { "Financeiro", "Clientes", "Alto valor" }, item.Etiquetas);
+        Assert.Equal(Categoria.Finance, item.Categoria);
     }
 
     [Fact]

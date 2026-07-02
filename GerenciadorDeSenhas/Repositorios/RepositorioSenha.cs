@@ -54,6 +54,7 @@ namespace GerenciadorDeSenhas.Repositorios
             existente.SenhaHash = senha.SenhaHash;
             existente.Url = senha.Url;
             existente.Categoria = senha.Categoria;
+            existente.Etiquetas = senha.Etiquetas;
             existente.Notas = senha.Notas;
             existente.TotpSegredo = senha.TotpSegredo;
             existente.Favorito = senha.Favorito;
