@@ -42,7 +42,7 @@ namespace CofreDeSenhas
             var repositorio = new RepositorioSenha(persistencia, chave);
             var servicoSenha = new ServicoSenha(repositorio, criptografia);
 
-            var principal = new JanelaPrincipal(servicoSenha, criptografia);
+            var principal = new JanelaPrincipal(servicoSenha, criptografia, repositorio);
             var login = desktop.MainWindow;
             desktop.MainWindow = principal;
             principal.Show();

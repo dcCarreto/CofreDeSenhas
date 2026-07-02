@@ -12,16 +12,20 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using CofreDeSenhas.Controles;
 using GerenciadorDeSenhas.Modelos;
+using GerenciadorDeSenhas.Repositorios;
 using GerenciadorDeSenhas.Servicos;
 
 namespace CofreDeSenhas.Janelas
 {
     public partial class JanelaPrincipal : Window
     {
-        private readonly IServicoSenha _servicoSenha;
+        private IServicoSenha _servicoSenha;
+        private readonly IServicoSenha _servicoSenhaLocal;
         private readonly IServicoCriptografia? _criptografia;
+        private readonly IRepositorioSenha? _repositorioLocal;
         private readonly ServicoVazamento _servicoVazamento = new();
         private readonly ServicoExportacao _servicoExportacao = new();
+        private bool _conectadoAoBanco;
 
         private List<Senha> _senhasAtuais = new();
         private readonly List<LinhaSenha> _linhasSenha = new();
@@ -32,10 +36,13 @@ namespace CofreDeSenhas.Janelas
         private bool _somenteFavoritos;
         private int _nivelForca;
 
-        public JanelaPrincipal(IServicoSenha servicoSenha, IServicoCriptografia? criptografia = null)
+        public JanelaPrincipal(IServicoSenha servicoSenha, IServicoCriptografia? criptografia = null,
+            IRepositorioSenha? repositorioLocal = null)
         {
             _servicoSenha = servicoSenha ?? throw new ArgumentNullException(nameof(servicoSenha));
+            _servicoSenhaLocal = _servicoSenha;
             _criptografia = criptografia;
+            _repositorioLocal = repositorioLocal;
 
             InitializeComponent();
             Icon = Recursos.IconeApp();
@@ -643,6 +650,82 @@ namespace CofreDeSenhas.Janelas
                 return;
 
             await QrBackup.OferecerSalvarAsync(this, dlg.SenhaConfirmada);
+        }
+
+        private async void ConectarBanco_Click(object? sender, RoutedEventArgs e)
+        {
+            if (_criptografia == null)
+            {
+                await CaixaMensagem.MostrarAsync(this,
+                    "Recurso indisponível nesta sessão.", "Conectar banco de dados", TipoMensagem.Aviso);
+                return;
+            }
+
+            var seletor = new JanelaSelecionarBanco();
+            if (!await seletor.ShowDialog<bool>(this) || seletor.Selecionado is not { } tipo)
+                return;
+
+            var dlg = new JanelaConexaoBanco(tipo);
+            if (!await dlg.ShowDialog<bool>(this) || dlg.Conexao is not { } cfg)
+                return;
+
+            try
+            {
+                var repoBanco = new RepositorioSenhaBanco(cfg);
+                IRepositorioSenha repoAtivo = _repositorioLocal != null
+                    ? new RepositorioSenhaEspelhado(_repositorioLocal, repoBanco)
+                    : repoBanco;
+                _servicoSenha = new ServicoSenha(repoAtivo, _criptografia);
+                _conectadoAoBanco = true;
+
+                Preferencias.UltimoBanco = new PerfilBanco
+                {
+                    Tipo = cfg.Tipo,
+                    Host = cfg.Host,
+                    Porta = cfg.Porta,
+                    Banco = cfg.Banco,
+                    Usuario = cfg.Usuario
+                };
+                Preferencias.Salvar();
+
+                AtualizarEstadoConexao(cfg.Descricao);
+                await CarregarSenhasAsync();
+
+                await CaixaMensagem.MostrarAsync(this,
+                    $"Conectado ao banco de dados e sincronizado com o cofre local.\n\n{cfg.Descricao}",
+                    "Banco de dados");
+            }
+            catch (Exception ex)
+            {
+                _servicoSenha = _servicoSenhaLocal;
+                _conectadoAoBanco = false;
+                AtualizarEstadoConexao(null);
+                await CaixaMensagem.MostrarAsync(this,
+                    $"Erro ao conectar: {ex.Message}", "Erro", TipoMensagem.Erro);
+            }
+        }
+
+        private async void DesconectarBanco_Click(object? sender, RoutedEventArgs e)
+        {
+            _servicoSenha = _servicoSenhaLocal;
+            _conectadoAoBanco = false;
+            AtualizarEstadoConexao(null);
+            await CarregarSenhasAsync();
+        }
+
+        private void AtualizarEstadoConexao(string? descricao)
+        {
+            if (_conectadoAoBanco && descricao != null)
+            {
+                LblConexao.Text = "Conectado: " + descricao;
+                PontoConexao.Fill = new SolidColorBrush(Color.Parse("#3B82F6"));
+            }
+            else
+            {
+                LblConexao.Text = "Cofre criptografado";
+                PontoConexao.Fill = new SolidColorBrush(Color.Parse("#22C55E"));
+            }
+            MenuDesconectarBanco.IsVisible = _conectadoAoBanco;
         }
 
         private void Reiniciar()

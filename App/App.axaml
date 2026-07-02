@@ -126,6 +126,21 @@
       <Setter Property="BorderBrush" Value="{DynamicResource InputBorder}" />
     </Style>
 
+    <Style Selector="Button.cartao">
+      <Setter Property="Background" Value="{DynamicResource InputBackground}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource InputBorder}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="10" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="HorizontalContentAlignment" Value="Left" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+      <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="Button.cartao:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource HoverBackground}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentPrimary}" />
+    </Style>
+
     <Style Selector="Button.icone-linha">
       <Setter Property="Width" Value="30" />
       <Setter Property="Height" Value="30" />

@@ -34,6 +34,15 @@ gerenciador de senhas seguro:
 - Distribuição como executável único e autocontido para Windows, e script de
   instalação para Linux (atalho no menu de aplicativos e ícone, por usuário).
 
+### Após a 1.0.0
+
+- Conexão opcional a banco de dados externo (SQLite, PostgreSQL, MySQL/MariaDB e
+  SQL Server) com sincronização automática: ao conectar, o cofre local e o banco
+  são mesclados (o local prevalece em conflito) e passam a ser espelhados — cada
+  criação, edição e exclusão vai para os dois. Inclui detecção e criação da
+  tabela sob confirmação, migração leve de colunas e a senha sempre armazenada
+  de forma cifrada.
+
 ## Planejado
 
 Ideias e melhorias consideradas para versões futuras, sem ordem definitiva de
