@@ -23,12 +23,9 @@ namespace CofreDeSenhas.Janelas
         private readonly IRepositorioSenha? _repositorioLocal;
         private readonly ServicoVazamento _servicoVazamento = new();
         private readonly ServicoExportacao _servicoExportacao = new();
-<<<<<<< HEAD
         private readonly Action? _aoBloquear;
         private readonly MonitorInatividade _monitor;
-=======
         private readonly ServicoGeracaoSenha _servicoGeracaoSenha = new();
->>>>>>> 38a593e (Adiciona geração de frases-senha (passphrases))
         private bool _conectadoAoBanco;
 
         private List<Senha> _senhasAtuais = new();
