@@ -73,6 +73,21 @@ public class RepositorioSenhaBancoTests : IDisposable
     }
 
     [Fact]
+    public async Task Adicionar_PersisteSegredoTotp()
+    {
+        var repo = new RepositorioSenhaBanco(_cfg);
+        var senha = NovaSenha("app.com", "u", "s");
+        senha.TotpSegredo = _criptografia.Criptografar("JBSWY3DPEHPK3PXP");
+        await repo.AdicionarAsync(senha);
+
+        var todas = await new RepositorioSenhaBanco(_cfg).ListarTodosAsync();
+
+        Assert.Single(todas);
+        Assert.NotNull(todas[0].TotpSegredo);
+        Assert.Equal("JBSWY3DPEHPK3PXP", _criptografia.Descriptografar(todas[0].TotpSegredo!));
+    }
+
+    [Fact]
     public async Task Atualizar_MudaDominioEUsuario()
     {
         var repo = new RepositorioSenhaBanco(_cfg);

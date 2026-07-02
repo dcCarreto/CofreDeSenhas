@@ -14,6 +14,8 @@ namespace GerenciadorDeSenhas.Modelos
         public Categoria Categoria { get; set; }
         public string? Notas { get; set; }
 
+        public string? TotpSegredo { get; set; }
+
         public bool Favorito { get; set; }
 
         public byte[] IV { get; set; } = new byte[12];

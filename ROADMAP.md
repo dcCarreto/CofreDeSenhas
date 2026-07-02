@@ -66,13 +66,18 @@ gerenciador de senhas seguro:
   vocabulário ampliado para reduzir repetição de palavras.
 - Polimento visual dos ícones de auditoria, verificação de vazamentos, ações da
   lista e distintivos de categoria.
+- Suporte a códigos TOTP (autenticação em duas etapas) por entrada: cada
+  credencial pode guardar uma chave 2FA, colada como segredo Base32 ou link
+  `otpauth://`. O código de seis dígitos é calculado localmente (RFC 6238), com
+  prévia ao vivo e contagem regressiva na criação e na edição, e cópia rápida
+  pela lista. O segredo é cifrado como a senha e acompanha a exportação e o
+  banco de dados.
 
 ## Planejado
 
 Ideias e melhorias consideradas para versões futuras, sem ordem definitiva de
 prioridade:
 
-- Suporte a códigos TOTP (autenticação em duas etapas) por entrada.
 - Importação a partir de outros gerenciadores e de arquivos CSV.
 - Organização por pastas ou etiquetas personalizadas, além das categorias fixas.
 - Histórico de alterações por credencial.

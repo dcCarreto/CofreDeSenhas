@@ -5,10 +5,12 @@ namespace GerenciadorDeSenhas.Servicos
     public interface IServicoSenha
     {
         Task<Senha> CriarSenhaAsync(string nomeServico, string usuario, string senhaPlaintext,
-            Categoria categoria, string? url = null, string? notas = null);
+            Categoria categoria, string? url = null, string? notas = null, string? totpSegredo = null);
 
         Task AtualizarSenhaAsync(Guid id, string nomeServico, string usuario, string senhaPlaintext,
             Categoria categoria, string? url = null, string? notas = null);
+
+        Task DefinirTotpAsync(Guid id, string? segredoPlaintext);
 
         Task RemoverSenhaAsync(Guid id);
 

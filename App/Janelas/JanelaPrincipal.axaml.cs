@@ -24,6 +24,7 @@ namespace CofreDeSenhas.Janelas
         private readonly ServicoAuditoriaSenha _servicoAuditoria = new();
         private readonly ServicoVazamento _servicoVazamento = new();
         private readonly ServicoExportacao _servicoExportacao = new();
+        private readonly ServicoTotp _totp = new();
         private readonly Action? _aoBloquear;
         private readonly MonitorInatividade _monitor;
         private bool _conectadoAoBanco;
@@ -38,7 +39,7 @@ namespace CofreDeSenhas.Janelas
         private double _larguraUsuario = 240;
         private double _larguraCategoria = 108;
         private double _larguraData = 92;
-        private double _larguraAcoes = 96;
+        private double _larguraAcoes = 134;
         private string? _colunaEmRedimensionamento;
         private string? _colunaDireitaEmRedimensionamento;
         private double _inicioRedimensionamentoX;
@@ -50,7 +51,7 @@ namespace CofreDeSenhas.Janelas
         private const double LarguraMinimaUsuario = 160;
         private const double LarguraMinimaCategoria = 86;
         private const double LarguraMinimaData = 78;
-        private const double LarguraMinimaAcoes = 84;
+        private const double LarguraMinimaAcoes = 134;
 
         public JanelaPrincipal(IServicoSenha servicoSenha, IServicoCriptografia? criptografia = null,
             IRepositorioSenha? repositorioLocal = null, Action? aoBloquear = null)
@@ -183,7 +184,7 @@ namespace CofreDeSenhas.Janelas
             double larguraDisponivel = GridCabecalhoTabela.Bounds.Width;
             double fixo = 42 + 44 + 26 + 24;
 
-            _larguraAcoes = Math.Clamp(larguraDisponivel * 0.11, LarguraMinimaAcoes, 102);
+            _larguraAcoes = Math.Clamp(larguraDisponivel * 0.13, LarguraMinimaAcoes, 152);
             _larguraCategoria = Math.Clamp(larguraDisponivel * 0.12, LarguraMinimaCategoria, 116);
             _larguraData = Math.Clamp(larguraDisponivel * 0.10, LarguraMinimaData, 100);
 
@@ -326,7 +327,7 @@ namespace CofreDeSenhas.Janelas
 
             foreach (var senha in lista)
             {
-                var linha = new LinhaSenha(senha, ObterSenhaPlain, FavoritarToggle, EditarSenha, RenomearServicoAsync);
+                var linha = new LinhaSenha(senha, ObterSenhaPlain, ObterTotpPlain, FavoritarToggle, EditarSenha, RenomearServicoAsync);
                 linha.DefinirLargurasColunas(_larguraServico, _larguraUsuario, _larguraCategoria, _larguraData, _larguraAcoes);
 
                 var plain = ObterSenhaPlain(senha);
@@ -343,6 +344,14 @@ namespace CofreDeSenhas.Janelas
         private string? ObterSenhaPlain(Senha s)
         {
             try { return _criptografia?.Descriptografar(s.SenhaHash); }
+            catch { return null; }
+        }
+
+        private string? ObterTotpPlain(Senha s)
+        {
+            if (string.IsNullOrEmpty(s.TotpSegredo))
+                return null;
+            try { return _criptografia?.Descriptografar(s.TotpSegredo); }
             catch { return null; }
         }
 
@@ -611,6 +620,7 @@ namespace CofreDeSenhas.Janelas
                         Url = s.Url,
                         Categoria = s.Categoria,
                         Notas = s.Notas,
+                        TotpSegredo = ObterTotpPlain(s),
                         Favorito = s.Favorito,
                         DataCriacao = s.DataCriacao,
                         DataAtualizacao = s.DataAtualizacao
@@ -684,8 +694,9 @@ namespace CofreDeSenhas.Janelas
                         continue;
                     }
 
+                    var totp = _totp.SegredoValido(item.TotpSegredo) ? item.TotpSegredo : null;
                     var nova = await _servicoSenha.CriarSenhaAsync(
-                        item.NomeServico, item.Usuario, item.Senha, item.Categoria, item.Url, item.Notas);
+                        item.NomeServico, item.Usuario, item.Senha, item.Categoria, item.Url, item.Notas, totp);
                     if (item.Favorito)
                         await _servicoSenha.MarcarComoFavoritoAsync(nova.Id);
                     adicionadas++;

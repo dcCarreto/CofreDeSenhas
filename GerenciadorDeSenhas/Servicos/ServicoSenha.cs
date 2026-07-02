@@ -8,6 +8,7 @@ namespace GerenciadorDeSenhas.Servicos
     {
         private readonly IRepositorioSenha _repositorio;
         private readonly IServicoCriptografia _criptografia;
+        private readonly ServicoTotp _totp = new();
 
         public ServicoSenha(IRepositorioSenha repositorio, IServicoCriptografia criptografia)
         {
@@ -16,7 +17,7 @@ namespace GerenciadorDeSenhas.Servicos
         }
 
         public async Task<Senha> CriarSenhaAsync(string nomeServico, string usuario, string senhaPlaintext,
-            Categoria categoria, string? url = null, string? notas = null)
+            Categoria categoria, string? url = null, string? notas = null, string? totpSegredo = null)
         {
             ValidarEntrada(nomeServico, usuario, senhaPlaintext);
 
@@ -29,6 +30,7 @@ namespace GerenciadorDeSenhas.Servicos
                 Categoria = categoria,
                 Url = url,
                 Notas = notas,
+                TotpSegredo = CifrarTotp(totpSegredo),
                 Favorito = false,
                 DataCriacao = DateTime.UtcNow,
                 DataAtualizacao = DateTime.UtcNow
@@ -56,6 +58,26 @@ namespace GerenciadorDeSenhas.Servicos
             senha.DataAtualizacao = DateTime.UtcNow;
 
             await _repositorio.AtualizarAsync(senha);
+        }
+
+        public async Task DefinirTotpAsync(Guid id, string? segredoPlaintext)
+        {
+            var senha = await _repositorio.ObterPorIdAsync(id);
+            if (senha == null)
+                throw new InvalidOperationException($"Senha com ID {id} não encontrada");
+
+            senha.TotpSegredo = CifrarTotp(segredoPlaintext);
+            senha.DataAtualizacao = DateTime.UtcNow;
+
+            await _repositorio.AtualizarAsync(senha);
+        }
+
+        private string? CifrarTotp(string? segredoPlaintext)
+        {
+            if (string.IsNullOrWhiteSpace(segredoPlaintext))
+                return null;
+
+            return _criptografia.Criptografar(_totp.NormalizarSegredo(segredoPlaintext));
         }
 
         public async Task RemoverSenhaAsync(Guid id)

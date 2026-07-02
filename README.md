@@ -107,6 +107,10 @@ Tema escuro:
 
 - Cadastro, edição e remoção de credenciais, com os campos de serviço, usuário,
   senha, URL, categoria, notas e marcação de favorito.
+- Códigos TOTP (autenticação em duas etapas) por entrada: cole a chave secreta
+  (Base32) ou um link `otpauth://` e o cofre gera o código de seis dígitos
+  localmente, com prévia ao vivo e contagem regressiva na criação e edição, além
+  de cópia por um clique na lista.
 - Categorias predefinidas (Trabalho, Pessoal, Finanças, Social e Outro).
 - Busca em tempo real e filtro por categoria.
 - Indicador de força por senha armazenada.
@@ -175,6 +179,7 @@ Tema escuro:
 | Exportação | AES-256-GCM com chave derivada por PBKDF2-SHA256 (200.000 iterações) a partir de uma senha de exportação separada |
 | Comparações sensíveis | Realizadas em tempo constante, evitando ataques de temporização |
 | Verificação de vazamento | Have I Been Pwned por k-anonymity: apenas os 5 primeiros caracteres do hash SHA-1 da senha deixam a máquina |
+| Códigos TOTP | A chave 2FA é guardada cifrada (AES-256-GCM) como a senha; os códigos são calculados localmente (RFC 6238) e nada é enviado à rede |
 | Cofre em banco de dados | Quando conectado a um banco externo, a coluna de senha guarda apenas o texto cifrado (AES-256-GCM); a senha do servidor de banco não é gravada em disco |
 | Local dos dados | Pasta do usuário (`%APPDATA%\GerenciadorSenhas\` no Windows, `~/.config/GerenciadorSenhas/` no Linux), fora do repositório |
 

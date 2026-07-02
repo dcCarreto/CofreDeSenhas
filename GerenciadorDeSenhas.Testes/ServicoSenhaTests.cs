@@ -247,4 +247,65 @@ public class ServicoSenhaTests : IDisposable
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             _servico.RemoverSenhaAsync(Guid.NewGuid()));
     }
+
+    [Fact]
+    public async Task CriarSenhaAsync_ComTotp_ArmazenaSegredoCifradoNormalizado()
+    {
+        var senha = await _servico.CriarSenhaAsync(
+            "Gmail", "user@gmail.com", "Senha@123456", Categoria.Personal,
+            totpSegredo: "jbsw y3dp ehpk 3pxp");
+
+        Assert.NotNull(senha.TotpSegredo);
+        Assert.NotEqual("jbsw y3dp ehpk 3pxp", senha.TotpSegredo);
+        Assert.Equal("JBSWY3DPEHPK3PXP", _criptografia.Descriptografar(senha.TotpSegredo!));
+    }
+
+    [Fact]
+    public async Task CriarSenhaAsync_SemTotp_DeixaSegredoNulo()
+    {
+        var senha = await _servico.CriarSenhaAsync(
+            "Gmail", "user@gmail.com", "Senha@123456", Categoria.Personal);
+
+        Assert.Null(senha.TotpSegredo);
+    }
+
+    [Fact]
+    public async Task CriarSenhaAsync_ComTotpInvalido_LancaExcecao()
+    {
+        await Assert.ThrowsAsync<FormatException>(() =>
+            _servico.CriarSenhaAsync("Gmail", "user@gmail.com", "Senha@123456",
+                Categoria.Personal, totpSegredo: "###"));
+    }
+
+    [Fact]
+    public async Task DefinirTotpAsync_DefineEDepoisRemove()
+    {
+        var senha = await _servico.CriarSenhaAsync(
+            "Gmail", "user@gmail.com", "Senha@123456", Categoria.Personal);
+
+        await _servico.DefinirTotpAsync(senha.Id, "JBSWY3DPEHPK3PXP");
+        var comTotp = await _servico.ObterSenhaAsync(senha.Id);
+        Assert.NotNull(comTotp!.TotpSegredo);
+        Assert.Equal("JBSWY3DPEHPK3PXP", _criptografia.Descriptografar(comTotp.TotpSegredo!));
+
+        await _servico.DefinirTotpAsync(senha.Id, "");
+        var semTotp = await _servico.ObterSenhaAsync(senha.Id);
+        Assert.Null(semTotp!.TotpSegredo);
+    }
+
+    [Fact]
+    public async Task AtualizarSenhaAsync_PreservaTotpExistente()
+    {
+        var senha = await _servico.CriarSenhaAsync(
+            "Gmail", "user@gmail.com", "Senha@123456", Categoria.Personal,
+            totpSegredo: "JBSWY3DPEHPK3PXP");
+
+        await _servico.AtualizarSenhaAsync(
+            senha.Id, "Gmail", "novo@gmail.com", "NovaSenha@789", Categoria.Personal);
+
+        var atualizada = await _servico.ObterSenhaAsync(senha.Id);
+
+        Assert.NotNull(atualizada!.TotpSegredo);
+        Assert.Equal("JBSWY3DPEHPK3PXP", _criptografia.Descriptografar(atualizada.TotpSegredo!));
+    }
 }

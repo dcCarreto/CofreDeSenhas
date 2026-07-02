@@ -67,7 +67,15 @@ public class ServicoBancoDadosTests : IDisposable
     }
 
     [Fact]
-    public async Task GarantirColunas_AdicionaDescricaoEmTabelaAntiga()
+    public async Task CriarTabela_JaIncluiColunaTotp()
+    {
+        await _bd.CriarTabelaAsync(_sqlite);
+
+        Assert.True(await ColunaExiste("totp"));
+    }
+
+    [Fact]
+    public async Task GarantirColunas_AdicionaDescricaoETotpEmTabelaAntiga()
     {
         await using (var con = _bd.CriarConexao(_sqlite))
         {
@@ -79,10 +87,12 @@ public class ServicoBancoDadosTests : IDisposable
             await cmd.ExecuteNonQueryAsync();
         }
         Assert.False(await ColunaExiste("descricao"));
+        Assert.False(await ColunaExiste("totp"));
 
         await _bd.GarantirColunasAsync(_sqlite);
 
         Assert.True(await ColunaExiste("descricao"));
+        Assert.True(await ColunaExiste("totp"));
     }
 
     private async Task<bool> ColunaExiste(string coluna)

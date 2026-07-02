@@ -62,6 +62,22 @@
         <TextBlock Text="Senha  (deixe em branco para manter a atual)" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
         <TextBox Name="TxtSenha" Classes="campo revealPasswordButton" PasswordChar="●" Margin="0,0,0,12" />
 
+        <TextBlock Text="Autenticação em duas etapas (2FA)  (em branco remove)" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
+        <TextBox Name="TxtTotp" Classes="campo"
+                 Watermark="Cole a chave secreta ou o link otpauth://" Margin="0,0,0,8" />
+        <Border Name="PainelTotp" IsVisible="False"
+                Background="{DynamicResource InputBackground}"
+                BorderBrush="{DynamicResource InputBorder}" BorderThickness="1"
+                CornerRadius="8" Padding="12,8" Margin="0,0,0,12">
+          <Grid ColumnDefinitions="Auto,*,Auto">
+            <TextBlock Name="LblCodigoTotp" FontFamily="{DynamicResource FonteMono}"
+                       FontSize="20" FontWeight="Bold" LetterSpacing="1"
+                       Foreground="{DynamicResource AccentPrimary}" VerticalAlignment="Center" />
+            <TextBlock Name="LblContagemTotp" Grid.Column="2" FontSize="12"
+                       Foreground="{DynamicResource TextSecondary}" VerticalAlignment="Center" />
+          </Grid>
+        </Border>
+
         <TextBlock Text="Categoria" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
         <ComboBox Name="CmbCategoria" Classes="campo" HorizontalAlignment="Stretch" Margin="0,0,0,12" />
 

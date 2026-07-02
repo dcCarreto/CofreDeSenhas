@@ -7,6 +7,7 @@ using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Threading;
 using GerenciadorDeSenhas.Modelos;
+using GerenciadorDeSenhas.Servicos;
 
 namespace CofreDeSenhas.Controles
 {
@@ -14,9 +15,11 @@ namespace CofreDeSenhas.Controles
     {
         private readonly Senha _senha;
         private readonly Func<Senha, string?> _obterSenhaPlain;
+        private readonly Func<Senha, string?> _obterTotpPlain;
         private readonly Action<Senha> _onFavoritar;
         private readonly Action<Senha> _onEditar;
         private readonly Func<Senha, string, Task> _onRenomearServico;
+        private readonly ServicoTotp _totp = new();
 
         private bool _revelada;
         private bool _editandoServico;
@@ -39,6 +42,7 @@ namespace CofreDeSenhas.Controles
         private Grid _grid = null!;
         private Button _btnOlho = null!;
         private Button _btnCopiar = null!;
+        private Button? _btnTotp;
         private DispatcherTimer? _timerFeedbackUsuario;
 
         private const string IconeOlho =
@@ -51,6 +55,8 @@ namespace CofreDeSenhas.Controles
             "M4 17 L4 20 L7 20 L18.5 8.5 L15.5 5.5 Z M14.8 6.2 L17.8 9.2";
         private const string IconeCheck =
             "M5 12 L10 17 L19 7";
+        private const string IconeChave =
+            "M12 8 m-4 0 a4 4 0 1 0 8 0 a4 4 0 1 0 -8 0 M12 8 m-1.5 0 a1.5 1.5 0 1 0 3 0 a1.5 1.5 0 1 0 -3 0 M12 12 L12 20 M12 16 L15 16 M12 19 L14 19";
 
         public Senha Senha => _senha;
 
@@ -75,11 +81,12 @@ namespace CofreDeSenhas.Controles
         }
 
         public LinhaSenha(Senha senha, Func<Senha, string?> obterSenhaPlain,
-            Action<Senha> onFavoritar, Action<Senha> onEditar,
+            Func<Senha, string?> obterTotpPlain, Action<Senha> onFavoritar, Action<Senha> onEditar,
             Func<Senha, string, Task> onRenomearServico)
         {
             _senha = senha;
             _obterSenhaPlain = obterSenhaPlain;
+            _obterTotpPlain = obterTotpPlain;
             _onFavoritar = onFavoritar;
             _onEditar = onEditar;
             _onRenomearServico = onRenomearServico;
@@ -203,6 +210,14 @@ namespace CofreDeSenhas.Controles
             };
             acoes.Children.Add(_btnOlho);
             acoes.Children.Add(_btnCopiar);
+
+            if (_senha.TotpSegredo != null)
+            {
+                _btnTotp = CriarBotaoAcao(IconeChave, "Copiar código 2FA");
+                _btnTotp.Click += async (s, e) => await CopiarCodigoTotpAsync();
+                acoes.Children.Add(_btnTotp);
+            }
+
             acoes.Children.Add(btnEditar);
             Grid.SetColumn(acoes, 7);
             _grid.Children.Add(acoes);
@@ -577,6 +592,37 @@ namespace CofreDeSenhas.Controles
             {
                 DefinirIcone(_btnCopiar, IconeCopiar);
                 _btnCopiar.ClearValue(Button.ForegroundProperty);
+                t.Stop();
+            };
+            t.Start();
+        }
+
+        private async Task CopiarCodigoTotpAsync()
+        {
+            if (_btnTotp == null)
+                return;
+
+            var segredo = _obterTotpPlain(_senha);
+            if (string.IsNullOrEmpty(segredo))
+                return;
+
+            string codigo;
+            try { codigo = _totp.Gerar(segredo).Codigo; }
+            catch { return; }
+
+            var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
+            if (clipboard != null)
+            {
+                try { await clipboard.SetTextAsync(codigo); } catch { }
+            }
+
+            DefinirIcone(_btnTotp, IconeCheck);
+            _btnTotp.Foreground = Tema.Pincel(Tema.StrengthStrong);
+            var t = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+            t.Tick += (s, e) =>
+            {
+                DefinirIcone(_btnTotp, IconeChave);
+                _btnTotp.ClearValue(Button.ForegroundProperty);
                 t.Stop();
             };
             t.Start();

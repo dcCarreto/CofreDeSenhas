@@ -87,19 +87,25 @@ namespace GerenciadorDeSenhas.Servicos
 
         public async Task GarantirColunasAsync(ConexaoBanco cfg)
         {
+            await GarantirColunaAsync(cfg, "descricao");
+            await GarantirColunaAsync(cfg, "totp");
+        }
+
+        private async Task GarantirColunaAsync(ConexaoBanco cfg, string coluna)
+        {
             await using var con = CriarConexao(cfg);
             await con.OpenAsync();
 
             await using (var verifica = con.CreateCommand())
             {
-                verifica.CommandText = ConsultaColunaDescricao(cfg.Tipo);
+                verifica.CommandText = ConsultaColunaExiste(cfg.Tipo, coluna);
                 var resultado = await verifica.ExecuteScalarAsync();
                 if (resultado != null && resultado != DBNull.Value && Convert.ToInt64(resultado) > 0)
                     return;
             }
 
             await using var alterar = con.CreateCommand();
-            alterar.CommandText = DdlAdicionarDescricao(cfg.Tipo);
+            alterar.CommandText = DdlAdicionarColuna(cfg.Tipo, coluna);
             await alterar.ExecuteNonQueryAsync();
         }
 
@@ -128,29 +134,29 @@ namespace GerenciadorDeSenhas.Servicos
             _ => throw new NotSupportedException($"Banco não suportado: {tipo}")
         };
 
-        private static string ConsultaColunaDescricao(TipoBanco tipo) => tipo switch
+        private static string ConsultaColunaExiste(TipoBanco tipo, string coluna) => tipo switch
         {
             TipoBanco.SQLite =>
-                $"SELECT COUNT(*) FROM pragma_table_info('{NomeTabela}') WHERE name = 'descricao'",
+                $"SELECT COUNT(*) FROM pragma_table_info('{NomeTabela}') WHERE name = '{coluna}'",
 
             TipoBanco.PostgreSQL =>
-                $"SELECT COUNT(*) FROM information_schema.columns WHERE lower(table_name) = lower('{NomeTabela}') AND lower(column_name) = 'descricao'",
+                $"SELECT COUNT(*) FROM information_schema.columns WHERE lower(table_name) = lower('{NomeTabela}') AND lower(column_name) = '{coluna}'",
 
             TipoBanco.MySQL =>
-                $"SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = '{NomeTabela}' AND column_name = 'descricao'",
+                $"SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = '{NomeTabela}' AND column_name = '{coluna}'",
 
             TipoBanco.SqlServer =>
-                $"SELECT COUNT(*) FROM sys.columns WHERE object_id = OBJECT_ID('{NomeTabela}') AND name = 'descricao'",
+                $"SELECT COUNT(*) FROM sys.columns WHERE object_id = OBJECT_ID('{NomeTabela}') AND name = '{coluna}'",
 
             _ => throw new NotSupportedException($"Banco não suportado: {tipo}")
         };
 
-        private static string DdlAdicionarDescricao(TipoBanco tipo) => tipo switch
+        private static string DdlAdicionarColuna(TipoBanco tipo, string coluna) => tipo switch
         {
-            TipoBanco.SQLite => $"ALTER TABLE {NomeTabela} ADD COLUMN descricao TEXT",
-            TipoBanco.PostgreSQL => $"ALTER TABLE {NomeTabela} ADD COLUMN descricao TEXT",
-            TipoBanco.MySQL => $"ALTER TABLE {NomeTabela} ADD COLUMN descricao TEXT",
-            TipoBanco.SqlServer => $"ALTER TABLE {NomeTabela} ADD descricao NVARCHAR(MAX)",
+            TipoBanco.SQLite => $"ALTER TABLE {NomeTabela} ADD COLUMN {coluna} TEXT",
+            TipoBanco.PostgreSQL => $"ALTER TABLE {NomeTabela} ADD COLUMN {coluna} TEXT",
+            TipoBanco.MySQL => $"ALTER TABLE {NomeTabela} ADD COLUMN {coluna} TEXT",
+            TipoBanco.SqlServer => $"ALTER TABLE {NomeTabela} ADD {coluna} NVARCHAR(MAX)",
             _ => throw new NotSupportedException($"Banco não suportado: {tipo}")
         };
 
@@ -163,6 +169,7 @@ namespace GerenciadorDeSenhas.Servicos
                     senha TEXT NOT NULL,
                     dominio TEXT,
                     descricao TEXT,
+                    totp TEXT,
                     excluido INTEGER NOT NULL DEFAULT 0
                 )",
 
@@ -173,6 +180,7 @@ namespace GerenciadorDeSenhas.Servicos
                     senha TEXT NOT NULL,
                     dominio VARCHAR(255),
                     descricao TEXT,
+                    totp TEXT,
                     excluido BOOLEAN NOT NULL DEFAULT FALSE
                 )",
 
@@ -183,6 +191,7 @@ namespace GerenciadorDeSenhas.Servicos
                     senha TEXT NOT NULL,
                     dominio VARCHAR(255),
                     descricao TEXT,
+                    totp TEXT,
                     excluido TINYINT(1) NOT NULL DEFAULT 0
                 )",
 
@@ -193,6 +202,7 @@ namespace GerenciadorDeSenhas.Servicos
                     senha NVARCHAR(MAX) NOT NULL,
                     dominio NVARCHAR(255),
                     descricao NVARCHAR(MAX),
+                    totp NVARCHAR(MAX),
                     excluido BIT NOT NULL DEFAULT 0
                 )",
 
