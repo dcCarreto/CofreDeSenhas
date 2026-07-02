@@ -636,6 +636,15 @@ namespace CofreDeSenhas.Janelas
             Reiniciar();
         }
 
+        private async void RegerarQrCode_Click(object? sender, RoutedEventArgs e)
+        {
+            var dlg = new JanelaConfirmarSenhaMestra();
+            if (!await dlg.ShowDialog<bool>(this))
+                return;
+
+            await QrBackup.OferecerSalvarAsync(this, dlg.SenhaConfirmada);
+        }
+
         private void Reiniciar()
         {
             var executavel = Environment.ProcessPath;

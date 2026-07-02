@@ -41,6 +41,7 @@
                 <Button.Flyout>
                   <MenuFlyout Placement="BottomEdgeAlignedRight">
                     <MenuItem Header="Alterar senha mestra…" Click="AlterarSenhaMestra_Click" />
+                    <MenuItem Header="Regerar QR code…" Click="RegerarQrCode_Click" />
                   </MenuFlyout>
                 </Button.Flyout>
               </Button>
