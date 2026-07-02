@@ -1,8 +1,6 @@
-using System;
-using System.IO;
 using System.Text.Json;
 
-namespace App
+namespace CofreDeSenhas
 {
     public static class Preferencias
     {

@@ -4,7 +4,7 @@ using Avalonia.Interactivity;
 using Avalonia.Threading;
 using GerenciadorDeSenhas.Servicos;
 
-namespace AppLinux.Janelas
+namespace CofreDeSenhas.Janelas
 {
     public partial class JanelaLogin : Window
     {

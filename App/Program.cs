@@ -1,34 +1,16 @@
-using GerenciadorDeSenhas.Repositorios;
-using GerenciadorDeSenhas.Servicos;
+using Avalonia;
 
-namespace App
+namespace CofreDeSenhas
 {
     internal static class Program
     {
         [STAThread]
-        static void Main()
-        {
-            ApplicationConfiguration.Initialize();
+        public static void Main(string[] args) =>
+            BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
 
-            Preferencias.Carregar();
-            Theme.DefinirModo(Preferencias.ModoEscuro);
-
-            var auth = new AutenticacaoMestra();
-            byte[] chave;
-            using (var login = new FormLogin(auth))
-            {
-                if (login.ShowDialog() != DialogResult.OK || login.ChaveDerivada == null)
-                    return;
-
-                chave = login.ChaveDerivada;
-            }
-
-            var criptografia = new ServicoCriptografia(chave);
-            var persistencia = new PersistenciaLocal(criptografia);
-            var repositorio = new RepositorioSenha(persistencia, chave);
-            var servicoSenha = new ServicoSenha(repositorio, criptografia);
-
-            Application.Run(new FormRedesenhado(servicoSenha, criptografia));
-        }
+        public static AppBuilder BuildAvaloniaApp() =>
+            AppBuilder.Configure<App>()
+                .UsePlatformDetect()
+                .WithInterFont();
     }
 }

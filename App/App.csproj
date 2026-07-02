@@ -1,37 +1,41 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net10.0-windows</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
-    <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
 
-    <!-- Identidade do executável (distinta da lib "GerenciadorDeSenhas") -->
     <AssemblyName>CofreDeSenhas</AssemblyName>
+    <RootNamespace>CofreDeSenhas</RootNamespace>
     <Version>1.0.0</Version>
     <Product>Cofre de Senhas</Product>
     <Authors>dcCarreto</Authors>
     <Company>dcCarreto</Company>
-    <Description>Gerenciador de senhas seguro com criptografia AES-256-GCM, senha mestra e gerador de senhas.</Description>
+    <Description>Gerenciador de senhas seguro multiplataforma com criptografia AES-256-GCM, senha mestra e gerador de senhas.</Description>
     <Copyright>Copyright © dcCarreto 2026</Copyright>
 
-    <!-- Ícone do executável -->
+    <!-- Ícone do executável no Windows; ignorado no Linux -->
     <ApplicationIcon>app.ico</ApplicationIcon>
+
+    <!-- Janelas só têm construtor com parâmetros; não usamos o loader dinâmico de XAML -->
+    <NoWarn>$(NoWarn);AVLN3001</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\GerenciadorDeSenhas\GerenciadorDeSenhas.csproj" />
+    <AvaloniaResource Include="Ativos\**" />
   </ItemGroup>
 
-  <!-- Ícone embutido para uso em runtime (janela/taskbar/bandeja) -->
   <ItemGroup>
-    <EmbeddedResource Include="app.ico">
-      <LogicalName>app.ico</LogicalName>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="11.3.18" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.3.18" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.18" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.18" />
     <PackageReference Include="QRCoder" Version="1.8.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GerenciadorDeSenhas\GerenciadorDeSenhas.csproj" />
   </ItemGroup>
 
 </Project>

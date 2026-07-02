@@ -1,181 +1,110 @@
-using System;
-using System.ComponentModel;
-using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.Windows.Forms;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Input;
+using Avalonia.Media;
 
-namespace App
+namespace CofreDeSenhas.Controles
 {
     public class CustomSlider : Control
     {
         private int _value = 12;
         private int _minimum = 4;
         private int _maximum = 64;
-        private bool _dragging = false;
+        private bool _dragging;
 
         public event EventHandler? ValueChanged;
 
-        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public int Value
         {
             get => _value;
             set
             {
-                int newValue = Math.Max(_minimum, Math.Min(_maximum, value));
-                if (_value != newValue)
+                int novo = Math.Clamp(value, _minimum, _maximum);
+                if (_value != novo)
                 {
-                    _value = newValue;
+                    _value = novo;
                     ValueChanged?.Invoke(this, EventArgs.Empty);
-                    Invalidate();
+                    InvalidateVisual();
                 }
             }
         }
 
-        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public int Minimum
         {
             get => _minimum;
-            set
-            {
-                _minimum = value;
-                if (_value < _minimum)
-                    Value = _minimum;
-            }
+            set { _minimum = value; if (_value < _minimum) Value = _minimum; }
         }
 
-        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public int Maximum
         {
             get => _maximum;
-            set
-            {
-                _maximum = value;
-                if (_value > _maximum)
-                    Value = _maximum;
-            }
+            set { _maximum = value; if (_value > _maximum) Value = _maximum; }
         }
 
         public CustomSlider()
         {
-            this.DoubleBuffered = true;
-            this.Height = 24;
-            this.Cursor = Cursors.Hand;
+            Height = 24;
+            Cursor = new Cursor(StandardCursorType.Hand);
+            ActualThemeVariantChanged += (s, e) => InvalidateVisual();
         }
 
-        protected override void OnMouseDown(MouseEventArgs e)
+        protected override void OnPointerPressed(PointerPressedEventArgs e)
         {
             _dragging = true;
-            UpdateValueFromMouse(e.X);
-            base.OnMouseDown(e);
+            e.Pointer.Capture(this);
+            AtualizarPeloMouse(e.GetPosition(this).X);
+            base.OnPointerPressed(e);
         }
 
-        protected override void OnMouseMove(MouseEventArgs e)
+        protected override void OnPointerMoved(PointerEventArgs e)
         {
             if (_dragging)
-            {
-                UpdateValueFromMouse(e.X);
-            }
-            base.OnMouseMove(e);
+                AtualizarPeloMouse(e.GetPosition(this).X);
+            base.OnPointerMoved(e);
         }
 
-        protected override void OnMouseUp(MouseEventArgs e)
+        protected override void OnPointerReleased(PointerReleasedEventArgs e)
         {
             _dragging = false;
-            base.OnMouseUp(e);
+            e.Pointer.Capture(null);
+            base.OnPointerReleased(e);
         }
 
-        private void UpdateValueFromMouse(int x)
+        private void AtualizarPeloMouse(double x)
         {
-            int trackStart = 12;
-            int trackEnd = this.Width - 12;
-            int trackWidth = trackEnd - trackStart;
+            double inicio = 12;
+            double largura = Bounds.Width - 24;
+            if (largura <= 0) return;
 
-            if (trackWidth <= 0)
-                return;
-
-            float ratio = Math.Max(0, Math.Min(1, (float)(x - trackStart) / trackWidth));
-            Value = _minimum + (int)((ratio * (_maximum - _minimum)));
+            double razao = Math.Clamp((x - inicio) / largura, 0, 1);
+            Value = _minimum + (int)(razao * (_maximum - _minimum));
         }
 
-        protected override void OnPaint(PaintEventArgs e)
+        public override void Render(DrawingContext g)
         {
-            base.OnPaint(e);
+            g.FillRectangle(Brushes.Transparent, new Rect(Bounds.Size));
 
-            var g = e.Graphics;
-            g.SmoothingMode = SmoothingMode.AntiAlias;
+            double inicio = 12;
+            double largura = Bounds.Width - 24;
+            if (largura <= 0) return;
 
-            int trackStart = 12;
-            int trackEnd = this.Width - 12;
-            int trackWidth = trackEnd - trackStart;
-            int centerY = this.Height / 2;
-            int trackHeight = 4;
+            double centroY = Bounds.Height / 2;
+            const double alturaTrilha = 4;
 
-            Rectangle inactiveTrack = new Rectangle(trackStart, centerY - trackHeight / 2, trackWidth, trackHeight);
-            using (var path = RoundedRectangle(inactiveTrack, trackHeight / 2f))
+            var trilha = new Rect(inicio, centroY - alturaTrilha / 2, largura, alturaTrilha);
+            g.DrawRectangle(Tema.Pincel(Tema.TrailInactive), null, new RoundedRect(trilha, alturaTrilha / 2));
+
+            double razao = (double)(_value - _minimum) / (_maximum - _minimum);
+            double preenchido = largura * razao;
+            if (preenchido > 0)
             {
-                using (var brush = new SolidBrush(Theme.TrailInactive))
-                {
-                    g.FillPath(brush, path);
-                }
+                var ativa = new Rect(inicio, centroY - alturaTrilha / 2, preenchido, alturaTrilha);
+                g.DrawRectangle(Tema.Pincel(Tema.AccentPrimary), null, new RoundedRect(ativa, alturaTrilha / 2));
             }
 
-            float ratio = (float)(_value - _minimum) / (_maximum - _minimum);
-            int filledWidth = (int)(trackWidth * ratio);
-            Rectangle activeTrack = new Rectangle(trackStart, centerY - trackHeight / 2, filledWidth, trackHeight);
-            using (var path = RoundedRectangle(activeTrack, trackHeight / 2f))
-            {
-                using (var brush = new SolidBrush(Theme.AccentPrimary))
-                {
-                    g.FillPath(brush, path);
-                }
-            }
-
-            int thumbX = trackStart + filledWidth - 8;
-            int thumbSize = 16;
-            Rectangle thumbRect = new Rectangle(thumbX, centerY - thumbSize / 2, thumbSize, thumbSize);
-
-            using (var path = RoundedRectangle(thumbRect, thumbSize / 2f))
-            {
-                using (var brush = new SolidBrush(Color.White))
-                {
-                    g.FillPath(brush, path);
-                }
-                using (var pen = new Pen(Theme.AccentPrimary, 2))
-                {
-                    g.DrawPath(pen, path);
-                }
-            }
-        }
-
-        private GraphicsPath RoundedRectangle(Rectangle rect, float radius)
-        {
-            return RoundedRectangle(rect.X, rect.Y, rect.Width, rect.Height, radius);
-        }
-
-        private GraphicsPath RoundedRectangle(float x, float y, float width, float height, float radius)
-        {
-            var path = new GraphicsPath();
-            float diameter = radius * 2;
-
-            if (diameter > width)
-                diameter = width;
-            if (diameter > height)
-                diameter = height;
-
-            var arc = new RectangleF(x, y, diameter, diameter);
-            path.AddArc(arc, 180, 90);
-
-            arc.X = x + width - diameter;
-            path.AddArc(arc, 270, 90);
-
-            arc.Y = y + height - diameter;
-            path.AddArc(arc, 0, 90);
-
-            arc.X = x;
-            path.AddArc(arc, 90, 90);
-
-            path.CloseFigure();
-            return path;
+            const double raioThumb = 8;
+            var centroThumb = new Point(inicio + preenchido, centroY);
+            g.DrawEllipse(Brushes.White, new Pen(Tema.Pincel(Tema.AccentPrimary), 2), centroThumb, raioThumb, raioThumb);
         }
     }
 }

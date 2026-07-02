@@ -1,6 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        x:Class="AppLinux.Janelas.JanelaLogin"
+        x:Class="CofreDeSenhas.Janelas.JanelaLogin"
         Title="Cofre de Senhas"
         Width="420"
         SizeToContent="Height"

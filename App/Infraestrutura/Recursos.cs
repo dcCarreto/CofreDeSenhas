@@ -1,27 +1,36 @@
-using System.Drawing;
-using System.Reflection;
+using Avalonia.Controls;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 
-namespace App
+namespace CofreDeSenhas
 {
     internal static class Recursos
     {
-        public static Icon? IconeApp()
+        private static readonly Uri _uriIcone = new("avares://CofreDeSenhas/Ativos/app.png");
+
+        private static Bitmap? _logo;
+
+        public static Bitmap Logo
         {
-            using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("app.ico");
-            return stream != null ? new Icon(stream) : null;
+            get
+            {
+                if (_logo == null)
+                {
+                    using var stream = AssetLoader.Open(_uriIcone);
+                    _logo = new Bitmap(stream);
+                }
+                return _logo;
+            }
         }
 
-        private static Bitmap? _iconeBitmap;
+        public static WindowIcon IconeApp() => new(Logo);
 
-        public static Bitmap? IconeAppBitmap()
+        public static byte[] LogoPng()
         {
-            if (_iconeBitmap != null) return _iconeBitmap;
-            using var ico = IconeApp();
-            if (ico == null) return null;
-
-            using var grande = new Icon(ico, 128, 128);
-            _iconeBitmap = grande.ToBitmap();
-            return _iconeBitmap;
+            using var stream = AssetLoader.Open(_uriIcone);
+            using var memoria = new MemoryStream();
+            stream.CopyTo(memoria);
+            return memoria.ToArray();
         }
     }
 }

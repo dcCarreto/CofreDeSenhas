@@ -2,7 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 
-namespace AppLinux.Janelas
+namespace CofreDeSenhas.Janelas
 {
     public partial class JanelaSenhaExportacao : Window
     {

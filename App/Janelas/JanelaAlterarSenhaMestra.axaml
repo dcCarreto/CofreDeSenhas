@@ -1,6 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        x:Class="AppLinux.Janelas.JanelaAlterarSenhaMestra"
+        x:Class="CofreDeSenhas.Janelas.JanelaAlterarSenhaMestra"
         Title="Alterar senha mestra"
         Width="440"
         SizeToContent="Height"

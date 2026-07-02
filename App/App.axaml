@@ -1,6 +1,6 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             x:Class="AppLinux.App"
+             x:Class="CofreDeSenhas.App"
              RequestedThemeVariant="Light">
 
   <Application.Resources>
@@ -69,7 +69,6 @@
   <Application.Styles>
     <FluentTheme />
 
-    <!-- Botão de ação principal (roxo) -->
     <Style Selector="Button.primario">
       <Setter Property="Background" Value="{DynamicResource AccentPrimary}" />
       <Setter Property="Foreground" Value="White" />
@@ -90,7 +89,6 @@
       <Setter Property="Foreground" Value="White" />
     </Style>
 
-    <!-- Botão secundário (fundo claro, borda) -->
     <Style Selector="Button.secundario">
       <Setter Property="Background" Value="{DynamicResource InputBackground}" />
       <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
@@ -107,7 +105,6 @@
       <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
     </Style>
 
-    <!-- Botão de ícone quadrado (copiar, olho, importar…) -->
     <Style Selector="Button.icone">
       <Setter Property="Background" Value="{DynamicResource InputBackground}" />
       <Setter Property="Foreground" Value="{DynamicResource TextSecondary}" />
@@ -124,13 +121,11 @@
       <Setter Property="Foreground" Value="{DynamicResource AccentPrimary}" />
     </Style>
 
-    <!-- Variante com borda, usada no header do cofre -->
     <Style Selector="Button.icone.borda">
       <Setter Property="BorderThickness" Value="1" />
       <Setter Property="BorderBrush" Value="{DynamicResource InputBorder}" />
     </Style>
 
-    <!-- Botão de ação dentro de uma linha do cofre -->
     <Style Selector="Button.icone-linha">
       <Setter Property="Width" Value="30" />
       <Setter Property="Height" Value="30" />
@@ -149,7 +144,6 @@
       <Setter Property="Foreground" Value="{DynamicResource AccentPrimary}" />
     </Style>
 
-    <!-- Botão de texto sem fundo (Limpar, Copiar todas) -->
     <Style Selector="Button.plano">
       <Setter Property="Background" Value="Transparent" />
       <Setter Property="Foreground" Value="{DynamicResource TextSecondary}" />
@@ -164,7 +158,6 @@
       <Setter Property="Background" Value="{DynamicResource HoverBackground}" />
     </Style>
 
-    <!-- Botões da barra de título -->
     <Style Selector="Button.janela">
       <Setter Property="Width" Value="40" />
       <Setter Property="Height" Value="32" />
@@ -190,7 +183,6 @@
       <Setter Property="Foreground" Value="White" />
     </Style>
 
-    <!-- ✕ dos diálogos -->
     <Style Selector="Button.fechar-dialogo">
       <Setter Property="Width" Value="36" />
       <Setter Property="Height" Value="36" />
@@ -208,7 +200,6 @@
       <Setter Property="Background" Value="{DynamicResource HoverBackground}" />
     </Style>
 
-    <!-- Campos de texto -->
     <Style Selector="TextBox.campo">
       <Setter Property="Background" Value="{DynamicResource InputBackground}" />
       <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
@@ -229,7 +220,6 @@
       <Setter Property="BorderBrush" Value="{DynamicResource AccentPrimary}" />
     </Style>
 
-    <!-- Campo sem moldura própria, usado dentro de caixas desenhadas à parte -->
     <Style Selector="TextBox.embutido">
       <Setter Property="Background" Value="Transparent" />
       <Setter Property="BorderThickness" Value="0" />
@@ -247,7 +237,6 @@
       <Setter Property="BorderBrush" Value="Transparent" />
     </Style>
 
-    <!-- Combos -->
     <Style Selector="ComboBox.campo">
       <Setter Property="Background" Value="{DynamicResource InputBackground}" />
       <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />

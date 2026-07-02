@@ -2,9 +2,9 @@
 Type=Application
 Name=Cofre de Senhas
 Comment=Gerenciador de senhas seguro com criptografia AES-256-GCM
-Exec=cofre-de-senhas
+Exec=CofreDeSenhas
 Icon=cofre-de-senhas
 Terminal=false
 Categories=Utility;Security;
 Keywords=senha;senhas;password;cofre;gerenciador;
-StartupWMClass=cofre-de-senhas
+StartupWMClass=CofreDeSenhas

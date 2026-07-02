@@ -1,7 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:c="using:AppLinux.Controles"
-        x:Class="AppLinux.Janelas.JanelaPrincipal"
+        xmlns:c="using:CofreDeSenhas.Controles"
+        x:Class="CofreDeSenhas.Janelas.JanelaPrincipal"
         Title="Cofre de Senhas"
         Width="1160" Height="720"
         MinWidth="900" MinHeight="600"
@@ -19,7 +19,6 @@
             BorderThickness="1">
 
       <DockPanel>
-        <!-- Barra de título -->
         <Border DockPanel.Dock="Top"
                 Height="44"
                 Background="{DynamicResource TitleBar}"
@@ -55,10 +54,8 @@
           </Grid>
         </Border>
 
-        <!-- Corpo -->
         <Grid Margin="18" ColumnDefinitions="3*,18,7*">
 
-          <!-- Gerador -->
           <Border Grid.Column="0"
                   MinWidth="280"
                   CornerRadius="12"
@@ -159,7 +156,6 @@
             </ScrollViewer>
           </Border>
 
-          <!-- Cofre -->
           <Border Grid.Column="2"
                   CornerRadius="12"
                   Background="{DynamicResource CardBackground}"
@@ -167,7 +163,6 @@
                   BorderThickness="1"
                   BoxShadow="0 3 16 0 #21262840">
             <DockPanel>
-              <!-- Rodapé -->
               <Border DockPanel.Dock="Bottom"
                       Height="42"
                       Background="{DynamicResource Footer}"
@@ -188,7 +183,6 @@
               </Border>
 
               <DockPanel Margin="24,22,24,0">
-                <!-- Header -->
                 <Grid DockPanel.Dock="Top" Height="48" ColumnDefinitions="Auto,Auto,*,Auto">
                   <TextBlock Text="Cofre de senhas" FontSize="20" FontWeight="Bold"
                              Foreground="{DynamicResource TextPrimary}" VerticalAlignment="Top" />
@@ -207,7 +201,6 @@
                   </StackPanel>
                 </Grid>
 
-                <!-- Filtros -->
                 <Grid DockPanel.Dock="Top" Height="46" ColumnDefinitions="140,10,*,10,40,6,40">
                   <ComboBox Name="CmbCategoria" Classes="campo"
                             Height="34" VerticalAlignment="Center" HorizontalAlignment="Stretch"
@@ -232,7 +225,6 @@
                           Click="FiltroFavoritos_Click" />
                 </Grid>
 
-                <!-- Cabeçalho das colunas -->
                 <Border DockPanel.Dock="Top" Height="30"
                         BorderBrush="{DynamicResource Separator}" BorderThickness="0,0,0,1">
                   <Grid>
@@ -245,7 +237,6 @@
                   </Grid>
                 </Border>
 
-                <!-- Lista -->
                 <Grid>
                   <ScrollViewer HorizontalScrollBarVisibility="Disabled">
                     <StackPanel Name="PainelLista" />
@@ -265,7 +256,6 @@
       </DockPanel>
     </Border>
 
-    <!-- Bordas invisíveis para redimensionar a janela sem decoração do sistema -->
     <Border Name="RedimN" Background="Transparent" Height="6" VerticalAlignment="Top" Margin="6,0" Cursor="SizeNorthSouth" Tag="North" PointerPressed="Redimensionar" />
     <Border Name="RedimS" Background="Transparent" Height="6" VerticalAlignment="Bottom" Margin="6,0" Cursor="SizeNorthSouth" Tag="South" PointerPressed="Redimensionar" />
     <Border Name="RedimO" Background="Transparent" Width="6" HorizontalAlignment="Left" Margin="0,6" Cursor="SizeWestEast" Tag="West" PointerPressed="Redimensionar" />

@@ -1,6 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        x:Class="AppLinux.Janelas.JanelaCriarSenha"
+        x:Class="CofreDeSenhas.Janelas.JanelaCriarSenha"
         Title="Nova senha"
         Width="460"
         SizeToContent="Height"

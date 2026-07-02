@@ -4,7 +4,7 @@ using Avalonia.Interactivity;
 using GerenciadorDeSenhas.Modelos;
 using GerenciadorDeSenhas.Servicos;
 
-namespace AppLinux.Janelas
+namespace CofreDeSenhas.Janelas
 {
     public partial class JanelaEditarSenha : Window
     {
@@ -50,7 +50,6 @@ namespace AppLinux.Janelas
                     return;
                 }
 
-                // Campo em branco mantém a senha atual
                 var novaSenha = TxtSenha.Text;
                 if (string.IsNullOrWhiteSpace(novaSenha))
                 {

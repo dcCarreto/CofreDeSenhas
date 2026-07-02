@@ -10,11 +10,11 @@ using Avalonia.Media;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
-using AppLinux.Controles;
+using CofreDeSenhas.Controles;
 using GerenciadorDeSenhas.Modelos;
 using GerenciadorDeSenhas.Servicos;
 
-namespace AppLinux.Janelas
+namespace CofreDeSenhas.Janelas
 {
     public partial class JanelaPrincipal : Window
     {
@@ -63,8 +63,6 @@ namespace AppLinux.Janelas
             }
         }
 
-        // ---- janela sem decoração ----
-
         private void BarraTitulo_PointerPressed(object? sender, PointerPressedEventArgs e)
         {
             if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
@@ -88,8 +86,6 @@ namespace AppLinux.Janelas
 
         private void Fechar_Click(object? sender, RoutedEventArgs e) => Close();
 
-        // ---- tema ----
-
         private void Tema_Click(object? sender, RoutedEventArgs e)
         {
             App.AplicarTema(!Tema.ModoEscuro);
@@ -108,8 +104,6 @@ namespace AppLinux.Janelas
             BtnTema.Content = Tema.ModoEscuro ? "☀" : "🌙";
             ToolTip.SetTip(BtnTema, Tema.ModoEscuro ? "Tema claro" : "Tema escuro");
         }
-
-        // ---- gerador ----
 
         private async void Gerar_Click(object? sender, RoutedEventArgs e)
         {
@@ -309,8 +303,6 @@ namespace AppLinux.Janelas
                 await CarregarSenhasAsync();
         }
 
-        // ---- cofre ----
-
         private async void NovaSenha_Click(object? sender, RoutedEventArgs e)
         {
             var dlg = new JanelaCriarSenha(_servicoSenha);
@@ -431,8 +423,6 @@ namespace AppLinux.Janelas
                 await CarregarSenhasAsync();
         }
 
-        // ---- vazamentos ----
-
         private async void VerificarVazamentos_Click(object? sender, RoutedEventArgs e)
         {
             if (_linhasSenha.Count == 0)
@@ -479,8 +469,6 @@ namespace AppLinux.Janelas
                 BtnVazamentos.IsEnabled = true;
             }
         }
-
-        // ---- exportar / importar ----
 
         private async void Exportar_Click(object? sender, RoutedEventArgs e)
         {
@@ -617,8 +605,6 @@ namespace AppLinux.Janelas
                 await CaixaMensagem.MostrarAsync(this, $"Erro ao importar: {ex.Message}", "Erro", TipoMensagem.Erro);
             }
         }
-
-        // ---- senha mestra ----
 
         private async void AlterarSenhaMestra_Click(object? sender, RoutedEventArgs e)
         {

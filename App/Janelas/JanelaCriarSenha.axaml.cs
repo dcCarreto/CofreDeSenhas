@@ -4,7 +4,7 @@ using Avalonia.Interactivity;
 using GerenciadorDeSenhas.Modelos;
 using GerenciadorDeSenhas.Servicos;
 
-namespace AppLinux.Janelas
+namespace CofreDeSenhas.Janelas
 {
     public partial class JanelaCriarSenha : Window
     {

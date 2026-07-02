@@ -1,9 +1,7 @@
 using Avalonia.Media;
 
-namespace AppLinux
+namespace CofreDeSenhas
 {
-    // Espelho em C# das cores definidas em App.axaml, para os controles desenhados via código.
-    // Os valores são os mesmos do Theme do app Windows.
     public static class Tema
     {
         public static bool ModoEscuro { get; private set; }

@@ -1,6 +1,4 @@
-using GerenciadorDeSenhas.Modelos;
-
-namespace App
+namespace CofreDeSenhas
 {
     internal static class CategoriasUI
     {

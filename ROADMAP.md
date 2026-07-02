@@ -29,9 +29,10 @@ gerenciador de senhas seguro:
 - Ícone próprio no executável, na janela e na bandeja do sistema, com opção de
   minimizar para a bandeja.
 - Suíte de testes automatizados (unitários, integração, segurança e desempenho).
-- Distribuição como executável único e autocontido para Windows.
-- Versão dedicada para Linux (Avalonia), com a mesma interface e o mesmo núcleo,
-  atalho no menu de aplicativos e script de instalação por usuário.
+- Interface única multiplataforma em Avalonia, rodando em Windows e Linux a
+  partir da mesma base de código.
+- Distribuição como executável único e autocontido para Windows, e script de
+  instalação para Linux (atalho no menu de aplicativos e ícone, por usuário).
 
 ## Planejado
 

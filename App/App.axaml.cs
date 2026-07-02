@@ -3,11 +3,11 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Styling;
-using AppLinux.Janelas;
+using CofreDeSenhas.Janelas;
 using GerenciadorDeSenhas.Repositorios;
 using GerenciadorDeSenhas.Servicos;
 
-namespace AppLinux
+namespace CofreDeSenhas
 {
     public partial class App : Application
     {
@@ -51,7 +51,6 @@ namespace AppLinux
             ConfigurarBandeja(desktop, principal);
         }
 
-        // Ícone na bandeja (StatusNotifier); em desktops sem suporte ele simplesmente não aparece.
         private void ConfigurarBandeja(IClassicDesktopStyleApplicationLifetime desktop, Window principal)
         {
             try

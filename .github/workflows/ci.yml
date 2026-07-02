@@ -7,9 +7,14 @@ on:
     branches: [ prod, prodUnstable ]
 
 jobs:
-  windows:
-    name: Compilar e testar (Windows)
-    runs-on: windows-latest
+  build:
+    name: Compilar e testar (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ windows-latest, ubuntu-latest ]
 
     steps:
       - name: Checkout
@@ -28,29 +33,3 @@ jobs:
 
       - name: Executar testes
         run: dotnet test CofreDeSenhas.sln -c Release --no-build --verbosity normal
-
-  linux:
-    name: Compilar e testar (Linux)
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Configurar .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '10.0.x'
-
-      # O projeto App (Windows Forms) não compila em Linux; aqui entram só o
-      # app Linux e a biblioteca com seus testes.
-      - name: Restaurar dependências
-        run: |
-          dotnet restore App.Linux/App.Linux.csproj
-          dotnet restore GerenciadorDeSenhas.Testes/GerenciadorDeSenhas.Testes.csproj
-
-      - name: Compilar app Linux
-        run: dotnet build App.Linux/App.Linux.csproj -c Release --no-restore
-
-      - name: Executar testes
-        run: dotnet test GerenciadorDeSenhas.Testes/GerenciadorDeSenhas.Testes.csproj -c Release --verbosity normal

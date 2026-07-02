@@ -4,11 +4,10 @@ using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
 
-namespace AppLinux.Janelas
+namespace CofreDeSenhas.Janelas
 {
     public enum TipoMensagem { Info, Aviso, Erro }
 
-    // Substituto do MessageBox do WinForms, no mesmo estilo visual dos diálogos do app.
     public class CaixaMensagem : Window
     {
         private CaixaMensagem(string texto, string titulo, TipoMensagem tipo, bool simNao)
@@ -104,7 +103,6 @@ namespace AppLinux.Janelas
                 btnSim.Classes.Add("primario");
                 btnSim.Click += (s, e) => Close(true);
 
-                // padrão no botão "Não", como o MessageBoxDefaultButton.Button2 do app Windows
                 rodape.Children.Add(btnSim);
                 rodape.Children.Add(btnNao);
                 Opened += (s, e) => btnNao.Focus();

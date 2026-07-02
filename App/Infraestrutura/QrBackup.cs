@@ -1,10 +1,10 @@
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
-using AppLinux.Janelas;
+using CofreDeSenhas.Janelas;
 using QRCoder;
 using SkiaSharp;
 
-namespace AppLinux
+namespace CofreDeSenhas
 {
     internal static class QrBackup
     {
