@@ -24,6 +24,10 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 - Memória do último perfil de conexão para pré-preencher a tela de conexão.
 - Geração de frases-senha (passphrases) a partir de lista de palavras, com
   controles de quantidade de palavras, separador, capitalização e número final.
+- Gerador de senhas disponível na própria tela de senha mestra, utilizável sem
+  autenticação: à esquerda o gerador e à direita o desbloqueio. Enquanto o cofre
+  está trancado, o gerador apenas cria e copia senhas — a opção de salvar no
+  cofre fica oculta e só aparece com o cofre aberto.
 - Testes de banco (criação da tabela, migração da coluna `descricao` e CRUD com
   exclusão lógica) executados sobre SQLite.
 

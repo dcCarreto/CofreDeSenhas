@@ -96,6 +96,9 @@ Tema escuro:
 - Geração de várias senhas de uma só vez, com a quantidade configurável.
 - Geração baseada em um gerador de números aleatórios criptográfico
   (`RandomNumberGenerator`), e não em um gerador pseudoaleatório comum.
+- Disponível também na tela de senha mestra, antes do desbloqueio: dá para gerar
+  e copiar senhas sem abrir o cofre, com a opção de salvar surgindo somente após
+  a autenticação.
 
 ### Cofre de senhas
 

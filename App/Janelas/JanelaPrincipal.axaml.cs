@@ -25,17 +25,12 @@ namespace CofreDeSenhas.Janelas
         private readonly ServicoExportacao _servicoExportacao = new();
         private readonly Action? _aoBloquear;
         private readonly MonitorInatividade _monitor;
-        private readonly ServicoGeracaoSenha _servicoGeracaoSenha = new();
         private bool _conectadoAoBanco;
 
         private List<Senha> _senhasAtuais = new();
         private readonly List<LinhaSenha> _linhasSenha = new();
-        private readonly List<string> _senhasGeradas = new();
 
-        private string _senhaGerada = "";
-        private bool _mostrarSenha = true;
         private bool _somenteFavoritos;
-        private int _nivelForca;
 
         public JanelaPrincipal(IServicoSenha servicoSenha, IServicoCriptografia? criptografia = null,
             IRepositorioSenha? repositorioLocal = null, Action? aoBloquear = null)
@@ -51,18 +46,10 @@ namespace CofreDeSenhas.Janelas
 
             CmbCategoria.ItemsSource = new[] { "Todas" }.Concat(CategoriasUI.Rotulos).ToArray();
             CmbCategoria.SelectedIndex = 0;
-            CmbModoGerador.ItemsSource = new[] { "Senha", "Frase-senha" };
-            CmbModoGerador.SelectedIndex = 0;
-            CmbSeparadorFrase.ItemsSource = new[] { "-", "_", ".", "espaço" };
-            CmbSeparadorFrase.SelectedIndex = 0;
 
-            SliderTamanho.ValueChanged += (s, e) => LblTamanhoValor.Text = SliderTamanho.Value.ToString();
-            SliderQuantidade.ValueChanged += (s, e) => LblQuantidadeValor.Text = SliderQuantidade.Value.ToString();
-            SliderPalavras.ValueChanged += (s, e) => LblPalavrasValor.Text = SliderPalavras.Value.ToString();
-            CmbModoGerador.SelectionChanged += ModoGerador_Alterado;
+            Gerador.SolicitouSalvar += Gerador_SolicitouSalvar;
 
             AtualizarBotaoTema();
-            AtualizarModoGerador();
             PintarFiltroFavoritos();
 
             _monitor = new MonitorInatividade(this, () => _aoBloquear?.Invoke());
@@ -131,8 +118,7 @@ namespace CofreDeSenhas.Janelas
             Preferencias.Salvar();
 
             AtualizarBotaoTema();
-            AtualizarBarraForca();
-            AtualizarListaSenhasGeradas();
+            Gerador.AtualizarTema();
             PintarFiltroFavoritos();
             FiltrarSenhas();
         }
@@ -143,240 +129,9 @@ namespace CofreDeSenhas.Janelas
             ToolTip.SetTip(BtnTema, Tema.ModoEscuro ? "Tema claro" : "Tema escuro");
         }
 
-        private bool ModoFraseSenha => CmbModoGerador.SelectedIndex == 1;
-
-        private string ItemGeradoNome => ModoFraseSenha ? "frase-senha" : "senha";
-
-        private void ModoGerador_Alterado(object? sender, SelectionChangedEventArgs e)
+        private async void Gerador_SolicitouSalvar(object? sender, string senha)
         {
-            AtualizarModoGerador();
-            LimparGeracao();
-        }
-
-        private void AtualizarModoGerador()
-        {
-            bool fraseSenha = ModoFraseSenha;
-            PainelSenhaCaracteres.IsVisible = !fraseSenha;
-            PainelFraseSenha.IsVisible = fraseSenha;
-            BtnGerar.Content = fraseSenha ? "Gerar frase-senha" : "Gerar nova senha";
-        }
-
-        private string SeparadorFraseSelecionado()
-        {
-            return CmbSeparadorFrase.SelectedIndex switch
-            {
-                1 => "_",
-                2 => ".",
-                3 => " ",
-                _ => "-"
-            };
-        }
-
-        private async void Gerar_Click(object? sender, RoutedEventArgs e)
-        {
-            _senhasGeradas.Clear();
-            try
-            {
-                if (ModoFraseSenha)
-                {
-                    _senhasGeradas.AddRange(_servicoGeracaoSenha.GerarFrasesSenha(
-                        SliderQuantidade.Value,
-                        SliderPalavras.Value,
-                        SeparadorFraseSelecionado(),
-                        ToggleCapitalizarFrase.Checked,
-                        ToggleNumeroFrase.Checked));
-                }
-                else
-                {
-                    _senhasGeradas.AddRange(_servicoGeracaoSenha.GerarSenhas(
-                        SliderQuantidade.Value,
-                        SliderTamanho.Value,
-                        ToggleMaiusculas.Checked,
-                        ToggleMinusculas.Checked,
-                        ToggleNumeros.Checked,
-                        ToggleEspeciais.Checked));
-                }
-            }
-            catch (ArgumentException ex)
-            {
-                await CaixaMensagem.MostrarAsync(this, ex.Message, "Aviso", TipoMensagem.Aviso);
-                return;
-            }
-
-            _senhaGerada = _senhasGeradas[0];
-            TxtSenhaGerada.Text = _mostrarSenha ? _senhaGerada : new string('•', _senhaGerada.Length);
-            AtualizarBarraForca();
-            AtualizarListaSenhasGeradas();
-        }
-
-        private void AtualizarListaSenhasGeradas()
-        {
-            PainelGeradas.Children.Clear();
-            if (_senhasGeradas.Count <= 1)
-                return;
-
-            var titulo = new TextBlock
-            {
-                Text = $"{(ModoFraseSenha ? "Frases-senha" : "Senhas")} geradas ({_senhasGeradas.Count})",
-                FontSize = 13,
-                FontWeight = FontWeight.Bold,
-                Foreground = Tema.Pincel(Tema.TextPrimary),
-                VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
-            };
-
-            var btnCopiarTodas = new Button
-            {
-                Content = "Copiar todas",
-                Height = 26,
-                FontSize = 12,
-                Foreground = Tema.Pincel(Tema.AccentPrimary),
-                HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right
-            };
-            btnCopiarTodas.Classes.Add("plano");
-            btnCopiarTodas.Click += async (s, e) =>
-            {
-                if (Clipboard != null)
-                    try { await Clipboard.SetTextAsync(string.Join(Environment.NewLine, _senhasGeradas)); } catch { }
-            };
-
-            var header = new Grid { Margin = new Thickness(0, 8, 0, 6) };
-            header.Children.Add(titulo);
-            header.Children.Add(btnCopiarTodas);
-            PainelGeradas.Children.Add(header);
-
-            foreach (var senha in _senhasGeradas)
-                PainelGeradas.Children.Add(CriarItemSenhaGerada(senha));
-        }
-
-        private Border CriarItemSenhaGerada(string senha)
-        {
-            var lbl = new TextBlock
-            {
-                Text = senha,
-                FontFamily = (FontFamily)Application.Current!.FindResource("FonteMono")!,
-                FontSize = 13,
-                Foreground = Tema.Pincel(Tema.TextPrimary),
-                TextTrimming = TextTrimming.CharacterEllipsis,
-                VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
-                Margin = new Thickness(12, 0, 6, 0)
-            };
-
-            var btnCopiar = new Button { Content = "⧉", Width = 28, Height = 28 };
-            btnCopiar.Classes.Add("icone-linha");
-            btnCopiar.VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center;
-            btnCopiar.Margin = new Thickness(0, 0, 5, 0);
-            btnCopiar.Click += async (s, e) =>
-            {
-                if (Clipboard != null)
-                    try { await Clipboard.SetTextAsync(senha); } catch { }
-                btnCopiar.Content = "✓";
-                btnCopiar.Foreground = Tema.Pincel(Tema.StrengthStrong);
-                var t = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
-                t.Tick += (ss, ee) =>
-                {
-                    btnCopiar.Content = "⧉";
-                    btnCopiar.ClearValue(ForegroundProperty);
-                    t.Stop();
-                };
-                t.Start();
-            };
-
-            var grid = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto") };
-            grid.Children.Add(lbl);
-            Grid.SetColumn(btnCopiar, 1);
-            grid.Children.Add(btnCopiar);
-
-            return new Border
-            {
-                Height = 38,
-                CornerRadius = new CornerRadius(8),
-                Background = Tema.Pincel(Tema.InputBackground),
-                BorderBrush = Tema.Pincel(Tema.InputBorder),
-                BorderThickness = new Thickness(1),
-                Margin = new Thickness(0, 0, 0, 6),
-                Child = grid
-            };
-        }
-
-        private void AtualizarBarraForca()
-        {
-            _nivelForca = CalcularForcaSenha(_senhaGerada);
-            var (texto, cor) = _nivelForca switch
-            {
-                1 => ("Fraca", Tema.StrengthWeak),
-                2 => ("Média", Tema.StrengthMedium),
-                3 or 4 => ("Forte", Tema.StrengthStrong),
-                _ => ("—", Tema.TextSecondary)
-            };
-
-            LblForca.Text = texto;
-            LblForca.Foreground = Tema.Pincel(cor);
-
-            var segmentos = new[] { SegForca1, SegForca2, SegForca3, SegForca4 };
-            for (int i = 0; i < segmentos.Length; i++)
-                segmentos[i].Background = Tema.Pincel(i < _nivelForca ? cor : Tema.TrailInactive);
-        }
-
-        private static int CalcularForcaSenha(string senha)
-        {
-            int forca = 0;
-            if (string.IsNullOrEmpty(senha)) return 0;
-            if (senha.Length >= 8) forca++;
-            if (senha.Length >= 12) forca++;
-            if (System.Text.RegularExpressions.Regex.IsMatch(senha, "[A-Z]") &&
-                System.Text.RegularExpressions.Regex.IsMatch(senha, "[a-z]")) forca++;
-            if (System.Text.RegularExpressions.Regex.IsMatch(senha, "[0-9]")) forca++;
-
-            var partes = senha.Split(new[] { '-', '_', '.', ' ' }, StringSplitOptions.RemoveEmptyEntries);
-            int palavras = partes.Count(p => p.Length >= 3 && p.All(char.IsLetter));
-            if (palavras >= 4)
-                forca = Math.Max(forca, Math.Min(4, palavras - 1));
-
-            return Math.Min(forca, 4);
-        }
-
-        private void OlhoGerada_Click(object? sender, RoutedEventArgs e)
-        {
-            _mostrarSenha = !_mostrarSenha;
-            if (!string.IsNullOrEmpty(_senhaGerada))
-                TxtSenhaGerada.Text = _mostrarSenha ? _senhaGerada : new string('•', _senhaGerada.Length);
-        }
-
-        private async void CopiarGerada_Click(object? sender, RoutedEventArgs e)
-        {
-            if (string.IsNullOrEmpty(_senhaGerada) || Clipboard == null)
-                return;
-            await Clipboard.SetTextAsync(_senhaGerada);
-            await CaixaMensagem.MostrarAsync(this,
-                ModoFraseSenha ? "Frase-senha copiada!" : "Senha copiada!",
-                "Sucesso");
-        }
-
-        private void Limpar_Click(object? sender, RoutedEventArgs e)
-        {
-            LimparGeracao();
-        }
-
-        private void LimparGeracao()
-        {
-            TxtSenhaGerada.Text = "";
-            _senhaGerada = "";
-            _mostrarSenha = true;
-            _senhasGeradas.Clear();
-            AtualizarBarraForca();
-            AtualizarListaSenhasGeradas();
-        }
-
-        private async void SalvarNoCofre_Click(object? sender, RoutedEventArgs e)
-        {
-            if (string.IsNullOrEmpty(_senhaGerada))
-            {
-                await CaixaMensagem.MostrarAsync(this,
-                    $"Gere uma {ItemGeradoNome} primeiro", "Aviso", TipoMensagem.Aviso);
-                return;
-            }
-
-            var dlg = new JanelaCriarSenha(_servicoSenha, _senhaGerada);
+            var dlg = new JanelaCriarSenha(_servicoSenha, senha);
             if (await dlg.ShowDialog<bool>(this))
                 await CarregarSenhasAsync();
         }
@@ -415,7 +170,7 @@ namespace CofreDeSenhas.Janelas
 
                 var plain = ObterSenhaPlain(senha);
                 if (!string.IsNullOrEmpty(plain))
-                    linha.NivelForca = CalcularForcaSenha(plain);
+                    linha.NivelForca = ForcaSenha.Calcular(plain);
 
                 PainelLista.Children.Add(linha);
                 _linhasSenha.Add(linha);

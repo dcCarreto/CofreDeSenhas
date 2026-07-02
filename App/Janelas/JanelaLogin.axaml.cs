@@ -23,6 +23,8 @@ namespace CofreDeSenhas.Janelas
             InitializeComponent();
             Icon = Recursos.IconeApp();
 
+            Gerador.PermiteSalvar = false;
+
             LblSubtitulo.Text = _primeiroAcesso
                 ? "Crie uma senha mestra para proteger o cofre"
                 : "Digite sua senha mestra para desbloquear";
