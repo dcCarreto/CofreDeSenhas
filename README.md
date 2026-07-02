@@ -90,6 +90,8 @@ Tema escuro:
 
 - Comprimento ajustável de 4 a 64 caracteres.
 - Seleção dos tipos de caractere: maiúsculas, minúsculas, números e símbolos.
+- Modo de frases-senha (passphrases) a partir de lista de palavras, com
+  quantidade de palavras, separador, capitalização e número final configuráveis.
 - Indicador visual de força em tempo real.
 - Geração de várias senhas de uma só vez, com a quantidade configurável.
 - Geração baseada em um gerador de números aleatórios criptográfico

@@ -42,6 +42,8 @@ gerenciador de senhas seguro:
   criação, edição e exclusão vai para os dois. Inclui detecção e criação da
   tabela sob confirmação, migração leve de colunas e a senha sempre armazenada
   de forma cifrada.
+- Geração de frases-senha (passphrases) a partir de listas de palavras, com
+  quantidade de palavras, separador, capitalização e número final configuráveis.
 
 ## Planejado
 
@@ -49,7 +51,6 @@ Ideias e melhorias consideradas para versões futuras, sem ordem definitiva de
 prioridade:
 
 - Bloqueio automático do cofre após período de inatividade.
-- Geração de frases-senha (passphrases) a partir de listas de palavras.
 - Suporte a códigos TOTP (autenticação em duas etapas) por entrada.
 - Auditoria do cofre: detecção de senhas fracas, repetidas ou antigas.
 - Importação a partir de outros gerenciadores e de arquivos CSV.
