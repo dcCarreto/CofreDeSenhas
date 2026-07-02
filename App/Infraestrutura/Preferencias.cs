@@ -10,6 +10,8 @@ namespace CofreDeSenhas
         public int Porta { get; set; }
         public string? Banco { get; set; }
         public string? Usuario { get; set; }
+        public string? SenhaCifrada { get; set; }
+        public bool Conectado { get; set; }
     }
 
     public static class Preferencias
