@@ -28,6 +28,8 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
   autenticação: à esquerda o gerador e à direita o desbloqueio. Enquanto o cofre
   está trancado, o gerador apenas cria e copia senhas — a opção de salvar no
   cofre fica oculta e só aparece com o cofre aberto.
+- Auditoria local do cofre, com detecção de senhas fracas, repetidas ou sem
+  atualização há 365 dias ou mais e marcação visual das entradas afetadas.
 - Testes de banco (criação da tabela, migração da coluna `descricao` e CRUD com
   exclusão lógica) executados sobre SQLite.
 

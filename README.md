@@ -108,6 +108,8 @@ Tema escuro:
 - Busca em tempo real e filtro por categoria.
 - Indicador de força por senha armazenada.
 - Verificação de senhas comprometidas via Have I Been Pwned.
+- Auditoria local para detectar senhas fracas, repetidas ou sem atualização há
+  365 dias ou mais.
 - Lista com avatar, categoria e ações rápidas para revelar, copiar e editar.
 
 ### Segurança e autenticação
@@ -238,7 +240,8 @@ dados ou de serviços externos:
   em XAML e os controles customizados desenhados por código. Não contém regra de
   negócio nem operação criptográfica.
 - Domínio e serviços (projeto `GerenciadorDeSenhas`): autenticação da senha
-  mestra, criptografia, persistência, exportação e verificação de vazamento.
+  mestra, criptografia, persistência, exportação, auditoria e verificação de
+  vazamento.
 - Persistência: por padrão, os dados são serializados em JSON e gravados de
   forma criptografada em um arquivo no perfil do usuário. Opcionalmente, o cofre
   pode ser sincronizado e mantido espelhado com um banco de dados externo

@@ -21,6 +21,7 @@ namespace CofreDeSenhas.Janelas
         private readonly IServicoSenha _servicoSenhaLocal;
         private readonly IServicoCriptografia? _criptografia;
         private readonly IRepositorioSenha? _repositorioLocal;
+        private readonly ServicoAuditoriaSenha _servicoAuditoria = new();
         private readonly ServicoVazamento _servicoVazamento = new();
         private readonly ServicoExportacao _servicoExportacao = new();
         private readonly Action? _aoBloquear;
@@ -29,6 +30,8 @@ namespace CofreDeSenhas.Janelas
 
         private List<Senha> _senhasAtuais = new();
         private readonly List<LinhaSenha> _linhasSenha = new();
+        private readonly Dictionary<Guid, ItemAuditoriaSenha> _itensAuditoria = new();
+        private ResultadoAuditoriaCofre? _resultadoAuditoria;
 
         private bool _somenteFavoritos;
 
@@ -147,6 +150,7 @@ namespace CofreDeSenhas.Janelas
         {
             try
             {
+                LimparAuditoria();
                 _senhasAtuais = await _servicoSenha.ListarTodosAsync();
                 FiltrarSenhas();
                 AtualizarContador();
@@ -171,6 +175,8 @@ namespace CofreDeSenhas.Janelas
                 var plain = ObterSenhaPlain(senha);
                 if (!string.IsNullOrEmpty(plain))
                     linha.NivelForca = ForcaSenha.Calcular(plain);
+                if (_itensAuditoria.TryGetValue(senha.Id, out var itemAuditoria))
+                    linha.DefinirAuditoria(itemAuditoria);
 
                 PainelLista.Children.Add(linha);
                 _linhasSenha.Add(linha);
@@ -231,7 +237,15 @@ namespace CofreDeSenhas.Janelas
             int total = _senhasAtuais.Count;
             int favoritos = _senhasAtuais.Count(s => s.Favorito);
             LblContadorHeader.Text = total == 1 ? "1 item" : $"{total} itens";
-            LblStatus.Text = $"{total} {(total == 1 ? "senha" : "senhas")} • {favoritos} {(favoritos == 1 ? "favorita" : "favoritas")}";
+            var status = $"{total} {(total == 1 ? "senha" : "senhas")} • {favoritos} {(favoritos == 1 ? "favorita" : "favoritas")}";
+            if (_resultadoAuditoria is { } auditoria)
+            {
+                status += auditoria.TotalComAchados == 0
+                    ? " • auditoria OK"
+                    : $" • {auditoria.TotalComAchados} com alerta";
+            }
+
+            LblStatus.Text = status;
         }
 
         private async void FavoritarToggle(Senha s)
@@ -254,6 +268,77 @@ namespace CofreDeSenhas.Janelas
             var dlg = new JanelaEditarSenha(_servicoSenha, s, _criptografia);
             if (await dlg.ShowDialog<bool>(this))
                 await CarregarSenhasAsync();
+        }
+
+        private async void AuditarCofre_Click(object? sender, RoutedEventArgs e)
+        {
+            if (_senhasAtuais.Count == 0)
+            {
+                await CaixaMensagem.MostrarAsync(this, "Não há senhas no cofre para auditar.", "Auditoria do cofre");
+                return;
+            }
+
+            var conteudoOriginal = BtnAuditoria.Content;
+            BtnAuditoria.IsEnabled = false;
+            BtnAuditoria.Content = "…";
+
+            try
+            {
+                var resultado = _servicoAuditoria.Auditar(_senhasAtuais, ObterSenhaPlain);
+                _resultadoAuditoria = resultado;
+                _itensAuditoria.Clear();
+                foreach (var item in resultado.Itens)
+                    _itensAuditoria[item.Senha.Id] = item;
+
+                FiltrarSenhas();
+                AtualizarContador();
+
+                await CaixaMensagem.MostrarAsync(this, MontarMensagemAuditoria(resultado), "Auditoria do cofre",
+                    resultado.TotalComAchados == 0 ? TipoMensagem.Info : TipoMensagem.Aviso);
+            }
+            catch (Exception ex)
+            {
+                await CaixaMensagem.MostrarAsync(this, $"Erro ao auditar o cofre: {ex.Message}", "Erro", TipoMensagem.Erro);
+            }
+            finally
+            {
+                BtnAuditoria.Content = conteudoOriginal;
+                BtnAuditoria.IsEnabled = true;
+            }
+        }
+
+        private void LimparAuditoria()
+        {
+            _resultadoAuditoria = null;
+            _itensAuditoria.Clear();
+        }
+
+        private static string MontarMensagemAuditoria(ResultadoAuditoriaCofre resultado)
+        {
+            if (resultado.TotalComAchados == 0)
+            {
+                var msg = $"Auditoria concluída: nenhuma senha fraca, repetida ou antiga entre {resultado.TotalSenhas} senha(s).";
+                if (resultado.NaoAuditadas > 0)
+                    msg += $"\n{resultado.NaoAuditadas} senha(s) não puderam ser analisadas por completo.";
+                return msg;
+            }
+
+            var linhas = new List<string>
+            {
+                $"Encontradas {resultado.TotalComAchados} entrada(s) com alerta em {resultado.TotalSenhas} senha(s):",
+                $"- {resultado.TotalFracas} fraca(s)",
+                $"- {resultado.TotalRepetidas} repetida(s)",
+                $"- {resultado.TotalAntigas} antiga(s)"
+            };
+
+            if (resultado.NaoAuditadas > 0)
+                linhas.Add($"- {resultado.NaoAuditadas} não auditada(s) por falha de leitura");
+
+            linhas.Add("");
+            linhas.Add("As entradas afetadas foram marcadas com ⚠ na lista.");
+            linhas.Add($"Senhas antigas são as sem atualização há {ServicoAuditoriaSenha.DiasSenhaAntigaPadrao} dias ou mais.");
+
+            return string.Join(Environment.NewLine, linhas);
         }
 
         private async void VerificarVazamentos_Click(object? sender, RoutedEventArgs e)

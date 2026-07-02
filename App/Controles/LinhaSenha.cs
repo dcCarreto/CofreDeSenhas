@@ -19,6 +19,10 @@ namespace CofreDeSenhas.Controles
         private bool _revelada;
         private int _nivelForca = -1;
         private int _vazamentos = -1;
+        private IReadOnlyCollection<TipoAchadoAuditoriaSenha> _achadosAuditoria =
+            Array.Empty<TipoAchadoAuditoriaSenha>();
+        private int _diasSemAtualizacao;
+        private int _ocorrenciasSenhaRepetida;
 
         private TextBlock _lblUsuario = null!;
         private TextBlock _lblIndicador = null!;
@@ -37,6 +41,14 @@ namespace CofreDeSenhas.Controles
         {
             get => _vazamentos;
             set { _vazamentos = value; AtualizarIndicador(); }
+        }
+
+        public void DefinirAuditoria(ItemAuditoriaSenha? item)
+        {
+            _achadosAuditoria = item?.Achados ?? Array.Empty<TipoAchadoAuditoriaSenha>();
+            _diasSemAtualizacao = item?.DiasSemAtualizacao ?? 0;
+            _ocorrenciasSenhaRepetida = item?.OcorrenciasSenhaRepetida ?? 0;
+            AtualizarIndicador();
         }
 
         private static readonly Color[] PaletaAvatar =
@@ -222,6 +234,16 @@ namespace CofreDeSenhas.Controles
                 return;
             }
 
+            if (_achadosAuditoria.Count > 0)
+            {
+                bool critico = _achadosAuditoria.Contains(TipoAchadoAuditoriaSenha.Fraca)
+                    || _achadosAuditoria.Contains(TipoAchadoAuditoriaSenha.Repetida);
+                _lblIndicador.Text = "⚠";
+                _lblIndicador.Foreground = Tema.Pincel(critico ? Tema.StrengthWeak : Tema.StrengthMedium);
+                ToolTip.SetTip(_lblIndicador, "Auditoria: " + string.Join("; ", DescreverAchadosAuditoria()));
+                return;
+            }
+
             string sufixo = _vazamentos == 0 ? " (não encontrada em vazamentos)" : "";
             switch (_nivelForca)
             {
@@ -246,6 +268,22 @@ namespace CofreDeSenhas.Controles
                     _lblIndicador.Text = "";
                     ToolTip.SetTip(_lblIndicador, null);
                     break;
+            }
+        }
+
+        private IEnumerable<string> DescreverAchadosAuditoria()
+        {
+            foreach (var achado in _achadosAuditoria)
+            {
+                yield return achado switch
+                {
+                    TipoAchadoAuditoriaSenha.Fraca => "senha fraca",
+                    TipoAchadoAuditoriaSenha.Repetida when _ocorrenciasSenhaRepetida > 0 =>
+                        $"senha repetida em {_ocorrenciasSenhaRepetida} entradas",
+                    TipoAchadoAuditoriaSenha.Repetida => "senha repetida",
+                    TipoAchadoAuditoriaSenha.Antiga => $"sem atualização há {_diasSemAtualizacao} dias",
+                    _ => "alerta"
+                };
             }
         }
 

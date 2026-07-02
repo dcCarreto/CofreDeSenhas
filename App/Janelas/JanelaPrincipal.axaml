@@ -124,7 +124,7 @@
                   </StackPanel>
                 </Grid>
 
-                <Grid DockPanel.Dock="Top" Height="46" ColumnDefinitions="140,10,*,10,40,6,40">
+                <Grid DockPanel.Dock="Top" Height="46" ColumnDefinitions="140,10,*,10,40,6,40,6,40">
                   <ComboBox Name="CmbCategoria" Classes="campo"
                             Height="34" VerticalAlignment="Center" HorizontalAlignment="Stretch"
                             SelectionChanged="Filtro_Alterado" />
@@ -142,7 +142,11 @@
                           Width="40" Height="34" VerticalAlignment="Center"
                           ToolTip.Tip="Verificar senhas vazadas (Have I Been Pwned)"
                           Click="VerificarVazamentos_Click" />
-                  <Button Name="BtnFavoritos" Grid.Column="6" Classes="icone borda" Content="★"
+                  <Button Name="BtnAuditoria" Grid.Column="6" Classes="icone borda" Content="☑"
+                          Width="40" Height="34" VerticalAlignment="Center"
+                          ToolTip.Tip="Auditar senhas fracas, repetidas ou antigas"
+                          Click="AuditarCofre_Click" />
+                  <Button Name="BtnFavoritos" Grid.Column="8" Classes="icone borda" Content="★"
                           Width="40" Height="34" FontSize="15" VerticalAlignment="Center"
                           ToolTip.Tip="Somente favoritas"
                           Click="FiltroFavoritos_Click" />

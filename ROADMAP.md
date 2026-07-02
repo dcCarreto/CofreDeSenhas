@@ -52,6 +52,8 @@ gerenciador de senhas seguro:
   desbloqueio: à esquerda o gerador e à direita o login. Sem autenticação, o
   gerador apenas cria e copia senhas; a opção de salvar no cofre só aparece com o
   cofre aberto.
+- Auditoria do cofre: detecção local de senhas fracas, repetidas ou sem
+  atualização há 365 dias ou mais, com marcação visual dos itens afetados.
 
 ## Planejado
 
@@ -59,7 +61,6 @@ Ideias e melhorias consideradas para versões futuras, sem ordem definitiva de
 prioridade:
 
 - Suporte a códigos TOTP (autenticação em duas etapas) por entrada.
-- Auditoria do cofre: detecção de senhas fracas, repetidas ou antigas.
 - Importação a partir de outros gerenciadores e de arquivos CSV.
 - Organização por pastas ou etiquetas personalizadas, além das categorias fixas.
 - Histórico de alterações por credencial.
