@@ -54,6 +54,18 @@ gerenciador de senhas seguro:
   cofre aberto.
 - Auditoria do cofre: detecção local de senhas fracas, repetidas ou sem
   atualização há 365 dias ou mais, com marcação visual dos itens afetados.
+- Refinamento do gerador: correção da interação de sliders e seletores na tela
+  de senha mestra, melhor espaçamento, área de senha gerada expansível e rolagem
+  no painel esquerdo.
+- Melhorias na lista do cofre: colunas redimensionáveis, largura inicial
+  otimizada para exibir melhor o usuário, edição inline do serviço e cópia do
+  usuário por clique com feedback visual.
+- Banco visual de ícones por serviço, usando favicons reais quando disponíveis e
+  fallback local quando necessário.
+- QR code de backup representando a senha mestra como senha-frase, com
+  vocabulário ampliado para reduzir repetição de palavras.
+- Polimento visual dos ícones de auditoria, verificação de vazamentos, ações da
+  lista e distintivos de categoria.
 
 ## Planejado
 

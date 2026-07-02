@@ -30,13 +30,41 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
   cofre fica oculta e só aparece com o cofre aberto.
 - Auditoria local do cofre, com detecção de senhas fracas, repetidas ou sem
   atualização há 365 dias ou mais e marcação visual das entradas afetadas.
+- Banco visual de ícones por serviço, com associação por nome/alias e uso de
+  favicons reais quando disponíveis, mantendo fallback local por iniciais.
+- Edição inline do nome do serviço diretamente na lista do cofre.
+- Cópia do usuário ao clicar na coluna correspondente, com confirmação visual
+  temporária na própria linha.
+- Colunas redimensionáveis na lista do cofre, incluindo serviço, usuário,
+  categoria, data e ações.
 - Testes de banco (criação da tabela, migração da coluna `descricao` e CRUD com
   exclusão lógica) executados sobre SQLite.
+
+### Alterado
+- Reorganização visual do cofre, com melhor distribuição entre gerador e lista,
+  ações com ícones mais profissionais e largura padrão menor para a coluna de
+  serviço, priorizando a exibição completa do usuário.
+- Ajustes no gerador de senhas: melhor espaçamento, área de senha gerada
+  expansível verticalmente, rolagem no painel esquerdo e senhas múltiplas
+  exibidas no mesmo espaço da geração principal.
+- Redução visual dos ícones de serviço e dos distintivos de categoria para
+  melhorar a densidade e o alinhamento da tabela.
+- Ícones de auditoria e verificação de vazamentos substituídos por símbolos mais
+  legíveis e preenchidos.
+
+### Corrigido
+- Correção da interação dos sliders e seletores do gerador na tela de senha
+  mestra, permitindo clicar, arrastar e abrir os controles normalmente sem estar
+  logado no cofre.
 
 ### Segurança
 - A senha gravada no banco é sempre o texto cifrado (AES-256-GCM derivado da
   senha mestra), nunca a senha em claro. A senha do servidor de banco não é
   gravada em disco.
+- QR code de backup passa a codificar a senha mestra como senha-frase, sem
+  expor a senha original caractere a caractere em texto puro.
+- Vocabulário do QR code de backup ampliado para reduzir repetições na
+  representação por palavras.
 - Atualização do binário nativo do SQLite para corrigir a vulnerabilidade
   GHSA-2m69-gcr7-jv3q.
 

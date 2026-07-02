@@ -12,8 +12,8 @@ namespace CofreDeSenhas
         {
             var aceitou = await CaixaMensagem.ConfirmarAsync(dono,
                 "Deseja salvar um QR code de backup da sua senha mestra?\n\n" +
-                "ATENÇÃO: o QR code contém a sua senha mestra de forma legível. " +
-                "Qualquer pessoa que escaneie a imagem terá acesso ao seu cofre.\n\n" +
+                "ATENÇÃO: o QR code contém a versão senha-frase da sua senha mestra. " +
+                "Qualquer pessoa que escaneie a imagem poderá reconstruir a senha e acessar o cofre.\n\n" +
                 "Guarde o arquivo em local seguro e offline (ou impresso) — " +
                 "nunca em nuvem, e-mail ou pastas compartilhadas.",
                 "Backup da senha mestra (QR code)");
@@ -51,8 +51,9 @@ namespace CofreDeSenhas
 
         public static byte[] GerarFolhaBackupPng(string senha)
         {
+            var senhaFrase = ConverterSenhaParaFrase(senha);
             using var gerador = new QRCodeGenerator();
-            using var dados = gerador.CreateQrCode(senha, QRCodeGenerator.ECCLevel.Q);
+            using var dados = gerador.CreateQrCode(senhaFrase, QRCodeGenerator.ECCLevel.Q);
             var qrPng = new PngByteQRCode(dados).GetGraphic(10);
 
             using var qr = SKBitmap.Decode(qrPng);
@@ -98,7 +99,7 @@ namespace CofreDeSenhas
             {
                 string[] aviso =
                 {
-                    "Contém sua senha mestra ao ser escaneado.",
+                    "Contém a versão senha-frase da senha mestra.",
                     "Guarde em local seguro e offline."
                 };
                 float y = topo + qrH + 18 + paint.TextSize;
@@ -114,5 +115,115 @@ namespace CofreDeSenhas
             using var png = imagem.Encode(SKEncodedImageFormat.Png, 100);
             return png.ToArray();
         }
+
+        internal static string ConverterSenhaParaFrase(string senha)
+        {
+            if (string.IsNullOrEmpty(senha))
+                return string.Empty;
+
+            var partes = new List<string>(senha.Length);
+            var ocorrencias = new Dictionary<char, int>();
+
+            foreach (var caractere in senha)
+            {
+                var chave = char.ToLowerInvariant(caractere);
+                ocorrencias.TryGetValue(chave, out var ocorrencia);
+                ocorrencias[chave] = ocorrencia + 1;
+
+                partes.Add(ConverterCaractereParaPalavra(caractere, ocorrencia));
+            }
+
+            return string.Join(" ", partes);
+        }
+
+        private static string ConverterCaractereParaPalavra(char caractere, int ocorrencia)
+        {
+            if (char.IsDigit(caractere))
+                return caractere.ToString();
+
+            var minusculo = char.ToLowerInvariant(caractere);
+            var palavra = PalavraPorOcorrencia(PalavrasPorLetra, minusculo, ocorrencia)
+                ?? PalavraPorOcorrencia(PalavrasPorSimbolo, caractere, ocorrencia)
+                ?? $"unicode-{(int)caractere:X4}";
+
+            return char.IsUpper(caractere)
+                ? char.ToUpperInvariant(palavra[0]) + palavra[1..]
+                : palavra;
+        }
+
+        private static string? PalavraPorOcorrencia(
+            IReadOnlyDictionary<char, string[]> mapa, char caractere, int ocorrencia)
+        {
+            return mapa.TryGetValue(caractere, out var palavras)
+                ? palavras[ocorrencia % palavras.Length]
+                : null;
+        }
+
+        private static readonly IReadOnlyDictionary<char, string[]> PalavrasPorLetra =
+            new Dictionary<char, string[]>
+            {
+                ['a'] = new[] { "abelha", "abacate", "amora", "agenda", "arroz" },
+                ['b'] = new[] { "barco", "banana", "bolacha", "brilho", "bambu" },
+                ['c'] = new[] { "casa", "caderno", "campo", "cesta", "cristal" },
+                ['d'] = new[] { "dado", "dedal", "desenho", "diario", "diamante" },
+                ['e'] = new[] { "escola", "estrela", "espelho", "envelope", "eclipse" },
+                ['f'] = new[] { "faca", "fonte", "flor", "farol", "figura" },
+                ['g'] = new[] { "gato", "galho", "gaveta", "globo", "grama" },
+                ['h'] = new[] { "hotel", "horta", "harpa", "haste", "historia" },
+                ['i'] = new[] { "ilha", "impressora", "inverno", "isca", "ideia" },
+                ['j'] = new[] { "janela", "jardim", "jarra", "jornal", "joia" },
+                ['k'] = new[] { "kilo", "karma", "kiwi", "kart", "karaoke" },
+                ['l'] = new[] { "lateral", "lagoa", "lapis", "leque", "livro" },
+                ['m'] = new[] { "mesa", "mala", "manga", "martelo", "moeda" },
+                ['n'] = new[] { "navio", "nuvem", "ninho", "novela", "neblina" },
+                ['o'] = new[] { "ovelha", "oceano", "oficina", "oliva", "onda" },
+                ['p'] = new[] { "pedra", "papel", "praia", "panela", "pincel" },
+                ['q'] = new[] { "queijo", "quadro", "quintal", "queda", "quilo" },
+                ['r'] = new[] { "raio", "radio", "ramo", "relogio", "rocha" },
+                ['s'] = new[] { "sapato", "sacola", "semente", "sino", "sombra" },
+                ['t'] = new[] { "torre", "tapete", "teatro", "telha", "tijolo" },
+                ['u'] = new[] { "uva", "urso", "universo", "urna", "util" },
+                ['v'] = new[] { "vaca", "vela", "vento", "vidro", "violeta" },
+                ['w'] = new[] { "web", "wifi", "wafer", "watt", "western" },
+                ['x'] = new[] { "xadrez", "xarope", "xicara", "xale", "xerife" },
+                ['y'] = new[] { "yoga", "yakisoba", "yate", "yin", "youtube" },
+                ['z'] = new[] { "zebra", "zinco", "zangado", "ziper", "zumbido" }
+            };
+
+        private static readonly IReadOnlyDictionary<char, string[]> PalavrasPorSimbolo =
+            new Dictionary<char, string[]>
+            {
+                ['!'] = new[] { "exclamacao", "alerta", "surpresa" },
+                ['@'] = new[] { "arroba", "email", "at" },
+                ['#'] = new[] { "cerquilha", "hashtag", "numero" },
+                ['$'] = new[] { "cifrao", "dinheiro", "moeda" },
+                ['%'] = new[] { "porcentagem", "percentual", "taxa" },
+                ['^'] = new[] { "circunflexo", "acento", "chapeu" },
+                ['&'] = new[] { "ecomercial", "conector", "ampersand" },
+                ['*'] = new[] { "asterisco", "estrela", "multiplica" },
+                ['('] = new[] { "abre-parentese", "parentese-abre", "abre-curva" },
+                [')'] = new[] { "fecha-parentese", "parentese-fecha", "fecha-curva" },
+                ['_'] = new[] { "sublinhado", "linha-baixa", "underscore" },
+                ['+'] = new[] { "mais", "soma", "positivo" },
+                ['-'] = new[] { "hifen", "traco", "menos" },
+                ['='] = new[] { "igual", "equivale", "resultado" },
+                ['['] = new[] { "abre-colchete", "colchete-abre", "abre-reto" },
+                [']'] = new[] { "fecha-colchete", "colchete-fecha", "fecha-reto" },
+                ['{'] = new[] { "abre-chave", "chave-abre", "abre-bloco" },
+                ['}'] = new[] { "fecha-chave", "chave-fecha", "fecha-bloco" },
+                ['|'] = new[] { "barra-vertical", "vertical", "pipe" },
+                [';'] = new[] { "ponto-e-virgula", "semicolon", "pausa" },
+                [':'] = new[] { "dois-pontos", "colon", "separador" },
+                [','] = new[] { "virgula", "comma", "pausa-curta" },
+                ['.'] = new[] { "ponto", "dot", "final" },
+                ['<'] = new[] { "menor", "abre-angular", "inferior" },
+                ['>'] = new[] { "maior", "fecha-angular", "superior" },
+                ['?'] = new[] { "interrogacao", "pergunta", "duvida" },
+                ['/'] = new[] { "barra", "slash", "divisao" },
+                ['\\'] = new[] { "barra-invertida", "contrabarra", "backslash" },
+                ['\''] = new[] { "apostrofo", "aspa-simples", "quote" },
+                ['"'] = new[] { "aspas", "aspa-dupla", "citacao" },
+                [' '] = new[] { "espaco", "vazio", "intervalo" }
+            };
     }
 }

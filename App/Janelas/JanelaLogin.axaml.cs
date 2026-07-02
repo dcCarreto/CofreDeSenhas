@@ -1,7 +1,10 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
+using CofreDeSenhas.Controles;
 using GerenciadorDeSenhas.Servicos;
 
 namespace CofreDeSenhas.Janelas
@@ -42,9 +45,22 @@ namespace CofreDeSenhas.Janelas
 
         private void Arrastar(object? sender, PointerPressedEventArgs e)
         {
-            if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed && e.Source is not TextBox)
-                BeginMoveDrag(e);
+            if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+                return;
+
+            if (e.Source is Visual origem && OrigemInterativa(origem))
+                return;
+
+            BeginMoveDrag(e);
         }
+
+        private static bool OrigemInterativa(Visual origem) =>
+            origem.FindAncestorOfType<Button>(true) != null ||
+            origem.FindAncestorOfType<TextBox>(true) != null ||
+            origem.FindAncestorOfType<ComboBox>(true) != null ||
+            origem.FindAncestorOfType<CustomSlider>(true) != null ||
+            origem.FindAncestorOfType<CustomToggle>(true) != null ||
+            origem.FindAncestorOfType<ScrollViewer>(true) != null;
 
         private void Fechar_Click(object? sender, RoutedEventArgs e) => Close();
 

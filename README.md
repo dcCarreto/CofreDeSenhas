@@ -94,6 +94,9 @@ Tema escuro:
   quantidade de palavras, separador, capitalização e número final configuráveis.
 - Indicador visual de força em tempo real.
 - Geração de várias senhas de uma só vez, com a quantidade configurável.
+- Área de senha gerada flexível: senhas longas e múltiplas senhas expandem o
+  campo verticalmente e empurram os demais controles para baixo, com rolagem no
+  painel esquerdo quando necessário.
 - Geração baseada em um gerador de números aleatórios criptográfico
   (`RandomNumberGenerator`), e não em um gerador pseudoaleatório comum.
 - Disponível também na tela de senha mestra, antes do desbloqueio: dá para gerar
@@ -110,7 +113,12 @@ Tema escuro:
 - Verificação de senhas comprometidas via Have I Been Pwned.
 - Auditoria local para detectar senhas fracas, repetidas ou sem atualização há
   365 dias ou mais.
-- Lista com avatar, categoria e ações rápidas para revelar, copiar e editar.
+- Lista com ícones por serviço, categoria e ações rápidas para revelar, copiar e
+  editar.
+- Colunas redimensionáveis para serviço, usuário, categoria, data e ações.
+- Edição inline do nome do serviço diretamente na lista.
+- Cópia do usuário com um clique na coluna `Usuário`, exibindo confirmação
+  visual temporária na linha.
 
 ### Segurança e autenticação
 
@@ -128,7 +136,8 @@ Tema escuro:
 - Exportação e importação do cofre em um arquivo portável (`.gsenhas`), protegido
   por uma senha de exportação independente da senha mestra.
 - Geração opcional de um QR code de backup da senha mestra, oferecido na criação
-  do cofre e a cada alteração da senha mestra.
+  do cofre e a cada alteração da senha mestra. O QR code mostra uma versão em
+  senha-frase da senha mestra, e não a senha original caractere a caractere.
 
 ### Banco de dados (opcional)
 
@@ -148,6 +157,10 @@ Tema escuro:
 
 - Janela sem moldura, com cantos arredondados e redimensionamento livre.
 - Tema claro e tema escuro, com a preferência persistida entre sessões.
+- Layout do cofre com distribuição ajustada para priorizar a leitura do usuário,
+  ícones de ação mais legíveis e distintivos de categoria compactos.
+- Banco visual de ícones por serviço, com favicons reais quando disponíveis e
+  fallback local por iniciais quando não há associação.
 - Ícone próprio no executável, na janela e na bandeja do sistema (onde o
   ambiente gráfico oferece suporte).
 - Mesma interface e comportamento no Windows e no Linux.
@@ -173,9 +186,11 @@ Observações importantes:
 - Ao alterar a senha mestra, uma nova chave é derivada e todas as entradas são
   re-criptografadas. A operação faz backup dos arquivos e os restaura caso algo
   falhe, evitando deixar o cofre inacessível.
-- O QR code de backup contém a senha mestra de forma legível ao ser escaneado.
-  Trata-se de uma codificação, não de criptografia. Por isso ele é opcional e
-  acompanhado de aviso: deve ser guardado em local seguro e off-line.
+- O QR code de backup contém uma versão senha-frase da senha mestra ao ser
+  escaneado. Cada letra é representada por uma palavra, números permanecem como
+  números e símbolos comuns viram nomes legíveis. Trata-se de uma codificação,
+  não de criptografia. Por isso ele é opcional e acompanhado de aviso: deve ser
+  guardado em local seguro e off-line.
 
 ## Download e instalação
 

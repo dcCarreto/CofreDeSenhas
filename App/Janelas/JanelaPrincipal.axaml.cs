@@ -34,6 +34,23 @@ namespace CofreDeSenhas.Janelas
         private ResultadoAuditoriaCofre? _resultadoAuditoria;
 
         private bool _somenteFavoritos;
+        private double _larguraServico = 140;
+        private double _larguraUsuario = 240;
+        private double _larguraCategoria = 108;
+        private double _larguraData = 92;
+        private double _larguraAcoes = 96;
+        private string? _colunaEmRedimensionamento;
+        private string? _colunaDireitaEmRedimensionamento;
+        private double _inicioRedimensionamentoX;
+        private double _larguraInicialRedimensionamento;
+        private double _larguraDireitaInicialRedimensionamento;
+        private bool _largurasIniciaisAplicadas;
+
+        private const double LarguraMinimaServico = 88;
+        private const double LarguraMinimaUsuario = 160;
+        private const double LarguraMinimaCategoria = 86;
+        private const double LarguraMinimaData = 78;
+        private const double LarguraMinimaAcoes = 84;
 
         public JanelaPrincipal(IServicoSenha servicoSenha, IServicoCriptografia? criptografia = null,
             IRepositorioSenha? repositorioLocal = null, Action? aoBloquear = null)
@@ -60,7 +77,11 @@ namespace CofreDeSenhas.Janelas
             BtnConfig.Flyout!.Opened += (s, e) => MarcarBloqueioSelecionado(Preferencias.MinutosBloqueio);
             Closed += (s, e) => _monitor.Encerrar();
 
-            Opened += async (s, e) => await IniciarAsync();
+            Opened += async (s, e) =>
+            {
+                AjustarLargurasIniciais();
+                await IniciarAsync();
+            };
         }
 
         private async Task IniciarAsync()
@@ -105,6 +126,141 @@ namespace CofreDeSenhas.Janelas
             if (WindowState != WindowState.Normal) return;
             if (sender is Border b && b.Tag is string borda)
                 BeginResizeDrag(Enum.Parse<WindowEdge>(borda), e);
+        }
+
+        private void RedimensionarColuna_PointerPressed(object? sender, PointerPressedEventArgs e)
+        {
+            if (sender is not Border divisor || divisor.Tag is not string coluna)
+                return;
+
+            var colunaDireita = ObterColunaDireita(coluna);
+            if (colunaDireita == null)
+                return;
+
+            _colunaEmRedimensionamento = coluna;
+            _colunaDireitaEmRedimensionamento = colunaDireita;
+            _inicioRedimensionamentoX = e.GetPosition(GridCabecalhoTabela).X;
+            _larguraInicialRedimensionamento = ObterLarguraColuna(coluna);
+            _larguraDireitaInicialRedimensionamento = ObterLarguraColuna(colunaDireita);
+            e.Pointer.Capture(divisor);
+            e.Handled = true;
+        }
+
+        private void RedimensionarColuna_PointerMoved(object? sender, PointerEventArgs e)
+        {
+            if (_colunaEmRedimensionamento == null || _colunaDireitaEmRedimensionamento == null)
+                return;
+
+            var delta = e.GetPosition(GridCabecalhoTabela).X - _inicioRedimensionamentoX;
+            var minimoEsquerda = ObterLarguraMinimaColuna(_colunaEmRedimensionamento);
+            var minimoDireita = ObterLarguraMinimaColuna(_colunaDireitaEmRedimensionamento);
+            var deltaMinimo = minimoEsquerda - _larguraInicialRedimensionamento;
+            var deltaMaximo = _larguraDireitaInicialRedimensionamento - minimoDireita;
+
+            delta = Math.Clamp(delta, deltaMinimo, deltaMaximo);
+
+            DefinirLarguraColuna(_colunaEmRedimensionamento, _larguraInicialRedimensionamento + delta);
+            DefinirLarguraColuna(_colunaDireitaEmRedimensionamento, _larguraDireitaInicialRedimensionamento - delta);
+            AplicarLargurasColunas();
+            e.Handled = true;
+        }
+
+        private void RedimensionarColuna_PointerReleased(object? sender, PointerReleasedEventArgs e)
+        {
+            _colunaEmRedimensionamento = null;
+            _colunaDireitaEmRedimensionamento = null;
+            e.Pointer.Capture(null);
+            e.Handled = true;
+        }
+
+        private void AjustarLargurasIniciais()
+        {
+            if (_largurasIniciaisAplicadas || GridCabecalhoTabela.Bounds.Width <= 0)
+                return;
+
+            _largurasIniciaisAplicadas = true;
+
+            double larguraDisponivel = GridCabecalhoTabela.Bounds.Width;
+            double fixo = 42 + 44 + 26 + 24;
+
+            _larguraAcoes = Math.Clamp(larguraDisponivel * 0.11, LarguraMinimaAcoes, 102);
+            _larguraCategoria = Math.Clamp(larguraDisponivel * 0.12, LarguraMinimaCategoria, 116);
+            _larguraData = Math.Clamp(larguraDisponivel * 0.10, LarguraMinimaData, 100);
+
+            double flexivel = Math.Max(
+                LarguraMinimaServico + LarguraMinimaUsuario,
+                larguraDisponivel - fixo - _larguraCategoria - _larguraData - _larguraAcoes);
+
+            _larguraServico = Math.Clamp(flexivel * 0.34, LarguraMinimaServico, 145);
+            _larguraUsuario = Math.Max(LarguraMinimaUsuario, flexivel - _larguraServico);
+
+            AplicarLargurasColunas();
+        }
+
+        private double ObterLarguraColuna(string coluna) => coluna switch
+        {
+            "Servico" => _larguraServico,
+            "Usuario" => _larguraUsuario,
+            "Categoria" => _larguraCategoria,
+            "Data" => _larguraData,
+            "Acoes" => _larguraAcoes,
+            _ => 0
+        };
+
+        private static string? ObterColunaDireita(string coluna) => coluna switch
+        {
+            "Servico" => "Usuario",
+            "Usuario" => "Categoria",
+            "Categoria" => "Data",
+            "Data" => "Acoes",
+            _ => null
+        };
+
+        private static double ObterLarguraMinimaColuna(string coluna) => coluna switch
+        {
+            "Servico" => LarguraMinimaServico,
+            "Usuario" => LarguraMinimaUsuario,
+            "Categoria" => LarguraMinimaCategoria,
+            "Data" => LarguraMinimaData,
+            "Acoes" => LarguraMinimaAcoes,
+            _ => 0
+        };
+
+        private void DefinirLarguraColuna(string coluna, double largura)
+        {
+            switch (coluna)
+            {
+                case "Servico":
+                    _larguraServico = Math.Max(LarguraMinimaServico, largura);
+                    break;
+                case "Usuario":
+                    _larguraUsuario = Math.Max(LarguraMinimaUsuario, largura);
+                    break;
+                case "Categoria":
+                    _larguraCategoria = Math.Max(LarguraMinimaCategoria, largura);
+                    break;
+                case "Data":
+                    _larguraData = Math.Max(LarguraMinimaData, largura);
+                    break;
+                case "Acoes":
+                    _larguraAcoes = Math.Max(LarguraMinimaAcoes, largura);
+                    break;
+            }
+        }
+
+        private void AplicarLargurasColunas()
+        {
+            if (GridCabecalhoTabela == null)
+                return;
+
+            GridCabecalhoTabela.ColumnDefinitions[3].Width = new GridLength(_larguraServico);
+            GridCabecalhoTabela.ColumnDefinitions[5].Width = new GridLength(_larguraUsuario);
+            GridCabecalhoTabela.ColumnDefinitions[7].Width = new GridLength(_larguraCategoria);
+            GridCabecalhoTabela.ColumnDefinitions[9].Width = new GridLength(_larguraData);
+            GridCabecalhoTabela.ColumnDefinitions[11].Width = new GridLength(_larguraAcoes);
+
+            foreach (var linha in _linhasSenha)
+                linha.DefinirLargurasColunas(_larguraServico, _larguraUsuario, _larguraCategoria, _larguraData, _larguraAcoes);
         }
 
         private void Minimizar_Click(object? sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
@@ -170,7 +326,8 @@ namespace CofreDeSenhas.Janelas
 
             foreach (var senha in lista)
             {
-                var linha = new LinhaSenha(senha, ObterSenhaPlain, FavoritarToggle, EditarSenha);
+                var linha = new LinhaSenha(senha, ObterSenhaPlain, FavoritarToggle, EditarSenha, RenomearServicoAsync);
+                linha.DefinirLargurasColunas(_larguraServico, _larguraUsuario, _larguraCategoria, _larguraData, _larguraAcoes);
 
                 var plain = ObterSenhaPlain(senha);
                 if (!string.IsNullOrEmpty(plain))
@@ -268,6 +425,30 @@ namespace CofreDeSenhas.Janelas
             var dlg = new JanelaEditarSenha(_servicoSenha, s, _criptografia);
             if (await dlg.ShowDialog<bool>(this))
                 await CarregarSenhasAsync();
+        }
+
+        private async Task RenomearServicoAsync(Senha s, string novoNome)
+        {
+            try
+            {
+                string nome = novoNome.Trim();
+                if (string.IsNullOrWhiteSpace(nome) ||
+                    string.Equals(nome, s.NomeServico, StringComparison.Ordinal))
+                    return;
+
+                var plain = ObterSenhaPlain(s);
+                if (string.IsNullOrEmpty(plain))
+                    throw new InvalidOperationException("Não foi possível descriptografar a senha para salvar a alteração.");
+
+                await _servicoSenha.AtualizarSenhaAsync(s.Id, nome, s.Usuario, plain, s.Categoria, s.Url, s.Notas);
+                await _servicoSenha.PersistirAsync();
+                await CarregarSenhasAsync();
+            }
+            catch (Exception ex)
+            {
+                await CaixaMensagem.MostrarAsync(this, $"Erro ao renomear serviço: {ex.Message}", "Erro", TipoMensagem.Erro);
+                throw;
+            }
         }
 
         private async void AuditarCofre_Click(object? sender, RoutedEventArgs e)

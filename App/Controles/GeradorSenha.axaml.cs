@@ -124,16 +124,31 @@ namespace CofreDeSenhas.Controles
             }
 
             _senhaGerada = _senhasGeradas[0];
-            TxtSenhaGerada.Text = _mostrarSenha ? _senhaGerada : new string('•', _senhaGerada.Length);
+            AtualizarSenhaGerada();
             AtualizarBarraForca();
             AtualizarListaSenhasGeradas();
         }
 
+        private void AtualizarSenhaGerada()
+        {
+            TxtSenhaGerada.IsVisible = _senhasGeradas.Count <= 1;
+            TxtSenhaGerada.Text = string.IsNullOrEmpty(_senhaGerada)
+                ? ""
+                : TextoSenhaVisivel(_senhaGerada);
+        }
+
+        private string TextoSenhaVisivel(string senha) =>
+            _mostrarSenha ? senha : new string('•', senha.Length);
+
         private void AtualizarListaSenhasGeradas()
         {
             PainelGeradas.Children.Clear();
+            PainelGeradas.IsVisible = false;
+
             if (_senhasGeradas.Count <= 1)
                 return;
+
+            PainelGeradas.IsVisible = true;
 
             var titulo = new TextBlock
             {
@@ -159,7 +174,7 @@ namespace CofreDeSenhas.Controles
                     try { await AreaTransferencia.SetTextAsync(string.Join(Environment.NewLine, _senhasGeradas)); } catch { }
             };
 
-            var header = new Grid { Margin = new Thickness(0, 8, 0, 6) };
+            var header = new Grid { Margin = new Thickness(0, 0, 0, 6) };
             header.Children.Add(titulo);
             header.Children.Add(btnCopiarTodas);
             PainelGeradas.Children.Add(header);
@@ -172,13 +187,13 @@ namespace CofreDeSenhas.Controles
         {
             var lbl = new TextBlock
             {
-                Text = senha,
+                Text = TextoSenhaVisivel(senha),
                 FontFamily = (FontFamily)Application.Current!.FindResource("FonteMono")!,
                 FontSize = 13,
                 Foreground = Tema.Pincel(Tema.TextPrimary),
-                TextTrimming = TextTrimming.CharacterEllipsis,
-                VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
-                Margin = new Thickness(12, 0, 6, 0)
+                TextWrapping = TextWrapping.Wrap,
+                VerticalAlignment = Avalonia.Layout.VerticalAlignment.Top,
+                Margin = new Thickness(12, 9, 8, 9)
             };
 
             var btnCopiar = new Button { Content = "⧉", Width = 28, Height = 28 };
@@ -208,9 +223,9 @@ namespace CofreDeSenhas.Controles
 
             return new Border
             {
-                Height = 38,
+                MinHeight = 38,
                 CornerRadius = new CornerRadius(8),
-                Background = Tema.Pincel(Tema.InputBackground),
+                Background = Tema.Pincel(Tema.CardBackground),
                 BorderBrush = Tema.Pincel(Tema.InputBorder),
                 BorderThickness = new Thickness(1),
                 Margin = new Thickness(0, 0, 0, 6),
@@ -225,7 +240,8 @@ namespace CofreDeSenhas.Controles
             {
                 1 => ("Fraca", Tema.StrengthWeak),
                 2 => ("Média", Tema.StrengthMedium),
-                3 or 4 => ("Forte", Tema.StrengthStrong),
+                3 => ("Forte", Tema.StrengthStrong),
+                4 => ("Excelente", Tema.StrengthExcelent),
                 _ => ("—", Tema.TextSecondary)
             };
 
@@ -240,8 +256,8 @@ namespace CofreDeSenhas.Controles
         private void OlhoGerada_Click(object? sender, RoutedEventArgs e)
         {
             _mostrarSenha = !_mostrarSenha;
-            if (!string.IsNullOrEmpty(_senhaGerada))
-                TxtSenhaGerada.Text = _mostrarSenha ? _senhaGerada : new string('•', _senhaGerada.Length);
+            AtualizarSenhaGerada();
+            AtualizarListaSenhasGeradas();
         }
 
         private async void CopiarGerada_Click(object? sender, RoutedEventArgs e)
@@ -262,10 +278,10 @@ namespace CofreDeSenhas.Controles
 
         private void LimparGeracao()
         {
-            TxtSenhaGerada.Text = "";
             _senhaGerada = "";
             _mostrarSenha = true;
             _senhasGeradas.Clear();
+            AtualizarSenhaGerada();
             AtualizarBarraForca();
             AtualizarListaSenhasGeradas();
         }

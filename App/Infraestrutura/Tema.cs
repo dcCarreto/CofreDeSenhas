@@ -31,6 +31,7 @@ namespace CofreDeSenhas
         public static readonly Color StrengthWeak = Color.FromUInt32(0xFFEF4444);
         public static readonly Color StrengthMedium = Color.FromUInt32(0xFFF59E0B);
         public static readonly Color StrengthStrong = Color.FromUInt32(0xFF16A34A);
+        public static readonly Color StrengthExcelent = Color.FromUInt32(0xFF007FFF);
 
         public static Color TrailInactive => C(0xFFE6E6EC, 0xFF383A46);
         public static Color ToggleOff => C(0xFFD6D6DD, 0xFF444654);
