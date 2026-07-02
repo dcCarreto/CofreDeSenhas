@@ -7,6 +7,10 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 ## [Não lançado]
 
 ### Adicionado
+- Bloqueio automático do cofre após período de inatividade: passado o tempo sem
+  uso de mouse ou teclado, a janela é fechada, a chave é descartada da memória e
+  o cofre volta à tela de senha mestra. O tempo é configurável no menu de
+  configurações (desativado, 1, 5, 15 ou 30 minutos), com 5 minutos por padrão.
 - Conexão a banco de dados externo pelo menu de configurações, com
   sincronização automática. Ao conectar, o cofre local e o banco são mesclados
   (em conflito de serviço+usuário, a senha do local prevalece) e passam a ser

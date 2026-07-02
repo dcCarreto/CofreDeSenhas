@@ -110,6 +110,9 @@ Tema escuro:
 - Senha mestra exigida na criação do cofre e em cada abertura.
 - Limite de tentativas de desbloqueio, com bloqueio temporário após falhas
   sucessivas.
+- Bloqueio automático após período de inatividade, configurável no menu de
+  configurações (desativado, 1, 5, 15 ou 30 minutos), voltando à tela de senha
+  mestra.
 - Alteração da senha mestra pelo menu de configurações, com re-criptografia
   automática de todo o cofre e backup com rollback em caso de falha.
 

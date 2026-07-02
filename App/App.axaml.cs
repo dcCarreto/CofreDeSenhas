@@ -42,24 +42,45 @@ namespace CofreDeSenhas
             var repositorio = new RepositorioSenha(persistencia, chave);
             var servicoSenha = new ServicoSenha(repositorio, criptografia);
 
-            var principal = new JanelaPrincipal(servicoSenha, criptografia, repositorio);
+            var principal = new JanelaPrincipal(servicoSenha, criptografia, repositorio,
+                () => Bloquear(desktop));
             var login = desktop.MainWindow;
             desktop.MainWindow = principal;
             principal.Show();
             login?.Close();
 
-            ConfigurarBandeja(desktop, principal);
+            ConfigurarBandeja(desktop);
         }
 
-        private void ConfigurarBandeja(IClassicDesktopStyleApplicationLifetime desktop, Window principal)
+        private void Bloquear(IClassicDesktopStyleApplicationLifetime desktop)
         {
+            if (desktop.MainWindow is not JanelaPrincipal cofre)
+                return;
+
+            foreach (var janela in desktop.Windows.ToArray())
+                if (janela != cofre)
+                    janela.Close();
+
+            var login = new JanelaLogin(new AutenticacaoMestra(), chave => AbrirCofre(desktop, chave));
+            desktop.MainWindow = login;
+            login.Show();
+            cofre.Close();
+        }
+
+        private void ConfigurarBandeja(IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            if (_bandeja != null)
+                return;
+
             try
             {
                 void Restaurar()
                 {
-                    principal.Show();
-                    principal.WindowState = WindowState.Normal;
-                    principal.Activate();
+                    if (desktop.MainWindow is not { } janela)
+                        return;
+                    janela.Show();
+                    janela.WindowState = WindowState.Normal;
+                    janela.Activate();
                 }
 
                 var itemAbrir = new NativeMenuItem("Abrir cofre");

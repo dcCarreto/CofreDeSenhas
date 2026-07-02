@@ -43,6 +43,14 @@
                     <MenuItem Header="Alterar senha mestra…" Click="AlterarSenhaMestra_Click" />
                     <MenuItem Header="Regerar QR code…" Click="RegerarQrCode_Click" />
                     <Separator />
+                    <MenuItem Name="MenuBloqueio" Header="Bloqueio automático">
+                      <MenuItem Header="Desativado" ToggleType="Radio" Tag="0" Click="Bloqueio_Alterado" />
+                      <MenuItem Header="Após 1 minuto" ToggleType="Radio" Tag="1" Click="Bloqueio_Alterado" />
+                      <MenuItem Header="Após 5 minutos" ToggleType="Radio" Tag="5" Click="Bloqueio_Alterado" />
+                      <MenuItem Header="Após 15 minutos" ToggleType="Radio" Tag="15" Click="Bloqueio_Alterado" />
+                      <MenuItem Header="Após 30 minutos" ToggleType="Radio" Tag="30" Click="Bloqueio_Alterado" />
+                    </MenuItem>
+                    <Separator />
                     <MenuItem Header="Conectar banco de dados…" Click="ConectarBanco_Click" />
                     <MenuItem Name="MenuDesconectarBanco" Header="Desconectar do banco"
                               IsVisible="False" Click="DesconectarBanco_Click" />

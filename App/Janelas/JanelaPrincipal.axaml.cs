@@ -25,6 +25,8 @@ namespace CofreDeSenhas.Janelas
         private readonly IRepositorioSenha? _repositorioLocal;
         private readonly ServicoVazamento _servicoVazamento = new();
         private readonly ServicoExportacao _servicoExportacao = new();
+        private readonly Action? _aoBloquear;
+        private readonly MonitorInatividade _monitor;
         private bool _conectadoAoBanco;
 
         private List<Senha> _senhasAtuais = new();
@@ -37,12 +39,13 @@ namespace CofreDeSenhas.Janelas
         private int _nivelForca;
 
         public JanelaPrincipal(IServicoSenha servicoSenha, IServicoCriptografia? criptografia = null,
-            IRepositorioSenha? repositorioLocal = null)
+            IRepositorioSenha? repositorioLocal = null, Action? aoBloquear = null)
         {
             _servicoSenha = servicoSenha ?? throw new ArgumentNullException(nameof(servicoSenha));
             _servicoSenhaLocal = _servicoSenha;
             _criptografia = criptografia;
             _repositorioLocal = repositorioLocal;
+            _aoBloquear = aoBloquear;
 
             InitializeComponent();
             Icon = Recursos.IconeApp();
@@ -55,6 +58,11 @@ namespace CofreDeSenhas.Janelas
 
             AtualizarBotaoTema();
             PintarFiltroFavoritos();
+
+            _monitor = new MonitorInatividade(this, () => _aoBloquear?.Invoke());
+            _monitor.Ajustar(Preferencias.MinutosBloqueio);
+            BtnConfig.Flyout!.Opened += (s, e) => MarcarBloqueioSelecionado(Preferencias.MinutosBloqueio);
+            Closed += (s, e) => _monitor.Encerrar();
 
             Opened += async (s, e) => await IniciarAsync();
         }
@@ -667,6 +675,26 @@ namespace CofreDeSenhas.Janelas
                 return;
 
             await QrBackup.OferecerSalvarAsync(this, dlg.SenhaConfirmada);
+        }
+
+        private void Bloqueio_Alterado(object? sender, RoutedEventArgs e)
+        {
+            if (sender is not MenuItem item || item.Tag is not string tag || !int.TryParse(tag, out var minutos))
+                return;
+
+            Preferencias.MinutosBloqueio = minutos;
+            Preferencias.Salvar();
+            _monitor.Ajustar(minutos);
+            MarcarBloqueioSelecionado(minutos);
+        }
+
+        private void MarcarBloqueioSelecionado(int minutos)
+        {
+            if (MenuBloqueio == null)
+                return;
+
+            foreach (var item in MenuBloqueio.Items.OfType<MenuItem>())
+                item.IsChecked = item.Tag is string tag && int.TryParse(tag, out var m) && m == minutos;
         }
 
         private async void ConectarBanco_Click(object? sender, RoutedEventArgs e)
