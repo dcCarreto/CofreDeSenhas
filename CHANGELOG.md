@@ -22,6 +22,8 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 - Migração leve que adiciona a coluna `descricao` a tabelas já existentes ao
   reconectar.
 - Memória do último perfil de conexão para pré-preencher a tela de conexão.
+- Geração de frases-senha (passphrases) a partir de lista de palavras, com
+  controles de quantidade de palavras, separador, capitalização e número final.
 - Testes de banco (criação da tabela, migração da coluna `descricao` e CRUD com
   exclusão lógica) executados sobre SQLite.
 

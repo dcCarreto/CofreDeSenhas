@@ -80,7 +80,15 @@
               <StackPanel Margin="24,22">
                 <TextBlock Text="Gerador de senha" FontSize="20" FontWeight="Bold"
                            Foreground="{DynamicResource TextPrimary}" />
-				  <Border Height="60"
+
+                <Grid ColumnDefinitions="*,120" Margin="0,12,0,12">
+                  <TextBlock Text="Modo" FontSize="13" Foreground="{DynamicResource TextSecondary}"
+                             VerticalAlignment="Center" />
+                  <ComboBox Name="CmbModoGerador" Grid.Column="1" Classes="campo"
+                            Height="34" VerticalAlignment="Center" />
+                </Grid>
+
+                <Border Height="60"
                         CornerRadius="11"
                         Background="{DynamicResource InputBackground}"
                         BorderBrush="{DynamicResource InputBorder}"
@@ -104,7 +112,7 @@
                 </Border>
 
                 <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,6">
-                  <TextBlock Text="Força da senha" FontSize="13" Foreground="{DynamicResource TextSecondary}" />
+                  <TextBlock Text="Força" FontSize="13" Foreground="{DynamicResource TextSecondary}" />
                   <TextBlock Name="LblForca" Grid.Column="1" Text="—" FontSize="13" FontWeight="Bold"
                              Foreground="{DynamicResource TextSecondary}" />
                 </Grid>
@@ -117,43 +125,72 @@
                 </Grid>
 
                 <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,4">
-                  <TextBlock Text="Comprimento" FontSize="13" Foreground="{DynamicResource TextSecondary}" />
-                  <TextBlock Name="LblTamanhoValor" Grid.Column="1" Text="12"
-                             FontFamily="{StaticResource FonteMono}" FontSize="13" FontWeight="Bold"
-                             Foreground="{DynamicResource AccentPrimary}" />
-                </Grid>
-                <c:CustomSlider Name="SliderTamanho" Minimum="4" Maximum="64" Value="12" Margin="0,0,0,18" />
-
-                <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,4">
-                  <TextBlock Text="Quantidade de senhas" FontSize="13" Foreground="{DynamicResource TextSecondary}" />
+                  <TextBlock Text="Quantidade" FontSize="13" Foreground="{DynamicResource TextSecondary}" />
                   <TextBlock Name="LblQuantidadeValor" Grid.Column="1" Text="1"
                              FontFamily="{StaticResource FonteMono}" FontSize="13" FontWeight="Bold"
                              Foreground="{DynamicResource AccentPrimary}" />
                 </Grid>
                 <c:CustomSlider Name="SliderQuantidade" Minimum="1" Maximum="10" Value="1" Margin="0,0,0,18" />
 
-                <Grid ColumnDefinitions="*,Auto" Height="30" Margin="0,0,0,6">
-                  <TextBlock Text="Letras maiúsculas (A-Z)" FontSize="13"
-                             Foreground="{DynamicResource TextPrimary}" VerticalAlignment="Center" />
-                  <c:CustomToggle Name="ToggleMaiusculas" Grid.Column="1" Checked="True" VerticalAlignment="Center" />
-                </Grid>
-                <Grid ColumnDefinitions="*,Auto" Height="30" Margin="0,0,0,6">
-                  <TextBlock Text="Letras minúsculas (a-z)" FontSize="13"
-                             Foreground="{DynamicResource TextPrimary}" VerticalAlignment="Center" />
-                  <c:CustomToggle Name="ToggleMinusculas" Grid.Column="1" Checked="True" VerticalAlignment="Center" />
-                </Grid>
-                <Grid ColumnDefinitions="*,Auto" Height="30" Margin="0,0,0,6">
-                  <TextBlock Text="Números (0-9)" FontSize="13"
-                             Foreground="{DynamicResource TextPrimary}" VerticalAlignment="Center" />
-                  <c:CustomToggle Name="ToggleNumeros" Grid.Column="1" Checked="True" VerticalAlignment="Center" />
-                </Grid>
-                <Grid ColumnDefinitions="*,Auto" Height="30" Margin="0,0,0,22">
-                  <TextBlock Text="Caracteres especiais (!@#)" FontSize="13"
-                             Foreground="{DynamicResource TextPrimary}" VerticalAlignment="Center" />
-                  <c:CustomToggle Name="ToggleEspeciais" Grid.Column="1" VerticalAlignment="Center" />
-                </Grid>
+                <StackPanel Name="PainelSenhaCaracteres">
+                  <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,4">
+                    <TextBlock Text="Comprimento" FontSize="13" Foreground="{DynamicResource TextSecondary}" />
+                    <TextBlock Name="LblTamanhoValor" Grid.Column="1" Text="12"
+                               FontFamily="{StaticResource FonteMono}" FontSize="13" FontWeight="Bold"
+                               Foreground="{DynamicResource AccentPrimary}" />
+                  </Grid>
+                  <c:CustomSlider Name="SliderTamanho" Minimum="4" Maximum="64" Value="12" Margin="0,0,0,18" />
 
-                <Button Classes="primario" Content="Gerar nova senha" Height="44"
+                  <Grid ColumnDefinitions="*,Auto" Height="30" Margin="0,0,0,6">
+                    <TextBlock Text="Letras maiúsculas (A-Z)" FontSize="13"
+                               Foreground="{DynamicResource TextPrimary}" VerticalAlignment="Center" />
+                    <c:CustomToggle Name="ToggleMaiusculas" Grid.Column="1" Checked="True" VerticalAlignment="Center" />
+                  </Grid>
+                  <Grid ColumnDefinitions="*,Auto" Height="30" Margin="0,0,0,6">
+                    <TextBlock Text="Letras minúsculas (a-z)" FontSize="13"
+                               Foreground="{DynamicResource TextPrimary}" VerticalAlignment="Center" />
+                    <c:CustomToggle Name="ToggleMinusculas" Grid.Column="1" Checked="True" VerticalAlignment="Center" />
+                  </Grid>
+                  <Grid ColumnDefinitions="*,Auto" Height="30" Margin="0,0,0,6">
+                    <TextBlock Text="Números (0-9)" FontSize="13"
+                               Foreground="{DynamicResource TextPrimary}" VerticalAlignment="Center" />
+                    <c:CustomToggle Name="ToggleNumeros" Grid.Column="1" Checked="True" VerticalAlignment="Center" />
+                  </Grid>
+                  <Grid ColumnDefinitions="*,Auto" Height="30" Margin="0,0,0,22">
+                    <TextBlock Text="Caracteres especiais (!@#)" FontSize="13"
+                               Foreground="{DynamicResource TextPrimary}" VerticalAlignment="Center" />
+                    <c:CustomToggle Name="ToggleEspeciais" Grid.Column="1" VerticalAlignment="Center" />
+                  </Grid>
+                </StackPanel>
+
+                <StackPanel Name="PainelFraseSenha" IsVisible="False">
+                  <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,4">
+                    <TextBlock Text="Palavras" FontSize="13" Foreground="{DynamicResource TextSecondary}" />
+                    <TextBlock Name="LblPalavrasValor" Grid.Column="1" Text="5"
+                               FontFamily="{StaticResource FonteMono}" FontSize="13" FontWeight="Bold"
+                               Foreground="{DynamicResource AccentPrimary}" />
+                  </Grid>
+                  <c:CustomSlider Name="SliderPalavras" Minimum="3" Maximum="8" Value="5" Margin="0,0,0,18" />
+
+                  <Grid ColumnDefinitions="*,110" Height="36" Margin="0,0,0,8">
+                    <TextBlock Text="Separador" FontSize="13"
+                               Foreground="{DynamicResource TextPrimary}" VerticalAlignment="Center" />
+                    <ComboBox Name="CmbSeparadorFrase" Grid.Column="1" Classes="campo"
+                              Height="34" VerticalAlignment="Center" />
+                  </Grid>
+                  <Grid ColumnDefinitions="*,Auto" Height="30" Margin="0,0,0,6">
+                    <TextBlock Text="Capitalizar palavras" FontSize="13"
+                               Foreground="{DynamicResource TextPrimary}" VerticalAlignment="Center" />
+                    <c:CustomToggle Name="ToggleCapitalizarFrase" Grid.Column="1" VerticalAlignment="Center" />
+                  </Grid>
+                  <Grid ColumnDefinitions="*,Auto" Height="30" Margin="0,0,0,22">
+                    <TextBlock Text="Adicionar número" FontSize="13"
+                               Foreground="{DynamicResource TextPrimary}" VerticalAlignment="Center" />
+                    <c:CustomToggle Name="ToggleNumeroFrase" Grid.Column="1" Checked="True" VerticalAlignment="Center" />
+                  </Grid>
+                </StackPanel>
+
+                <Button Name="BtnGerar" Classes="primario" Content="Gerar nova senha" Height="44"
                         HorizontalAlignment="Stretch" Margin="0,0,0,10"
                         Click="Gerar_Click" />
 

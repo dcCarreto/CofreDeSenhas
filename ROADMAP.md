@@ -42,17 +42,26 @@ gerenciador de senhas seguro:
   criação, edição e exclusão vai para os dois. Inclui detecção e criação da
   tabela sob confirmação, migração leve de colunas e a senha sempre armazenada
   de forma cifrada.
+<<<<<<< HEAD
 - Bloqueio automático do cofre após período de inatividade: passado o tempo
   configurado sem uso, o cofre é fechado e volta à tela de senha mestra. O tempo
   (desativado, 1, 5, 15 ou 30 minutos) é escolhido no menu de configurações e
   fica em 5 minutos por padrão.
+=======
+- Geração de frases-senha (passphrases) a partir de listas de palavras, com
+  quantidade de palavras, separador, capitalização e número final configuráveis.
+>>>>>>> 38a593e (Adiciona geração de frases-senha (passphrases))
 
 ## Planejado
 
 Ideias e melhorias consideradas para versões futuras, sem ordem definitiva de
 prioridade:
 
+<<<<<<< HEAD
 - Geração de frases-senha (passphrases) a partir de listas de palavras.
+=======
+- Bloqueio automático do cofre após período de inatividade.
+>>>>>>> 38a593e (Adiciona geração de frases-senha (passphrases))
 - Suporte a códigos TOTP (autenticação em duas etapas) por entrada.
 - Auditoria do cofre: detecção de senhas fracas, repetidas ou antigas.
 - Importação a partir de outros gerenciadores e de arquivos CSV.

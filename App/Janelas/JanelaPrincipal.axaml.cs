@@ -1,6 +1,4 @@
 using System.Diagnostics;
-using System.Security.Cryptography;
-using System.Text;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -25,8 +23,12 @@ namespace CofreDeSenhas.Janelas
         private readonly IRepositorioSenha? _repositorioLocal;
         private readonly ServicoVazamento _servicoVazamento = new();
         private readonly ServicoExportacao _servicoExportacao = new();
+<<<<<<< HEAD
         private readonly Action? _aoBloquear;
         private readonly MonitorInatividade _monitor;
+=======
+        private readonly ServicoGeracaoSenha _servicoGeracaoSenha = new();
+>>>>>>> 38a593e (Adiciona geração de frases-senha (passphrases))
         private bool _conectadoAoBanco;
 
         private List<Senha> _senhasAtuais = new();
@@ -52,11 +54,18 @@ namespace CofreDeSenhas.Janelas
 
             CmbCategoria.ItemsSource = new[] { "Todas" }.Concat(CategoriasUI.Rotulos).ToArray();
             CmbCategoria.SelectedIndex = 0;
+            CmbModoGerador.ItemsSource = new[] { "Senha", "Frase-senha" };
+            CmbModoGerador.SelectedIndex = 0;
+            CmbSeparadorFrase.ItemsSource = new[] { "-", "_", ".", "espaço" };
+            CmbSeparadorFrase.SelectedIndex = 0;
 
             SliderTamanho.ValueChanged += (s, e) => LblTamanhoValor.Text = SliderTamanho.Value.ToString();
             SliderQuantidade.ValueChanged += (s, e) => LblQuantidadeValor.Text = SliderQuantidade.Value.ToString();
+            SliderPalavras.ValueChanged += (s, e) => LblPalavrasValor.Text = SliderPalavras.Value.ToString();
+            CmbModoGerador.SelectionChanged += ModoGerador_Alterado;
 
             AtualizarBotaoTema();
+            AtualizarModoGerador();
             PintarFiltroFavoritos();
 
             _monitor = new MonitorInatividade(this, () => _aoBloquear?.Invoke());
@@ -137,44 +146,70 @@ namespace CofreDeSenhas.Janelas
             ToolTip.SetTip(BtnTema, Tema.ModoEscuro ? "Tema claro" : "Tema escuro");
         }
 
+        private bool ModoFraseSenha => CmbModoGerador.SelectedIndex == 1;
+
+        private string ItemGeradoNome => ModoFraseSenha ? "frase-senha" : "senha";
+
+        private void ModoGerador_Alterado(object? sender, SelectionChangedEventArgs e)
+        {
+            AtualizarModoGerador();
+            LimparGeracao();
+        }
+
+        private void AtualizarModoGerador()
+        {
+            bool fraseSenha = ModoFraseSenha;
+            PainelSenhaCaracteres.IsVisible = !fraseSenha;
+            PainelFraseSenha.IsVisible = fraseSenha;
+            BtnGerar.Content = fraseSenha ? "Gerar frase-senha" : "Gerar nova senha";
+        }
+
+        private string SeparadorFraseSelecionado()
+        {
+            return CmbSeparadorFrase.SelectedIndex switch
+            {
+                1 => "_",
+                2 => ".",
+                3 => " ",
+                _ => "-"
+            };
+        }
+
         private async void Gerar_Click(object? sender, RoutedEventArgs e)
         {
-            string opcoes = "";
-            if (ToggleMaiusculas.Checked) opcoes += "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-            if (ToggleMinusculas.Checked) opcoes += "abcdefghijklmnopqrstuvwxyz";
-            if (ToggleNumeros.Checked) opcoes += "0123456789";
-            if (ToggleEspeciais.Checked) opcoes += "!@#$%^&*()_+-=[]{}|;:,.<>?";
-
-            if (string.IsNullOrEmpty(opcoes))
-            {
-                await CaixaMensagem.MostrarAsync(this, "Selecione pelo menos uma opção", "Aviso", TipoMensagem.Aviso);
-                return;
-            }
-
-            int quantidade = SliderQuantidade.Value;
             _senhasGeradas.Clear();
-            using (var rng = RandomNumberGenerator.Create())
+            try
             {
-                for (int n = 0; n < quantidade; n++)
-                    _senhasGeradas.Add(GerarUmaSenha(rng, opcoes, SliderTamanho.Value));
+                if (ModoFraseSenha)
+                {
+                    _senhasGeradas.AddRange(_servicoGeracaoSenha.GerarFrasesSenha(
+                        SliderQuantidade.Value,
+                        SliderPalavras.Value,
+                        SeparadorFraseSelecionado(),
+                        ToggleCapitalizarFrase.Checked,
+                        ToggleNumeroFrase.Checked));
+                }
+                else
+                {
+                    _senhasGeradas.AddRange(_servicoGeracaoSenha.GerarSenhas(
+                        SliderQuantidade.Value,
+                        SliderTamanho.Value,
+                        ToggleMaiusculas.Checked,
+                        ToggleMinusculas.Checked,
+                        ToggleNumeros.Checked,
+                        ToggleEspeciais.Checked));
+                }
+            }
+            catch (ArgumentException ex)
+            {
+                await CaixaMensagem.MostrarAsync(this, ex.Message, "Aviso", TipoMensagem.Aviso);
+                return;
             }
 
             _senhaGerada = _senhasGeradas[0];
             TxtSenhaGerada.Text = _mostrarSenha ? _senhaGerada : new string('•', _senhaGerada.Length);
             AtualizarBarraForca();
             AtualizarListaSenhasGeradas();
-        }
-
-        private static string GerarUmaSenha(RandomNumberGenerator rng, string opcoes, int tamanho)
-        {
-            var senha = new StringBuilder(tamanho);
-            byte[] data = new byte[1];
-            for (int i = 0; i < tamanho; i++)
-            {
-                rng.GetBytes(data);
-                senha.Append(opcoes[data[0] % opcoes.Length]);
-            }
-            return senha.ToString();
         }
 
         private void AtualizarListaSenhasGeradas()
@@ -185,7 +220,7 @@ namespace CofreDeSenhas.Janelas
 
             var titulo = new TextBlock
             {
-                Text = $"Senhas geradas ({_senhasGeradas.Count})",
+                Text = $"{(ModoFraseSenha ? "Frases-senha" : "Senhas")} geradas ({_senhasGeradas.Count})",
                 FontSize = 13,
                 FontWeight = FontWeight.Bold,
                 Foreground = Tema.Pincel(Tema.TextPrimary),
@@ -294,6 +329,12 @@ namespace CofreDeSenhas.Janelas
             if (System.Text.RegularExpressions.Regex.IsMatch(senha, "[A-Z]") &&
                 System.Text.RegularExpressions.Regex.IsMatch(senha, "[a-z]")) forca++;
             if (System.Text.RegularExpressions.Regex.IsMatch(senha, "[0-9]")) forca++;
+
+            var partes = senha.Split(new[] { '-', '_', '.', ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            int palavras = partes.Count(p => p.Length >= 3 && p.All(char.IsLetter));
+            if (palavras >= 4)
+                forca = Math.Max(forca, Math.Min(4, palavras - 1));
+
             return Math.Min(forca, 4);
         }
 
@@ -309,10 +350,17 @@ namespace CofreDeSenhas.Janelas
             if (string.IsNullOrEmpty(_senhaGerada) || Clipboard == null)
                 return;
             await Clipboard.SetTextAsync(_senhaGerada);
-            await CaixaMensagem.MostrarAsync(this, "Senha copiada!", "Sucesso");
+            await CaixaMensagem.MostrarAsync(this,
+                ModoFraseSenha ? "Frase-senha copiada!" : "Senha copiada!",
+                "Sucesso");
         }
 
         private void Limpar_Click(object? sender, RoutedEventArgs e)
+        {
+            LimparGeracao();
+        }
+
+        private void LimparGeracao()
         {
             TxtSenhaGerada.Text = "";
             _senhaGerada = "";
@@ -326,7 +374,8 @@ namespace CofreDeSenhas.Janelas
         {
             if (string.IsNullOrEmpty(_senhaGerada))
             {
-                await CaixaMensagem.MostrarAsync(this, "Gere uma senha primeiro", "Aviso", TipoMensagem.Aviso);
+                await CaixaMensagem.MostrarAsync(this,
+                    $"Gere uma {ItemGeradoNome} primeiro", "Aviso", TipoMensagem.Aviso);
                 return;
             }
 
