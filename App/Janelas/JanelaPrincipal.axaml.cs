@@ -24,6 +24,7 @@ namespace CofreDeSenhas.Janelas
         private readonly ServicoAuditoriaSenha _servicoAuditoria = new();
         private readonly ServicoVazamento _servicoVazamento = new();
         private readonly ServicoExportacao _servicoExportacao = new();
+        private readonly ServicoImportacaoCsv _servicoImportacaoCsv = new();
         private readonly ServicoTotp _totp = new();
         private readonly Action? _aoBloquear;
         private readonly MonitorInatividade _monitor;
@@ -677,33 +678,7 @@ namespace CofreDeSenhas.Janelas
                     return;
                 }
 
-                var existentes = await _servicoSenha.ListarTodosAsync();
-                var chaves = new HashSet<string>(
-                    existentes.Select(s => s.NomeServico + " " + s.Usuario),
-                    StringComparer.OrdinalIgnoreCase);
-
-                int adicionadas = 0, ignoradas = 0;
-                foreach (var item in itens)
-                {
-                    if (string.IsNullOrWhiteSpace(item.NomeServico) ||
-                        string.IsNullOrWhiteSpace(item.Usuario) ||
-                        string.IsNullOrWhiteSpace(item.Senha) ||
-                        !chaves.Add(item.NomeServico + " " + item.Usuario))
-                    {
-                        ignoradas++;
-                        continue;
-                    }
-
-                    var totp = _totp.SegredoValido(item.TotpSegredo) ? item.TotpSegredo : null;
-                    var nova = await _servicoSenha.CriarSenhaAsync(
-                        item.NomeServico, item.Usuario, item.Senha, item.Categoria, item.Url, item.Notas, totp);
-                    if (item.Favorito)
-                        await _servicoSenha.MarcarComoFavoritoAsync(nova.Id);
-                    adicionadas++;
-                }
-
-                await _servicoSenha.PersistirAsync();
-                await CarregarSenhasAsync();
+                var (adicionadas, ignoradas) = await AplicarImportacaoAsync(itens);
 
                 var msg = $"{adicionadas} senha(s) importada(s) com sucesso.";
                 if (ignoradas > 0)
@@ -714,6 +689,95 @@ namespace CofreDeSenhas.Janelas
             {
                 await CaixaMensagem.MostrarAsync(this, $"Erro ao importar: {ex.Message}", "Erro", TipoMensagem.Erro);
             }
+        }
+
+        private async void ImportarCsv_Click(object? sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var arquivos = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+                {
+                    Title = "Importar de CSV",
+                    AllowMultiple = false,
+                    FileTypeFilter = new[]
+                    {
+                        new FilePickerFileType("Arquivo CSV") { Patterns = new[] { "*.csv" } },
+                        new FilePickerFileType("Todos os arquivos") { Patterns = new[] { "*" } }
+                    }
+                });
+                if (arquivos.Count == 0)
+                    return;
+
+                ResultadoImportacaoCsv resultado;
+                try
+                {
+                    resultado = _servicoImportacaoCsv.ImportarArquivo(arquivos[0].Path.LocalPath);
+                }
+                catch (InvalidOperationException ex)
+                {
+                    await CaixaMensagem.MostrarAsync(this, ex.Message, "Importar de CSV", TipoMensagem.Aviso);
+                    return;
+                }
+
+                if (resultado.Itens.Count == 0)
+                {
+                    await CaixaMensagem.MostrarAsync(this, "Nenhuma credencial encontrada no arquivo.", "Importar de CSV");
+                    return;
+                }
+
+                var confirmar = await CaixaMensagem.ConfirmarAsync(this,
+                    $"Detectamos um arquivo no formato {resultado.FormatoDetectado} com {resultado.Itens.Count} credencial(is).\n\n" +
+                    "As senhas serão adicionadas ao cofre (itens já existentes são ignorados). Deseja continuar?",
+                    "Importar de CSV");
+                if (!confirmar)
+                    return;
+
+                var (adicionadas, ignoradas) = await AplicarImportacaoAsync(resultado.Itens);
+                ignoradas += resultado.LinhasIgnoradas;
+
+                var msg = $"{adicionadas} senha(s) importada(s) com sucesso.";
+                if (ignoradas > 0)
+                    msg += $"\n{ignoradas} ignorada(s) (já existiam ou incompletas).";
+                msg += "\n\nPor segurança, apague o arquivo CSV — ele guarda as senhas em texto aberto.";
+                await CaixaMensagem.MostrarAsync(this, msg, "Importar de CSV");
+            }
+            catch (Exception ex)
+            {
+                await CaixaMensagem.MostrarAsync(this, $"Erro ao importar: {ex.Message}", "Erro", TipoMensagem.Erro);
+            }
+        }
+
+        private async Task<(int adicionadas, int ignoradas)> AplicarImportacaoAsync(List<SenhaExportada> itens)
+        {
+            var existentes = await _servicoSenha.ListarTodosAsync();
+            var chaves = new HashSet<string>(
+                existentes.Select(s => s.NomeServico + " " + s.Usuario),
+                StringComparer.OrdinalIgnoreCase);
+
+            int adicionadas = 0, ignoradas = 0;
+            foreach (var item in itens)
+            {
+                if (string.IsNullOrWhiteSpace(item.NomeServico) ||
+                    string.IsNullOrWhiteSpace(item.Usuario) ||
+                    string.IsNullOrWhiteSpace(item.Senha) ||
+                    !chaves.Add(item.NomeServico + " " + item.Usuario))
+                {
+                    ignoradas++;
+                    continue;
+                }
+
+                var totp = _totp.SegredoValido(item.TotpSegredo) ? item.TotpSegredo : null;
+                var nova = await _servicoSenha.CriarSenhaAsync(
+                    item.NomeServico, item.Usuario, item.Senha, item.Categoria, item.Url, item.Notas, totp);
+                if (item.Favorito)
+                    await _servicoSenha.MarcarComoFavoritoAsync(nova.Id);
+                adicionadas++;
+            }
+
+            await _servicoSenha.PersistirAsync();
+            await CarregarSenhasAsync();
+
+            return (adicionadas, ignoradas);
         }
 
         private async void AlterarSenhaMestra_Click(object? sender, RoutedEventArgs e)

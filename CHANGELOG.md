@@ -7,6 +7,13 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 ## [Não lançado]
 
 ### Adicionado
+- Importação a partir de arquivos CSV de outros gerenciadores, pelo menu de
+  configurações. O delimitador (vírgula, ponto e vírgula ou tabulação) é
+  detectado automaticamente e as colunas são reconhecidas pelo cabeçalho,
+  cobrindo Bitwarden, LastPass, 1Password, Chrome/Edge, Firefox, KeePass,
+  Dashlane, NordPass e CSVs genéricos. Segredos TOTP e favoritos são preservados
+  quando presentes, entradas já existentes são ignoradas e o formato detectado é
+  confirmado antes de importar.
 - Bloqueio automático do cofre após período de inatividade: passado o tempo sem
   uso de mouse ou teclado, a janela é fechada, a chave é descartada da memória e
   o cofre volta à tela de senha mestra. O tempo é configurável no menu de

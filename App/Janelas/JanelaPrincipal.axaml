@@ -51,6 +51,8 @@
                       <MenuItem Header="Após 30 minutos" ToggleType="Radio" Tag="30" Click="Bloqueio_Alterado" />
                     </MenuItem>
                     <Separator />
+                    <MenuItem Header="Importar de CSV / outro gerenciador…" Click="ImportarCsv_Click" />
+                    <Separator />
                     <MenuItem Header="Conectar banco de dados…" Click="ConectarBanco_Click" />
                     <MenuItem Name="MenuDesconectarBanco" Header="Desconectar do banco"
                               IsVisible="False" Click="DesconectarBanco_Click" />

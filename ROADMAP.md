@@ -72,13 +72,19 @@ gerenciador de senhas seguro:
   prévia ao vivo e contagem regressiva na criação e na edição, e cópia rápida
   pela lista. O segredo é cifrado como a senha e acompanha a exportação e o
   banco de dados.
+- Importação a partir de outros gerenciadores e de arquivos CSV: pelo menu de
+  configurações, um arquivo CSV é lido com detecção automática de delimitador
+  (vírgula, ponto e vírgula ou tabulação) e mapeamento das colunas pelo
+  cabeçalho, reconhecendo os formatos de Bitwarden, LastPass, 1Password,
+  Chrome/Edge, Firefox, KeePass, Dashlane e NordPass, além de CSVs genéricos.
+  Preserva segredos TOTP e favoritos, ignora entradas já existentes e confirma o
+  formato detectado antes de importar.
 
 ## Planejado
 
 Ideias e melhorias consideradas para versões futuras, sem ordem definitiva de
 prioridade:
 
-- Importação a partir de outros gerenciadores e de arquivos CSV.
 - Organização por pastas ou etiquetas personalizadas, além das categorias fixas.
 - Histórico de alterações por credencial.
 - Internacionalização da interface (além do português).

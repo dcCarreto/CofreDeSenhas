@@ -139,6 +139,10 @@ Tema escuro:
 
 - Exportação e importação do cofre em um arquivo portável (`.gsenhas`), protegido
   por uma senha de exportação independente da senha mestra.
+- Importação de arquivos CSV de outros gerenciadores (Bitwarden, LastPass,
+  1Password, Chrome/Edge, Firefox, KeePass, Dashlane, NordPass e formatos
+  genéricos), com detecção automática de delimitador e mapeamento das colunas
+  pelo cabeçalho, preservando segredos TOTP e favoritos.
 - Geração opcional de um QR code de backup da senha mestra, oferecido na criação
   do cofre e a cada alteração da senha mestra. O QR code mostra uma versão em
   senha-frase da senha mestra, e não a senha original caractere a caractere.
