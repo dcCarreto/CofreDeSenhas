@@ -5,12 +5,8 @@
 
   <ScrollViewer HorizontalScrollBarVisibility="Disabled"
                 VerticalScrollBarVisibility="Auto">
-    <StackPanel Margin="24,22,18,24">
-      <TextBlock Text="{DynamicResource Generator.Title}" FontSize="20" FontWeight="Bold"
-                 Foreground="{DynamicResource TextPrimary}"
-                 AutomationProperties.HeadingLevel="2" />
-
-      <Grid ColumnDefinitions="*,132" Margin="0,14,0,16">
+    <StackPanel Margin="18,0,18,18">
+      <Grid ColumnDefinitions="*,132" Margin="0,8,0,16">
         <TextBlock Text="{DynamicResource Generator.Mode}" FontSize="13" Foreground="{DynamicResource TextSecondary}"
                    VerticalAlignment="Center" />
         <ComboBox Name="CmbModoGerador" Grid.Column="1" Classes="campo"
@@ -43,15 +39,24 @@
                         Orientation="Horizontal"
                         Spacing="4"
                         VerticalAlignment="Top">
-              <Button Classes="icone" Content="👁" Width="32" Height="32"
+              <Button Classes="icone" Width="32" Height="32"
                       AutomationProperties.Name="{DynamicResource Row.RevealPassword}"
-                      Click="OlhoGerada_Click" />
-              <Button Classes="icone" Content="⧉" Width="32" Height="32"
+                      Click="OlhoGerada_Click">
+                <Path Classes="line-icon" Width="14" Height="14" Stroke="{DynamicResource TextSecondary}"
+                      Data="M2.5 12 C4.8 7.5 8.1 5.5 12 5.5 C15.9 5.5 19.2 7.5 21.5 12 C19.2 16.5 15.9 18.5 12 18.5 C8.1 18.5 4.8 16.5 2.5 12 Z M12 15.5 C13.9 15.5 15.5 13.9 15.5 12 C15.5 10.1 13.9 8.5 12 8.5 C10.1 8.5 8.5 10.1 8.5 12 C8.5 13.9 10.1 15.5 12 15.5 Z" />
+              </Button>
+              <Button Classes="icone" Width="32" Height="32"
                       AutomationProperties.Name="{DynamicResource Row.CopyPassword}"
-                      Click="CopiarGerada_Click" />
-              <Button Classes="icone" Content="⟳" Width="32" Height="32" FontSize="16"
+                      Click="CopiarGerada_Click">
+                <Path Classes="line-icon" Width="14" Height="14" Stroke="{DynamicResource TextSecondary}"
+                      Data="M8 8 L18 8 L18 20 L8 20 Z M6 16 L4 16 L4 4 L14 4 L14 6" />
+              </Button>
+              <Button Classes="icone" Width="32" Height="32" FontSize="16"
                       AutomationProperties.Name="{DynamicResource Generator.GeneratePassword}"
-                      Click="Gerar_Click" />
+                      Click="Gerar_Click">
+                <Path Classes="line-icon" Width="15" Height="15" Stroke="{DynamicResource TextSecondary}"
+                      Data="M20 11 A8 8 0 0 0 6.3 5.4 L4 8 M4 4 L4 8 L8 8 M4 13 A8 8 0 0 0 17.7 18.6 L20 16 M20 20 L20 16 L16 16" />
+              </Button>
             </StackPanel>
           </Grid>
 
@@ -92,28 +97,36 @@
         <c:CustomSlider Name="SliderTamanho" Minimum="4" Maximum="64" Value="12" Margin="0,0,0,18"
                         AutomationProperties.Name="{DynamicResource Generator.Length}" />
 
-        <Grid ColumnDefinitions="*,Auto" Height="30" Margin="0,0,0,6">
-          <TextBlock Text="{DynamicResource Generator.Uppercase}" FontSize="13"
+        <Grid ColumnDefinitions="24,*,Auto" Height="30" Margin="0,0,0,6">
+          <Path Classes="line-icon" Width="15" Height="15" Stroke="{DynamicResource TextSecondary}" VerticalAlignment="Center"
+                Data="M5 19 L10 5 L14 5 L19 19 M7 14 L17 14" />
+          <TextBlock Grid.Column="1" Text="{DynamicResource Generator.Uppercase}" FontSize="13"
                      Foreground="{DynamicResource TextPrimary}" VerticalAlignment="Center" />
-          <c:CustomToggle Name="ToggleMaiusculas" Grid.Column="1" Checked="True" VerticalAlignment="Center"
+          <c:CustomToggle Name="ToggleMaiusculas" Grid.Column="2" Checked="True" VerticalAlignment="Center"
                           AutomationProperties.Name="{DynamicResource Generator.Uppercase}" />
         </Grid>
-        <Grid ColumnDefinitions="*,Auto" Height="30" Margin="0,0,0,6">
-          <TextBlock Text="{DynamicResource Generator.Lowercase}" FontSize="13"
+        <Grid ColumnDefinitions="24,*,Auto" Height="30" Margin="0,0,0,6">
+          <Path Classes="line-icon" Width="15" Height="15" Stroke="{DynamicResource TextSecondary}" VerticalAlignment="Center"
+                Data="M7 13 C7 10.8 8.8 9 11 9 C13.2 9 15 10.8 15 13 L15 19 M15 13 C15 16.3 12.5 19 9.5 19 C7.6 19 6 17.8 6 16 C6 14.1 7.6 13 9.5 13 Z" />
+          <TextBlock Grid.Column="1" Text="{DynamicResource Generator.Lowercase}" FontSize="13"
                      Foreground="{DynamicResource TextPrimary}" VerticalAlignment="Center" />
-          <c:CustomToggle Name="ToggleMinusculas" Grid.Column="1" Checked="True" VerticalAlignment="Center"
+          <c:CustomToggle Name="ToggleMinusculas" Grid.Column="2" Checked="True" VerticalAlignment="Center"
                           AutomationProperties.Name="{DynamicResource Generator.Lowercase}" />
         </Grid>
-        <Grid ColumnDefinitions="*,Auto" Height="30" Margin="0,0,0,6">
-          <TextBlock Text="{DynamicResource Generator.Numbers}" FontSize="13"
+        <Grid ColumnDefinitions="24,*,Auto" Height="30" Margin="0,0,0,6">
+          <Path Classes="line-icon" Width="15" Height="15" Stroke="{DynamicResource TextSecondary}" VerticalAlignment="Center"
+                Data="M9 5 L9 19 M15 5 L15 19 M5 9 L19 9 M5 15 L19 15" />
+          <TextBlock Grid.Column="1" Text="{DynamicResource Generator.Numbers}" FontSize="13"
                      Foreground="{DynamicResource TextPrimary}" VerticalAlignment="Center" />
-          <c:CustomToggle Name="ToggleNumeros" Grid.Column="1" Checked="True" VerticalAlignment="Center"
+          <c:CustomToggle Name="ToggleNumeros" Grid.Column="2" Checked="True" VerticalAlignment="Center"
                           AutomationProperties.Name="{DynamicResource Generator.Numbers}" />
         </Grid>
-        <Grid ColumnDefinitions="*,Auto" Height="30" Margin="0,0,0,22">
-          <TextBlock Text="{DynamicResource Generator.Special}" FontSize="13"
+        <Grid ColumnDefinitions="24,*,Auto" Height="30" Margin="0,0,0,22">
+          <Path Classes="line-icon" Width="15" Height="15" Stroke="{DynamicResource TextSecondary}" VerticalAlignment="Center"
+                Data="M12 4 L12 20 M5 8 L19 16 M19 8 L5 16" />
+          <TextBlock Grid.Column="1" Text="{DynamicResource Generator.Special}" FontSize="13"
                      Foreground="{DynamicResource TextPrimary}" VerticalAlignment="Center" />
-          <c:CustomToggle Name="ToggleEspeciais" Grid.Column="1" VerticalAlignment="Center"
+          <c:CustomToggle Name="ToggleEspeciais" Grid.Column="2" VerticalAlignment="Center"
                           AutomationProperties.Name="{DynamicResource Generator.Special}" />
         </Grid>
       </StackPanel>
@@ -135,34 +148,56 @@
                     AutomationProperties.Name="{DynamicResource Generator.Separator}"
                     Height="34" VerticalAlignment="Center" />
         </Grid>
-        <Grid ColumnDefinitions="*,Auto" Height="30" Margin="0,0,0,6">
-          <TextBlock Text="{DynamicResource Generator.Capitalize}" FontSize="13"
+        <Grid ColumnDefinitions="24,*,Auto" Height="30" Margin="0,0,0,6">
+          <Path Classes="line-icon" Width="15" Height="15" Stroke="{DynamicResource TextSecondary}" VerticalAlignment="Center"
+                Data="M5 19 L10 5 L14 5 L19 19 M7 14 L17 14" />
+          <TextBlock Grid.Column="1" Text="{DynamicResource Generator.Capitalize}" FontSize="13"
                      Foreground="{DynamicResource TextPrimary}" VerticalAlignment="Center" />
-          <c:CustomToggle Name="ToggleCapitalizarFrase" Grid.Column="1" VerticalAlignment="Center"
+          <c:CustomToggle Name="ToggleCapitalizarFrase" Grid.Column="2" VerticalAlignment="Center"
                           AutomationProperties.Name="{DynamicResource Generator.Capitalize}" />
         </Grid>
-        <Grid ColumnDefinitions="*,Auto" Height="30" Margin="0,0,0,22">
-          <TextBlock Text="{DynamicResource Generator.AddNumber}" FontSize="13"
+        <Grid ColumnDefinitions="24,*,Auto" Height="30" Margin="0,0,0,22">
+          <Path Classes="line-icon" Width="15" Height="15" Stroke="{DynamicResource TextSecondary}" VerticalAlignment="Center"
+                Data="M9 5 L9 19 M15 5 L15 19 M5 9 L19 9 M5 15 L19 15" />
+          <TextBlock Grid.Column="1" Text="{DynamicResource Generator.AddNumber}" FontSize="13"
                      Foreground="{DynamicResource TextPrimary}" VerticalAlignment="Center" />
-          <c:CustomToggle Name="ToggleNumeroFrase" Grid.Column="1" Checked="True" VerticalAlignment="Center"
+          <c:CustomToggle Name="ToggleNumeroFrase" Grid.Column="2" Checked="True" VerticalAlignment="Center"
                           AutomationProperties.Name="{DynamicResource Generator.AddNumber}" />
         </Grid>
       </StackPanel>
 
-      <Button Name="BtnGerar" Classes="primario" Content="{DynamicResource Generator.GeneratePassword}" Height="44"
+      <Button Name="BtnGerar" Classes="primario" Height="44"
               HorizontalAlignment="Stretch" Margin="0,0,0,12"
               AutomationProperties.Name="{DynamicResource Generator.GeneratePassword}"
-              Click="Gerar_Click" />
+              Click="Gerar_Click">
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <Path Classes="line-icon" Width="15" Height="15" Stroke="White"
+                Data="M20 11 A8 8 0 0 0 6.3 5.4 L4 8 M4 4 L4 8 L8 8 M4 13 A8 8 0 0 0 17.7 18.6 L20 16 M20 20 L20 16 L16 16" />
+          <TextBlock Text="{DynamicResource Generator.GeneratePassword}" />
+        </StackPanel>
+      </Button>
 
       <Grid Name="PainelAcoes" ColumnDefinitions="*,10,90">
-        <Button Name="BtnSalvar" Classes="secundario" Content="{DynamicResource Generator.SaveToVault}" Height="38" FontSize="13"
+        <Button Name="BtnSalvar" Classes="secundario" Height="38" FontSize="13"
                 HorizontalAlignment="Stretch"
                 AutomationProperties.Name="{DynamicResource Generator.SaveToVault}"
-                Click="SalvarNoCofre_Click" />
-        <Button Name="BtnLimpar" Grid.Column="2" Classes="plano" Content="{DynamicResource Generator.Clear}" Height="38"
+                Click="SalvarNoCofre_Click">
+          <StackPanel Orientation="Horizontal" Spacing="7">
+            <Path Classes="line-icon" Width="14" Height="14" Stroke="{DynamicResource TextSecondary}"
+                  Data="M7 11 L7 8 A5 5 0 0 1 17 8 L17 11 M6 11 L18 11 L18 21 L6 21 Z" />
+            <TextBlock Text="{DynamicResource Generator.SaveToVault}" />
+          </StackPanel>
+        </Button>
+        <Button Name="BtnLimpar" Grid.Column="2" Classes="plano" Height="38"
                 HorizontalAlignment="Stretch"
                 AutomationProperties.Name="{DynamicResource Generator.Clear}"
-                Click="Limpar_Click" />
+                Click="Limpar_Click">
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <Path Classes="line-icon" Width="13" Height="13" Stroke="{DynamicResource TextSecondary}"
+                  Data="M5 6 L19 6 M9 6 L9 4 L15 4 L15 6 M8 9 L8.7 20 L15.3 20 L16 9" />
+            <TextBlock Text="{DynamicResource Generator.Clear}" />
+          </StackPanel>
+        </Button>
       </Grid>
 
     </StackPanel>

@@ -13,6 +13,7 @@ using CofreDeSenhas.Controles;
 using GerenciadorDeSenhas.Modelos;
 using GerenciadorDeSenhas.Repositorios;
 using GerenciadorDeSenhas.Servicos;
+using AvaloniaPath = Avalonia.Controls.Shapes.Path;
 
 namespace CofreDeSenhas.Janelas
 {
@@ -41,6 +42,12 @@ namespace CofreDeSenhas.Janelas
         private ResultadoAuditoriaCofre? _resultadoAuditoria;
 
         private bool _somenteFavoritos;
+        private bool _somenteRecentes;
+        private bool _ordenacaoDescendente;
+        private bool _navColapsada;
+        private Senha? _senhaDetalhe;
+        private string _senhaDetalhePlain = "";
+        private bool _senhaDetalheVisivel;
         private double _larguraServico = 140;
         private double _larguraUsuario = 240;
         private double _larguraCategoria = 108;
@@ -58,6 +65,13 @@ namespace CofreDeSenhas.Janelas
         private const double LarguraMinimaCategoria = 86;
         private const double LarguraMinimaData = 78;
         private const double LarguraMinimaAcoes = 170;
+
+        private const string IconeMaximizar = "M6 6 L18 6 L18 18 L6 18 Z";
+        private const string IconeRestaurar = "M8 8 L20 8 L20 20 L8 20 Z M4 4 L16 4 L16 6 M4 4 L4 16 L6 16";
+        private const string IconeLua = "M21 12.8 C19.8 13.4 18.5 13.8 17.1 13.8 C12.2 13.8 8.2 9.8 8.2 4.9 C8.2 3.5 8.6 2.2 9.2 1 C5.1 2.2 2 6 2 10.5 C2 16.3 6.7 21 12.5 21 C17 21 20.8 17.9 21 12.8 Z";
+        private const string IconeSol = "M12 4 L12 1 M12 23 L12 20 M4.9 4.9 L2.8 2.8 M21.2 21.2 L19.1 19.1 M4 12 L1 12 M23 12 L20 12 M4.9 19.1 L2.8 21.2 M21.2 2.8 L19.1 4.9 M12 8 A4 4 0 1 0 12 16 A4 4 0 1 0 12 8";
+        private const string IconeOlho = "M2.5 12 C4.8 7.5 8.1 5.5 12 5.5 C15.9 5.5 19.2 7.5 21.5 12 C19.2 16.5 15.9 18.5 12 18.5 C8.1 18.5 4.8 16.5 2.5 12 Z M12 15.5 C13.9 15.5 15.5 13.9 15.5 12 C15.5 10.1 13.9 8.5 12 8.5 C10.1 8.5 8.5 10.1 8.5 12 C8.5 13.9 10.1 15.5 12 15.5 Z";
+        private const string IconeOlhoFechado = "M4 4 L20 20 M6.2 6.9 C4.7 8 3.5 9.7 2.5 12 C4.8 16.5 8.1 18.5 12 18.5 C13.2 18.5 14.3 18.3 15.3 17.8 M9.1 9.1 C8.7 9.7 8.5 10.8 8.5 12 C8.5 13.9 10.1 15.5 12 15.5 C13.2 15.5 14.2 14.9 14.8 14 M10.1 5.7 C10.7 5.6 11.3 5.5 12 5.5 C15.9 5.5 19.2 7.5 21.5 12 C20.8 13.4 19.9 14.6 18.9 15.6";
 
         public JanelaPrincipal(IServicoSenha servicoSenha, byte[] chaveMestra, IServicoCriptografia? criptografia = null,
             IRepositorioSenha? repositorioLocal = null, Action? aoBloquear = null)
@@ -82,6 +96,7 @@ namespace CofreDeSenhas.Janelas
 
             AtualizarBotaoTema();
             PintarFiltroFavoritos();
+            AtualizarNavegacao();
             AtualizarContador();
             AtualizarEstadoConexao(null);
             MarcarIdiomaSelecionado();
@@ -210,17 +225,17 @@ namespace CofreDeSenhas.Janelas
             _largurasIniciaisAplicadas = true;
 
             double larguraDisponivel = GridCabecalhoTabela.Bounds.Width;
-            double fixo = 42 + 44 + 26 + 24;
+            double fixo = 42 + 24 + 6 + 6 + 6 + 6;
 
-            _larguraAcoes = Math.Clamp(larguraDisponivel * 0.16, LarguraMinimaAcoes, 186);
-            _larguraCategoria = Math.Clamp(larguraDisponivel * 0.12, LarguraMinimaCategoria, 116);
-            _larguraData = Math.Clamp(larguraDisponivel * 0.10, LarguraMinimaData, 100);
+            _larguraAcoes = Math.Clamp(larguraDisponivel * 0.17, LarguraMinimaAcoes, 190);
+            _larguraCategoria = Math.Clamp(larguraDisponivel * 0.13, LarguraMinimaCategoria, 132);
+            _larguraData = Math.Clamp(larguraDisponivel * 0.11, LarguraMinimaData, 118);
 
             double flexivel = Math.Max(
                 LarguraMinimaServico + LarguraMinimaUsuario,
                 larguraDisponivel - fixo - _larguraCategoria - _larguraData - _larguraAcoes);
 
-            _larguraServico = Math.Clamp(flexivel * 0.34, LarguraMinimaServico, 145);
+            _larguraServico = Math.Clamp(flexivel * 0.44, LarguraMinimaServico, 260);
             _larguraUsuario = Math.Max(LarguraMinimaUsuario, flexivel - _larguraServico);
 
             AplicarLargurasColunas();
@@ -282,11 +297,11 @@ namespace CofreDeSenhas.Janelas
             if (GridCabecalhoTabela == null)
                 return;
 
-            GridCabecalhoTabela.ColumnDefinitions[3].Width = new GridLength(_larguraServico);
-            GridCabecalhoTabela.ColumnDefinitions[5].Width = new GridLength(_larguraUsuario);
-            GridCabecalhoTabela.ColumnDefinitions[7].Width = new GridLength(_larguraCategoria);
-            GridCabecalhoTabela.ColumnDefinitions[9].Width = new GridLength(_larguraData);
-            GridCabecalhoTabela.ColumnDefinitions[11].Width = new GridLength(_larguraAcoes);
+            GridCabecalhoTabela.ColumnDefinitions[1].Width = new GridLength(_larguraServico);
+            GridCabecalhoTabela.ColumnDefinitions[3].Width = new GridLength(_larguraUsuario);
+            GridCabecalhoTabela.ColumnDefinitions[5].Width = new GridLength(_larguraCategoria);
+            GridCabecalhoTabela.ColumnDefinitions[7].Width = new GridLength(_larguraData);
+            GridCabecalhoTabela.ColumnDefinitions[9].Width = new GridLength(_larguraAcoes);
 
             foreach (var linha in _linhasSenha)
                 linha.DefinirLargurasColunas(_larguraServico, _larguraUsuario, _larguraCategoria, _larguraData, _larguraAcoes);
@@ -308,12 +323,13 @@ namespace CofreDeSenhas.Janelas
             AtualizarBotaoTema();
             Gerador.AtualizarTema();
             PintarFiltroFavoritos();
+            AtualizarNavegacao();
             FiltrarSenhas();
         }
 
         private void AtualizarBotaoTema()
         {
-            BtnTema.Content = Tema.ModoEscuro ? "☀" : "🌙";
+            BtnTema.Content = Tema.ModoEscuro ? "☀" : "☾";
             var dica = Idioma.Texto(Tema.ModoEscuro ? "Theme.Light" : "Theme.Dark");
             ToolTip.SetTip(BtnTema, dica);
             Avalonia.Automation.AutomationProperties.SetName(BtnTema, dica);
@@ -396,6 +412,8 @@ namespace CofreDeSenhas.Janelas
             ConfigurarAcessibilidadeLeitorTela();
             Gerador.AtualizarTema();
             PintarFiltroFavoritos();
+            AtualizarNavegacao();
+            AtualizarDetalheVisual();
             FiltrarSenhas();
         }
 
@@ -417,15 +435,13 @@ namespace CofreDeSenhas.Janelas
         {
             var dlg = new JanelaCriarSenha(_servicoSenha, senha);
             if (await dlg.ShowDialog<bool>(this))
+            {
+                FecharGerador();
                 await CarregarSenhasAsync();
+            }
         }
 
-        private async void NovaSenha_Click(object? sender, RoutedEventArgs e)
-        {
-            var dlg = new JanelaCriarSenha(_servicoSenha);
-            if (await dlg.ShowDialog<bool>(this))
-                await CarregarSenhasAsync();
-        }
+        private void NovaSenha_Click(object? sender, RoutedEventArgs e) => AbrirGerador();
 
         private async Task CarregarSenhasAsync()
         {
@@ -463,6 +479,7 @@ namespace CofreDeSenhas.Janelas
                 var linha = new LinhaSenha(senha, ObterSenhaPlain, ObterTotpPlain, FavoritarToggle, EditarSenha,
                     ExcluirSenhaAsync, RenomearServicoAsync);
                 linha.DefinirLargurasColunas(_larguraServico, _larguraUsuario, _larguraCategoria, _larguraData, _larguraAcoes);
+                linha.SolicitouDetalhes += Linha_SolicitouDetalhes;
 
                 var plain = ObterSenhaPlain(senha);
                 if (!string.IsNullOrEmpty(plain))
@@ -513,6 +530,15 @@ namespace CofreDeSenhas.Janelas
                 .Where(s => !_somenteFavoritos || s.Favorito)
                 .ToList();
 
+            filtradas = _somenteRecentes
+                ? filtradas
+                    .OrderByDescending(s => s.DataAtualizacao)
+                    .ThenByDescending(s => s.DataCriacao)
+                    .ToList()
+                : (_ordenacaoDescendente
+                    ? filtradas.OrderByDescending(s => s.NomeServico, StringComparer.CurrentCultureIgnoreCase).ToList()
+                    : filtradas.OrderBy(s => s.NomeServico, StringComparer.CurrentCultureIgnoreCase).ToList());
+
             AtualizarLista(filtradas);
         }
 
@@ -557,7 +583,9 @@ namespace CofreDeSenhas.Janelas
         private void FiltroFavoritos_Click(object? sender, RoutedEventArgs e)
         {
             _somenteFavoritos = !_somenteFavoritos;
+            _somenteRecentes = false;
             PintarFiltroFavoritos();
+            AtualizarNavegacao();
             FiltrarSenhas();
             Acessibilidade.Anunciar(BtnFavoritos, Idioma.Texto(_somenteFavoritos ? "A11y.FilterOn" : "A11y.FilterOff"));
         }
@@ -596,9 +624,304 @@ namespace CofreDeSenhas.Janelas
                     : Idioma.Formatar("Vault.Status.WithAlert", auditoria.TotalComAchados));
             }
 
-            LblStatus.Text = status;
-            AutomationProperties.SetName(LblStatus, $"{Idioma.Texto("A11y.VaultStatus")}: {status}");
+            LblStatus.Text = Idioma.Texto("Vault.Connection.Local");
+            ToolTip.SetTip(LblStatus, status);
+            AutomationProperties.SetName(LblStatus, $"{Idioma.Texto("A11y.VaultStatus")}: {LblStatus.Text}. {status}");
             AutomationProperties.SetName(LblContadorHeader, LblContadorHeader.Text ?? "");
+        }
+
+        private static AvaloniaPath CriarIcone(string data, double tamanho, IBrush? stroke = null) => new()
+        {
+            Data = StreamGeometry.Parse(data),
+            Width = tamanho,
+            Height = tamanho,
+            Stretch = Stretch.Uniform,
+            Stroke = stroke ?? Tema.Pincel(Tema.TextSecondary),
+            StrokeThickness = 2,
+            StrokeLineCap = PenLineCap.Round,
+            Fill = Brushes.Transparent
+        };
+
+        private static string TextoBloqueioAutomatico()
+        {
+            int minutos = Preferencias.MinutosBloqueio;
+            return minutos <= 0
+                ? "Bloqueio automático desativado"
+                : minutos == 1
+                    ? "1 min até bloqueio automático"
+                    : $"{minutos} min até bloqueio automático";
+        }
+
+        private void ToggleGerador_Click(object? sender, RoutedEventArgs e)
+        {
+            PainelGeradorFlutuante.IsVisible = !PainelGeradorFlutuante.IsVisible;
+            AtualizarFabGerador();
+        }
+
+        private void FecharGerador_Click(object? sender, RoutedEventArgs e) => FecharGerador();
+
+        private void AbrirGerador()
+        {
+            PainelGeradorFlutuante.IsVisible = true;
+            AtualizarFabGerador();
+        }
+
+        private void FecharGerador()
+        {
+            PainelGeradorFlutuante.IsVisible = false;
+            AtualizarFabGerador();
+        }
+
+        private void AtualizarFabGerador()
+        {
+            IconeFabGerador.RenderTransform = null;
+        }
+
+        private void ToggleNav_Click(object? sender, RoutedEventArgs e)
+        {
+            _navColapsada = !_navColapsada;
+            NavRail.Width = _navColapsada ? 64 : 224;
+
+            foreach (var texto in TextosNav())
+                texto.IsVisible = !_navColapsada;
+
+            LblCategoriasNav.IsVisible = !_navColapsada;
+        }
+
+        private IEnumerable<TextBlock> TextosNav()
+        {
+            yield return LblNavCofre;
+            yield return LblNavFavoritas;
+            yield return LblNavRecentes;
+            yield return LblCatJogos;
+            yield return LblCatRedes;
+            yield return LblCatEmail;
+            yield return LblCatFinanceiro;
+            yield return LblCatOutro;
+        }
+
+        private void NavCofre_Click(object? sender, RoutedEventArgs e)
+        {
+            _somenteFavoritos = false;
+            _somenteRecentes = false;
+            if (CmbCategoria.SelectedIndex != 0)
+                CmbCategoria.SelectedIndex = 0;
+            PintarFiltroFavoritos();
+            AtualizarNavegacao();
+            FiltrarSenhas();
+        }
+
+        private void NavFavoritas_Click(object? sender, RoutedEventArgs e)
+        {
+            _somenteFavoritos = true;
+            _somenteRecentes = false;
+            PintarFiltroFavoritos();
+            AtualizarNavegacao();
+            FiltrarSenhas();
+        }
+
+        private void NavRecentes_Click(object? sender, RoutedEventArgs e)
+        {
+            _somenteFavoritos = false;
+            _somenteRecentes = true;
+            PintarFiltroFavoritos();
+            AtualizarNavegacao();
+            FiltrarSenhas();
+        }
+
+        private void NavCategoria_Click(object? sender, RoutedEventArgs e)
+        {
+            if (sender is not Button { Tag: string tag } || !Enum.TryParse<Categoria>(tag, out var categoria))
+                return;
+
+            _somenteFavoritos = false;
+            _somenteRecentes = false;
+            SelecionarCategoria(categoria);
+            PintarFiltroFavoritos();
+            AtualizarNavegacao();
+            FiltrarSenhas();
+        }
+
+        private void SelecionarCategoria(Categoria categoria)
+        {
+            if (CmbCategoria.ItemsSource is not IEnumerable<FiltroOrganizacao> filtros)
+                return;
+
+            int indice = filtros.ToList().FindIndex(f => f.Categoria == categoria);
+            if (indice >= 0)
+                CmbCategoria.SelectedIndex = indice;
+        }
+
+        private void Ordenar_Click(object? sender, RoutedEventArgs e)
+        {
+            _ordenacaoDescendente = !_ordenacaoDescendente;
+            _somenteRecentes = false;
+            AtualizarNavegacao();
+            FiltrarSenhas();
+        }
+
+        private void AtualizarNavegacao()
+        {
+            DefinirNavAtivo(BtnNavCofre, !_somenteFavoritos && !_somenteRecentes);
+            DefinirNavAtivo(BtnNavFavoritas, _somenteFavoritos);
+            DefinirNavAtivo(BtnNavRecentes, _somenteRecentes);
+        }
+
+        private static void DefinirNavAtivo(Button botao, bool ativo)
+        {
+            if (ativo && !botao.Classes.Contains("ativo"))
+                botao.Classes.Add("ativo");
+            else if (!ativo)
+                botao.Classes.Remove("ativo");
+        }
+
+        private void Linha_SolicitouDetalhes(object? sender, Senha senha) => AbrirDetalhes(senha);
+
+        private void AbrirDetalhes(Senha senha)
+        {
+            _senhaDetalhe = senha;
+            _senhaDetalhePlain = ObterSenhaPlain(senha) ?? "";
+            _senhaDetalheVisivel = false;
+
+            TxtDetalheServico.Text = senha.NomeServico;
+            TxtDetalheUsuario.Text = senha.Usuario;
+            TxtDetalheUrl.Text = senha.Url ?? "";
+            TxtDetalheNotas.Text = senha.Notas ?? "";
+            AtualizarDetalheVisual();
+            AtualizarSenhaDetalhe();
+            PainelDetalhes.IsVisible = true;
+        }
+
+        private void AtualizarDetalheVisual()
+        {
+            if (_senhaDetalhe == null || AvatarDetalhe == null)
+                return;
+
+            var icone = IconesServico.Obter(TxtDetalheServico.Text ?? _senhaDetalhe.NomeServico, TxtDetalheUrl.Text);
+            AvatarDetalhe.Background = new SolidColorBrush(icone.Fundo);
+            TxtAvatarDetalhe.Text = icone.Texto;
+            TxtAvatarDetalhe.Foreground = new SolidColorBrush(icone.Frente);
+            ToolTip.SetTip(AvatarDetalhe, TxtDetalheServico.Text ?? _senhaDetalhe.NomeServico);
+
+            var (bg, fg) = Acessibilidade.CoresCategoria(_senhaDetalhe.Categoria);
+            BadgeDetalheCategoria.Background = new SolidColorBrush(bg);
+            TxtDetalheCategoria.Foreground = new SolidColorBrush(fg);
+            TxtDetalheCategoria.Text = _senhaDetalhe.Categoria == Categoria.Other && _senhaDetalhe.Etiquetas.Count > 0
+                ? string.Join(", ", _senhaDetalhe.Etiquetas)
+                : CategoriasUI.Rotulo(_senhaDetalhe.Categoria);
+        }
+
+        private void AtualizarSenhaDetalhe()
+        {
+            TxtDetalheSenha.Text = _senhaDetalheVisivel
+                ? _senhaDetalhePlain
+                : new string('•', Math.Max(8, _senhaDetalhePlain.Length));
+            TxtDetalheSenha.IsReadOnly = !_senhaDetalheVisivel;
+            BtnDetalheRevelar.Content = CriarIcone(_senhaDetalheVisivel ? IconeOlhoFechado : IconeOlho, 14);
+            ToolTip.SetTip(BtnDetalheRevelar, Idioma.Texto(_senhaDetalheVisivel ? "Row.HidePassword" : "Row.RevealPassword"));
+        }
+
+        private void FecharDetalhes_Click(object? sender, RoutedEventArgs e) => FecharDetalhes();
+
+        private void FecharDetalhes()
+        {
+            PainelDetalhes.IsVisible = false;
+            _senhaDetalhe = null;
+            _senhaDetalhePlain = "";
+            _senhaDetalheVisivel = false;
+        }
+
+        private async void ExcluirDetalhes_Click(object? sender, RoutedEventArgs e)
+        {
+            if (_senhaDetalhe == null)
+                return;
+
+            var id = _senhaDetalhe.Id;
+            await ExcluirSenhaAsync(_senhaDetalhe);
+            if (_senhasAtuais.All(s => s.Id != id))
+                FecharDetalhes();
+        }
+
+        private async void SalvarDetalhes_Click(object? sender, RoutedEventArgs e)
+        {
+            if (_senhaDetalhe == null)
+                return;
+
+            var servico = (TxtDetalheServico.Text ?? "").Trim();
+            var usuario = (TxtDetalheUsuario.Text ?? "").Trim();
+            if (string.IsNullOrWhiteSpace(servico) || string.IsNullOrWhiteSpace(usuario))
+            {
+                await CaixaMensagem.MostrarAsync(this,
+                    Idioma.Texto("Entry.EditRequired"), Idioma.Texto("Common.Validation"), TipoMensagem.Aviso);
+                return;
+            }
+
+            var senhaPlain = _senhaDetalheVisivel ? TxtDetalheSenha.Text : _senhaDetalhePlain;
+            if (string.IsNullOrEmpty(senhaPlain))
+            {
+                await CaixaMensagem.MostrarAsync(this,
+                    Idioma.Texto("Entry.RecoverCurrentPasswordError"),
+                    Idioma.Texto("Entry.EditTitle"), TipoMensagem.Aviso);
+                return;
+            }
+
+            try
+            {
+                var id = _senhaDetalhe.Id;
+                await _servicoSenha.AtualizarSenhaAsync(
+                    id,
+                    servico,
+                    usuario,
+                    senhaPlain,
+                    _senhaDetalhe.Categoria,
+                    string.IsNullOrWhiteSpace(TxtDetalheUrl.Text) ? null : TxtDetalheUrl.Text,
+                    string.IsNullOrWhiteSpace(TxtDetalheNotas.Text) ? null : TxtDetalheNotas.Text,
+                    _senhaDetalhe.Etiquetas);
+
+                await _servicoSenha.PersistirAsync();
+                await CarregarSenhasAsync();
+
+                var atualizada = _senhasAtuais.FirstOrDefault(s => s.Id == id);
+                if (atualizada != null)
+                    AbrirDetalhes(atualizada);
+            }
+            catch (Exception ex)
+            {
+                await CaixaMensagem.MostrarAsync(this,
+                    Idioma.Formatar("Entry.UpdateError", ex.Message), Idioma.Texto("Common.Error"), TipoMensagem.Erro);
+            }
+        }
+
+        private void RevelarSenhaDetalhes_Click(object? sender, RoutedEventArgs e)
+        {
+            if (_senhaDetalheVisivel)
+                _senhaDetalhePlain = TxtDetalheSenha.Text ?? "";
+
+            _senhaDetalheVisivel = !_senhaDetalheVisivel;
+            AtualizarSenhaDetalhe();
+        }
+
+        private async void CopiarUsuarioDetalhes_Click(object? sender, RoutedEventArgs e) =>
+            await CopiarDetalheAsync(TxtDetalheUsuario.Text, Idioma.Texto("Row.CopyUser"));
+
+        private async void CopiarSenhaDetalhes_Click(object? sender, RoutedEventArgs e) =>
+            await CopiarDetalheAsync(_senhaDetalheVisivel ? TxtDetalheSenha.Text : _senhaDetalhePlain, Idioma.Texto("Row.CopyPassword"));
+
+        private async void CopiarUrlDetalhes_Click(object? sender, RoutedEventArgs e) =>
+            await CopiarDetalheAsync(TxtDetalheUrl.Text, "URL");
+
+        private async Task CopiarDetalheAsync(string? texto, string rotulo)
+        {
+            if (string.IsNullOrWhiteSpace(texto))
+                return;
+
+            var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
+            if (clipboard != null)
+            {
+                try { await clipboard.SetTextAsync(texto); } catch { }
+            }
+
+            Acessibilidade.Anunciar(this, Idioma.Formatar("A11y.Copied", rotulo));
         }
 
         private async void FavoritarToggle(Senha s)
@@ -655,6 +978,8 @@ namespace CofreDeSenhas.Janelas
         {
             _senhasAtuais.RemoveAll(s => s.Id == id);
             _itensAuditoria.Remove(id);
+            if (_senhaDetalhe?.Id == id)
+                FecharDetalhes();
             AtualizarFiltroOrganizacao();
             FiltrarSenhas();
             AtualizarContador();
@@ -1134,6 +1459,7 @@ namespace CofreDeSenhas.Janelas
             Preferencias.Salvar();
             _monitor.Ajustar(minutos);
             MarcarBloqueioSelecionado(minutos);
+            AtualizarEstadoConexao(_descricaoConexaoAtual, _falhaReconexaoAtual);
         }
 
         private void MarcarBloqueioSelecionado(int minutos)
@@ -1259,27 +1585,32 @@ namespace CofreDeSenhas.Janelas
             _descricaoConexaoAtual = descricao;
             _falhaReconexaoAtual = falhaReconexao;
 
+            string conexao;
             if (_conectadoAoBanco && descricao != null)
             {
-                LblConexao.Text = Idioma.Formatar("Vault.Connection.Connected", descricao);
+                conexao = Idioma.Formatar("Vault.Connection.Connected", descricao);
                 PontoConexao.Fill = Tema.Pincel(Tema.StatusConnected);
                 MenuDesconectarBanco.IsVisible = true;
             }
             else if (falhaReconexao)
             {
-                LblConexao.Text = Idioma.Texto("Vault.Connection.DatabaseUnavailable");
+                conexao = Idioma.Texto("Vault.Connection.DatabaseUnavailable");
                 PontoConexao.Fill = Tema.Pincel(Tema.StatusWarning);
                 MenuDesconectarBanco.IsVisible = true;
             }
             else
             {
-                LblConexao.Text = Idioma.Texto("Vault.Connection.Local");
+                conexao = Idioma.Texto("Vault.Connection.Local");
                 PontoConexao.Fill = Tema.Pincel(Tema.StatusLocal);
                 MenuDesconectarBanco.IsVisible = false;
             }
 
+            PontoConexao.IsVisible = false;
+            LblConexao.Text = TextoBloqueioAutomatico();
+            ToolTip.SetTip(LblConexao, conexao);
+
             AutomationProperties.SetName(LblConexao,
-                $"{Idioma.Texto("A11y.ConnectionStatus")}: {LblConexao.Text}");
+                $"{LblConexao.Text}. {Idioma.Texto("A11y.ConnectionStatus")}: {conexao}");
         }
 
         private void Reiniciar()

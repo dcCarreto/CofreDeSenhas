@@ -3,8 +3,8 @@
         xmlns:c="using:CofreDeSenhas.Controles"
         x:Class="CofreDeSenhas.Janelas.JanelaPrincipal"
         Title="{DynamicResource App.Title}"
-        Width="1160" Height="720"
-        MinWidth="900" MinHeight="600"
+        Width="1240" Height="760"
+        MinWidth="980" MinHeight="640"
         SystemDecorations="None"
         Background="Transparent"
         TransparencyLevelHint="Transparent"
@@ -35,25 +35,49 @@
             </StackPanel>
 
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,5,0">
-              <Button Name="BtnConfig" Classes="janela" Content="⚙" FontSize="14"
+              <Button Name="BtnConfig" Classes="janela"
+                      Content="⚙"
+                      FontSize="15"
                       Foreground="{DynamicResource TextSecondary}"
                       ToolTip.Tip="{DynamicResource Settings.Tooltip}"
                       AutomationProperties.Name="{DynamicResource Settings.Tooltip}">
                 <Button.Flyout>
                   <MenuFlyout Placement="BottomEdgeAlignedRight">
-                    <MenuItem Header="{DynamicResource Settings.ChangeMasterPassword}" Click="AlterarSenhaMestra_Click" />
-                    <MenuItem Header="{DynamicResource Settings.RegenerateQr}" Click="RegerarQrCode_Click" />
-                    <MenuItem Name="MenuBiometria" Header="{DynamicResource Settings.EnableWindowsHello}" Click="Biometria_Click" />
+                    <MenuItem Header="{DynamicResource Settings.ChangeMasterPassword}" Click="AlterarSenhaMestra_Click">
+                      <MenuItem.Icon>
+                        <Path Classes="line-icon" Width="16" Height="16" Stroke="{DynamicResource TextSecondary}"
+                              Data="M7 11 L7 8 A5 5 0 0 1 17 8 L17 11 M6 11 L18 11 L18 21 L6 21 Z" />
+                      </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="{DynamicResource Settings.RegenerateQr}" Click="RegerarQrCode_Click">
+                      <MenuItem.Icon>
+                        <Path Classes="line-icon" Width="16" Height="16" Stroke="{DynamicResource TextSecondary}"
+                              Data="M4 4 L10 4 L10 10 L4 10 Z M14 4 L20 4 L20 10 L14 10 Z M4 14 L10 14 L10 20 L4 20 Z M14 14 L17 14 L17 17 L14 17 Z M18 18 L20 18 L20 20 L18 20 Z" />
+                      </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Name="MenuBiometria" Header="{DynamicResource Settings.EnableWindowsHello}" Click="Biometria_Click">
+                      <MenuItem.Icon>
+                        <Path Classes="line-icon" Width="16" Height="16" Stroke="{DynamicResource TextSecondary}"
+                              Data="M7 11 C7 7.7 9.2 5.5 12 5.5 C14.8 5.5 17 7.7 17 11 M6 15 C6 18 8.5 20 12 20 C15.5 20 18 18 18 15 M9 11 C9 9.3 10.2 8.2 12 8.2 C13.8 8.2 15 9.3 15 11 L15 13 C15 14.7 13.8 16 12 16 C10.2 16 9 14.7 9 13 Z" />
+                      </MenuItem.Icon>
+                    </MenuItem>
                     <Separator />
                     <MenuItem Name="MenuBloqueio" Header="{DynamicResource Settings.AutoLock}">
+                      <MenuItem.Icon>
+                        <Path Classes="line-icon" Width="16" Height="16" Stroke="{DynamicResource TextSecondary}"
+                              Data="M12 7 L12 12 L15 14 M21 12 A9 9 0 1 1 12 3 A9 9 0 0 1 21 12 Z" />
+                      </MenuItem.Icon>
                       <MenuItem Header="{DynamicResource Settings.Disabled}" ToggleType="Radio" Tag="0" Click="Bloqueio_Alterado" />
                       <MenuItem Header="{DynamicResource Settings.AfterOneMinute}" ToggleType="Radio" Tag="1" Click="Bloqueio_Alterado" />
                       <MenuItem Header="{DynamicResource Settings.AfterMinutes5}" ToggleType="Radio" Tag="5" Click="Bloqueio_Alterado" />
                       <MenuItem Header="{DynamicResource Settings.AfterMinutes15}" ToggleType="Radio" Tag="15" Click="Bloqueio_Alterado" />
                       <MenuItem Header="{DynamicResource Settings.AfterMinutes30}" ToggleType="Radio" Tag="30" Click="Bloqueio_Alterado" />
                     </MenuItem>
-                    <Separator />
                     <MenuItem Name="MenuIdioma" Header="{DynamicResource Settings.Language}">
+                      <MenuItem.Icon>
+                        <Path Classes="line-icon" Width="16" Height="16" Stroke="{DynamicResource TextSecondary}"
+                              Data="M4 5 L13 5 M8.5 3 L8.5 5 M7 5 C7.5 8.3 10.2 10.9 13.8 12 M12 5 C11.4 8.2 8.8 11.1 5 13 M14 20 L16 15 L18 20 M14.8 18 L17.2 18 M3 19 L9 19 M5 5 L5 19 L11 19" />
+                      </MenuItem.Icon>
                       <MenuItem Header="Português (Brasil)" ToggleType="Radio" Tag="pt-BR" Click="Idioma_Alterado" />
                       <MenuItem Header="English" ToggleType="Radio" Tag="en" Click="Idioma_Alterado" />
                       <MenuItem Header="Español" ToggleType="Radio" Tag="es" Click="Idioma_Alterado" />
@@ -61,8 +85,11 @@
                       <MenuItem Header="Deutsch" ToggleType="Radio" Tag="de" Click="Idioma_Alterado" />
                       <MenuItem Header="Italiano" ToggleType="Radio" Tag="it" Click="Idioma_Alterado" />
                     </MenuItem>
-                    <Separator />
                     <MenuItem Name="MenuAcessibilidade" Header="{DynamicResource Access.Title}">
+                      <MenuItem.Icon>
+                        <Path Classes="line-icon" Width="16" Height="16" Stroke="{DynamicResource TextSecondary}"
+                              Data="M12 5 A2 2 0 1 0 12 1 A2 2 0 1 0 12 5 M4 8 L20 8 M12 8 L12 13 M8 22 L11 13 M16 22 L13 13" />
+                      </MenuItem.Icon>
                       <MenuItem Name="MenuDaltonismo" Header="{DynamicResource Access.Colorblind}">
                         <MenuItem Header="{DynamicResource Access.None}" ToggleType="Radio" Tag="Nenhum" Click="Daltonismo_Alterado" />
                         <MenuItem Header="{DynamicResource Access.Protanopia}" ToggleType="Radio" Tag="Protanopia" Click="Daltonismo_Alterado" />
@@ -80,213 +107,561 @@
                       <MenuItem Name="MenuLeitorTela" Header="{DynamicResource Access.ScreenReader}" ToggleType="CheckBox" Click="LeitorTela_Alterado" />
                     </MenuItem>
                     <Separator />
-                    <MenuItem Header="{DynamicResource Settings.ImportCsv}" Click="ImportarCsv_Click" />
-                    <Separator />
-                    <MenuItem Header="{DynamicResource Settings.ConnectDatabase}" Click="ConectarBanco_Click" />
+                    <MenuItem Header="{DynamicResource Settings.ImportCsv}" Click="ImportarCsv_Click">
+                      <MenuItem.Icon>
+                        <Path Classes="line-icon" Width="16" Height="16" Stroke="{DynamicResource TextSecondary}"
+                              Data="M5 4 L19 4 L19 20 L5 20 Z M8 8 L16 8 M8 12 L16 12 M8 16 L12 16" />
+                      </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="{DynamicResource Settings.ConnectDatabase}" Click="ConectarBanco_Click">
+                      <MenuItem.Icon>
+                        <Path Classes="line-icon" Width="16" Height="16" Stroke="{DynamicResource TextSecondary}"
+                              Data="M5 6 C5 4.3 8.1 3 12 3 C15.9 3 19 4.3 19 6 C19 7.7 15.9 9 12 9 C8.1 9 5 7.7 5 6 Z M5 6 L5 12 C5 13.7 8.1 15 12 15 C15.9 15 19 13.7 19 12 L19 6 M5 12 L5 18 C5 19.7 8.1 21 12 21 C15.9 21 19 19.7 19 18 L19 12" />
+                      </MenuItem.Icon>
+                    </MenuItem>
                     <MenuItem Name="MenuDesconectarBanco" Header="{DynamicResource Settings.DisconnectDatabase}"
-                              IsVisible="False" Click="DesconectarBanco_Click" />
+                              IsVisible="False" Click="DesconectarBanco_Click">
+                      <MenuItem.Icon>
+                        <Path Classes="line-icon" Width="16" Height="16" Stroke="{DynamicResource TextSecondary}"
+                              Data="M4 4 L20 20 M5 6 C5 4.3 8.1 3 12 3 C15.9 3 19 4.3 19 6 C19 6.7 18.5 7.3 17.6 7.8 M5 6 L5 12 C5 13.7 8.1 15 12 15 C13.2 15 14.3 14.9 15.3 14.6 M5 12 L5 18 C5 19.7 8.1 21 12 21 C14.1 21 16 20.6 17.3 19.9" />
+                      </MenuItem.Icon>
+                    </MenuItem>
                   </MenuFlyout>
                 </Button.Flyout>
               </Button>
-              <Button Name="BtnTema" Classes="janela" Content="🌙" FontSize="13"
-                      Foreground="{DynamicResource TextSecondary}"
+              <Button Name="BtnTema" Classes="janela"
+                      Content="☀"
+                      FontSize="14"
                       AutomationProperties.Name="{DynamicResource Theme.Dark}"
                       Click="Tema_Click" />
-              <Button Classes="janela" Content="−"
+              <Button Classes="janela"
+                      Content="−"
+                      FontSize="17"
                       AutomationProperties.Name="{DynamicResource Access.Minimize}"
                       Click="Minimizar_Click" />
-              <Button Name="BtnMaximizar" Classes="janela" Content="□" FontSize="14"
+              <Button Name="BtnMaximizar" Classes="janela"
+                      Content="□"
+                      FontSize="14"
                       AutomationProperties.Name="{DynamicResource Access.Maximize}"
                       Click="Maximizar_Click" />
-              <Button Classes="janela fechar" Content="✕"
+              <Button Classes="janela fechar"
+                      Content="✕"
+                      FontSize="14"
                       AutomationProperties.Name="{DynamicResource Access.Close}"
                       Click="Fechar_Click" />
             </StackPanel>
           </Grid>
         </Border>
 
-        <Grid Margin="18" ColumnDefinitions="3*,18,7*">
+        <Grid ColumnDefinitions="Auto,*">
+          <Border Name="NavRail"
+                  Grid.Column="0"
+                  Width="224"
+                  Background="{DynamicResource TitleBar}"
+                  BorderBrush="{DynamicResource TitleBarBorder}"
+                  BorderThickness="0,0,1,0">
+            <DockPanel Margin="12,16,12,14">
+              <Button DockPanel.Dock="Top"
+                      Classes="nav-toggle"
+                      Width="40" Height="40"
+                      HorizontalAlignment="Left"
+                      ToolTip.Tip="Alternar navegação"
+                      Click="ToggleNav_Click">
+                <Path Classes="line-icon" Width="18" Height="18" Stroke="{DynamicResource TextSecondary}"
+                      Data="M4 7 L20 7 M4 12 L20 12 M4 17 L20 17" />
+              </Button>
 
-          <Border Grid.Column="0"
-                  MinWidth="280"
-                  CornerRadius="12"
-                  Background="{DynamicResource CardBackground}"
-                  BorderBrush="{DynamicResource CardBorder}"
-                  BorderThickness="1"
-                  BoxShadow="0 3 16 0 #21262840">
-            <c:GeradorSenha Name="Gerador" />
+              <Button Name="BtnFabGerador"
+                      DockPanel.Dock="Bottom"
+                      Width="58" Height="58"
+                      HorizontalAlignment="Left"
+                      Margin="6,0,0,4"
+                      Classes="fab"
+                      ToolTip.Tip="{DynamicResource Generator.Title}"
+                      Click="ToggleGerador_Click">
+                <Canvas Name="IconeFabGerador"
+                        Width="25" Height="25"
+                        RenderTransformOrigin="0.5,0.5">
+                  <Ellipse Canvas.Left="3" Canvas.Top="4"
+                           Width="10" Height="10"
+                           Stroke="White"
+                           StrokeThickness="2.4" />
+                  <Path Classes="line-icon"
+                        Width="14" Height="14"
+                        Canvas.Left="10" Canvas.Top="10"
+                        Stroke="White"
+                        StrokeThickness="2.4"
+                        Data="M1 1 L12 12 M7 7 L10 4 M9 9 L12 6" />
+                </Canvas>
+              </Button>
+
+              <StackPanel Margin="0,12,0,0" Spacing="4">
+                <Button Name="BtnNavCofre" Classes="nav-item ativo" Click="NavCofre_Click">
+                  <Grid ColumnDefinitions="40,*">
+                    <Canvas Width="24" Height="24"
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Center">
+                      <Path Classes="line-icon"
+                            Stretch="None"
+                            Stroke="{DynamicResource TextSecondary}"
+                            Data="M7 10 L7 7 A5 5 0 0 1 17 7 L17 10 M6 10 L18 10 L18 21 L6 21 Z" />
+                    </Canvas>
+                    <TextBlock Name="LblNavCofre" Grid.Column="1" Text="Cofre" VerticalAlignment="Center" />
+                  </Grid>
+                </Button>
+                <Button Name="BtnNavFavoritas" Classes="nav-item" Click="NavFavoritas_Click">
+                  <Grid ColumnDefinitions="40,*">
+                    <Canvas Width="24" Height="24"
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Center">
+                      <Path Classes="line-icon"
+                            Stretch="None"
+                            Stroke="{DynamicResource TextSecondary}"
+                            Data="M12 3.5 L14.6 8.8 L20.4 9.6 L16.2 13.7 L17.2 19.5 L12 16.8 L6.8 19.5 L7.8 13.7 L3.6 9.6 L9.4 8.8 Z" />
+                    </Canvas>
+                    <TextBlock Name="LblNavFavoritas" Grid.Column="1" Text="Favoritas" VerticalAlignment="Center" />
+                  </Grid>
+                </Button>
+                <Button Name="BtnNavRecentes" Classes="nav-item" Click="NavRecentes_Click">
+                  <Grid ColumnDefinitions="40,*">
+                    <Canvas Width="24" Height="24"
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Center">
+                      <Path Classes="line-icon"
+                            Stretch="None"
+                            Stroke="{DynamicResource TextSecondary}"
+                            Data="M12 7 L12 12 L16 14 M21 12 A9 9 0 1 1 12 3 A9 9 0 0 1 21 12 Z" />
+                    </Canvas>
+                    <TextBlock Name="LblNavRecentes" Grid.Column="1" Text="Recentes" VerticalAlignment="Center" />
+                  </Grid>
+                </Button>
+
+                <Border Height="1" Background="{DynamicResource Separator}" Margin="8,14,8,12" />
+
+                <TextBlock Name="LblCategoriasNav" Text="CATEGORIAS"
+                           FontSize="10" FontWeight="Bold"
+                           Foreground="{DynamicResource TextHeader}"
+                           Margin="12,0,0,6" />
+                <Button Classes="nav-item categoria" Tag="Personal" Click="NavCategoria_Click">
+                  <Grid ColumnDefinitions="40,*">
+                    <Ellipse Width="9" Height="9" Fill="#2563EB" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    <TextBlock Name="LblCatJogos" Grid.Column="1" Text="Jogos" VerticalAlignment="Center" />
+                  </Grid>
+                </Button>
+                <Button Classes="nav-item categoria" Tag="Social" Click="NavCategoria_Click">
+                  <Grid ColumnDefinitions="40,*">
+                    <Ellipse Width="9" Height="9" Fill="#DB2777" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    <TextBlock Name="LblCatRedes" Grid.Column="1" Text="Redes sociais" VerticalAlignment="Center" />
+                  </Grid>
+                </Button>
+                <Button Classes="nav-item categoria" Tag="Work" Click="NavCategoria_Click">
+                  <Grid ColumnDefinitions="40,*">
+                    <Ellipse Width="9" Height="9" Fill="#7C3AED" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    <TextBlock Name="LblCatEmail" Grid.Column="1" Text="E-mail" VerticalAlignment="Center" />
+                  </Grid>
+                </Button>
+                <Button Classes="nav-item categoria" Tag="Finance" Click="NavCategoria_Click">
+                  <Grid ColumnDefinitions="40,*">
+                    <Ellipse Width="9" Height="9" Fill="#16A34A" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    <TextBlock Name="LblCatFinanceiro" Grid.Column="1" Text="Financeiro" VerticalAlignment="Center" />
+                  </Grid>
+                </Button>
+                <Button Classes="nav-item categoria" Tag="Other" Click="NavCategoria_Click">
+                  <Grid ColumnDefinitions="40,*">
+                    <Ellipse Width="9" Height="9" Fill="#EA580C" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    <TextBlock Name="LblCatOutro" Grid.Column="1" Text="Outro" VerticalAlignment="Center" />
+                  </Grid>
+                </Button>
+              </StackPanel>
+            </DockPanel>
           </Border>
 
-          <Border Grid.Column="2"
-                  CornerRadius="12"
-                  Background="{DynamicResource CardBackground}"
-                  BorderBrush="{DynamicResource CardBorder}"
-                  BorderThickness="1"
-                  BoxShadow="0 3 16 0 #21262840">
-            <DockPanel>
-              <Border DockPanel.Dock="Bottom"
-                      Height="42"
-                      Background="{DynamicResource Footer}"
-                      BorderBrush="{DynamicResource CardBorder}"
-                      BorderThickness="0,1,0,0"
-                      CornerRadius="0,0,12,12">
-                <Grid Margin="24,0">
-                  <TextBlock Name="LblStatus"
-                             FontSize="12" Foreground="{DynamicResource TextSecondary}"
-                             AutomationProperties.Name="{DynamicResource A11y.VaultStatus}"
-                             AutomationProperties.LiveSetting="Polite"
-                             VerticalAlignment="Center" />
-                  <StackPanel Orientation="Horizontal" Spacing="6"
-                              HorizontalAlignment="Right" VerticalAlignment="Center">
-                    <Ellipse Name="PontoConexao" Width="8" Height="8" Fill="{DynamicResource StatusLocal}" VerticalAlignment="Center" />
-                    <TextBlock Name="LblConexao" Text="{DynamicResource Vault.Connection.Local}" FontSize="12"
-                               Foreground="{DynamicResource TextSecondary}" VerticalAlignment="Center"
-                               AutomationProperties.Name="{DynamicResource A11y.ConnectionStatus}"
-                               AutomationProperties.LiveSetting="Polite" />
-                  </StackPanel>
-                </Grid>
-              </Border>
-
-              <DockPanel Margin="24,22,24,0">
-                <Grid DockPanel.Dock="Top" Height="54" ColumnDefinitions="Auto,Auto,*,Auto">
-              <TextBlock Text="{DynamicResource Vault.Header}" FontSize="20" FontWeight="Bold"
-                             Foreground="{DynamicResource TextPrimary}" VerticalAlignment="Center"
-                             AutomationProperties.HeadingLevel="1" />
-                  <TextBlock Name="LblContadorHeader" Grid.Column="1" FontSize="13"
-                             Foreground="{DynamicResource TextSecondary}"
-                             Margin="12,2,0,0" VerticalAlignment="Center" />
-                  <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                    <Button Classes="icone borda" Width="40" Height="38"
-                            ToolTip.Tip="{DynamicResource Vault.ImportTooltip}"
-                            AutomationProperties.Name="{DynamicResource Vault.ImportTooltip}"
-                            Click="Importar_Click">
-                      <PathIcon Width="15" Height="15" Data="M12 3 L12 13 M7 8 L12 13 L17 8 M5 17 L5 20 L19 20 L19 17" />
-                    </Button>
-                    <Button Classes="icone borda" Width="40" Height="38"
-                            ToolTip.Tip="{DynamicResource Vault.ExportTooltip}"
-                            AutomationProperties.Name="{DynamicResource Vault.ExportTooltip}"
-                            Click="Exportar_Click">
-                      <PathIcon Width="15" Height="15" Data="M12 21 L12 11 M7 16 L12 11 L17 16 M5 7 L5 4 L19 4 L19 7" />
-                    </Button>
-                    <Button Classes="primario" Width="138" Height="38" FontSize="13"
-                            AutomationProperties.Name="{DynamicResource Vault.NewPassword}"
-                            Click="NovaSenha_Click">
-                      <StackPanel Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
-                        <PathIcon Width="14" Height="14" Data="M12 5 L12 19 M5 12 L19 12" />
-                        <TextBlock Text="{DynamicResource Vault.NewPassword}" VerticalAlignment="Center" />
-                      </StackPanel>
-                    </Button>
-                  </StackPanel>
-                </Grid>
-
-                <Grid DockPanel.Dock="Top" Height="50" ColumnDefinitions="140,10,*,10,40,8,40,8,40">
-                  <ComboBox Name="CmbCategoria" Classes="campo"
-                            Height="36" VerticalAlignment="Center" HorizontalAlignment="Stretch"
-                            AutomationProperties.Name="{DynamicResource Entry.Category}"
-                            AutomationProperties.HelpText="{DynamicResource A11y.OptionalField}"
-                            SelectionChanged="Filtro_Alterado" />
-                  <TextBox Name="TxtBusca" Grid.Column="2" Classes="campo"
-                           MinHeight="36" Height="36" VerticalAlignment="Center"
-                           Watermark="{DynamicResource Vault.SearchWatermark}"
-                           AutomationProperties.Name="{DynamicResource Vault.SearchWatermark}"
-                           AutomationProperties.HelpText="{DynamicResource A11y.OptionalField}"
-                           TextChanged="Busca_Alterada">
-                    <TextBox.InnerLeftContent>
-                      <PathIcon Width="15" Height="15" Margin="10,0,0,0"
-                                Foreground="{DynamicResource TextSecondary}"
-                                VerticalAlignment="Center"
-                                Data="M10.5 18 C6.36 18 3 14.64 3 10.5 C3 6.36 6.36 3 10.5 3 C14.64 3 18 6.36 18 10.5 C18 12.26 17.39 13.88 16.36 15.16 L21 19.8 L19.8 21 L15.16 16.36 C13.88 17.39 12.26 18 10.5 18 Z M10.5 5 C7.46 5 5 7.46 5 10.5 C5 13.54 7.46 16 10.5 16 C13.54 16 16 13.54 16 10.5 C16 7.46 13.54 5 10.5 5 Z" />
-                    </TextBox.InnerLeftContent>
-                  </TextBox>
-                  <Button Name="BtnVazamentos" Grid.Column="4" Classes="icone borda"
-                          Width="40" Height="36" VerticalAlignment="Center"
-                          ToolTip.Tip="{DynamicResource Vault.BreachTooltip}"
-                          AutomationProperties.Name="{DynamicResource Vault.BreachTooltip}"
-                          Click="VerificarVazamentos_Click">
-                    <PathIcon Width="17" Height="17"
-                              Data="M12 1 L3 5 L3 11 C3 16.55 6.84 21.74 12 23 C17.16 21.74 21 16.55 21 11 L21 5 Z M13 17 L11 17 L11 15 L13 15 Z M13 13 L11 13 L11 7 L13 7 Z" />
-                  </Button>
-                  <Button Name="BtnAuditoria" Grid.Column="6" Classes="icone borda"
-                          Width="40" Height="36" VerticalAlignment="Center"
-                          ToolTip.Tip="{DynamicResource Vault.AuditTooltip}"
-                          AutomationProperties.Name="{DynamicResource Vault.AuditTooltip}"
-                          Click="AuditarCofre_Click">
-                    <PathIcon Width="17" Height="17"
-                              Data="M20 3 L4 3 C2.9 3 2 3.9 2 5 L2 19 C2 20.1 2.9 21 4 21 L20 21 C21.1 21 22 20.1 22 19 L22 5 C22 3.9 21.1 3 20 3 Z M10 17 L5 17 L5 15 L10 15 Z M10 13 L5 13 L5 11 L10 11 Z M10 9 L5 9 L5 7 L10 7 Z M14.82 15 L12 12.16 L13.41 10.75 L14.82 12.17 L18.59 8.4 L20 9.82 Z" />
-                  </Button>
-                  <Button Name="BtnFavoritos" Grid.Column="8" Classes="icone borda"
-                          Width="40" Height="36" VerticalAlignment="Center"
-                          ToolTip.Tip="{DynamicResource Vault.FavoritesOnlyTooltip}"
-                          AutomationProperties.Name="{DynamicResource Vault.FavoritesOnlyTooltip}"
-                          Click="FiltroFavoritos_Click">
-                    <PathIcon Width="15" Height="15" Data="M12 3.5 L14.6 8.8 L20.4 9.6 L16.2 13.7 L17.2 19.5 L12 16.8 L6.8 19.5 L7.8 13.7 L3.6 9.6 L9.4 8.8 Z" />
-                  </Button>
-                </Grid>
-
-                <Border DockPanel.Dock="Top" Height="34"
-                        BorderBrush="{DynamicResource Separator}" BorderThickness="0,0,0,1">
-                  <Grid Name="GridCabecalhoTabela"
-                        ColumnDefinitions="42,44,26,150,6,330,6,108,6,92,6,170"
-                        Margin="4,0,8,0">
-                    <TextBlock Text="{DynamicResource Vault.Table.Service}" FontSize="10" FontWeight="Bold"
-                               Foreground="{DynamicResource TextHeader}"
-                               VerticalAlignment="Center" Grid.Column="3" Margin="10,0,0,0" />
-                    <Border Grid.Column="4" Background="Transparent" Cursor="SizeWestEast"
-                            BorderBrush="{DynamicResource Separator}" BorderThickness="1,0,0,0"
-                            Tag="Servico"
-                            PointerPressed="RedimensionarColuna_PointerPressed"
-                            PointerMoved="RedimensionarColuna_PointerMoved"
-                            PointerReleased="RedimensionarColuna_PointerReleased" />
-                    <TextBlock Text="{DynamicResource Vault.Table.User}" FontSize="10" FontWeight="Bold"
-                               Foreground="{DynamicResource TextHeader}"
-                               VerticalAlignment="Center" Grid.Column="5" Margin="4,0,0,0" />
-                    <Border Grid.Column="6" Background="Transparent" Cursor="SizeWestEast"
-                            BorderBrush="{DynamicResource Separator}" BorderThickness="1,0,0,0"
-                            Tag="Usuario"
-                            PointerPressed="RedimensionarColuna_PointerPressed"
-                            PointerMoved="RedimensionarColuna_PointerMoved"
-                            PointerReleased="RedimensionarColuna_PointerReleased" />
-                    <TextBlock Text="{DynamicResource Vault.Table.Category}" FontSize="10" FontWeight="Bold"
-                               Foreground="{DynamicResource TextHeader}"
-                               VerticalAlignment="Center" Grid.Column="7" />
-                    <Border Grid.Column="8" Background="Transparent" Cursor="SizeWestEast"
-                            BorderBrush="{DynamicResource Separator}" BorderThickness="1,0,0,0"
-                            Tag="Categoria"
-                            PointerPressed="RedimensionarColuna_PointerPressed"
-                            PointerMoved="RedimensionarColuna_PointerMoved"
-                            PointerReleased="RedimensionarColuna_PointerReleased" />
-                    <TextBlock Text="{DynamicResource Vault.Table.CreatedAt}" FontSize="10" FontWeight="Bold"
-                               Foreground="{DynamicResource TextHeader}"
-                               VerticalAlignment="Center" Grid.Column="9" />
-                    <Border Grid.Column="10" Background="Transparent" Cursor="SizeWestEast"
-                            BorderBrush="{DynamicResource Separator}" BorderThickness="1,0,0,0"
-                            Tag="Data"
-                            PointerPressed="RedimensionarColuna_PointerPressed"
-                            PointerMoved="RedimensionarColuna_PointerMoved"
-                            PointerReleased="RedimensionarColuna_PointerReleased" />
-                    <TextBlock Text="{DynamicResource Vault.Table.Actions}" FontSize="10" FontWeight="Bold"
-                               Foreground="{DynamicResource TextHeader}"
-                               HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Column="11" />
+          <Grid Grid.Column="1" Margin="18" ColumnDefinitions="*,Auto">
+            <Border Grid.Column="0"
+                    CornerRadius="12"
+                    Background="{DynamicResource CardBackground}"
+                    BorderBrush="{DynamicResource CardBorder}"
+                    BorderThickness="1"
+                    ClipToBounds="True"
+                    BoxShadow="0 3 16 0 #21262840">
+              <DockPanel>
+                <Border DockPanel.Dock="Bottom"
+                        Height="42"
+                        Background="{DynamicResource Footer}"
+                        BorderBrush="{DynamicResource CardBorder}"
+                        BorderThickness="0,1,0,0"
+                        CornerRadius="0,0,12,12">
+                  <Grid Margin="24,0" ColumnDefinitions="Auto,*,Auto">
+                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                      <Path Classes="line-icon"
+                            Width="15" Height="15"
+                            Stroke="{DynamicResource AccentPrimary}"
+                            Data="M7 11 L7 8 A5 5 0 0 1 17 8 L17 11 M6 11 L18 11 L18 21 L6 21 Z" />
+                      <TextBlock Name="LblStatus"
+                                 Text="Cofre criptografado"
+                                 FontSize="12" Foreground="{DynamicResource TextSecondary}"
+                                 AutomationProperties.Name="{DynamicResource A11y.VaultStatus}"
+                                 AutomationProperties.LiveSetting="Polite"
+                                 VerticalAlignment="Center" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8"
+                                HorizontalAlignment="Right" VerticalAlignment="Center">
+                      <Path Classes="line-icon"
+                            Width="15" Height="15"
+                            Stroke="{DynamicResource TextSecondary}"
+                            Data="M12 7 L12 12 L15 14 M21 12 A9 9 0 1 1 12 3 A9 9 0 0 1 21 12 Z" />
+                      <Ellipse Name="PontoConexao" Width="8" Height="8" Fill="{DynamicResource StatusLocal}" VerticalAlignment="Center" />
+                      <TextBlock Name="LblConexao" Text="{DynamicResource Vault.Connection.Local}" FontSize="12"
+                                 Foreground="{DynamicResource TextSecondary}" VerticalAlignment="Center"
+                                 AutomationProperties.Name="{DynamicResource A11y.ConnectionStatus}"
+                                 AutomationProperties.LiveSetting="Polite" />
+                    </StackPanel>
                   </Grid>
                 </Border>
 
-                <Grid>
-                  <ScrollViewer HorizontalScrollBarVisibility="Disabled">
-                    <StackPanel Name="PainelLista"
-                                AutomationProperties.Name="{DynamicResource A11y.ResultsList}" />
-                  </ScrollViewer>
-                  <TextBlock Name="LblVazio"
-                             Text="{DynamicResource Vault.Empty}"
-                             FontSize="13"
-                             Foreground="{DynamicResource TextSecondary}"
-                             TextAlignment="Center"
-                             HorizontalAlignment="Center" VerticalAlignment="Center"
-                             AutomationProperties.LiveSetting="Polite"
-                             IsVisible="False" />
-                </Grid>
+                <DockPanel Margin="24,22,24,0">
+                  <Grid DockPanel.Dock="Top" Height="50" ColumnDefinitions="Auto,Auto,*,Auto">
+                    <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                      <TextBlock Text="{DynamicResource Vault.Header}" FontSize="21" FontWeight="Bold"
+                                 Foreground="{DynamicResource TextPrimary}" VerticalAlignment="Center"
+                                 AutomationProperties.HeadingLevel="1" />
+                      <Border CornerRadius="10"
+                              Background="{DynamicResource AccentLight}"
+                              Padding="10,3"
+                              VerticalAlignment="Center">
+                        <TextBlock Name="LblContadorHeader" FontSize="12" FontWeight="Bold"
+                                   Foreground="{DynamicResource AccentPrimary}" />
+                      </Border>
+                    </StackPanel>
+                    <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                      <Button Classes="icone borda" Width="40" Height="38"
+                              ToolTip.Tip="{DynamicResource Vault.ImportTooltip}"
+                              AutomationProperties.Name="{DynamicResource Vault.ImportTooltip}"
+                              Click="Importar_Click">
+                        <Path Classes="line-icon" Width="15" Height="15" Stroke="{DynamicResource TextSecondary}"
+                              Data="M12 3 L12 13 M7 8 L12 13 L17 8 M5 17 L5 20 L19 20 L19 17" />
+                      </Button>
+                      <Button Classes="icone borda" Width="40" Height="38"
+                              ToolTip.Tip="{DynamicResource Vault.ExportTooltip}"
+                              AutomationProperties.Name="{DynamicResource Vault.ExportTooltip}"
+                              Click="Exportar_Click">
+                        <Path Classes="line-icon" Width="15" Height="15" Stroke="{DynamicResource TextSecondary}"
+                              Data="M12 21 L12 11 M7 16 L12 11 L17 16 M5 7 L5 4 L19 4 L19 7" />
+                      </Button>
+                    </StackPanel>
+                  </Grid>
+
+                  <Grid DockPanel.Dock="Top" Height="58" ColumnDefinitions="*,10,150,8,40,8,40,8,40,8,40,10,138">
+                    <TextBox Name="TxtBusca" Grid.Column="0" Classes="campo"
+                             MinHeight="38" Height="38" VerticalAlignment="Center"
+                             Watermark="{DynamicResource Vault.SearchWatermark}"
+                             AutomationProperties.Name="{DynamicResource Vault.SearchWatermark}"
+                             AutomationProperties.HelpText="{DynamicResource A11y.OptionalField}"
+                             TextChanged="Busca_Alterada">
+                      <TextBox.InnerLeftContent>
+                        <PathIcon Width="15" Height="15" Margin="10,0,0,0"
+                                  Foreground="{DynamicResource TextSecondary}"
+                                  VerticalAlignment="Center"
+                                  Data="M10.5 18 C6.36 18 3 14.64 3 10.5 C3 6.36 6.36 3 10.5 3 C14.64 3 18 6.36 18 10.5 C18 12.26 17.39 13.88 16.36 15.16 L21 19.8 L19.8 21 L15.16 16.36 C13.88 17.39 12.26 18 10.5 18 Z M10.5 5 C7.46 5 5 7.46 5 10.5 C5 13.54 7.46 16 10.5 16 C13.54 16 16 13.54 16 10.5 C16 7.46 13.54 5 10.5 5 Z" />
+                      </TextBox.InnerLeftContent>
+                    </TextBox>
+
+                    <Grid Grid.Column="2" Height="38" VerticalAlignment="Center">
+                      <ComboBox Name="CmbCategoria" Classes="campo"
+                                Padding="34,0,10,0"
+                                HorizontalAlignment="Stretch"
+                                AutomationProperties.Name="{DynamicResource Entry.Category}"
+                                AutomationProperties.HelpText="{DynamicResource A11y.OptionalField}"
+                                SelectionChanged="Filtro_Alterado" />
+                      <PathIcon Width="15" Height="15"
+                                Margin="12,0,0,0"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                Foreground="{DynamicResource TextSecondary}"
+                                IsHitTestVisible="False"
+                                Data="M4 6 L20 6 L14 13 L14 19 L10 21 L10 13 Z" />
+                    </Grid>
+
+                    <Button Name="BtnOrdenar" Grid.Column="4" Classes="icone borda"
+                            Width="40" Height="38" VerticalAlignment="Center"
+                            ToolTip.Tip="Ordenar"
+                            AutomationProperties.Name="Ordenar"
+                            Click="Ordenar_Click">
+                      <Path Classes="line-icon" Width="16" Height="16" Stroke="{DynamicResource TextSecondary}"
+                            Data="M8 4 L8 20 M5 7 L8 4 L11 7 M16 20 L16 4 M13 17 L16 20 L19 17" />
+                    </Button>
+                    <Button Name="BtnVazamentos" Grid.Column="6" Classes="icone borda"
+                            Width="40" Height="38" VerticalAlignment="Center"
+                            ToolTip.Tip="{DynamicResource Vault.BreachTooltip}"
+                            AutomationProperties.Name="{DynamicResource Vault.BreachTooltip}"
+                            Click="VerificarVazamentos_Click">
+                      <Path Classes="line-icon" Width="17" Height="17" Stroke="{DynamicResource TextSecondary}"
+                            Data="M12 1 L3 5 L3 11 C3 16.55 6.84 21.74 12 23 C17.16 21.74 21 16.55 21 11 L21 5 Z M13 17 L11 17 L11 15 L13 15 Z M13 13 L11 13 L11 7 L13 7 Z" />
+                    </Button>
+                    <Button Name="BtnAuditoria" Grid.Column="8" Classes="icone borda"
+                            Width="40" Height="38" VerticalAlignment="Center"
+                            ToolTip.Tip="{DynamicResource Vault.AuditTooltip}"
+                            AutomationProperties.Name="{DynamicResource Vault.AuditTooltip}"
+                            Click="AuditarCofre_Click">
+                      <Path Classes="line-icon" Width="17" Height="17" Stroke="{DynamicResource TextSecondary}"
+                            Data="M20 3 L4 3 C2.9 3 2 3.9 2 5 L2 19 C2 20.1 2.9 21 4 21 L20 21 C21.1 21 22 20.1 22 19 L22 5 C22 3.9 21.1 3 20 3 Z M10 17 L5 17 L5 15 L10 15 Z M10 13 L5 13 L5 11 L10 11 Z M10 9 L5 9 L5 7 L10 7 Z M14.82 15 L12 12.16 L13.41 10.75 L14.82 12.17 L18.59 8.4 L20 9.82 Z" />
+                    </Button>
+                    <Button Name="BtnFavoritos" Grid.Column="10" Classes="icone borda"
+                            Width="40" Height="38" VerticalAlignment="Center"
+                            ToolTip.Tip="{DynamicResource Vault.FavoritesOnlyTooltip}"
+                            AutomationProperties.Name="{DynamicResource Vault.FavoritesOnlyTooltip}"
+                            Click="FiltroFavoritos_Click">
+                      <Path Classes="line-icon" Width="15" Height="15" Stroke="{DynamicResource TextSecondary}"
+                            Data="M12 3.5 L14.6 8.8 L20.4 9.6 L16.2 13.7 L17.2 19.5 L12 16.8 L6.8 19.5 L7.8 13.7 L3.6 9.6 L9.4 8.8 Z" />
+                    </Button>
+                    <Button Grid.Column="12" Classes="primario" Width="138" Height="38" FontSize="13"
+                            AutomationProperties.Name="{DynamicResource Vault.NewPassword}"
+                            Click="NovaSenha_Click">
+                      <StackPanel Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
+                        <Path Classes="line-icon" Width="14" Height="14" Stroke="White"
+                              Data="M12 5 L12 19 M5 12 L19 12" />
+                        <TextBlock Text="{DynamicResource Vault.NewPassword}" VerticalAlignment="Center" />
+                      </StackPanel>
+                    </Button>
+                  </Grid>
+
+                  <Border DockPanel.Dock="Top" Height="34"
+                          BorderBrush="{DynamicResource Separator}" BorderThickness="0,0,0,1">
+                    <Grid Name="GridCabecalhoTabela"
+                          ColumnDefinitions="42,220,6,240,6,128,6,112,6,170"
+                          Margin="4,0,8,0">
+                      <TextBlock Text="{DynamicResource Vault.Table.Service}" FontSize="10" FontWeight="Bold"
+                                 Foreground="{DynamicResource TextHeader}"
+                                 VerticalAlignment="Center" Grid.Column="1" Margin="10,0,0,0" />
+                      <Border Grid.Column="2" Background="Transparent" Cursor="SizeWestEast"
+                              BorderBrush="{DynamicResource Separator}" BorderThickness="1,0,0,0"
+                              Tag="Servico"
+                              PointerPressed="RedimensionarColuna_PointerPressed"
+                              PointerMoved="RedimensionarColuna_PointerMoved"
+                              PointerReleased="RedimensionarColuna_PointerReleased" />
+                      <TextBlock Text="{DynamicResource Vault.Table.User}" FontSize="10" FontWeight="Bold"
+                                 Foreground="{DynamicResource TextHeader}"
+                                 VerticalAlignment="Center" Grid.Column="3" Margin="4,0,0,0" />
+                      <Border Grid.Column="4" Background="Transparent" Cursor="SizeWestEast"
+                              BorderBrush="{DynamicResource Separator}" BorderThickness="1,0,0,0"
+                              Tag="Usuario"
+                              PointerPressed="RedimensionarColuna_PointerPressed"
+                              PointerMoved="RedimensionarColuna_PointerMoved"
+                              PointerReleased="RedimensionarColuna_PointerReleased" />
+                      <TextBlock Text="{DynamicResource Vault.Table.Category}" FontSize="10" FontWeight="Bold"
+                                 Foreground="{DynamicResource TextHeader}"
+                                 VerticalAlignment="Center" Grid.Column="5" />
+                      <Border Grid.Column="6" Background="Transparent" Cursor="SizeWestEast"
+                              BorderBrush="{DynamicResource Separator}" BorderThickness="1,0,0,0"
+                              Tag="Categoria"
+                              PointerPressed="RedimensionarColuna_PointerPressed"
+                              PointerMoved="RedimensionarColuna_PointerMoved"
+                              PointerReleased="RedimensionarColuna_PointerReleased" />
+                      <TextBlock Text="FORÇA" FontSize="10" FontWeight="Bold"
+                                 Foreground="{DynamicResource TextHeader}"
+                                 VerticalAlignment="Center" Grid.Column="7" />
+                      <Border Grid.Column="8" Background="Transparent" Cursor="SizeWestEast"
+                              BorderBrush="{DynamicResource Separator}" BorderThickness="1,0,0,0"
+                              Tag="Data"
+                              PointerPressed="RedimensionarColuna_PointerPressed"
+                              PointerMoved="RedimensionarColuna_PointerMoved"
+                              PointerReleased="RedimensionarColuna_PointerReleased" />
+                      <TextBlock Text="{DynamicResource Vault.Table.Actions}" FontSize="10" FontWeight="Bold"
+                                 Foreground="{DynamicResource TextHeader}"
+                                 HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Column="9" />
+                    </Grid>
+                  </Border>
+
+                  <Grid>
+                    <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+                      <StackPanel Name="PainelLista"
+                                  AutomationProperties.Name="{DynamicResource A11y.ResultsList}" />
+                    </ScrollViewer>
+                    <TextBlock Name="LblVazio"
+                               Text="{DynamicResource Vault.Empty}"
+                               FontSize="13"
+                               Foreground="{DynamicResource TextSecondary}"
+                               TextAlignment="Center"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                               AutomationProperties.LiveSetting="Polite"
+                               IsVisible="False" />
+                  </Grid>
+                </DockPanel>
               </DockPanel>
-            </DockPanel>
-          </Border>
+            </Border>
+
+            <Border Name="PainelDetalhes"
+                    Grid.Column="1"
+                    Width="340"
+                    Margin="14,0,0,0"
+                    CornerRadius="12"
+                    Background="{DynamicResource CardBackground}"
+                    BorderBrush="{DynamicResource CardBorder}"
+                    BorderThickness="1"
+                    BoxShadow="0 3 16 0 #21262840"
+                    IsVisible="False">
+              <DockPanel>
+                <Grid DockPanel.Dock="Top" Height="56" Margin="18,8,12,0" ColumnDefinitions="*,Auto">
+                  <TextBlock Text="Detalhes" FontSize="18" FontWeight="Bold"
+                             Foreground="{DynamicResource TextPrimary}"
+                             VerticalAlignment="Center" />
+                  <Button Grid.Column="1" Classes="icone" Width="34" Height="34"
+                          ToolTip.Tip="Fechar detalhes"
+                          Click="FecharDetalhes_Click">
+                    <PathIcon Width="15" Height="15" Data="M6 6 L18 18 M18 6 L6 18" />
+                  </Button>
+                </Grid>
+
+                <Border DockPanel.Dock="Bottom"
+                        BorderBrush="{DynamicResource CardBorder}"
+                        BorderThickness="0,1,0,0"
+                        Padding="18,14">
+                  <Grid ColumnDefinitions="*,10,*">
+                    <Button Classes="secundario" Height="38" Click="ExcluirDetalhes_Click">
+                      <StackPanel Orientation="Horizontal" Spacing="7">
+                        <PathIcon Width="14" Height="14" Data="M5 6 L19 6 M9 6 L9 4 L15 4 L15 6 M8 9 L8.7 20 L15.3 20 L16 9" />
+                        <TextBlock Text="Excluir" />
+                      </StackPanel>
+                    </Button>
+                    <Button Grid.Column="2" Classes="primario" Height="38" FontSize="13"
+                            Click="SalvarDetalhes_Click">
+                      <StackPanel Orientation="Horizontal" Spacing="7">
+                        <PathIcon Width="14" Height="14" Data="M5 12 L10 17 L19 7" />
+                        <TextBlock Text="Salvar alterações" />
+                      </StackPanel>
+                    </Button>
+                  </Grid>
+                </Border>
+
+                <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+                  <StackPanel Margin="20,10,20,18" Spacing="14">
+                    <StackPanel HorizontalAlignment="Center" Spacing="10">
+                      <Border Name="AvatarDetalhe" Width="68" Height="68" CornerRadius="18">
+                        <TextBlock Name="TxtAvatarDetalhe"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   FontSize="20"
+                                   FontWeight="Bold" />
+                      </Border>
+                      <TextBox Name="TxtDetalheServico"
+                               Classes="campo"
+                               FontSize="18"
+                               FontWeight="Bold"
+                               TextAlignment="Center"
+                               HorizontalAlignment="Stretch"
+                               AutomationProperties.Name="{DynamicResource Entry.ServiceName}" />
+                      <Border Name="BadgeDetalheCategoria"
+                              Height="24"
+                              CornerRadius="12"
+                              Padding="11,0"
+                              HorizontalAlignment="Center">
+                        <TextBlock Name="TxtDetalheCategoria"
+                                   FontSize="11"
+                                   FontWeight="Bold"
+                                   VerticalAlignment="Center" />
+                      </Border>
+                    </StackPanel>
+
+                    <StackPanel Spacing="6">
+                      <TextBlock Text="{DynamicResource Entry.UserEmail}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
+                      <Grid ColumnDefinitions="Auto,*,Auto">
+                        <PathIcon Width="16" Height="16" Margin="0,0,8,0" VerticalAlignment="Center"
+                                  Foreground="{DynamicResource TextSecondary}"
+                                  Data="M12 12 A4 4 0 1 0 12 4 A4 4 0 0 0 12 12 Z M4 21 C5.5 17.6 8.5 16 12 16 C15.5 16 18.5 17.6 20 21" />
+                        <TextBox Name="TxtDetalheUsuario" Grid.Column="1" Classes="campo" Height="38" />
+                        <Button Grid.Column="2" Classes="icone" Width="36" Height="36" Margin="8,0,0,0"
+                                ToolTip.Tip="{DynamicResource Row.CopyUser}"
+                                Click="CopiarUsuarioDetalhes_Click">
+                          <PathIcon Width="14" Height="14" Data="M8 8 L18 8 L18 20 L8 20 Z M6 16 L4 16 L4 4 L14 4 L14 6" />
+                        </Button>
+                      </Grid>
+                    </StackPanel>
+
+                    <StackPanel Spacing="6">
+                      <TextBlock Text="{DynamicResource Entry.Password}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
+                      <Grid ColumnDefinitions="Auto,*,Auto,Auto">
+                        <PathIcon Width="16" Height="16" Margin="0,0,8,0" VerticalAlignment="Center"
+                                  Foreground="{DynamicResource TextSecondary}"
+                                  Data="M15 7 A4 4 0 1 1 12.2 3.2 L21 12 L18 15 L15 12 L13 14 L11 12" />
+                        <TextBox Name="TxtDetalheSenha" Grid.Column="1" Classes="campo" Height="38"
+                                 FontFamily="{StaticResource FonteMono}" />
+                        <Button Name="BtnDetalheRevelar" Grid.Column="2" Classes="icone" Width="36" Height="36" Margin="8,0,0,0"
+                                ToolTip.Tip="{DynamicResource Row.RevealPassword}"
+                                Click="RevelarSenhaDetalhes_Click">
+                          <PathIcon Width="14" Height="14" Data="M2.5 12 C4.8 7.5 8.1 5.5 12 5.5 C15.9 5.5 19.2 7.5 21.5 12 C19.2 16.5 15.9 18.5 12 18.5 C8.1 18.5 4.8 16.5 2.5 12 Z M12 15.5 C13.9 15.5 15.5 13.9 15.5 12 C15.5 10.1 13.9 8.5 12 8.5 C10.1 8.5 8.5 10.1 8.5 12 C8.5 13.9 10.1 15.5 12 15.5 Z" />
+                        </Button>
+                        <Button Grid.Column="3" Classes="icone" Width="36" Height="36" Margin="4,0,0,0"
+                                ToolTip.Tip="{DynamicResource Row.CopyPassword}"
+                                Click="CopiarSenhaDetalhes_Click">
+                          <PathIcon Width="14" Height="14" Data="M8 8 L18 8 L18 20 L8 20 Z M6 16 L4 16 L4 4 L14 4 L14 6" />
+                        </Button>
+                      </Grid>
+                    </StackPanel>
+
+                    <StackPanel Spacing="6">
+                      <TextBlock Text="{DynamicResource Entry.UrlOptional}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
+                      <Grid ColumnDefinitions="Auto,*,Auto">
+                        <PathIcon Width="16" Height="16" Margin="0,0,8,0" VerticalAlignment="Center"
+                                  Foreground="{DynamicResource TextSecondary}"
+                                  Data="M10 13 A5 5 0 0 0 17 13 L20 10 A5 5 0 0 0 13 3 L11.5 4.5 M14 11 A5 5 0 0 0 7 11 L4 14 A5 5 0 0 0 11 21 L12.5 19.5" />
+                        <TextBox Name="TxtDetalheUrl" Grid.Column="1" Classes="campo" Height="38" />
+                        <Button Grid.Column="2" Classes="icone" Width="36" Height="36" Margin="8,0,0,0"
+                                ToolTip.Tip="Copiar URL"
+                                Click="CopiarUrlDetalhes_Click">
+                          <PathIcon Width="14" Height="14" Data="M8 8 L18 8 L18 20 L8 20 Z M6 16 L4 16 L4 4 L14 4 L14 6" />
+                        </Button>
+                      </Grid>
+                    </StackPanel>
+
+                    <StackPanel Spacing="6">
+                      <TextBlock Text="{DynamicResource Entry.NotesOptional}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
+                      <Grid ColumnDefinitions="Auto,*">
+                        <PathIcon Width="16" Height="16" Margin="0,8,8,0" VerticalAlignment="Top"
+                                  Foreground="{DynamicResource TextSecondary}"
+                                  Data="M6 4 L18 4 L18 20 L6 20 Z M9 8 L15 8 M9 12 L15 12 M9 16 L13 16" />
+                        <TextBox Name="TxtDetalheNotas" Grid.Column="1" Classes="campo"
+                                 MinHeight="86"
+                                 AcceptsReturn="True"
+                                 TextWrapping="Wrap"
+                                 VerticalContentAlignment="Top" />
+                      </Grid>
+                    </StackPanel>
+                  </StackPanel>
+                </ScrollViewer>
+              </DockPanel>
+            </Border>
+
+            <Border Name="PainelGeradorFlutuante"
+                    Grid.ColumnSpan="2"
+                    Width="380"
+                    MaxHeight="610"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Bottom"
+                    Margin="12,0,0,134"
+                    CornerRadius="14"
+                    Background="{DynamicResource CardBackground}"
+                    BorderBrush="{DynamicResource CardBorder}"
+                    BorderThickness="1"
+                    BoxShadow="0 14 36 0 #00000070"
+                    IsVisible="False">
+              <DockPanel>
+                <Grid DockPanel.Dock="Top" Height="54" ColumnDefinitions="*,Auto" Margin="18,0,12,0">
+                  <TextBlock Text="{DynamicResource Generator.Title}"
+                             FontSize="18"
+                             FontWeight="Bold"
+                             Foreground="{DynamicResource TextPrimary}"
+                             VerticalAlignment="Center" />
+                  <Button Grid.Column="1" Classes="icone" Width="34" Height="34"
+                          ToolTip.Tip="Fechar gerador"
+                          Click="FecharGerador_Click">
+                    <Path Classes="line-icon" Width="15" Height="15" Stroke="{DynamicResource TextSecondary}"
+                          Data="M6 6 L18 18 M18 6 L6 18" />
+                  </Button>
+                </Grid>
+                <c:GeradorSenha Name="Gerador" />
+              </DockPanel>
+            </Border>
+          </Grid>
         </Grid>
       </DockPanel>
     </Border>

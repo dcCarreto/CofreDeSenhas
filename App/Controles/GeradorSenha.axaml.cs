@@ -3,10 +3,12 @@ using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
+using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Threading;
 using CofreDeSenhas.Janelas;
 using GerenciadorDeSenhas.Servicos;
+using AvaloniaPath = Avalonia.Controls.Shapes.Path;
 
 namespace CofreDeSenhas.Controles
 {
@@ -19,6 +21,10 @@ namespace CofreDeSenhas.Controles
         private bool _mostrarSenha = true;
         private bool _permiteSalvar = true;
         private int _nivelForca;
+
+        private const string IconeCopiar = "M8 8 L18 8 L18 20 L8 20 Z M6 16 L4 16 L4 4 L14 4 L14 6";
+        private const string IconeCheck = "M5 12 L10 17 L19 7";
+        private const string IconeRefresh = "M20 11 A8 8 0 0 0 6.3 5.4 L4 8 M4 4 L4 8 L8 8 M4 13 A8 8 0 0 0 17.7 18.6 L20 16 M20 20 L20 16 L16 16";
 
         public event EventHandler<string>? SolicitouSalvar;
 
@@ -59,6 +65,33 @@ namespace CofreDeSenhas.Controles
             Grid.SetColumn(BtnLimpar, _permiteSalvar ? 2 : 0);
             Grid.SetColumnSpan(BtnLimpar, _permiteSalvar ? 1 : 3);
         }
+
+        private static AvaloniaPath CriarIcone(string data, double tamanho, IBrush? stroke = null) => new()
+        {
+            Data = StreamGeometry.Parse(data),
+            Width = tamanho,
+            Height = tamanho,
+            Stretch = Stretch.Uniform,
+            Stroke = stroke ?? Tema.Pincel(Tema.TextSecondary),
+            StrokeThickness = 2,
+            StrokeLineCap = PenLineCap.Round,
+            Fill = Brushes.Transparent
+        };
+
+        private static StackPanel CriarConteudoBotao(string icone, string texto, double tamanhoIcone, IBrush? stroke = null) => new()
+        {
+            Orientation = Orientation.Horizontal,
+            Spacing = 8,
+            Children =
+            {
+                CriarIcone(icone, tamanhoIcone, stroke),
+                new TextBlock
+                {
+                    Text = texto,
+                    VerticalAlignment = VerticalAlignment.Center
+                }
+            }
+        };
 
         private Window? JanelaDona => TopLevel.GetTopLevel(this) as Window;
 
@@ -121,10 +154,11 @@ namespace CofreDeSenhas.Controles
             bool fraseSenha = ModoFraseSenha;
             PainelSenhaCaracteres.IsVisible = !fraseSenha;
             PainelFraseSenha.IsVisible = fraseSenha;
-            BtnGerar.Content = Idioma.Texto(fraseSenha
+            var texto = Idioma.Texto(fraseSenha
                 ? "Generator.GeneratePassphrase"
                 : "Generator.GeneratePassword");
-            AutomationProperties.SetName(BtnGerar, BtnGerar.Content?.ToString() ?? "");
+            BtnGerar.Content = CriarConteudoBotao(IconeRefresh, texto, 15, Brushes.White);
+            AutomationProperties.SetName(BtnGerar, texto);
         }
 
         private string SeparadorFraseSelecionado()
@@ -212,7 +246,7 @@ namespace CofreDeSenhas.Controles
 
             var btnCopiarTodas = new Button
             {
-                Content = Idioma.Texto("Generator.CopyAll"),
+                Content = CriarConteudoBotao(IconeCopiar, Idioma.Texto("Generator.CopyAll"), 13, Tema.Pincel(Tema.AccentPrimary)),
                 Height = 26,
                 FontSize = 12,
                 Foreground = Tema.Pincel(Tema.AccentPrimary),
@@ -249,7 +283,7 @@ namespace CofreDeSenhas.Controles
                 Margin = new Thickness(12, 9, 8, 9)
             };
 
-            var btnCopiar = new Button { Content = "⧉", Width = 28, Height = 28 };
+            var btnCopiar = new Button { Content = CriarIcone(IconeCopiar, 13), Width = 28, Height = 28 };
             btnCopiar.Classes.Add("icone-linha");
             btnCopiar.VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center;
             btnCopiar.Margin = new Thickness(0, 0, 5, 0);
@@ -259,13 +293,13 @@ namespace CofreDeSenhas.Controles
             {
                 if (AreaTransferencia != null)
                     try { await AreaTransferencia.SetTextAsync(senha); } catch { }
-                btnCopiar.Content = "✓";
+                btnCopiar.Content = CriarIcone(IconeCheck, 13);
                 btnCopiar.Foreground = Tema.Pincel(Tema.StrengthStrong);
                 Acessibilidade.Anunciar(this, Idioma.Formatar("A11y.Copied", ItemGeradoNome));
                 var t = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
                 t.Tick += (ss, ee) =>
                 {
-                    btnCopiar.Content = "⧉";
+                    btnCopiar.Content = CriarIcone(IconeCopiar, 13);
                     btnCopiar.ClearValue(ForegroundProperty);
                     t.Stop();
                 };

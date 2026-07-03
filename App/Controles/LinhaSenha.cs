@@ -8,8 +8,10 @@ using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using GerenciadorDeSenhas.Modelos;
 using GerenciadorDeSenhas.Servicos;
+using AvaloniaPath = Avalonia.Controls.Shapes.Path;
 
 namespace CofreDeSenhas.Controles
 {
@@ -37,12 +39,14 @@ namespace CofreDeSenhas.Controles
 
         private TextBlock _lblUsuario = null!;
         private TextBlock _lblServico = null!;
-        private TextBlock _lblIndicador = null!;
         private TextBox _txtServico = null!;
         private Border _avatar = null!;
         private Image _avatarImagem = null!;
         private TextBlock _avatarTexto = null!;
         private Grid _grid = null!;
+        private StackPanel _acoes = null!;
+        private StackPanel _painelForca = null!;
+        private Border[] _segmentosForca = Array.Empty<Border>();
         private Button _btnOlho = null!;
         private Button _btnCopiar = null!;
         private Button? _btnTotp;
@@ -64,6 +68,8 @@ namespace CofreDeSenhas.Controles
             "M5 6 L19 6 M9 6 L9 4 L15 4 L15 6 M8 9 L8.7 20 L15.3 20 L16 9 M10.5 11 L10.5 18 M13.5 11 L13.5 18";
 
         public Senha Senha => _senha;
+
+        public event EventHandler<Senha>? SolicitouDetalhes;
 
         public int NivelForca
         {
@@ -107,17 +113,34 @@ namespace CofreDeSenhas.Controles
             AtualizarIndicador();
             AutomationProperties.SetHelpText(this, Idioma.Texto("A11y.RowHelp"));
 
-            PointerEntered += (s, e) => { if (!IsFocused) Background = Tema.Pincel(Tema.RowHover); };
-            PointerExited += (s, e) => { if (!IsFocused) Background = Tema.Pincel(Tema.CardBackground); };
-            GotFocus += (s, e) => Background = Tema.Pincel(Tema.RowHover);
-            LostFocus += (s, e) => Background = Tema.Pincel(Tema.CardBackground);
+            PointerEntered += (s, e) =>
+            {
+                if (!IsFocused) Background = Tema.Pincel(Tema.RowHover);
+                if (_acoes != null) _acoes.Opacity = 1;
+            };
+            PointerExited += (s, e) =>
+            {
+                if (!IsFocused) Background = Tema.Pincel(Tema.CardBackground);
+                if (_acoes != null) _acoes.Opacity = 0.55;
+            };
+            PointerReleased += Linha_PointerReleased;
+            GotFocus += (s, e) =>
+            {
+                Background = Tema.Pincel(Tema.RowHover);
+                if (_acoes != null) _acoes.Opacity = 1;
+            };
+            LostFocus += (s, e) =>
+            {
+                Background = Tema.Pincel(Tema.CardBackground);
+                if (_acoes != null) _acoes.Opacity = 0.55;
+            };
         }
 
         private Grid MontarLayout()
         {
             _grid = new Grid
             {
-                ColumnDefinitions = new ColumnDefinitions("42,44,26,140,240,108,92,96"),
+                ColumnDefinitions = new ColumnDefinitions("42,140,6,240,6,108,6,92,6,170"),
                 Margin = new Thickness(4, 0, 8, 0)
             };
 
@@ -143,22 +166,8 @@ namespace CofreDeSenhas.Controles
             Grid.SetColumn(estrela, 0);
             _grid.Children.Add(estrela);
 
-            _avatar = CriarAvatarServico();
-            Grid.SetColumn(_avatar, 1);
-            _grid.Children.Add(_avatar);
-
-            _lblIndicador = new TextBlock
-            {
-                Text = "",
-                FontSize = 14,
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center
-            };
-            Grid.SetColumn(_lblIndicador, 2);
-            _grid.Children.Add(_lblIndicador);
-
             var celulaServico = CriarCelulaServico();
-            Grid.SetColumn(celulaServico, 3);
+            Grid.SetColumn(celulaServico, 1);
             _grid.Children.Add(celulaServico);
 
             _lblUsuario = new TextBlock
@@ -189,22 +198,16 @@ namespace CofreDeSenhas.Controles
                 e.Handled = true;
                 await CopiarUsuarioAsync();
             };
-            Grid.SetColumn(_lblUsuario, 4);
+            Grid.SetColumn(_lblUsuario, 3);
             _grid.Children.Add(_lblUsuario);
 
             var organizacao = CriarCelulaOrganizacao();
             Grid.SetColumn(organizacao, 5);
             _grid.Children.Add(organizacao);
 
-            var data = new TextBlock
-            {
-                Text = FormatarData(_senha.DataCriacao),
-                FontSize = 12,
-                Foreground = Tema.Pincel(Tema.TextTertiary),
-                VerticalAlignment = VerticalAlignment.Center
-            };
-            Grid.SetColumn(data, 6);
-            _grid.Children.Add(data);
+            var forca = CriarCelulaForca();
+            Grid.SetColumn(forca, 7);
+            _grid.Children.Add(forca);
 
             _btnOlho = CriarBotaoAcao(IconeOlho, Idioma.Texto("Row.RevealPassword"));
             _btnOlho.Click += (s, e) => AlternarRevelar();
@@ -218,28 +221,44 @@ namespace CofreDeSenhas.Controles
             var btnExcluir = CriarBotaoAcao(IconeExcluir, Idioma.Texto("Row.DeleteEntry"));
             btnExcluir.Click += async (s, e) => await _onExcluir(_senha);
 
-            var acoes = new StackPanel
+            _acoes = new StackPanel
             {
                 Orientation = Orientation.Horizontal,
                 Spacing = 4,
-                VerticalAlignment = VerticalAlignment.Center
+                VerticalAlignment = VerticalAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                Opacity = 0.55
             };
-            acoes.Children.Add(_btnOlho);
-            acoes.Children.Add(_btnCopiar);
+            _acoes.Children.Add(_btnOlho);
+            _acoes.Children.Add(_btnCopiar);
 
             if (_senha.TotpSegredo != null)
             {
                 _btnTotp = CriarBotaoAcao(IconeChave, Idioma.Texto("Row.CopyTotp"));
                 _btnTotp.Click += async (s, e) => await CopiarCodigoTotpAsync();
-                acoes.Children.Add(_btnTotp);
+                _acoes.Children.Add(_btnTotp);
             }
 
-            acoes.Children.Add(btnEditar);
-            acoes.Children.Add(btnExcluir);
-            Grid.SetColumn(acoes, 7);
-            _grid.Children.Add(acoes);
+            _acoes.Children.Add(btnEditar);
+            _acoes.Children.Add(btnExcluir);
+            Grid.SetColumn(_acoes, 9);
+            _grid.Children.Add(_acoes);
 
             return _grid;
+        }
+
+        private void Linha_PointerReleased(object? sender, PointerReleasedEventArgs e)
+        {
+            if (e.Source is Visual visual &&
+                (visual.FindAncestorOfType<Button>(true) != null ||
+                 visual.FindAncestorOfType<TextBox>(true) != null ||
+                 visual.FindAncestorOfType<TextBlock>(true) is { } texto && (texto == _lblServico || texto == _lblUsuario)))
+            {
+                return;
+            }
+
+            SolicitouDetalhes?.Invoke(this, _senha);
+            e.Handled = true;
         }
 
         private Border CriarAvatarServico()
@@ -287,7 +306,19 @@ namespace CofreDeSenhas.Controles
         {
             var celula = new Grid
             {
-                Margin = new Thickness(10, 0, 8, 0),
+                ColumnDefinitions = new ColumnDefinitions("Auto,*"),
+                Margin = new Thickness(8, 0, 10, 0),
+                VerticalAlignment = VerticalAlignment.Center
+            };
+
+            _avatar = CriarAvatarServico();
+            Grid.SetColumn(_avatar, 0);
+            celula.Children.Add(_avatar);
+
+            var textos = new Grid
+            {
+                RowDefinitions = new RowDefinitions("Auto,Auto"),
+                Margin = new Thickness(10, 0, 0, 0),
                 VerticalAlignment = VerticalAlignment.Center
             };
 
@@ -339,9 +370,48 @@ namespace CofreDeSenhas.Controles
             _txtServico.KeyDown += Servico_KeyDown;
             _txtServico.LostFocus += Servico_LostFocus;
 
-            celula.Children.Add(_lblServico);
-            celula.Children.Add(_txtServico);
+            var data = new TextBlock
+            {
+                Text = FormatarData(_senha.DataCriacao),
+                FontSize = 11,
+                Foreground = Tema.Pincel(Tema.TextTertiary),
+                TextTrimming = TextTrimming.CharacterEllipsis,
+                Margin = new Thickness(0, 3, 0, 0)
+            };
+            Grid.SetRow(data, 1);
+
+            textos.Children.Add(_lblServico);
+            textos.Children.Add(_txtServico);
+            textos.Children.Add(data);
+            Grid.SetColumn(textos, 1);
+            celula.Children.Add(textos);
             return celula;
+        }
+
+        private StackPanel CriarCelulaForca()
+        {
+            _painelForca = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                Spacing = 4,
+                VerticalAlignment = VerticalAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Left
+            };
+
+            _segmentosForca = Enumerable.Range(0, 4)
+                .Select(_ => new Border
+                {
+                    Width = 18,
+                    Height = 7,
+                    CornerRadius = new CornerRadius(4),
+                    Background = Tema.Pincel(Tema.TrailInactive)
+                })
+                .ToArray();
+
+            foreach (var segmento in _segmentosForca)
+                _painelForca.Children.Add(segmento);
+
+            return _painelForca;
         }
 
         private StackPanel CriarCelulaOrganizacao()
@@ -538,11 +608,11 @@ namespace CofreDeSenhas.Controles
             if (_grid == null)
                 return;
 
-            _grid.ColumnDefinitions[3].Width = new GridLength(servico);
-            _grid.ColumnDefinitions[4].Width = new GridLength(usuario);
+            _grid.ColumnDefinitions[1].Width = new GridLength(servico);
+            _grid.ColumnDefinitions[3].Width = new GridLength(usuario);
             _grid.ColumnDefinitions[5].Width = new GridLength(categoria);
-            _grid.ColumnDefinitions[6].Width = new GridLength(data);
-            _grid.ColumnDefinitions[7].Width = new GridLength(acoes);
+            _grid.ColumnDefinitions[7].Width = new GridLength(data);
+            _grid.ColumnDefinitions[9].Width = new GridLength(acoes);
         }
 
         private static Button CriarBotaoAcao(string icone, string dica)
@@ -554,11 +624,16 @@ namespace CofreDeSenhas.Controles
             return btn;
         }
 
-        private static PathIcon CriarIcone(string data) => new()
+        private static AvaloniaPath CriarIcone(string data, IBrush? stroke = null) => new()
         {
             Data = StreamGeometry.Parse(data),
             Width = 14,
-            Height = 14
+            Height = 14,
+            Stretch = Stretch.Uniform,
+            Stroke = stroke ?? Tema.Pincel(Tema.TextSecondary),
+            StrokeThickness = 2,
+            StrokeLineCap = PenLineCap.Round,
+            Fill = Brushes.Transparent
         };
 
         private static void DefinirIcone(Button botao, string data)
@@ -568,15 +643,12 @@ namespace CofreDeSenhas.Controles
 
         private void AtualizarIndicador()
         {
-            if (_lblIndicador == null) return;
+            if (_painelForca == null || _segmentosForca.Length == 0) return;
 
             if (_vazamentos > 0)
             {
                 var descricao = Idioma.Formatar("Row.PasswordCompromised", _vazamentos);
-                _lblIndicador.Text = "⚠";
-                _lblIndicador.Foreground = Tema.Pincel(Tema.StrengthWeak);
-                ToolTip.SetTip(_lblIndicador, descricao);
-                AutomationProperties.SetName(_lblIndicador, descricao);
+                DefinirForcaVisual(1, Tema.StrengthWeak, descricao);
                 AtualizarNomeAcessivel(descricao);
                 return;
             }
@@ -586,10 +658,7 @@ namespace CofreDeSenhas.Controles
                 bool critico = _achadosAuditoria.Contains(TipoAchadoAuditoriaSenha.Fraca)
                     || _achadosAuditoria.Contains(TipoAchadoAuditoriaSenha.Repetida);
                 var descricao = Idioma.Formatar("Row.AuditPrefix", string.Join("; ", DescreverAchadosAuditoria()));
-                _lblIndicador.Text = "⚠";
-                _lblIndicador.Foreground = Tema.Pincel(critico ? Tema.StrengthWeak : Tema.StrengthMedium);
-                ToolTip.SetTip(_lblIndicador, descricao);
-                AutomationProperties.SetName(_lblIndicador, descricao);
+                DefinirForcaVisual(critico ? 1 : 2, critico ? Tema.StrengthWeak : Tema.StrengthMedium, descricao);
                 AtualizarNomeAcessivel(descricao);
                 return;
             }
@@ -599,30 +668,32 @@ namespace CofreDeSenhas.Controles
             {
                 case 0:
                 case 1:
-                    DefinirForca("○", Tema.StrengthWeak, Idioma.Texto("Row.PasswordWeak"), sufixo);
+                    DefinirForcaVisual(1, Tema.StrengthWeak, Idioma.Texto("Row.PasswordWeak"), sufixo);
                     break;
                 case 2:
-                    DefinirForca("◐", Tema.StrengthMedium, Idioma.Texto("Row.PasswordMedium"), sufixo);
+                    DefinirForcaVisual(2, Tema.StrengthMedium, Idioma.Texto("Row.PasswordMedium"), sufixo);
                     break;
                 case 3:
+                    DefinirForcaVisual(3, Tema.StrengthStrong, Idioma.Texto("Row.PasswordStrong"), sufixo);
+                    break;
                 case 4:
-                    DefinirForca("●", Tema.StrengthStrong, Idioma.Texto("Row.PasswordStrong"), sufixo);
+                    DefinirForcaVisual(4, Tema.StrengthExcelent, Idioma.Texto("Generator.StrengthExcellent"), sufixo);
                     break;
                 default:
-                    _lblIndicador.Text = "";
-                    ToolTip.SetTip(_lblIndicador, null);
-                    AutomationProperties.SetName(_lblIndicador, "");
+                    DefinirForcaVisual(0, Tema.TrailInactive, "");
                     AtualizarNomeAcessivel(null);
                     break;
             }
         }
 
-        private void DefinirForca(string glifo, Color cor, string rotulo, string sufixo)
+        private void DefinirForcaVisual(int nivel, Color cor, string rotulo, string sufixo = "")
         {
-            _lblIndicador.Text = glifo;
-            _lblIndicador.Foreground = Tema.Pincel(cor);
-            ToolTip.SetTip(_lblIndicador, rotulo + sufixo);
-            AutomationProperties.SetName(_lblIndicador, rotulo);
+            for (int i = 0; i < _segmentosForca.Length; i++)
+                _segmentosForca[i].Background = Tema.Pincel(i < nivel ? cor : Tema.TrailInactive);
+
+            var descricao = rotulo + sufixo;
+            ToolTip.SetTip(_painelForca, string.IsNullOrWhiteSpace(descricao) ? null : descricao);
+            AutomationProperties.SetName(_painelForca, descricao);
             AtualizarNomeAcessivel(rotulo);
         }
 

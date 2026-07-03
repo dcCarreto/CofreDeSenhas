@@ -221,6 +221,64 @@
       <Setter Property="Background" Value="{DynamicResource HoverBackground}" />
     </Style>
 
+    <Style Selector="Button.nav-toggle">
+      <Setter Property="Background" Value="{DynamicResource InputBackground}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextSecondary}" />
+      <Setter Property="CornerRadius" Value="10" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="BorderBrush" Value="{DynamicResource InputBorder}" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+      <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="Button.nav-toggle:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource IconHoverBackground}" />
+      <Setter Property="Foreground" Value="{DynamicResource AccentPrimary}" />
+    </Style>
+
+    <Style Selector="Button.nav-item">
+      <Setter Property="Height" Value="40" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Foreground" Value="{DynamicResource TextSecondary}" />
+      <Setter Property="FontSize" Value="13" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="CornerRadius" Value="10" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
+      <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+      <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="Button.nav-item:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource HoverBackground}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
+    </Style>
+    <Style Selector="Button.nav-item.ativo">
+      <Setter Property="Background" Value="{DynamicResource AccentLight}" />
+      <Setter Property="Foreground" Value="{DynamicResource AccentPrimary}" />
+    </Style>
+    <Style Selector="Button.nav-item.ativo /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AccentLight}" />
+      <Setter Property="Foreground" Value="{DynamicResource AccentPrimary}" />
+    </Style>
+
+    <Style Selector="Button.fab">
+      <Setter Property="Background" Value="{DynamicResource AccentPrimary}" />
+      <Setter Property="Foreground" Value="White" />
+      <Setter Property="CornerRadius" Value="29" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+      <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="Button.fab:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AccentHover}" />
+      <Setter Property="Foreground" Value="White" />
+    </Style>
+
     <Style Selector="TextBox.campo">
       <Setter Property="Background" Value="{DynamicResource InputBackground}" />
       <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
@@ -275,6 +333,13 @@
       <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
       <Setter Property="BorderBrush" Value="{DynamicResource CardBorder}" />
       <Setter Property="FontSize" Value="12" />
+    </Style>
+
+    <Style Selector="Path.line-icon">
+      <Setter Property="Fill" Value="Transparent" />
+      <Setter Property="StrokeThickness" Value="2" />
+      <Setter Property="StrokeLineCap" Value="Round" />
+      <Setter Property="Stretch" Value="Uniform" />
     </Style>
   </Application.Styles>
 </Application>
