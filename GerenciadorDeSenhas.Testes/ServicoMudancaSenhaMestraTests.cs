@@ -76,6 +76,38 @@ public class ServicoMudancaSenhaMestraTests : IDisposable
     }
 
     [Fact]
+    public async Task AlterarAsync_PreservaTotpEHistoricoSobNovaChave()
+    {
+        var auth = new AutenticacaoMestra(_pasta);
+        var chave = auth.CriarSenhaMestra("SenhaAntiga@123");
+        var crypto = new ServicoCriptografia(chave);
+        var persist = new PersistenciaLocal(crypto, _pasta);
+        var repo = new RepositorioSenha(persist, chave);
+        var servico = new ServicoSenha(repo, crypto);
+
+        var senha = await servico.CriarSenhaAsync("GitHub", "dev@git.com", "Primeira@111",
+            Categoria.Personal, totpSegredo: "JBSWY3DPEHPK3PXP");
+        await servico.AtualizarSenhaAsync(senha.Id, "GitHub", "dev@git.com", "Segunda@222", Categoria.Personal);
+        await servico.PersistirAsync();
+
+        await new ServicoMudancaSenhaMestra(_pasta).AlterarAsync("SenhaAntiga@123", "SenhaNova@456");
+
+        var chaveNova = new AutenticacaoMestra(_pasta).Autenticar("SenhaNova@456");
+        Assert.NotNull(chaveNova);
+
+        var cryptoNovo = new ServicoCriptografia(chaveNova!);
+        var persistNovo = new PersistenciaLocal(cryptoNovo, _pasta);
+        var senhas = await persistNovo.CarregarSenhasAsync(chaveNova!);
+        var git = senhas.Single(s => s.NomeServico == "GitHub");
+
+        Assert.Equal("Segunda@222", cryptoNovo.Descriptografar(git.SenhaHash));
+        Assert.NotNull(git.TotpSegredo);
+        Assert.Equal("JBSWY3DPEHPK3PXP", cryptoNovo.Descriptografar(git.TotpSegredo!));
+        var anterior = Assert.Single(git.Historico);
+        Assert.Equal("Primeira@111", cryptoNovo.Descriptografar(anterior.SenhaHash));
+    }
+
+    [Fact]
     public async Task AlterarAsync_CofreVazio_FuncionaSemErro()
     {
         new AutenticacaoMestra(_pasta).CriarSenhaMestra("SenhaAntiga@123");

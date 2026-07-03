@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using GerenciadorDeSenhas.Modelos;
 
 namespace GerenciadorDeSenhas.Servicos
 {
@@ -29,7 +31,10 @@ namespace GerenciadorDeSenhas.Servicos
             var persistAntigo = new PersistenciaLocal(cryptoAntigo, _pastaApp);
             var senhas = await persistAntigo.CarregarSenhasAsync(chaveAntiga);
 
-            var planos = senhas.Select(s => cryptoAntigo.Descriptografar(s.SenhaHash)).ToList();
+            var decifrados = senhas.Select(s => new CamposDecifrados(
+                cryptoAntigo.Descriptografar(s.SenhaHash),
+                string.IsNullOrEmpty(s.TotpSegredo) ? null : cryptoAntigo.Descriptografar(s.TotpSegredo),
+                DecifrarHistorico(s, cryptoAntigo))).ToList();
 
             var authPath = Path.Combine(_pastaApp, "auth.dat");
             var vaultPath = Path.Combine(_pastaApp, "senhas.json.enc");
@@ -46,7 +51,19 @@ namespace GerenciadorDeSenhas.Servicos
                 var cryptoNovo = new ServicoCriptografia(chaveNova);
                 var persistNovo = new PersistenciaLocal(cryptoNovo, _pastaApp);
                 for (int i = 0; i < senhas.Count; i++)
-                    senhas[i].SenhaHash = cryptoNovo.Criptografar(planos[i]);
+                {
+                    var alvo = senhas[i];
+                    var origem = decifrados[i];
+                    alvo.SenhaHash = cryptoNovo.Criptografar(origem.Senha);
+                    alvo.TotpSegredo = origem.Totp == null ? null : cryptoNovo.Criptografar(origem.Totp);
+                    alvo.Historico = origem.Historico
+                        .Select(h => new HistoricoSenha
+                        {
+                            SenhaHash = cryptoNovo.Criptografar(h.Plano),
+                            DataAlteracao = h.Data
+                        })
+                        .ToList();
+                }
                 await persistNovo.SalvarSenhasAsync(senhas, chaveNova);
             }
             catch
@@ -65,5 +82,18 @@ namespace GerenciadorDeSenhas.Servicos
                 try { if (File.Exists(vaultBak)) File.Delete(vaultBak); } catch { }
             }
         }
+
+        private static List<(string Plano, DateTime Data)> DecifrarHistorico(Senha senha, ServicoCriptografia crypto)
+        {
+            var historico = new List<(string, DateTime)>();
+            foreach (var item in senha.Historico)
+            {
+                try { historico.Add((crypto.Descriptografar(item.SenhaHash), item.DataAlteracao)); }
+                catch { }
+            }
+            return historico;
+        }
+
+        private sealed record CamposDecifrados(string Senha, string? Totp, List<(string Plano, DateTime Data)> Historico);
     }
 }
