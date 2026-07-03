@@ -370,4 +370,81 @@ public class ServicoSenhaTests : IDisposable
         Assert.NotNull(atualizada!.TotpSegredo);
         Assert.Equal("JBSWY3DPEHPK3PXP", _criptografia.Descriptografar(atualizada.TotpSegredo!));
     }
+
+    [Fact]
+    public async Task CriarSenhaAsync_ComecaSemHistorico()
+    {
+        var senha = await _servico.CriarSenhaAsync(
+            "Gmail", "user@gmail.com", "Senha@123456", Categoria.Personal);
+
+        Assert.Empty(senha.Historico);
+    }
+
+    [Fact]
+    public async Task AtualizarSenhaAsync_ComSenhaDiferente_GuardaSenhaAnteriorNoHistorico()
+    {
+        var senha = await _servico.CriarSenhaAsync(
+            "Gmail", "user@gmail.com", "Senha@123456", Categoria.Personal);
+
+        await _servico.AtualizarSenhaAsync(
+            senha.Id, "Gmail", "user@gmail.com", "NovaSenha@789", Categoria.Personal);
+
+        var atualizada = await _servico.ObterSenhaAsync(senha.Id);
+
+        var anterior = Assert.Single(atualizada!.Historico);
+        Assert.Equal("Senha@123456", _criptografia.Descriptografar(anterior.SenhaHash));
+        Assert.Equal("NovaSenha@789", _criptografia.Descriptografar(atualizada.SenhaHash));
+    }
+
+    [Fact]
+    public async Task AtualizarSenhaAsync_ComMesmaSenha_NaoRegistraHistorico()
+    {
+        var senha = await _servico.CriarSenhaAsync(
+            "Gmail", "user@gmail.com", "Senha@123456", Categoria.Personal);
+
+        await _servico.AtualizarSenhaAsync(
+            senha.Id, "Gmail", "novo@gmail.com", "Senha@123456", Categoria.Work);
+
+        var atualizada = await _servico.ObterSenhaAsync(senha.Id);
+
+        Assert.Empty(atualizada!.Historico);
+        Assert.Equal("novo@gmail.com", atualizada.Usuario);
+    }
+
+    [Fact]
+    public async Task AtualizarSenhaAsync_MultiplasTrocas_MantemOrdemCronologica()
+    {
+        var senha = await _servico.CriarSenhaAsync(
+            "Gmail", "user@gmail.com", "Primeira@111", Categoria.Personal);
+
+        await _servico.AtualizarSenhaAsync(
+            senha.Id, "Gmail", "user@gmail.com", "Segunda@222", Categoria.Personal);
+        await _servico.AtualizarSenhaAsync(
+            senha.Id, "Gmail", "user@gmail.com", "Terceira@333", Categoria.Personal);
+
+        var atualizada = await _servico.ObterSenhaAsync(senha.Id);
+
+        Assert.Equal(2, atualizada!.Historico.Count);
+        Assert.Equal("Primeira@111", _criptografia.Descriptografar(atualizada.Historico[0].SenhaHash));
+        Assert.Equal("Segunda@222", _criptografia.Descriptografar(atualizada.Historico[1].SenhaHash));
+    }
+
+    [Fact]
+    public async Task AtualizarSenhaAsync_AcimaDoLimite_MantemApenasAsMaisRecentes()
+    {
+        var senha = await _servico.CriarSenhaAsync(
+            "Gmail", "user@gmail.com", "Senha@000000", Categoria.Personal);
+
+        for (int i = 1; i <= 15; i++)
+        {
+            await _servico.AtualizarSenhaAsync(
+                senha.Id, "Gmail", "user@gmail.com", $"Senha@{i:000000}", Categoria.Personal);
+        }
+
+        var atualizada = await _servico.ObterSenhaAsync(senha.Id);
+
+        Assert.Equal(10, atualizada!.Historico.Count);
+        Assert.Equal("Senha@000005", _criptografia.Descriptografar(atualizada.Historico[0].SenhaHash));
+        Assert.Equal("Senha@000014", _criptografia.Descriptografar(atualizada.Historico[9].SenhaHash));
+    }
 }

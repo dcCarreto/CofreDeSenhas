@@ -17,6 +17,8 @@ namespace GerenciadorDeSenhas.Modelos
 
         public string? TotpSegredo { get; set; }
 
+        public List<HistoricoSenha> Historico { get; set; } = new();
+
         public bool Favorito { get; set; }
 
         public byte[] IV { get; set; } = new byte[12];

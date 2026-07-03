@@ -10,8 +10,15 @@ namespace GerenciadorDeSenhas.Modelos
         public List<string> Etiquetas { get; set; } = new();
         public string? Notas { get; set; }
         public string? TotpSegredo { get; set; }
+        public List<HistoricoSenhaExportada> Historico { get; set; } = new();
         public bool Favorito { get; set; }
         public DateTime DataCriacao { get; set; }
         public DateTime DataAtualizacao { get; set; }
+    }
+
+    public class HistoricoSenhaExportada
+    {
+        public string Senha { get; set; } = string.Empty;
+        public DateTime DataAlteracao { get; set; }
     }
 }

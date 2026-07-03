@@ -506,6 +506,30 @@ namespace CofreDeSenhas.Janelas
             catch { return null; }
         }
 
+        private List<HistoricoSenhaExportada> ObterHistoricoPlain(Senha s)
+        {
+            var historico = new List<HistoricoSenhaExportada>();
+            if (_criptografia == null)
+                return historico;
+
+            foreach (var item in s.Historico)
+            {
+                try
+                {
+                    historico.Add(new HistoricoSenhaExportada
+                    {
+                        Senha = _criptografia.Descriptografar(item.SenhaHash),
+                        DataAlteracao = item.DataAlteracao
+                    });
+                }
+                catch
+                {
+                }
+            }
+
+            return historico;
+        }
+
         private void Filtro_Alterado(object? sender, SelectionChangedEventArgs e) => FiltrarSenhas();
 
         private void Busca_Alterada(object? sender, TextChangedEventArgs e) => FiltrarSenhas();
@@ -1181,6 +1205,7 @@ namespace CofreDeSenhas.Janelas
                         Etiquetas = s.Etiquetas.ToList(),
                         Notas = s.Notas,
                         TotpSegredo = ObterTotpPlain(s),
+                        Historico = ObterHistoricoPlain(s),
                         Favorito = s.Favorito,
                         DataCriacao = s.DataCriacao,
                         DataAtualizacao = s.DataAtualizacao
@@ -1339,6 +1364,7 @@ namespace CofreDeSenhas.Janelas
                     item.NomeServico, item.Usuario, item.Senha, item.Categoria, item.Url, item.Notas, totp, item.Etiquetas);
                 if (item.Favorito)
                     await _servicoSenha.MarcarComoFavoritoAsync(nova.Id);
+                RestaurarHistorico(nova, item.Historico);
                 adicionadas++;
             }
 
@@ -1346,6 +1372,21 @@ namespace CofreDeSenhas.Janelas
             await CarregarSenhasAsync();
 
             return (adicionadas, ignoradas);
+        }
+
+        private void RestaurarHistorico(Senha destino, List<HistoricoSenhaExportada>? historico)
+        {
+            if (historico == null || historico.Count == 0 || _criptografia == null)
+                return;
+
+            destino.Historico = historico
+                .Where(h => !string.IsNullOrEmpty(h.Senha))
+                .Select(h => new HistoricoSenha
+                {
+                    SenhaHash = _criptografia.Criptografar(h.Senha),
+                    DataAlteracao = h.DataAlteracao
+                })
+                .ToList();
         }
 
         private async void AlterarSenhaMestra_Click(object? sender, RoutedEventArgs e)

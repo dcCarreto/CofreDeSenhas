@@ -1,7 +1,9 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Automation;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Layout;
 using Avalonia.Threading;
 using GerenciadorDeSenhas.Modelos;
 using GerenciadorDeSenhas.Servicos;
@@ -15,6 +17,7 @@ namespace CofreDeSenhas.Janelas
         private readonly Senha _senhaAtual;
         private readonly ServicoTotp _totp = new();
         private DispatcherTimer? _timerTotp;
+        private bool _historicoAberto;
 
         public JanelaEditarSenha(IServicoSenha servicoSenha, Senha senhaAtual, IServicoCriptografia? criptografia)
         {
@@ -40,6 +43,7 @@ namespace CofreDeSenhas.Janelas
             AtualizarCampoCategoriaPersonalizada();
 
             TxtTotp.TextChanged += (s, e) => AtualizarPreviewTotp();
+            MontarHistorico();
             Idioma.Alterado += Idioma_Alterado;
             Closed += (s, e) =>
             {
@@ -71,6 +75,7 @@ namespace CofreDeSenhas.Janelas
             AtualizarTitulo();
             AtualizarCategorias();
             AtualizarPreviewTotp();
+            MontarHistorico();
         }
 
         private void AtualizarTitulo()
@@ -217,5 +222,132 @@ namespace CofreDeSenhas.Janelas
 
         private static string FormatarCodigo(string codigo) =>
             codigo.Length == 6 ? codigo.Insert(3, " ") : codigo;
+
+        private void AlternarHistorico_Click(object? sender, RoutedEventArgs e)
+        {
+            _historicoAberto = !_historicoAberto;
+            PainelHistorico.IsVisible = _historicoAberto && PainelHistorico.Children.Count > 0;
+            AtualizarRotuloHistorico();
+        }
+
+        private void MontarHistorico()
+        {
+            PainelHistorico.Children.Clear();
+
+            if (_criptografia == null || _senhaAtual.Historico.Count == 0)
+            {
+                BtnHistorico.IsVisible = false;
+                PainelHistorico.IsVisible = false;
+                return;
+            }
+
+            for (int i = _senhaAtual.Historico.Count - 1; i >= 0; i--)
+                PainelHistorico.Children.Add(CriarLinhaHistorico(_senhaAtual.Historico[i]));
+
+            BtnHistorico.IsVisible = true;
+            PainelHistorico.IsVisible = _historicoAberto;
+            AtualizarRotuloHistorico();
+        }
+
+        private void AtualizarRotuloHistorico()
+        {
+            var seta = _historicoAberto ? " ▲" : " ▼";
+            BtnHistorico.Content = Idioma.Formatar("Entry.HistoryHeader", _senhaAtual.Historico.Count) + seta;
+        }
+
+        private Control CriarLinhaHistorico(HistoricoSenha item)
+        {
+            string plain;
+            try { plain = _criptografia!.Descriptografar(item.SenhaHash); }
+            catch { plain = string.Empty; }
+
+            var data = item.DataAlteracao.ToLocalTime().ToString("g", Idioma.CulturaAtual);
+
+            var lblData = new TextBlock
+            {
+                Text = Idioma.Formatar("Entry.HistoryReplacedOn", data),
+                FontSize = 11,
+                Foreground = Tema.Pincel(Tema.TextTertiary),
+                VerticalAlignment = VerticalAlignment.Center
+            };
+
+            var campo = new TextBox
+            {
+                PasswordChar = '●',
+                IsReadOnly = true,
+                Text = plain,
+                FontSize = 13,
+                Margin = new Thickness(0, 0, 8, 0),
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            campo.Classes.Add("campo");
+            campo.Classes.Add("revealPasswordButton");
+            AutomationProperties.SetName(campo, Idioma.Texto("A11y.PreviousPassword"));
+
+            var btnCopiar = CriarBotaoHistorico(Idioma.Texto("Row.CopyPassword"), Idioma.Texto("Row.CopyPassword"));
+            btnCopiar.Click += async (_, _) => await CopiarAsync(plain);
+
+            var btnUsar = CriarBotaoHistorico(Idioma.Texto("Entry.HistoryUse"), Idioma.Texto("Entry.HistoryUseTooltip"));
+            btnUsar.Click += (_, _) => UsarSenhaAnterior(plain);
+
+            var acoes = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                Spacing = 4,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            acoes.Children.Add(btnCopiar);
+            acoes.Children.Add(btnUsar);
+
+            var linha = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto"), Margin = new Thickness(0, 4, 0, 0) };
+            Grid.SetColumn(campo, 0);
+            Grid.SetColumn(acoes, 1);
+            linha.Children.Add(campo);
+            linha.Children.Add(acoes);
+
+            var painel = new StackPanel();
+            painel.Children.Add(lblData);
+            painel.Children.Add(linha);
+            return painel;
+        }
+
+        private static Button CriarBotaoHistorico(string texto, string dica)
+        {
+            var botao = new Button
+            {
+                Classes = { "plano" },
+                Content = texto,
+                FontSize = 12,
+                Padding = new Thickness(10, 4),
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            ToolTip.SetTip(botao, dica);
+            AutomationProperties.SetName(botao, dica);
+            return botao;
+        }
+
+        private void UsarSenhaAnterior(string senha)
+        {
+            TxtSenha.Text = senha;
+            TxtSenha.Focus();
+            _historicoAberto = false;
+            PainelHistorico.IsVisible = false;
+            AtualizarRotuloHistorico();
+        }
+
+        private async Task CopiarAsync(string texto)
+        {
+            if (string.IsNullOrEmpty(texto))
+                return;
+
+            var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
+            if (clipboard != null)
+            {
+                try { await clipboard.SetTextAsync(texto); }
+                catch { }
+            }
+
+            Acessibilidade.Anunciar(this, Idioma.Formatar("A11y.Copied", Idioma.Texto("A11y.PreviousPassword")));
+        }
     }
 }

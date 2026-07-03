@@ -6,6 +6,8 @@ namespace GerenciadorDeSenhas.Servicos
 {
     public class ServicoSenha : IServicoSenha
     {
+        private const int MaxHistorico = 10;
+
         private readonly IRepositorioSenha _repositorio;
         private readonly IServicoCriptografia _criptografia;
         private readonly ServicoTotp _totp = new();
@@ -51,6 +53,8 @@ namespace GerenciadorDeSenhas.Servicos
             if (senha == null)
                 throw new InvalidOperationException($"Senha com ID {id} não encontrada");
 
+            RegistrarHistoricoSeMudou(senha, senhaPlaintext);
+
             senha.NomeServico = nomeServico;
             senha.Usuario = usuario;
             senha.SenhaHash = _criptografia.Criptografar(senhaPlaintext);
@@ -82,6 +86,31 @@ namespace GerenciadorDeSenhas.Servicos
                 return null;
 
             return _criptografia.Criptografar(_totp.NormalizarSegredo(segredoPlaintext));
+        }
+
+        private void RegistrarHistoricoSeMudou(Senha senha, string novaSenhaPlaintext)
+        {
+            string senhaAnterior;
+            try
+            {
+                senhaAnterior = _criptografia.Descriptografar(senha.SenhaHash);
+            }
+            catch
+            {
+                return;
+            }
+
+            if (senhaAnterior == novaSenhaPlaintext)
+                return;
+
+            senha.Historico.Add(new HistoricoSenha
+            {
+                SenhaHash = senha.SenhaHash,
+                DataAlteracao = DateTime.UtcNow
+            });
+
+            if (senha.Historico.Count > MaxHistorico)
+                senha.Historico.RemoveRange(0, senha.Historico.Count - MaxHistorico);
         }
 
         public async Task RemoverSenhaAsync(Guid id)

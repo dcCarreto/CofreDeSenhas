@@ -66,9 +66,14 @@
                  AutomationProperties.IsRequiredForForm="True" />
 
         <TextBlock Text="{DynamicResource Entry.PasswordKeepCurrent}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
-        <TextBox Name="TxtSenha" Classes="campo revealPasswordButton" PasswordChar="●" Margin="0,0,0,12"
+        <TextBox Name="TxtSenha" Classes="campo revealPasswordButton" PasswordChar="●" Margin="0,0,0,8"
                  AutomationProperties.Name="{DynamicResource Entry.PasswordKeepCurrent}"
                  AutomationProperties.HelpText="{DynamicResource A11y.PasswordFieldHelp}" />
+
+        <Button Name="BtnHistorico" Classes="plano" IsVisible="False"
+                HorizontalAlignment="Left" Padding="6,3" Margin="0,0,0,4" FontSize="12"
+                Click="AlternarHistorico_Click" />
+        <StackPanel Name="PainelHistorico" IsVisible="False" Spacing="10" Margin="0,0,0,12" />
 
         <TextBlock Text="{DynamicResource Entry.TotpRemove}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
         <TextBox Name="TxtTotp" Classes="campo"
