@@ -34,7 +34,7 @@ gerenciador de senhas seguro:
 - Distribuição como executável único e autocontido para Windows, e script de
   instalação para Linux (atalho no menu de aplicativos e ícone, por usuário).
 
-### Após a 1.0.0
+### Versão 2.0.0
 
 - Conexão opcional a banco de dados externo (SQLite, PostgreSQL, MySQL/MariaDB e
   SQL Server) com sincronização automática: ao conectar, o cofre local e o banco
@@ -88,17 +88,21 @@ gerenciador de senhas seguro:
 - Desbloqueio por Windows Hello/biometria no Windows, com registro por
   dispositivo respaldado por credencial do Windows Hello (TPM) e fallback pela
   senha mestra.
+- Recursos de acessibilidade: modos para daltonismo, alto contraste, escala de
+  fonte, redução de animações e suporte aprimorado a leitores de tela.
+- Histórico de alterações por credencial: a senha anterior de cada item é
+  guardada de forma cifrada a cada troca, com data da substituição. As últimas
+  versões podem ser reveladas, copiadas e reutilizadas na tela de edição,
+  acompanham a exportação e são re-cifradas ao alterar a senha mestra.
 
 ## Planejado
 
 Ideias e melhorias consideradas para versões futuras, sem ordem definitiva de
 prioridade:
 
-- Histórico de alterações por credencial.
 - Sincronização opcional e criptografada de ponta a ponta entre dispositivos.
 - Versão para macOS.
 - Empacotamento em instalador e publicação em gerenciadores de pacotes.
-- Opções de acessibilidade.
 
 ## Como sugerir
 

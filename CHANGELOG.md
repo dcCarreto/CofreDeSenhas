@@ -6,7 +6,24 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+## [2.0.0] - 2026-07-03
+
+Segunda geração do projeto: o que era um gerador de senhas com cofre local
+passa a reunir sincronização opcional com banco de dados, autenticação em duas
+etapas, biometria, internacionalização, importação de outros gerenciadores,
+acessibilidade e histórico por credencial — mantendo tudo local por padrão,
+livre e auditável.
+
 ### Adicionado
+- Histórico de alterações por credencial: a cada troca da senha de um item, a
+  senha anterior é preservada de forma cifrada, junto da data da substituição.
+  As últimas dez versões ficam disponíveis na tela de edição, com opções de
+  revelar, copiar e reutilizar uma senha anterior. O histórico acompanha a
+  exportação do cofre e é re-cifrado ao alterar a senha mestra.
+- Recursos de acessibilidade: modos para daltonismo (protanopia, deuteranopia,
+  tritanopia e monocromacia), alto contraste, escala de fonte, redução de
+  animações e suporte aprimorado a leitores de tela, com anúncios de ações e
+  rótulos de automação distribuídos pela interface.
 - Importação a partir de arquivos CSV de outros gerenciadores, pelo menu de
   configurações. O delimitador (vírgula, ponto e vírgula ou tabulação) é
   detectado automaticamente e as colunas são reconhecidas pelo cabeçalho,
@@ -72,6 +89,9 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 - Correção da interação dos sliders e seletores do gerador na tela de senha
   mestra, permitindo clicar, arrastar e abrir os controles normalmente sem estar
   logado no cofre.
+- Ao alterar a senha mestra, o segredo TOTP de cada credencial passa a ser
+  re-cifrado com a nova chave. Antes ele permanecia cifrado com a chave antiga e
+  ficava inacessível após a troca. O histórico de senhas também é re-cifrado.
 
 ### Segurança
 - A senha gravada no banco é sempre o texto cifrado (AES-256-GCM derivado da
@@ -117,5 +137,6 @@ gerenciador de senhas seguro e completo.
 - PBKDF2-SHA256 (100k iterações) para a senha mestra; verificador one-way em `auth.dat`.
 - Comparações em tempo constante; arquivos sensíveis isolados em `%APPDATA%`.
 
-[Não lançado]: https://github.com/dcCarreto/CofreDeSenhas/compare/v1.0.0...HEAD
+[Não lançado]: https://github.com/dcCarreto/CofreDeSenhas/compare/v2.0.0...HEAD
+[2.0.0]: https://github.com/dcCarreto/CofreDeSenhas/compare/v1.0.0...v2.0.0
 [1.0.0]: https://github.com/dcCarreto/CofreDeSenhas/releases/tag/v1.0.0

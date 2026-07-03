@@ -11,7 +11,7 @@ plataformas.
 ![Licença](https://img.shields.io/badge/licen%C3%A7a-MIT-blue)
 ![Plataforma](https://img.shields.io/badge/plataforma-Windows%2010%2F11%20%7C%20Linux-0078D6)
 ![.NET](https://img.shields.io/badge/.NET-10-512BD4)
-![Versão](https://img.shields.io/badge/vers%C3%A3o-1.0.0-success)
+![Versão](https://img.shields.io/badge/vers%C3%A3o-2.0.0-success)
 
 Este é um projeto de código aberto e software livre, distribuído sob a licença
 MIT. Você pode usá-lo, estudá-lo, modificá-lo e compartilhá-lo livremente.
@@ -54,6 +54,11 @@ que qualquer um pode auditar é, no fim, um código em que se pode confiar.
 
 Se este projeto for útil para você, use-o sem receios. Se quiser melhorá-lo,
 seja bem-vindo. Ele foi feito para servir a todos.
+
+Este aplicativo nasceu livre e continuará livre. Nenhuma evolução futura muda
+isso: o código-fonte permanece aberto sob a licença MIT, sem versões pagas, sem
+recursos escondidos atrás de assinatura e sem coleta de dados. Cada nova etapa
+do projeto é construída respeitando esse compromisso.
 
 ## Visão geral
 
@@ -119,6 +124,9 @@ Tema escuro:
 - Verificação de senhas comprometidas via Have I Been Pwned.
 - Auditoria local para detectar senhas fracas, repetidas ou sem atualização há
   365 dias ou mais.
+- Histórico de senhas por credencial: a cada troca, a senha anterior é guardada
+  de forma cifrada com a data da substituição, podendo ser revelada, copiada ou
+  reutilizada na tela de edição. As últimas dez versões são mantidas.
 - Lista com ícones por serviço, categoria e ações rápidas para revelar, copiar e
   editar.
 - Colunas redimensionáveis para serviço, usuário, categoria, data e ações.
@@ -169,6 +177,9 @@ Tema escuro:
 
 - Janela sem moldura, com cantos arredondados e redimensionamento livre.
 - Tema claro e tema escuro, com a preferência persistida entre sessões.
+- Recursos de acessibilidade: modos para daltonismo (protanopia, deuteranopia,
+  tritanopia e monocromacia), alto contraste, escala de fonte, redução de
+  animações e suporte aprimorado a leitores de tela.
 - Interface internacionalizada, com seleção persistida entre português do
   Brasil, inglês, espanhol, francês, alemão e italiano.
 - Layout do cofre com distribuição ajustada para priorizar a leitura do usuário,
@@ -190,6 +201,7 @@ Tema escuro:
 | Comparações sensíveis | Realizadas em tempo constante, evitando ataques de temporização |
 | Verificação de vazamento | Have I Been Pwned por k-anonymity: apenas os 5 primeiros caracteres do hash SHA-1 da senha deixam a máquina |
 | Códigos TOTP | A chave 2FA é guardada cifrada (AES-256-GCM) como a senha; os códigos são calculados localmente (RFC 6238) e nada é enviado à rede |
+| Histórico de senhas | Cada senha anterior é guardada cifrada (AES-256-GCM) como a senha atual e re-cifrada ao alterar a senha mestra; permanece somente no cofre e na exportação |
 | Cofre em banco de dados | Quando conectado a um banco externo, a coluna de senha guarda apenas o texto cifrado (AES-256-GCM); a senha do servidor de banco não é gravada em disco |
 | Windows Hello | Opcional no Windows. A chave do cofre é cifrada (AES-256-GCM) com uma chave derivada da assinatura de uma credencial do Windows Hello (chave privada no TPM); o envelope em `biometria.dat` só pode ser aberto após a autenticação biométrica |
 | Local dos dados | Pasta do usuário (`%APPDATA%\GerenciadorSenhas\` no Windows, `~/.config/GerenciadorSenhas/` no Linux), fora do repositório |
