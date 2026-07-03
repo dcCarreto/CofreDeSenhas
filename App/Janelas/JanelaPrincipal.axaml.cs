@@ -19,8 +19,10 @@ namespace CofreDeSenhas.Janelas
     {
         private IServicoSenha _servicoSenha;
         private readonly IServicoSenha _servicoSenhaLocal;
+        private readonly byte[] _chaveMestra;
         private readonly IServicoCriptografia? _criptografia;
         private readonly IRepositorioSenha? _repositorioLocal;
+        private readonly ServicoDesbloqueioBiometrico _biometria = new();
         private readonly ServicoAuditoriaSenha _servicoAuditoria = new();
         private readonly ServicoVazamento _servicoVazamento = new();
         private readonly ServicoExportacao _servicoExportacao = new();
@@ -56,11 +58,12 @@ namespace CofreDeSenhas.Janelas
         private const double LarguraMinimaData = 78;
         private const double LarguraMinimaAcoes = 170;
 
-        public JanelaPrincipal(IServicoSenha servicoSenha, IServicoCriptografia? criptografia = null,
+        public JanelaPrincipal(IServicoSenha servicoSenha, byte[] chaveMestra, IServicoCriptografia? criptografia = null,
             IRepositorioSenha? repositorioLocal = null, Action? aoBloquear = null)
         {
             _servicoSenha = servicoSenha ?? throw new ArgumentNullException(nameof(servicoSenha));
             _servicoSenhaLocal = _servicoSenha;
+            _chaveMestra = chaveMestra?.ToArray() ?? throw new ArgumentNullException(nameof(chaveMestra));
             _criptografia = criptografia;
             _repositorioLocal = repositorioLocal;
             _aoBloquear = aoBloquear;
@@ -78,6 +81,7 @@ namespace CofreDeSenhas.Janelas
             AtualizarContador();
             AtualizarEstadoConexao(null);
             MarcarIdiomaSelecionado();
+            AtualizarMenuBiometria();
 
             _monitor = new MonitorInatividade(this, () => _aoBloquear?.Invoke());
             _monitor.Ajustar(Preferencias.MinutosBloqueio);
@@ -85,6 +89,7 @@ namespace CofreDeSenhas.Janelas
             {
                 MarcarBloqueioSelecionado(Preferencias.MinutosBloqueio);
                 MarcarIdiomaSelecionado();
+                AtualizarMenuBiometria();
             };
             Idioma.Alterado += IdiomaGlobal_Alterado;
             Closed += (s, e) =>
@@ -319,6 +324,7 @@ namespace CofreDeSenhas.Janelas
         {
             AtualizarBotaoTema();
             MarcarIdiomaSelecionado();
+            AtualizarMenuBiometria();
             AtualizarFiltroOrganizacao();
             AtualizarContador();
             AtualizarEstadoConexao(_descricaoConexaoAtual, _falhaReconexaoAtual);
@@ -957,10 +963,16 @@ namespace CofreDeSenhas.Janelas
                 return;
             }
 
+            var biometriaEstavaHabilitada = _biometria.EstaHabilitado;
+            await _biometria.DesabilitarAsync();
             await QrBackup.OferecerSalvarAsync(this, dlg.NovaSenha);
 
+            var mensagem = Idioma.Texto("Master.ChangedRestart");
+            if (biometriaEstavaHabilitada)
+                mensagem += "\n\n" + Idioma.Texto("Biometric.DisabledAfterMasterChange");
+
             await CaixaMensagem.MostrarAsync(this,
-                Idioma.Texto("Master.ChangedRestart"),
+                mensagem,
                 Idioma.Texto("Master.ChangeTitle"));
             Reiniciar();
         }
@@ -972,6 +984,61 @@ namespace CofreDeSenhas.Janelas
                 return;
 
             await QrBackup.OferecerSalvarAsync(this, dlg.SenhaConfirmada);
+        }
+
+        private async void Biometria_Click(object? sender, RoutedEventArgs e)
+        {
+            if (!_biometria.SistemaSuportado)
+            {
+                await CaixaMensagem.MostrarAsync(this,
+                    Idioma.Texto("Biometric.UnsupportedPlatform"),
+                    Idioma.Texto("Biometric.Title"),
+                    TipoMensagem.Aviso);
+                return;
+            }
+
+            if (_biometria.EstaHabilitado)
+            {
+                var confirmar = await CaixaMensagem.ConfirmarAsync(this,
+                    Idioma.Texto("Biometric.DisableConfirm"),
+                    Idioma.Texto("Biometric.Title"));
+                if (!confirmar)
+                    return;
+
+                await _biometria.DesabilitarAsync();
+                AtualizarMenuBiometria();
+                await CaixaMensagem.MostrarAsync(this,
+                    Idioma.Texto("Biometric.Disabled"),
+                    Idioma.Texto("Biometric.Title"));
+                return;
+            }
+
+            var resultado = await _biometria.HabilitarAsync(this, _chaveMestra);
+            AtualizarMenuBiometria();
+            if (resultado.Sucesso)
+            {
+                await CaixaMensagem.MostrarAsync(this,
+                    Idioma.Texto("Biometric.Enabled"),
+                    Idioma.Texto("Biometric.Title"));
+            }
+            else if (!resultado.Cancelado)
+            {
+                await CaixaMensagem.MostrarAsync(this,
+                    resultado.Mensagem ?? Idioma.Texto("Biometric.Unavailable"),
+                    Idioma.Texto("Biometric.Title"),
+                    TipoMensagem.Aviso);
+            }
+        }
+
+        private void AtualizarMenuBiometria()
+        {
+            if (MenuBiometria == null)
+                return;
+
+            MenuBiometria.IsVisible = _biometria.SistemaSuportado;
+            MenuBiometria.Header = Idioma.Texto(_biometria.EstaHabilitado
+                ? "Settings.DisableWindowsHello"
+                : "Settings.EnableWindowsHello");
         }
 
         private void Bloqueio_Alterado(object? sender, RoutedEventArgs e)

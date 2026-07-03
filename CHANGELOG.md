@@ -52,6 +52,9 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
   importação/exportação e banco de dados.
 - Internacionalização da interface, com seletor de idioma persistido e suporte a
   português do Brasil, inglês, espanhol, francês, alemão e italiano.
+- Desbloqueio por Windows Hello/biometria no Windows, ativável por dispositivo.
+  A chave do cofre é cifrada (AES-256-GCM) com uma chave derivada de credencial
+  do Windows Hello respaldada pelo TPM e a senha mestra permanece como fallback.
 
 ### Alterado
 - Reorganização visual do cofre, com melhor distribuição entre gerador e lista,

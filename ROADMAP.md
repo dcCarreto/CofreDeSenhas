@@ -85,6 +85,9 @@ gerenciador de senhas seguro:
   formato detectado antes de importar.
 - Internacionalização da interface com seleção persistida de idioma e suporte a
   português do Brasil, inglês, espanhol, francês, alemão e italiano.
+- Desbloqueio por Windows Hello/biometria no Windows, com registro por
+  dispositivo respaldado por credencial do Windows Hello (TPM) e fallback pela
+  senha mestra.
 
 ## Planejado
 
@@ -93,7 +96,6 @@ prioridade:
 
 - Histórico de alterações por credencial.
 - Sincronização opcional e criptografada de ponta a ponta entre dispositivos.
-- Desbloqueio por biometria ou Windows Hello.
 - Versão para macOS.
 - Empacotamento em instalador e publicação em gerenciadores de pacotes.
 - Opções de acessibilidade.

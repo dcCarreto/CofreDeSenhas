@@ -134,6 +134,8 @@ Tema escuro:
 - Bloqueio automático após período de inatividade, configurável no menu de
   configurações (desativado, 1, 5, 15 ou 30 minutos), voltando à tela de senha
   mestra.
+- Desbloqueio por Windows Hello/biometria no Windows, com ativação por
+  dispositivo e senha mestra como fallback.
 - Alteração da senha mestra pelo menu de configurações, com re-criptografia
   automática de todo o cofre e backup com rollback em caso de falha.
 
@@ -189,6 +191,7 @@ Tema escuro:
 | Verificação de vazamento | Have I Been Pwned por k-anonymity: apenas os 5 primeiros caracteres do hash SHA-1 da senha deixam a máquina |
 | Códigos TOTP | A chave 2FA é guardada cifrada (AES-256-GCM) como a senha; os códigos são calculados localmente (RFC 6238) e nada é enviado à rede |
 | Cofre em banco de dados | Quando conectado a um banco externo, a coluna de senha guarda apenas o texto cifrado (AES-256-GCM); a senha do servidor de banco não é gravada em disco |
+| Windows Hello | Opcional no Windows. A chave do cofre é cifrada (AES-256-GCM) com uma chave derivada da assinatura de uma credencial do Windows Hello (chave privada no TPM); o envelope em `biometria.dat` só pode ser aberto após a autenticação biométrica |
 | Local dos dados | Pasta do usuário (`%APPDATA%\GerenciadorSenhas\` no Windows, `~/.config/GerenciadorSenhas/` no Linux), fora do repositório |
 
 Observações importantes:
@@ -330,7 +333,7 @@ senhas.
 Para gerar um executável único e autocontido para Windows x64:
 
 ```
-dotnet publish App/App.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true -o publish
+dotnet publish App/App.csproj -f net10.0-windows10.0.19041.0 -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true -o publish
 ```
 
 O arquivo `CofreDeSenhas.exe` será criado na pasta `publish`.
@@ -338,7 +341,7 @@ O arquivo `CofreDeSenhas.exe` será criado na pasta `publish`.
 Para Linux x64:
 
 ```
-dotnet publish App/App.csproj -c Release -r linux-x64 --self-contained -o publish-linux
+dotnet publish App/App.csproj -f net10.0 -c Release -r linux-x64 --self-contained -o publish-linux
 ```
 
 O script `App/distribuicao/instalar.sh` faz esse publish e ainda registra o
@@ -351,6 +354,8 @@ em `~/.config/GerenciadorSenhas/` no Linux:
 
 - `auth.dat`: salt e verificador da senha mestra.
 - `senhas.json.enc`: cofre criptografado com as credenciais.
+- `biometria.dat`: chave do cofre cifrada e vinculada a uma credencial do
+  Windows Hello, para desbloqueio biométrico quando ativado neste dispositivo.
 - `config.json`: preferências da interface (como o tema e o idioma) e o último
   perfil de conexão a banco, sem a senha do servidor.
 - `backups/`: cópias de segurança do cofre.

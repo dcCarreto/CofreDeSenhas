@@ -42,6 +42,7 @@
                   <MenuFlyout Placement="BottomEdgeAlignedRight">
                     <MenuItem Header="{DynamicResource Settings.ChangeMasterPassword}" Click="AlterarSenhaMestra_Click" />
                     <MenuItem Header="{DynamicResource Settings.RegenerateQr}" Click="RegerarQrCode_Click" />
+                    <MenuItem Name="MenuBiometria" Header="{DynamicResource Settings.EnableWindowsHello}" Click="Biometria_Click" />
                     <Separator />
                     <MenuItem Name="MenuBloqueio" Header="{DynamicResource Settings.AutoLock}">
                       <MenuItem Header="{DynamicResource Settings.Disabled}" ToggleType="Radio" Tag="0" Click="Bloqueio_Alterado" />

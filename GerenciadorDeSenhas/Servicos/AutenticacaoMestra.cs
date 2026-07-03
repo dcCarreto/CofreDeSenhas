@@ -52,13 +52,8 @@ namespace GerenciadorDeSenhas.Servicos
 
             try
             {
-                var dados = Convert.FromBase64String(File.ReadAllText(_caminhoAuth));
-                if (dados.Length < SaltSize + 32) return null;
-
-                var salt = new byte[SaltSize];
-                var verificadorArmazenado = new byte[32];
-                Buffer.BlockCopy(dados, 0, salt, 0, SaltSize);
-                Buffer.BlockCopy(dados, SaltSize, verificadorArmazenado, 0, 32);
+                if (!LerDadosAutenticacao(out var salt, out var verificadorArmazenado))
+                    return null;
 
                 var chave = DerivarChave(senha, salt);
                 var verificador = SHA256.HashData(chave);
@@ -72,6 +67,41 @@ namespace GerenciadorDeSenhas.Servicos
             {
                 return null;
             }
+        }
+
+        public bool ValidarChave(byte[]? chave)
+        {
+            if (chave == null || chave.Length != KeySize || !File.Exists(_caminhoAuth))
+                return false;
+
+            try
+            {
+                if (!LerDadosAutenticacao(out _, out var verificadorArmazenado))
+                    return false;
+
+                var verificador = SHA256.HashData(chave);
+                return CryptographicOperations.FixedTimeEquals(verificador, verificadorArmazenado);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private bool LerDadosAutenticacao(out byte[] salt, out byte[] verificador)
+        {
+            salt = Array.Empty<byte>();
+            verificador = Array.Empty<byte>();
+
+            var dados = Convert.FromBase64String(File.ReadAllText(_caminhoAuth));
+            if (dados.Length < SaltSize + 32)
+                return false;
+
+            salt = new byte[SaltSize];
+            verificador = new byte[32];
+            Buffer.BlockCopy(dados, 0, salt, 0, SaltSize);
+            Buffer.BlockCopy(dados, SaltSize, verificador, 0, 32);
+            return true;
         }
 
         private static byte[] DerivarChave(string senha, byte[] salt) =>

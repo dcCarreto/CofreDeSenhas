@@ -14,7 +14,9 @@ namespace CofreDeSenhas.Janelas
         private readonly AutenticacaoMestra _auth;
         private readonly Action<byte[]> _aoAutenticar;
         private readonly bool _primeiroAcesso;
+        private readonly ServicoDesbloqueioBiometrico _biometria = new();
 
+        private BiometriaModo _modoBiometria = BiometriaModo.Desbloquear;
         private int _tentativas;
 
         public JanelaLogin(AutenticacaoMestra auth, Action<byte[]> aoAutenticar)
@@ -43,7 +45,11 @@ namespace CofreDeSenhas.Janelas
                     _ = ConfirmarAsync();
             };
 
-            Opened += (s, e) => TxtSenha.Focus();
+            Opened += async (s, e) =>
+            {
+                TxtSenha.Focus();
+                await ConfigurarBotaoBiometriaAsync();
+            };
         }
 
         private void Arrastar(object? sender, PointerPressedEventArgs e)
@@ -68,6 +74,14 @@ namespace CofreDeSenhas.Janelas
         private void Fechar_Click(object? sender, RoutedEventArgs e) => Close();
 
         private async void Principal_Click(object? sender, RoutedEventArgs e) => await ConfirmarAsync();
+
+        private async void Biometria_Click(object? sender, RoutedEventArgs e)
+        {
+            if (_modoBiometria == BiometriaModo.Ativar)
+                await AtivarComBiometriaAsync();
+            else
+                await DesbloquearComBiometriaAsync();
+        }
 
         private void Idioma_Alterado(object? sender, SelectionChangedEventArgs e)
         {
@@ -95,6 +109,7 @@ namespace CofreDeSenhas.Janelas
             BtnPrincipal.Content = Idioma.Texto(_primeiroAcesso
                 ? "Login.CreateVault"
                 : "Login.Unlock");
+            AtualizarTextoBiometria();
         }
 
         private async Task ConfirmarAsync()
@@ -127,6 +142,7 @@ namespace CofreDeSenhas.Janelas
                 }
 
                 await QrBackup.OferecerSalvarAsync(this, senha);
+                await OferecerBiometriaAsync(chave);
                 _aoAutenticar(chave);
             }
             else
@@ -169,6 +185,129 @@ namespace CofreDeSenhas.Janelas
             }
         }
 
+        private async Task DesbloquearComBiometriaAsync()
+        {
+            LblErro.Text = "";
+            BtnBiometria.IsEnabled = false;
+            BtnPrincipal.IsEnabled = false;
+
+            var resultado = await _biometria.DesbloquearAsync(this, _auth);
+            if (resultado.Sucesso && resultado.Chave != null)
+            {
+                _aoAutenticar(resultado.Chave);
+                return;
+            }
+
+            BtnBiometria.IsEnabled = true;
+            BtnPrincipal.IsEnabled = true;
+            await ConfigurarBotaoBiometriaAsync();
+
+            if (!resultado.Cancelado)
+                MostrarErro(resultado.Mensagem ?? Idioma.Texto("Biometric.Unavailable"));
+
+            TxtSenha.Focus();
+        }
+
+        private async Task AtivarComBiometriaAsync()
+        {
+            LblErro.Text = "";
+            var senha = TxtSenha.Text ?? "";
+            if (string.IsNullOrEmpty(senha))
+            {
+                MostrarErro(Idioma.Texto("Login.Error.MasterPasswordRequired"));
+                TxtSenha.Focus();
+                return;
+            }
+
+            var chave = _auth.Autenticar(senha);
+            if (chave == null)
+            {
+                MostrarErro(Idioma.Texto("Qr.ErrorMasterIncorrect"));
+                TxtSenha.SelectAll();
+                TxtSenha.Focus();
+                return;
+            }
+
+            BtnBiometria.IsEnabled = false;
+            BtnPrincipal.IsEnabled = false;
+
+            var resultado = await _biometria.HabilitarAsync(this, chave);
+
+            BtnBiometria.IsEnabled = true;
+            BtnPrincipal.IsEnabled = true;
+
+            if (resultado.Sucesso)
+            {
+                _aoAutenticar(chave);
+                return;
+            }
+
+            if (!resultado.Cancelado)
+                MostrarErro(resultado.Mensagem ?? Idioma.Texto("Biometric.Unavailable"));
+
+            TxtSenha.Focus();
+        }
+
+        private async Task ConfigurarBotaoBiometriaAsync()
+        {
+            if (_primeiroAcesso || !_biometria.SistemaSuportado)
+            {
+                BtnBiometria.IsVisible = false;
+                LblBiometriaHint.IsVisible = false;
+                return;
+            }
+
+            if (_biometria.EstaHabilitado)
+                _modoBiometria = BiometriaModo.Desbloquear;
+            else if (await _biometria.PodeConfigurarAsync())
+                _modoBiometria = BiometriaModo.Ativar;
+            else
+            {
+                BtnBiometria.IsVisible = false;
+                LblBiometriaHint.IsVisible = false;
+                return;
+            }
+
+            BtnBiometria.IsVisible = true;
+            AtualizarTextoBiometria();
+        }
+
+        private void AtualizarTextoBiometria()
+        {
+            bool ativar = _modoBiometria == BiometriaModo.Ativar;
+            LblBiometria.Text = Idioma.Texto(ativar ? "Login.EnableWindowsHello" : "Login.WindowsHello");
+            LblBiometriaHint.Text = Idioma.Texto("Login.WindowsHelloHint");
+            LblBiometriaHint.IsVisible = ativar && BtnBiometria.IsVisible;
+        }
+
+        private async Task OferecerBiometriaAsync(byte[] chave)
+        {
+            if (_biometria.EstaHabilitado || !await _biometria.PodeConfigurarAsync())
+                return;
+
+            var confirmar = await CaixaMensagem.ConfirmarAsync(this,
+                Idioma.Texto("Biometric.EnableOffer"),
+                Idioma.Texto("Biometric.Title"),
+                TipoMensagem.Info);
+            if (!confirmar)
+                return;
+
+            var resultado = await _biometria.HabilitarAsync(this, chave);
+            if (!resultado.Sucesso && !resultado.Cancelado)
+            {
+                await CaixaMensagem.MostrarAsync(this,
+                    resultado.Mensagem ?? Idioma.Texto("Biometric.Unavailable"),
+                    Idioma.Texto("Biometric.Title"),
+                    TipoMensagem.Aviso);
+            }
+        }
+
         private void MostrarErro(string msg) => LblErro.Text = msg;
+
+        private enum BiometriaModo
+        {
+            Desbloquear,
+            Ativar
+        }
     }
 }

@@ -11,7 +11,7 @@ if ! command -v dotnet >/dev/null 2>&1; then
 fi
 
 echo "Publicando o aplicativo (linux-x64, autocontido)..."
-dotnet publish "$raiz/App/App.csproj" -c Release -r linux-x64 --self-contained -o "$destino"
+dotnet publish "$raiz/App/App.csproj" -f net10.0 -c Release -r linux-x64 --self-contained -o "$destino"
 
 echo "Instalando ícone e atalho..."
 mkdir -p "$HOME/.local/share/applications" "$HOME/.local/share/icons/hicolor/128x128/apps"

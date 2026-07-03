@@ -63,6 +63,36 @@ public class AutenticacaoMestraTests : IDisposable
     }
 
     [Fact]
+    public void ValidarChave_ComChaveCorreta_RetornaTrue()
+    {
+        var chave = _auth.CriarSenhaMestra("SenhaMestra@123");
+
+        Assert.True(_auth.ValidarChave(chave));
+    }
+
+    [Fact]
+    public void ValidarChave_ComChaveIncorreta_RetornaFalse()
+    {
+        _auth.CriarSenhaMestra("SenhaMestra@123");
+        var chaveIncorreta = new byte[32];
+        chaveIncorreta[0] = 1;
+
+        Assert.False(_auth.ValidarChave(chaveIncorreta));
+    }
+
+    [Fact]
+    public void ValidarChave_ComArquivoCorrompido_RetornaFalseSemLancar()
+    {
+        var chave = _auth.CriarSenhaMestra("SenhaMestra@123");
+        File.WriteAllText(Path.Combine(_pasta, "auth.dat"), "isto-nao-e-base64-valido!!!");
+
+        var excecao = Record.Exception(() => _auth.ValidarChave(chave));
+
+        Assert.Null(excecao);
+        Assert.False(_auth.ValidarChave(chave));
+    }
+
+    [Fact]
     public void Autenticar_ComSenhaIncorreta_RetornaNull()
     {
         _auth.CriarSenhaMestra("SenhaMestra@123");

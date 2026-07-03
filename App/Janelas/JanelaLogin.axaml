@@ -91,6 +91,29 @@
                     Height="44"
                     HorizontalAlignment="Stretch"
                     Click="Principal_Click" />
+
+            <Button Name="BtnBiometria"
+                    Classes="secundario"
+                    Height="42"
+                    HorizontalAlignment="Stretch"
+                    Margin="0,10,0,0"
+                    IsVisible="False"
+                    Click="Biometria_Click">
+              <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+                <PathIcon Width="15" Height="15"
+                          Data="M12 2 C16.42 2 20 5.58 20 10 L20 12 L18 12 L18 10 C18 6.69 15.31 4 12 4 C8.69 4 6 6.69 6 10 C6 13.31 8.69 16 12 16 C13.1 16 14.13 15.71 15.02 15.2 L16.03 16.94 C14.84 17.61 13.47 18 12 18 C7.58 18 4 14.42 4 10 C4 5.58 7.58 2 12 2 Z M12 6 C14.21 6 16 7.79 16 10 L16 12 L14 12 L14 10 C14 8.9 13.1 8 12 8 C10.9 8 10 8.9 10 10 C10 11.1 10.9 12 12 12 L12 14 C9.79 14 8 12.21 8 10 C8 7.79 9.79 6 12 6 Z M17 14 L22 14 L22 19 L20 19 L20 16 L17 16 Z" />
+                <TextBlock Name="LblBiometria" Text="{DynamicResource Login.WindowsHello}" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+
+            <TextBlock Name="LblBiometriaHint"
+                       FontSize="11"
+                       Foreground="{DynamicResource TextSecondary}"
+                       HorizontalAlignment="Center"
+                       TextAlignment="Center"
+                       TextWrapping="Wrap"
+                       IsVisible="False"
+                       Margin="0,8,0,0" />
           </StackPanel>
         </Border>
       </Grid>
