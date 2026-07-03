@@ -21,6 +21,12 @@ namespace CofreDeSenhas
         {
             Preferencias.Carregar();
             Idioma.Definir(Preferencias.Idioma);
+            Acessibilidade.Hidratar(
+                ResolverDaltonismo(Preferencias.Daltonismo),
+                Preferencias.AltoContraste,
+                Preferencias.EscalaInterface,
+                Preferencias.ReduzirAnimacoes,
+                Preferencias.LeitorTela);
             AplicarTema(Preferencias.ModoEscuro);
             Idioma.Alterado += (s, e) => AtualizarTextosBandeja();
 
@@ -37,7 +43,11 @@ namespace CofreDeSenhas
             Tema.DefinirModo(escuro);
             if (Current != null)
                 Current.RequestedThemeVariant = escuro ? ThemeVariant.Dark : ThemeVariant.Light;
+            Acessibilidade.Aplicar();
         }
+
+        private static TipoDaltonismo ResolverDaltonismo(string? valor) =>
+            Enum.TryParse<TipoDaltonismo>(valor, out var tipo) ? tipo : TipoDaltonismo.Nenhum;
 
         private void AbrirCofre(IClassicDesktopStyleApplicationLifetime desktop, byte[] chave)
         {

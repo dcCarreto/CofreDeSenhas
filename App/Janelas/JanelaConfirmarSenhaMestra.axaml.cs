@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using Avalonia.Automation;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using GerenciadorDeSenhas.Servicos;
@@ -15,6 +16,7 @@ namespace CofreDeSenhas.Janelas
         {
             InitializeComponent();
             Icon = Recursos.IconeApp();
+            Acessibilidade.Vincular(this);
 
             KeyDown += (s, e) =>
             {
@@ -57,6 +59,7 @@ namespace CofreDeSenhas.Janelas
         private void MostrarErro(string msg)
         {
             LblErro.Text = msg;
+            AutomationProperties.SetName(LblErro, msg);
             TxtSenha.SelectAll();
             TxtSenha.Focus();
         }

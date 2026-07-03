@@ -212,18 +212,6 @@ namespace CofreDeSenhas
         private static readonly ConcurrentDictionary<string, DateTime> FalhasRecentes =
             new(StringComparer.OrdinalIgnoreCase);
 
-        private static readonly Color[] PaletaFallback =
-        {
-            Color.FromUInt32(0xFF7C3AED),
-            Color.FromUInt32(0xFF2563EB),
-            Color.FromUInt32(0xFF16A34A),
-            Color.FromUInt32(0xFFEA580C),
-            Color.FromUInt32(0xFFDB2777),
-            Color.FromUInt32(0xFF0891B2),
-            Color.FromUInt32(0xFFCA8A04),
-            Color.FromUInt32(0xFFDC2626),
-        };
-
         public static IconeServico Obter(string? servico, string? url = null)
         {
             string normalizado = Normalizar(servico);
@@ -233,18 +221,24 @@ namespace CofreDeSenhas
             {
                 if (entrada.Aliases.Any(alias => Combina(normalizado, tokens, alias)))
                 {
+                    var fundo = Acessibilidade.CorDecorativa(Color.FromUInt32(entrada.Fundo));
+                    var frente = Acessibilidade.Daltonismo == TipoDaltonismo.Nenhum
+                        ? Color.FromUInt32(entrada.Frente)
+                        : Acessibilidade.CorFrenteParaFundo(fundo);
+
                     return new IconeServico(
                         entrada.Texto,
-                        Color.FromUInt32(entrada.Fundo),
-                        Color.FromUInt32(entrada.Frente),
+                        fundo,
+                        frente,
                         entrada.Dominio);
                 }
             }
 
+            var corFallback = CorFallback(servico);
             return new IconeServico(
                 Iniciais(servico),
-                CorFallback(servico),
-                Color.FromUInt32(0xFFFFFFFF),
+                corFallback,
+                Acessibilidade.CorFrenteParaFundo(corFallback),
                 ExtrairDominio(url) ?? ExtrairDominio(servico));
         }
 
@@ -346,7 +340,7 @@ namespace CofreDeSenhas
             foreach (char c in texto ?? "")
                 hash = hash * 31 + c;
 
-            return PaletaFallback[(int)((uint)hash % (uint)PaletaFallback.Length)];
+            return Acessibilidade.CorAvatarFallback((uint)hash);
         }
 
         private static bool Combina(string normalizado, HashSet<string> tokens, string alias)

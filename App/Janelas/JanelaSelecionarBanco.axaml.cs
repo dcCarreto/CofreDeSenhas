@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using Avalonia.Automation;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
@@ -16,6 +17,7 @@ namespace CofreDeSenhas.Janelas
         {
             InitializeComponent();
             Icon = Recursos.IconeApp();
+            Acessibilidade.Vincular(this);
 
             MontarGrade();
 
@@ -33,10 +35,11 @@ namespace CofreDeSenhas.Janelas
 
         private Button CriarCartao(ProvedorBanco provedor)
         {
+            var corDistintivo = Acessibilidade.CorDecorativa(Color.Parse(provedor.Cor));
             var textoFallback = new TextBlock
             {
                 Text = provedor.Distintivo,
-                Foreground = Brushes.White,
+                Foreground = Tema.Pincel(Acessibilidade.CorFrenteParaFundo(corDistintivo)),
                 FontWeight = FontWeight.Bold,
                 FontSize = 15,
                 HorizontalAlignment = HorizontalAlignment.Center,
@@ -62,7 +65,7 @@ namespace CofreDeSenhas.Janelas
                 Width = 44,
                 Height = 44,
                 CornerRadius = new Avalonia.CornerRadius(10),
-                Background = new SolidColorBrush(Color.Parse(provedor.Cor)),
+                Background = Tema.Pincel(corDistintivo),
                 VerticalAlignment = VerticalAlignment.Center,
                 Child = conteudoDistintivo
             };
@@ -95,6 +98,8 @@ namespace CofreDeSenhas.Janelas
                 Content = conteudo
             };
             cartao.Classes.Add("cartao");
+            AutomationProperties.SetName(cartao, provedor.Rotulo);
+            AutomationProperties.SetHelpText(cartao, Idioma.Texto("Db.ChooseType"));
             cartao.Click += (s, e) =>
             {
                 Selecionado = provedor.Tipo;

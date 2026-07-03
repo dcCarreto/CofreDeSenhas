@@ -1,4 +1,5 @@
 using Avalonia;
+using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Layout;
@@ -30,12 +31,14 @@ namespace CofreDeSenhas.Janelas
                 VerticalAlignment = VerticalAlignment.Center,
                 Margin = new Thickness(24, 0, 0, 0)
             };
+            AutomationProperties.SetHeadingLevel(lblTitulo, 1);
             lblTitulo.Bind(TextBlock.ForegroundProperty, this.GetResourceObservable("TextPrimary"));
 
             var btnFechar = new Button { Content = "✕" };
             btnFechar.Classes.Add("fechar-dialogo");
             btnFechar.Margin = new Thickness(0, 0, 14, 0);
             btnFechar.HorizontalAlignment = HorizontalAlignment.Right;
+            AutomationProperties.SetName(btnFechar, Idioma.Texto("Access.Close"));
             btnFechar.Click += (s, e) => Close(false);
 
             var header = new Grid { Height = 56 };
@@ -77,6 +80,10 @@ namespace CofreDeSenhas.Janelas
                 TextWrapping = TextWrapping.Wrap,
                 VerticalAlignment = VerticalAlignment.Center
             };
+            AutomationProperties.SetLiveSetting(lblTexto, tipo == TipoMensagem.Erro
+                ? AutomationLiveSetting.Assertive
+                : AutomationLiveSetting.Polite);
+            AutomationProperties.SetName(lblTexto, texto);
             lblTexto.Bind(TextBlock.ForegroundProperty, this.GetResourceObservable("TextPrimary"));
 
             var corpo = new DockPanel { Margin = new Thickness(24, 20, 24, 20) };
@@ -97,10 +104,12 @@ namespace CofreDeSenhas.Janelas
             {
                 var btnNao = new Button { Content = Idioma.Texto("Common.No"), Width = 110, Height = 38 };
                 btnNao.Classes.Add("secundario");
+                AutomationProperties.SetName(btnNao, Idioma.Texto("Common.No"));
                 btnNao.Click += (s, e) => Close(false);
 
                 var btnSim = new Button { Content = Idioma.Texto("Common.Yes"), Width = 110, Height = 38 };
                 btnSim.Classes.Add("primario");
+                AutomationProperties.SetName(btnSim, Idioma.Texto("Common.Yes"));
                 btnSim.Click += (s, e) => Close(true);
 
                 rodape.Children.Add(btnSim);
@@ -111,6 +120,7 @@ namespace CofreDeSenhas.Janelas
             {
                 var btnOk = new Button { Content = "OK", Width = 110, Height = 38 };
                 btnOk.Classes.Add("primario");
+                AutomationProperties.SetName(btnOk, "OK");
                 btnOk.Click += (s, e) => Close(true);
                 rodape.Children.Add(btnOk);
                 Opened += (s, e) => btnOk.Focus();
@@ -132,6 +142,8 @@ namespace CofreDeSenhas.Janelas
             moldura.Bind(Border.BorderBrushProperty, this.GetResourceObservable("CardBorder"));
 
             Content = moldura;
+            AutomationProperties.SetName(this, titulo);
+            Acessibilidade.Vincular(this);
 
             KeyDown += (s, e) =>
             {

@@ -1,4 +1,5 @@
 using Avalonia;
+using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -27,6 +28,8 @@ namespace CofreDeSenhas.Janelas
 
             InitializeComponent();
             Icon = Recursos.IconeApp();
+            Acessibilidade.Vincular(this);
+            Acessibilidade.RegistrarAnunciador(this, LblAnuncioLeitorTela);
 
             Gerador.PermiteSalvar = false;
 
@@ -36,8 +39,18 @@ namespace CofreDeSenhas.Janelas
             Idioma.Alterado += IdiomaGlobal_Alterado;
 
             AtualizarTextos();
+            ConfigurarAcessibilidadeLeitorTela();
             PainelConfirmar.IsVisible = _primeiroAcesso;
-            Closed += (s, e) => Idioma.Alterado -= IdiomaGlobal_Alterado;
+
+            BtnAcessibilidade.Flyout!.Opened += (s, e) =>
+                Acessibilidade.MarcarMenus(MenuDaltonismoLogin, MenuEscalaLogin, MenuAltoContrasteLogin,
+                    MenuReduzirAnimacoesLogin, MenuLeitorTelaLogin);
+            Acessibilidade.Alterado += Acessibilidade_Alterado;
+            Closed += (s, e) =>
+            {
+                Idioma.Alterado -= IdiomaGlobal_Alterado;
+                Acessibilidade.Alterado -= Acessibilidade_Alterado;
+            };
 
             KeyDown += (s, e) =>
             {
@@ -73,6 +86,47 @@ namespace CofreDeSenhas.Janelas
 
         private void Fechar_Click(object? sender, RoutedEventArgs e) => Close();
 
+        private void Acessibilidade_Alterado(object? sender, EventArgs e)
+        {
+            ConfigurarAcessibilidadeLeitorTela();
+            Gerador.AtualizarTema();
+        }
+
+        private void Daltonismo_Alterado(object? sender, RoutedEventArgs e)
+        {
+            if (sender is MenuItem item)
+                Acessibilidade.SelecionarDaltonismo(item.Tag as string);
+        }
+
+        private void Escala_Alterada(object? sender, RoutedEventArgs e)
+        {
+            if (sender is MenuItem item)
+                Acessibilidade.SelecionarEscala(item.Tag as string);
+        }
+
+        private void AltoContraste_Alterado(object? sender, RoutedEventArgs e)
+        {
+            if (sender is MenuItem item)
+                Acessibilidade.SelecionarAltoContraste(item.IsChecked);
+        }
+
+        private void ReduzirAnimacoes_Alterado(object? sender, RoutedEventArgs e)
+        {
+            if (sender is MenuItem item)
+                Acessibilidade.SelecionarReducaoMovimento(item.IsChecked);
+        }
+
+        private void LeitorTela_Alterado(object? sender, RoutedEventArgs e)
+        {
+            if (sender is MenuItem item)
+            {
+                Acessibilidade.SelecionarLeitorTela(item.IsChecked);
+                Acessibilidade.Anunciar(this, Idioma.Texto(Acessibilidade.LeitorTela
+                    ? "A11y.ScreenReaderEnabled"
+                    : "A11y.ScreenReaderDisabled"), assertivo: true, forcar: true);
+            }
+        }
+
         private async void Principal_Click(object? sender, RoutedEventArgs e) => await ConfirmarAsync();
 
         private async void Biometria_Click(object? sender, RoutedEventArgs e)
@@ -98,6 +152,7 @@ namespace CofreDeSenhas.Janelas
         {
             CmbIdioma.SelectedItem = Idioma.Atual;
             AtualizarTextos();
+            ConfigurarAcessibilidadeLeitorTela();
             LblErro.Text = "";
         }
 
@@ -109,6 +164,18 @@ namespace CofreDeSenhas.Janelas
             BtnPrincipal.Content = Idioma.Texto(_primeiroAcesso
                 ? "Login.CreateVault"
                 : "Login.Unlock");
+            AtualizarTextoBiometria();
+            AutomationProperties.SetName(BtnPrincipal, BtnPrincipal.Content?.ToString() ?? "");
+        }
+
+        private void ConfigurarAcessibilidadeLeitorTela()
+        {
+            AutomationProperties.SetName(CmbIdioma, Idioma.Texto("Settings.Language"));
+            AutomationProperties.SetHelpText(MenuLeitorTelaLogin, Idioma.Texto("Access.ScreenReaderHelp"));
+            AutomationProperties.SetHelpText(TxtSenha, Idioma.Texto("A11y.PasswordFieldHelp"));
+            AutomationProperties.SetHelpText(TxtConfirmar, Idioma.Texto("A11y.PasswordFieldHelp"));
+            AutomationProperties.SetLiveSetting(LblErro, AutomationLiveSetting.Assertive);
+            AutomationProperties.SetName(BtnPrincipal, BtnPrincipal.Content?.ToString() ?? "");
             AtualizarTextoBiometria();
         }
 
@@ -278,6 +345,8 @@ namespace CofreDeSenhas.Janelas
             LblBiometria.Text = Idioma.Texto(ativar ? "Login.EnableWindowsHello" : "Login.WindowsHello");
             LblBiometriaHint.Text = Idioma.Texto("Login.WindowsHelloHint");
             LblBiometriaHint.IsVisible = ativar && BtnBiometria.IsVisible;
+            AutomationProperties.SetName(BtnBiometria, LblBiometria.Text ?? "");
+            AutomationProperties.SetHelpText(BtnBiometria, LblBiometriaHint.Text ?? "");
         }
 
         private async Task OferecerBiometriaAsync(byte[] chave)
@@ -302,7 +371,12 @@ namespace CofreDeSenhas.Janelas
             }
         }
 
-        private void MostrarErro(string msg) => LblErro.Text = msg;
+        private void MostrarErro(string msg)
+        {
+            LblErro.Text = msg;
+            AutomationProperties.SetName(LblErro, msg);
+            Acessibilidade.Anunciar(this, msg, assertivo: true);
+        }
 
         private enum BiometriaModo
         {

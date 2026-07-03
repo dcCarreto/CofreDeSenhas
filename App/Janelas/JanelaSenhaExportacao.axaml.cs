@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using Avalonia.Automation;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 
@@ -16,6 +17,7 @@ namespace CofreDeSenhas.Janelas
 
             InitializeComponent();
             Icon = Recursos.IconeApp();
+            Acessibilidade.Vincular(this);
 
             AtualizarTextos();
             PainelConfirmar.IsVisible = modoExportar;
@@ -56,6 +58,9 @@ namespace CofreDeSenhas.Janelas
             LblInfo.Text = Idioma.Texto(_modoExportar
                 ? "ExportDialog.InfoExport"
                 : "ExportDialog.InfoImport");
+            AutomationProperties.SetName(TxtSenha, LblSenha.Text ?? "");
+            AutomationProperties.SetName(LblInfo, LblInfo.Text ?? "");
+            AutomationProperties.SetName(BtnPrincipal, BtnPrincipal.Content?.ToString() ?? "");
         }
 
         private void Confirmar()
@@ -89,6 +94,7 @@ namespace CofreDeSenhas.Janelas
         private void MostrarErro(string mensagem)
         {
             LblErro.Text = mensagem;
+            AutomationProperties.SetName(LblErro, mensagem);
             TxtSenha.Focus();
             TxtSenha.SelectAll();
         }

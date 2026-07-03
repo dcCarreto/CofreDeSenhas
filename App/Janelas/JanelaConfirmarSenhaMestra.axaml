@@ -27,8 +27,10 @@
                      FontSize="17" FontWeight="Bold"
                      Foreground="{DynamicResource TextPrimary}"
                      VerticalAlignment="Center"
+                     AutomationProperties.HeadingLevel="1"
                      Margin="24,0,0,0" />
           <Button Classes="fechar-dialogo" Content="✕"
+                  AutomationProperties.Name="{DynamicResource Access.Close}"
                   HorizontalAlignment="Right" VerticalAlignment="Center"
                   Margin="0,0,14,0"
                   Click="Cancelar_Click" />
@@ -59,12 +61,16 @@
                    Margin="0,0,0,12" />
 
         <TextBlock Text="{DynamicResource Login.MasterPassword}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
-        <TextBox Name="TxtSenha" Classes="campo revealPasswordButton" PasswordChar="●" Margin="0,0,0,8" />
+        <TextBox Name="TxtSenha" Classes="campo revealPasswordButton" PasswordChar="●" Margin="0,0,0,8"
+                 AutomationProperties.Name="{DynamicResource Login.MasterPassword}"
+                 AutomationProperties.HelpText="{DynamicResource A11y.PasswordFieldHelp}"
+                 AutomationProperties.IsRequiredForForm="True" />
 
         <TextBlock Name="LblErro"
                    FontSize="12"
                    Foreground="{DynamicResource StrengthWeak}"
                    TextWrapping="Wrap"
+                   AutomationProperties.LiveSetting="Assertive"
                    MinHeight="20" />
       </StackPanel>
     </DockPanel>

@@ -1,4 +1,5 @@
 using Avalonia;
+using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -28,6 +29,7 @@ namespace CofreDeSenhas.Janelas
 
             InitializeComponent();
             Icon = Recursos.IconeApp();
+            Acessibilidade.Vincular(this);
 
             MontarFormulario();
             Idioma.Alterado += Idioma_Alterado;
@@ -63,10 +65,13 @@ namespace CofreDeSenhas.Janelas
 
                 _txtArquivo = new TextBox { Text = arquivoAtual ?? (temPerfil ? perfil!.Banco : null) };
                 _txtArquivo.Classes.Add("campo");
+                AutomationProperties.SetName(_txtArquivo, Idioma.Texto("Db.DatabaseFile"));
+                AutomationProperties.SetIsRequiredForForm(_txtArquivo, true);
 
                 var btnProcurar = new Button { Content = Idioma.Texto("Db.Browse"), Width = 110, Height = 38 };
                 btnProcurar.Classes.Add("secundario");
                 btnProcurar.Margin = new Thickness(8, 0, 0, 0);
+                AutomationProperties.SetName(btnProcurar, Idioma.Texto("Db.Browse"));
                 btnProcurar.Click += Procurar_Click;
 
                 var grade = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto") };
@@ -106,10 +111,13 @@ namespace CofreDeSenhas.Janelas
 
             var caixa = new TextBox { Text = valor, Margin = new Thickness(0, 0, 0, 2) };
             caixa.Classes.Add("campo");
+            AutomationProperties.SetName(caixa, rotulo);
+            AutomationProperties.SetIsRequiredForForm(caixa, !senha);
             if (senha)
             {
                 caixa.PasswordChar = '●';
                 caixa.Classes.Add("revealPasswordButton");
+                AutomationProperties.SetHelpText(caixa, Idioma.Texto("A11y.PasswordFieldHelp"));
             }
 
             Campos.Children.Add(caixa);
@@ -243,7 +251,13 @@ namespace CofreDeSenhas.Janelas
             }
         }
 
-        private void MostrarErro(string msg) => LblErro.Text = msg;
+        private void MostrarErro(string msg)
+        {
+            LblErro.Text = msg;
+            AutomationProperties.SetName(LblErro, msg);
+            if (!string.IsNullOrWhiteSpace(msg))
+                Acessibilidade.Anunciar(this, msg, assertivo: true);
+        }
 
         private static string PrimeiraLinha(string texto)
         {

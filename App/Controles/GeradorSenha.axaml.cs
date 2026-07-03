@@ -1,4 +1,5 @@
 using Avalonia;
+using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
@@ -36,6 +37,7 @@ namespace CofreDeSenhas.Controles
             CmbModoGerador.SelectedIndex = 0;
             CmbSeparadorFrase.SelectedIndex = 0;
             AtualizarModoGerador();
+            ConfigurarAcessibilidade();
             AplicarPermiteSalvar();
         }
 
@@ -68,7 +70,11 @@ namespace CofreDeSenhas.Controles
             ? Idioma.Texto("Generator.Item.Passphrase")
             : Idioma.Texto("Generator.Item.Password");
 
-        private void Idioma_Alterado(object? sender, EventArgs e) => AtualizarTextos();
+        private void Idioma_Alterado(object? sender, EventArgs e)
+        {
+            AtualizarTextos();
+            ConfigurarAcessibilidade();
+        }
 
         private void AtualizarTextos()
         {
@@ -88,6 +94,20 @@ namespace CofreDeSenhas.Controles
             AtualizarModoGerador();
             AtualizarBarraForca();
             AtualizarListaSenhasGeradas();
+            ConfigurarAcessibilidade();
+        }
+
+        private void ConfigurarAcessibilidade()
+        {
+            AutomationProperties.SetName(TxtSenhaGerada, Idioma.Texto("A11y.GeneratedPassword"));
+            AutomationProperties.SetHelpText(TxtSenhaGerada, Idioma.Texto("A11y.GeneratedPasswordHelp"));
+            AutomationProperties.SetName(PainelGeradas, Idioma.Texto("A11y.GeneratedList"));
+            AutomationProperties.SetLiveSetting(LblForca, AutomationLiveSetting.Polite);
+            AutomationProperties.SetName(BtnGerar, Idioma.Texto(ModoFraseSenha
+                ? "Generator.GeneratePassphrase"
+                : "Generator.GeneratePassword"));
+            AutomationProperties.SetName(BtnSalvar, Idioma.Texto("Generator.SaveToVault"));
+            AutomationProperties.SetName(BtnLimpar, Idioma.Texto("Generator.Clear"));
         }
 
         private void ModoGerador_Alterado(object? sender, SelectionChangedEventArgs e)
@@ -104,6 +124,7 @@ namespace CofreDeSenhas.Controles
             BtnGerar.Content = Idioma.Texto(fraseSenha
                 ? "Generator.GeneratePassphrase"
                 : "Generator.GeneratePassword");
+            AutomationProperties.SetName(BtnGerar, BtnGerar.Content?.ToString() ?? "");
         }
 
         private string SeparadorFraseSelecionado()
@@ -153,6 +174,8 @@ namespace CofreDeSenhas.Controles
             AtualizarSenhaGerada();
             AtualizarBarraForca();
             AtualizarListaSenhasGeradas();
+            Acessibilidade.Anunciar(this,
+                Idioma.Formatar("A11y.GeneratedReady", _senhasGeradas.Count, ItemGeradoNome));
         }
 
         private void AtualizarSenhaGerada()
@@ -196,10 +219,12 @@ namespace CofreDeSenhas.Controles
                 HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right
             };
             btnCopiarTodas.Classes.Add("plano");
+            AutomationProperties.SetName(btnCopiarTodas, Idioma.Texto("A11y.CopyAllGenerated"));
             btnCopiarTodas.Click += async (s, e) =>
             {
                 if (AreaTransferencia != null)
                     try { await AreaTransferencia.SetTextAsync(string.Join(Environment.NewLine, _senhasGeradas)); } catch { }
+                Acessibilidade.Anunciar(this, Idioma.Formatar("A11y.Copied", Idioma.Texto("Generator.CopyAll")));
             };
 
             var header = new Grid { Margin = new Thickness(0, 0, 0, 6) };
@@ -228,12 +253,15 @@ namespace CofreDeSenhas.Controles
             btnCopiar.Classes.Add("icone-linha");
             btnCopiar.VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center;
             btnCopiar.Margin = new Thickness(0, 0, 5, 0);
+            AutomationProperties.SetName(btnCopiar, Idioma.Texto("A11y.CopyGenerated"));
+            AutomationProperties.SetHelpText(btnCopiar, Idioma.Texto("A11y.GeneratedPasswordHelp"));
             btnCopiar.Click += async (s, e) =>
             {
                 if (AreaTransferencia != null)
                     try { await AreaTransferencia.SetTextAsync(senha); } catch { }
                 btnCopiar.Content = "✓";
                 btnCopiar.Foreground = Tema.Pincel(Tema.StrengthStrong);
+                Acessibilidade.Anunciar(this, Idioma.Formatar("A11y.Copied", ItemGeradoNome));
                 var t = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
                 t.Tick += (ss, ee) =>
                 {
@@ -275,6 +303,7 @@ namespace CofreDeSenhas.Controles
 
             LblForca.Text = texto;
             LblForca.Foreground = Tema.Pincel(cor);
+            AutomationProperties.SetName(LblForca, $"{Idioma.Texto("Generator.Strength")}: {texto}");
 
             var segmentos = new[] { SegForca1, SegForca2, SegForca3, SegForca4 };
             for (int i = 0; i < segmentos.Length; i++)
@@ -286,6 +315,9 @@ namespace CofreDeSenhas.Controles
             _mostrarSenha = !_mostrarSenha;
             AtualizarSenhaGerada();
             AtualizarListaSenhasGeradas();
+            var estado = Idioma.Texto(_mostrarSenha ? "A11y.PasswordVisible" : "A11y.PasswordHidden");
+            AutomationProperties.SetName(TxtSenhaGerada, $"{Idioma.Texto("A11y.GeneratedPassword")}. {estado}");
+            Acessibilidade.Anunciar(this, estado);
         }
 
         private async void CopiarGerada_Click(object? sender, RoutedEventArgs e)
@@ -293,6 +325,7 @@ namespace CofreDeSenhas.Controles
             if (string.IsNullOrEmpty(_senhaGerada) || AreaTransferencia == null)
                 return;
             await AreaTransferencia.SetTextAsync(_senhaGerada);
+            Acessibilidade.Anunciar(this, Idioma.Formatar("A11y.Copied", ItemGeradoNome));
             if (JanelaDona is { } janela)
                 await CaixaMensagem.MostrarAsync(janela,
                     ModoFraseSenha ? Idioma.Texto("Generator.PassphraseCopied") : Idioma.Texto("Generator.PasswordCopied"),

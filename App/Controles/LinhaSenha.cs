@@ -1,5 +1,7 @@
 using System.Globalization;
 using Avalonia;
+using Avalonia.Automation;
+using Avalonia.Automation.Peers;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -99,12 +101,16 @@ namespace CofreDeSenhas.Controles
             Background = Tema.Pincel(Tema.CardBackground);
             BorderBrush = Tema.Pincel(Tema.Separator);
             BorderThickness = new Thickness(0, 0, 0, 1);
+            Focusable = true;
 
             Child = MontarLayout();
             AtualizarIndicador();
+            AutomationProperties.SetHelpText(this, Idioma.Texto("A11y.RowHelp"));
 
-            PointerEntered += (s, e) => Background = Tema.Pincel(Tema.RowHover);
-            PointerExited += (s, e) => Background = Tema.Pincel(Tema.CardBackground);
+            PointerEntered += (s, e) => { if (!IsFocused) Background = Tema.Pincel(Tema.RowHover); };
+            PointerExited += (s, e) => { if (!IsFocused) Background = Tema.Pincel(Tema.CardBackground); };
+            GotFocus += (s, e) => Background = Tema.Pincel(Tema.RowHover);
+            LostFocus += (s, e) => Background = Tema.Pincel(Tema.CardBackground);
         }
 
         private Grid MontarLayout()
@@ -115,19 +121,25 @@ namespace CofreDeSenhas.Controles
                 Margin = new Thickness(4, 0, 8, 0)
             };
 
-            var estrela = new TextBlock
+            var estrela = new Button
             {
-                Text = _senha.Favorito ? "★" : "☆",
+                Content = _senha.Favorito ? "★" : "☆",
+                Width = 30,
+                Height = 30,
                 FontSize = 17,
                 Foreground = Tema.Pincel(_senha.Favorito ? Tema.FavoriteColor : Tema.FavoriteBorderColor),
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center,
-                Cursor = new Cursor(StandardCursorType.Hand)
+                Padding = new Thickness(0)
             };
-            ToolTip.SetTip(estrela, _senha.Favorito
+            estrela.Classes.Add("icone-linha");
+            var dicaEstrela = _senha.Favorito
                 ? Idioma.Texto("Row.FavoriteRemove")
-                : Idioma.Texto("Row.FavoriteAdd"));
-            estrela.PointerPressed += (s, e) => _onFavoritar(_senha);
+                : Idioma.Texto("Row.FavoriteAdd");
+            ToolTip.SetTip(estrela, dicaEstrela);
+            AutomationProperties.SetName(estrela, dicaEstrela);
+            AutomationProperties.SetItemStatus(estrela, Idioma.Texto(_senha.Favorito ? "A11y.ToggleOn" : "A11y.ToggleOff"));
+            estrela.Click += (s, e) => _onFavoritar(_senha);
             Grid.SetColumn(estrela, 0);
             _grid.Children.Add(estrela);
 
@@ -159,7 +171,19 @@ namespace CofreDeSenhas.Controles
                 Margin = new Thickness(4, 0, 10, 0)
             };
             _lblUsuario.Cursor = new Cursor(StandardCursorType.Hand);
+            _lblUsuario.Focusable = true;
             ToolTip.SetTip(_lblUsuario, Idioma.Texto("Row.CopyUser"));
+            AutomationProperties.SetName(_lblUsuario, $"{_senha.Usuario} — {Idioma.Texto("Row.CopyUser")}");
+            AutomationProperties.SetControlTypeOverride(_lblUsuario, AutomationControlType.Button);
+            AutomationProperties.SetHelpText(_lblUsuario, Idioma.Texto("Row.CopyUser"));
+            _lblUsuario.KeyDown += async (s, e) =>
+            {
+                if (e.Key is Key.Enter or Key.Space)
+                {
+                    e.Handled = true;
+                    await CopiarUsuarioAsync();
+                }
+            };
             _lblUsuario.PointerPressed += async (s, e) =>
             {
                 e.Handled = true;
@@ -275,9 +299,21 @@ namespace CofreDeSenhas.Controles
                 Foreground = Tema.Pincel(Tema.TextPrimary),
                 TextTrimming = TextTrimming.CharacterEllipsis,
                 VerticalAlignment = VerticalAlignment.Center,
+                Focusable = true,
                 Cursor = new Cursor(StandardCursorType.Hand)
             };
             ToolTip.SetTip(_lblServico, Idioma.Texto("Row.EditService"));
+            AutomationProperties.SetName(_lblServico, $"{_senha.NomeServico} — {Idioma.Texto("Row.EditService")}");
+            AutomationProperties.SetHelpText(_lblServico, Idioma.Texto("A11y.EditServiceHelp"));
+            AutomationProperties.SetControlTypeOverride(_lblServico, AutomationControlType.Button);
+            _lblServico.KeyDown += (s, e) =>
+            {
+                if (e.Key is Key.Enter or Key.Space)
+                {
+                    e.Handled = true;
+                    IniciarEdicaoServico();
+                }
+            };
             _lblServico.PointerPressed += (s, e) =>
             {
                 if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
@@ -298,6 +334,8 @@ namespace CofreDeSenhas.Controles
                 VerticalAlignment = VerticalAlignment.Center
             };
             _txtServico.Classes.Add("embutido");
+            AutomationProperties.SetName(_txtServico, Idioma.Texto("Entry.ServiceName"));
+            AutomationProperties.SetHelpText(_txtServico, Idioma.Texto("A11y.EditServiceMode"));
             _txtServico.KeyDown += Servico_KeyDown;
             _txtServico.LostFocus += Servico_LostFocus;
 
@@ -343,7 +381,9 @@ namespace CofreDeSenhas.Controles
                 }
             };
             ToolTip.SetTip(chip, dica);
+            AutomationProperties.SetName(chip, dica.Replace('\n', ' '));
             ToolTip.SetTip(painel, dica);
+            AutomationProperties.SetName(painel, dica.Replace('\n', ' '));
             painel.Children.Add(chip);
 
             return painel;
@@ -405,6 +445,7 @@ namespace CofreDeSenhas.Controles
             _txtServico.Text = _senha.NomeServico;
             _lblServico.IsVisible = false;
             _txtServico.IsVisible = true;
+            Acessibilidade.Anunciar(this, Idioma.Texto("A11y.EditServiceMode"));
 
             Dispatcher.UIThread.Post(() =>
             {
@@ -457,6 +498,7 @@ namespace CofreDeSenhas.Controles
                     await _onRenomearServico(_senha, novoNome);
                     _senha.NomeServico = novoNome;
                     _lblServico.Text = novoNome;
+                    AutomationProperties.SetName(_lblServico, $"{novoNome} — {Idioma.Texto("Row.EditService")}");
                     AtualizarAvatarServico();
                 }
 
@@ -488,6 +530,7 @@ namespace CofreDeSenhas.Controles
             _editandoServico = false;
             _txtServico.IsVisible = false;
             _lblServico.IsVisible = true;
+            AutomationProperties.SetName(_lblServico, $"{_senha.NomeServico} — {Idioma.Texto("Row.EditService")}");
         }
 
         public void DefinirLargurasColunas(double servico, double usuario, double categoria, double data, double acoes)
@@ -507,6 +550,7 @@ namespace CofreDeSenhas.Controles
             var btn = new Button { Content = CriarIcone(icone) };
             btn.Classes.Add("icone-linha");
             ToolTip.SetTip(btn, dica);
+            AutomationProperties.SetName(btn, dica);
             return btn;
         }
 
@@ -528,9 +572,12 @@ namespace CofreDeSenhas.Controles
 
             if (_vazamentos > 0)
             {
+                var descricao = Idioma.Formatar("Row.PasswordCompromised", _vazamentos);
                 _lblIndicador.Text = "⚠";
-                _lblIndicador.Foreground = Tema.Pincel(Color.FromUInt32(0xFFDC2626));
-                ToolTip.SetTip(_lblIndicador, Idioma.Formatar("Row.PasswordCompromised", _vazamentos));
+                _lblIndicador.Foreground = Tema.Pincel(Tema.StrengthWeak);
+                ToolTip.SetTip(_lblIndicador, descricao);
+                AutomationProperties.SetName(_lblIndicador, descricao);
+                AtualizarNomeAcessivel(descricao);
                 return;
             }
 
@@ -538,9 +585,12 @@ namespace CofreDeSenhas.Controles
             {
                 bool critico = _achadosAuditoria.Contains(TipoAchadoAuditoriaSenha.Fraca)
                     || _achadosAuditoria.Contains(TipoAchadoAuditoriaSenha.Repetida);
+                var descricao = Idioma.Formatar("Row.AuditPrefix", string.Join("; ", DescreverAchadosAuditoria()));
                 _lblIndicador.Text = "⚠";
                 _lblIndicador.Foreground = Tema.Pincel(critico ? Tema.StrengthWeak : Tema.StrengthMedium);
-                ToolTip.SetTip(_lblIndicador, Idioma.Formatar("Row.AuditPrefix", string.Join("; ", DescreverAchadosAuditoria())));
+                ToolTip.SetTip(_lblIndicador, descricao);
+                AutomationProperties.SetName(_lblIndicador, descricao);
+                AtualizarNomeAcessivel(descricao);
                 return;
             }
 
@@ -549,26 +599,43 @@ namespace CofreDeSenhas.Controles
             {
                 case 0:
                 case 1:
-                    _lblIndicador.Text = "●";
-                    _lblIndicador.Foreground = Tema.Pincel(Tema.StrengthWeak);
-                    ToolTip.SetTip(_lblIndicador, Idioma.Texto("Row.PasswordWeak") + sufixo);
+                    DefinirForca("○", Tema.StrengthWeak, Idioma.Texto("Row.PasswordWeak"), sufixo);
                     break;
                 case 2:
-                    _lblIndicador.Text = "●";
-                    _lblIndicador.Foreground = Tema.Pincel(Tema.StrengthMedium);
-                    ToolTip.SetTip(_lblIndicador, Idioma.Texto("Row.PasswordMedium") + sufixo);
+                    DefinirForca("◐", Tema.StrengthMedium, Idioma.Texto("Row.PasswordMedium"), sufixo);
                     break;
                 case 3:
                 case 4:
-                    _lblIndicador.Text = "●";
-                    _lblIndicador.Foreground = Tema.Pincel(Tema.StrengthStrong);
-                    ToolTip.SetTip(_lblIndicador, Idioma.Texto("Row.PasswordStrong") + sufixo);
+                    DefinirForca("●", Tema.StrengthStrong, Idioma.Texto("Row.PasswordStrong"), sufixo);
                     break;
                 default:
                     _lblIndicador.Text = "";
                     ToolTip.SetTip(_lblIndicador, null);
+                    AutomationProperties.SetName(_lblIndicador, "");
+                    AtualizarNomeAcessivel(null);
                     break;
             }
+        }
+
+        private void DefinirForca(string glifo, Color cor, string rotulo, string sufixo)
+        {
+            _lblIndicador.Text = glifo;
+            _lblIndicador.Foreground = Tema.Pincel(cor);
+            ToolTip.SetTip(_lblIndicador, rotulo + sufixo);
+            AutomationProperties.SetName(_lblIndicador, rotulo);
+            AtualizarNomeAcessivel(rotulo);
+        }
+
+        private void AtualizarNomeAcessivel(string? status)
+        {
+            var partes = new List<string> { _senha.NomeServico };
+            if (!string.IsNullOrWhiteSpace(_senha.Usuario))
+                partes.Add(_senha.Usuario);
+            partes.Add(CategoriasUI.Rotulo(_senha.Categoria));
+            if (!string.IsNullOrWhiteSpace(status))
+                partes.Add(status!);
+            AutomationProperties.SetName(this, string.Join(". ", partes));
+            AutomationProperties.SetHelpText(this, Idioma.Texto("A11y.RowHelp"));
         }
 
         private IEnumerable<string> DescreverAchadosAuditoria()
@@ -598,6 +665,9 @@ namespace CofreDeSenhas.Controles
                 _lblUsuario.Foreground = Tema.Pincel(Tema.AccentPrimary);
                 DefinirIcone(_btnOlho, IconeOlhoFechado);
                 ToolTip.SetTip(_btnOlho, Idioma.Texto("Row.HidePassword"));
+                AutomationProperties.SetName(_btnOlho, Idioma.Texto("Row.HidePassword"));
+                AutomationProperties.SetName(_lblUsuario, Idioma.Texto("A11y.PasswordVisible"));
+                Acessibilidade.Anunciar(this, Idioma.Texto("A11y.PasswordVisible"));
             }
             else
             {
@@ -607,6 +677,9 @@ namespace CofreDeSenhas.Controles
                 _lblUsuario.Foreground = Tema.Pincel(Tema.TextSecondary);
                 DefinirIcone(_btnOlho, IconeOlho);
                 ToolTip.SetTip(_btnOlho, Idioma.Texto("Row.RevealPassword"));
+                AutomationProperties.SetName(_btnOlho, Idioma.Texto("Row.RevealPassword"));
+                AutomationProperties.SetName(_lblUsuario, $"{_senha.Usuario} — {Idioma.Texto("Row.CopyUser")}");
+                Acessibilidade.Anunciar(this, Idioma.Texto("A11y.PasswordHidden"));
             }
         }
 
@@ -623,6 +696,7 @@ namespace CofreDeSenhas.Controles
 
             DefinirIcone(_btnCopiar, IconeCheck);
             _btnCopiar.Foreground = Tema.Pincel(Tema.StrengthStrong);
+            Acessibilidade.Anunciar(this, Idioma.Formatar("A11y.Copied", Idioma.Texto("Row.CopyPassword")));
             var t = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
             t.Tick += (s, e) =>
             {
@@ -654,6 +728,7 @@ namespace CofreDeSenhas.Controles
 
             DefinirIcone(_btnTotp, IconeCheck);
             _btnTotp.Foreground = Tema.Pincel(Tema.StrengthStrong);
+            Acessibilidade.Anunciar(this, Idioma.Formatar("A11y.Copied", Idioma.Texto("Row.CopyTotp")));
             var t = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
             t.Tick += (s, e) =>
             {
@@ -681,6 +756,8 @@ namespace CofreDeSenhas.Controles
             _lblUsuario.FontWeight = FontWeight.Bold;
             _lblUsuario.Foreground = Tema.Pincel(Tema.StrengthStrong);
             ToolTip.SetTip(_lblUsuario, Idioma.Texto("Row.UserCopied"));
+            AutomationProperties.SetName(_lblUsuario, Idioma.Texto("Row.UserCopied"));
+            Acessibilidade.Anunciar(this, Idioma.Formatar("A11y.Copied", Idioma.Texto("Row.CopyUser")));
 
             _timerFeedbackUsuario = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(1100) };
             _timerFeedbackUsuario.Tick += (s, e) =>
@@ -701,6 +778,7 @@ namespace CofreDeSenhas.Controles
                 _lblUsuario.FontFamily = (FontFamily)Application.Current!.FindResource("FonteMono")!;
                 _lblUsuario.FontWeight = FontWeight.Bold;
                 _lblUsuario.Foreground = Tema.Pincel(Tema.AccentPrimary);
+                AutomationProperties.SetName(_lblUsuario, Idioma.Texto("A11y.PasswordVisible"));
                 return;
             }
 
@@ -708,6 +786,7 @@ namespace CofreDeSenhas.Controles
             _lblUsuario.FontFamily = FontFamily.Default;
             _lblUsuario.FontWeight = FontWeight.Normal;
             _lblUsuario.Foreground = Tema.Pincel(Tema.TextSecondary);
+            AutomationProperties.SetName(_lblUsuario, $"{_senha.Usuario} — {Idioma.Texto("Row.CopyUser")}");
         }
 
         public static Color CorAvatar(string nome)
@@ -724,14 +803,19 @@ namespace CofreDeSenhas.Controles
             return etiquetas.Count == 1 ? primeira : $"{primeira} +{etiquetas.Count - 1}";
         }
 
-        private static (Color bg, Color fg, string texto) InfoCategoria(Categoria cat) => cat switch
+        private static (Color bg, Color fg, string texto) InfoCategoria(Categoria cat)
         {
-            Categoria.Personal => (Color.FromUInt32(0xFFEAF1FF), Color.FromUInt32(0xFF2563EB), CategoriasUI.Rotulo(Categoria.Personal)),
-            Categoria.Work => (Color.FromUInt32(0xFFF1ECFE), Color.FromUInt32(0xFF7C3AED), CategoriasUI.Rotulo(Categoria.Work)),
-            Categoria.Finance => (Color.FromUInt32(0xFFE7F7EE), Color.FromUInt32(0xFF16A34A), CategoriasUI.Rotulo(Categoria.Finance)),
-            Categoria.Social => (Color.FromUInt32(0xFFFDEAF3), Color.FromUInt32(0xFFDB2777), CategoriasUI.Rotulo(Categoria.Social)),
-            _ => (Color.FromUInt32(0xFFFDEEE0), Color.FromUInt32(0xFFEA580C), CategoriasUI.Rotulo(Categoria.Other)),
-        };
+            var categoria = cat switch
+            {
+                Categoria.Personal => Categoria.Personal,
+                Categoria.Work => Categoria.Work,
+                Categoria.Finance => Categoria.Finance,
+                Categoria.Social => Categoria.Social,
+                _ => Categoria.Other
+            };
+            var (bg, fg) = Acessibilidade.CoresCategoria(categoria);
+            return (bg, fg, CategoriasUI.Rotulo(categoria));
+        }
 
         private static string FormatarData(DateTime data)
         {

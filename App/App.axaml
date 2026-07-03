@@ -59,8 +59,14 @@
       <SolidColorBrush x:Key="StrengthWeak" Color="#EF4444" />
       <SolidColorBrush x:Key="StrengthMedium" Color="#F59E0B" />
       <SolidColorBrush x:Key="StrengthStrong" Color="#16A34A" />
+      <SolidColorBrush x:Key="StrengthExcelent" Color="#007FFF" />
+      <SolidColorBrush x:Key="StrengthExcellent" Color="#007FFF" />
       <SolidColorBrush x:Key="CloseButtonHover" Color="#E81123" />
+      <SolidColorBrush x:Key="CloseButtonPressed" Color="#C50F1F" />
       <SolidColorBrush x:Key="FavoriteColor" Color="#F5A623" />
+      <SolidColorBrush x:Key="StatusLocal" Color="#22C55E" />
+      <SolidColorBrush x:Key="StatusWarning" Color="#F59E0B" />
+      <SolidColorBrush x:Key="StatusConnected" Color="#3B82F6" />
 
       <FontFamily x:Key="FonteMono">DejaVu Sans Mono, Liberation Mono, Noto Sans Mono, Ubuntu Mono, Consolas, monospace</FontFamily>
     </ResourceDictionary>
@@ -194,7 +200,7 @@
       <Setter Property="Foreground" Value="White" />
     </Style>
     <Style Selector="Button.fechar:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-      <Setter Property="Background" Value="#C50F1F" />
+      <Setter Property="Background" Value="{DynamicResource CloseButtonPressed}" />
       <Setter Property="Foreground" Value="White" />
     </Style>
 

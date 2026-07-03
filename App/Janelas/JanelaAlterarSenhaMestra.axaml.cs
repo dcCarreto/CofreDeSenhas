@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using Avalonia.Automation;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 
@@ -13,6 +14,7 @@ namespace CofreDeSenhas.Janelas
         {
             InitializeComponent();
             Icon = Recursos.IconeApp();
+            Acessibilidade.Vincular(this);
 
             KeyDown += (s, e) =>
             {
@@ -37,23 +39,29 @@ namespace CofreDeSenhas.Janelas
         {
             if (string.IsNullOrWhiteSpace(TxtAtual.Text))
             {
-                LblErro.Text = Idioma.Texto("Master.ErrorCurrentRequired");
+                MostrarErro(Idioma.Texto("Master.ErrorCurrentRequired"));
                 return;
             }
             if ((TxtNova.Text ?? "").Length < 8)
             {
-                LblErro.Text = Idioma.Texto("Master.ErrorNewLength");
+                MostrarErro(Idioma.Texto("Master.ErrorNewLength"));
                 return;
             }
             if (TxtNova.Text != TxtConfirmar.Text)
             {
-                LblErro.Text = Idioma.Texto("Master.ErrorConfirmMismatch");
+                MostrarErro(Idioma.Texto("Master.ErrorConfirmMismatch"));
                 return;
             }
 
             SenhaAtual = TxtAtual.Text!;
             NovaSenha = TxtNova.Text!;
             Close(true);
+        }
+
+        private void MostrarErro(string mensagem)
+        {
+            LblErro.Text = mensagem;
+            AutomationProperties.SetName(LblErro, mensagem);
         }
     }
 }

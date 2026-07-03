@@ -1,6 +1,10 @@
 using Avalonia;
+using Avalonia.Automation;
+using Avalonia.Automation.Peers;
+using Avalonia.Automation.Provider;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Media;
 
 namespace CofreDeSenhas.Controles
@@ -24,6 +28,7 @@ namespace CofreDeSenhas.Controles
                 {
                     _value = novo;
                     ValueChanged?.Invoke(this, EventArgs.Empty);
+                    AtualizarEstadoAcessivel();
                     InvalidateVisual();
                 }
             }
@@ -41,17 +46,38 @@ namespace CofreDeSenhas.Controles
             set { _maximum = value; if (_value > _maximum) Value = _maximum; }
         }
 
+        private int PassoGrande => Math.Max(1, (_maximum - _minimum) / 10);
+
         public CustomSlider()
         {
             Height = 24;
+            Focusable = true;
             Cursor = new Cursor(StandardCursorType.Hand);
             ActualThemeVariantChanged += (s, e) => InvalidateVisual();
+            Acessibilidade.Alterado += AoAlterarAcessibilidade;
+            DetachedFromVisualTree += (s, e) => Acessibilidade.Alterado -= AoAlterarAcessibilidade;
+            AtualizarEstadoAcessivel();
         }
+
+        private void AoAlterarAcessibilidade(object? sender, EventArgs e)
+        {
+            AtualizarEstadoAcessivel();
+            InvalidateVisual();
+        }
+
+        private void AtualizarEstadoAcessivel()
+        {
+            AutomationProperties.SetItemStatus(this, _value.ToString());
+            AutomationProperties.SetHelpText(this, Idioma.Texto("A11y.SliderHelp"));
+        }
+
+        protected override AutomationPeer OnCreateAutomationPeer() => new CustomSliderPeer(this);
 
         protected override void OnPointerPressed(PointerPressedEventArgs e)
         {
             _dragging = true;
             e.Pointer.Capture(this);
+            Focus();
             AtualizarPeloMouse(e.GetPosition(this).X);
             base.OnPointerPressed(e);
         }
@@ -68,6 +94,52 @@ namespace CofreDeSenhas.Controles
             _dragging = false;
             e.Pointer.Capture(null);
             base.OnPointerReleased(e);
+        }
+
+        protected override void OnKeyDown(KeyEventArgs e)
+        {
+            switch (e.Key)
+            {
+                case Key.Left:
+                case Key.Down:
+                    Value -= 1;
+                    e.Handled = true;
+                    break;
+                case Key.Right:
+                case Key.Up:
+                    Value += 1;
+                    e.Handled = true;
+                    break;
+                case Key.PageDown:
+                    Value -= PassoGrande;
+                    e.Handled = true;
+                    break;
+                case Key.PageUp:
+                    Value += PassoGrande;
+                    e.Handled = true;
+                    break;
+                case Key.Home:
+                    Value = _minimum;
+                    e.Handled = true;
+                    break;
+                case Key.End:
+                    Value = _maximum;
+                    e.Handled = true;
+                    break;
+            }
+            base.OnKeyDown(e);
+        }
+
+        protected override void OnGotFocus(GotFocusEventArgs e)
+        {
+            base.OnGotFocus(e);
+            InvalidateVisual();
+        }
+
+        protected override void OnLostFocus(RoutedEventArgs e)
+        {
+            base.OnLostFocus(e);
+            InvalidateVisual();
         }
 
         private void AtualizarPeloMouse(double x)
@@ -104,7 +176,34 @@ namespace CofreDeSenhas.Controles
 
             const double raioThumb = 8;
             var centroThumb = new Point(inicio + preenchido, centroY);
+            if (IsFocused)
+                g.DrawEllipse(null, new Pen(Tema.Pincel(Tema.AccentPrimary), 2), centroThumb, raioThumb + 3, raioThumb + 3);
             g.DrawEllipse(Brushes.White, new Pen(Tema.Pincel(Tema.AccentPrimary), 2), centroThumb, raioThumb, raioThumb);
+        }
+
+        private sealed class CustomSliderPeer : ControlAutomationPeer, IRangeValueProvider
+        {
+            public CustomSliderPeer(CustomSlider owner) : base(owner) { }
+
+            private CustomSlider Alvo => (CustomSlider)Owner;
+
+            protected override AutomationControlType GetAutomationControlTypeCore() => AutomationControlType.Slider;
+
+            protected override string GetClassNameCore() => nameof(CustomSlider);
+
+            public bool IsReadOnly => false;
+
+            public double Minimum => Alvo.Minimum;
+
+            public double Maximum => Alvo.Maximum;
+
+            public double Value => Alvo.Value;
+
+            public double SmallChange => 1;
+
+            public double LargeChange => Alvo.PassoGrande;
+
+            public void SetValue(double value) => Alvo.Value = (int)Math.Round(value);
         }
     }
 }

@@ -8,36 +8,43 @@ namespace CofreDeSenhas
 
         public static void DefinirModo(bool escuro) => ModoEscuro = escuro;
 
-        private static Color C(uint claro, uint escuro) => Color.FromUInt32(ModoEscuro ? escuro : claro);
+        public static Color WorkspaceBackground => Acessibilidade.Cor(CorVisual.WorkspaceBackground, ModoEscuro);
+        public static Color CardBackground => Acessibilidade.Cor(CorVisual.CardBackground, ModoEscuro);
+        public static Color CardBorder => Acessibilidade.Cor(CorVisual.CardBorder, ModoEscuro);
+        public static Color TitleBar => Acessibilidade.Cor(CorVisual.TitleBar, ModoEscuro);
+        public static Color TitleBarBorder => Acessibilidade.Cor(CorVisual.TitleBarBorder, ModoEscuro);
 
-        public static Color WorkspaceBackground => C(0xFFEAEBF1, 0xFF111218);
-        public static Color CardBackground => C(0xFFFFFFFF, 0xFF1F212A);
-        public static Color CardBorder => C(0xFFECECF0, 0xFF30323D);
+        public static Color InputBackground => Acessibilidade.Cor(CorVisual.InputBackground, ModoEscuro);
+        public static Color InputBorder => Acessibilidade.Cor(CorVisual.InputBorder, ModoEscuro);
 
-        public static Color InputBackground => C(0xFFF7F7FB, 0xFF282A35);
-        public static Color InputBorder => C(0xFFDFDFE9, 0xFF3A3C49);
+        public static Color RowHover => Acessibilidade.Cor(CorVisual.RowHover, ModoEscuro);
+        public static Color Separator => Acessibilidade.Cor(CorVisual.Separator, ModoEscuro);
+        public static Color Footer => Acessibilidade.Cor(CorVisual.Footer, ModoEscuro);
 
-        public static Color RowHover => C(0xFFFAF9FE, 0xFF282A37);
-        public static Color Separator => C(0xFFF5F5F7, 0xFF2C2E39);
+        public static Color AccentPrimary => Acessibilidade.Cor(CorVisual.AccentPrimary, ModoEscuro);
+        public static Color AccentHover => Acessibilidade.Cor(CorVisual.AccentHover, ModoEscuro);
+        public static Color AccentLight => Acessibilidade.Cor(CorVisual.AccentLight, ModoEscuro);
 
-        public static Color AccentPrimary => C(0xFF7C3AED, 0xFF9569F4);
-        public static Color AccentHover => C(0xFF6D28D9, 0xFF7C3AED);
-        public static Color AccentLight => C(0xFFF3EEFE, 0xFF372F54);
+        public static Color TextPrimary => Acessibilidade.Cor(CorVisual.TextPrimary, ModoEscuro);
+        public static Color TextSecondary => Acessibilidade.Cor(CorVisual.TextSecondary, ModoEscuro);
+        public static Color TextTertiary => Acessibilidade.Cor(CorVisual.TextTertiary, ModoEscuro);
 
-        public static Color TextPrimary => C(0xFF20232B, 0xFFEDEEF3);
-        public static Color TextSecondary => C(0xFF8D909A, 0xFF9698A4);
-        public static Color TextTertiary => C(0xFFA0A0A9, 0xFF787A86);
+        public static Color StrengthWeak => Acessibilidade.Cor(CorVisual.StrengthWeak, ModoEscuro);
+        public static Color StrengthMedium => Acessibilidade.Cor(CorVisual.StrengthMedium, ModoEscuro);
+        public static Color StrengthStrong => Acessibilidade.Cor(CorVisual.StrengthStrong, ModoEscuro);
+        public static Color StrengthExcelent => Acessibilidade.Cor(CorVisual.StrengthExcelent, ModoEscuro);
 
-        public static readonly Color StrengthWeak = Color.FromUInt32(0xFFEF4444);
-        public static readonly Color StrengthMedium = Color.FromUInt32(0xFFF59E0B);
-        public static readonly Color StrengthStrong = Color.FromUInt32(0xFF16A34A);
-        public static readonly Color StrengthExcelent = Color.FromUInt32(0xFF007FFF);
-
-        public static Color TrailInactive => C(0xFFE6E6EC, 0xFF383A46);
-        public static Color ToggleOff => C(0xFFD6D6DD, 0xFF444654);
-        public static Color IconHoverBackground => C(0xFFEFEFF4, 0xFF323440);
-        public static readonly Color FavoriteColor = Color.FromUInt32(0xFFF5A623);
-        public static Color FavoriteBorderColor => C(0xFFCDCDD4, 0xFF585A67);
+        public static Color TrailInactive => Acessibilidade.Cor(CorVisual.TrailInactive, ModoEscuro);
+        public static Color ToggleOff => Acessibilidade.Cor(CorVisual.ToggleOff, ModoEscuro);
+        public static Color HoverBackground => Acessibilidade.Cor(CorVisual.HoverBackground, ModoEscuro);
+        public static Color IconHoverBackground => Acessibilidade.Cor(CorVisual.IconHoverBackground, ModoEscuro);
+        public static Color FavoriteColor => Acessibilidade.Cor(CorVisual.FavoriteColor, ModoEscuro);
+        public static Color FavoriteBorderColor => Acessibilidade.Cor(CorVisual.FavoriteBorderColor, ModoEscuro);
+        public static Color CloseButtonHover => Acessibilidade.Cor(CorVisual.CloseButtonHover, ModoEscuro);
+        public static Color CloseButtonPressed => Acessibilidade.Cor(CorVisual.CloseButtonPressed, ModoEscuro);
+        public static Color StatusLocal => Acessibilidade.Cor(CorVisual.StatusLocal, ModoEscuro);
+        public static Color StatusWarning => Acessibilidade.Cor(CorVisual.StatusWarning, ModoEscuro);
+        public static Color StatusConnected => Acessibilidade.Cor(CorVisual.StatusConnected, ModoEscuro);
 
         public static IBrush Pincel(Color cor) => new SolidColorBrush(cor);
     }

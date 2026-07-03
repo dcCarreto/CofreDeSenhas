@@ -22,6 +22,11 @@ namespace CofreDeSenhas
             public PerfilBanco? UltimoBanco { get; set; }
             public int MinutosBloqueio { get; set; } = 5;
             public string? Idioma { get; set; }
+            public string? Daltonismo { get; set; }
+            public bool AltoContraste { get; set; }
+            public double EscalaInterface { get; set; } = 1.0;
+            public bool ReduzirAnimacoes { get; set; }
+            public bool LeitorTela { get; set; }
         }
 
         private static readonly string _caminho = Path.Combine(
@@ -32,6 +37,11 @@ namespace CofreDeSenhas
         public static PerfilBanco? UltimoBanco { get; set; }
         public static int MinutosBloqueio { get; set; } = 5;
         public static string? Idioma { get; set; }
+        public static string? Daltonismo { get; set; }
+        public static bool AltoContraste { get; set; }
+        public static double EscalaInterface { get; set; } = 1.0;
+        public static bool ReduzirAnimacoes { get; set; }
+        public static bool LeitorTela { get; set; }
 
         public static void Carregar()
         {
@@ -46,6 +56,11 @@ namespace CofreDeSenhas
                         UltimoBanco = d.UltimoBanco;
                         MinutosBloqueio = d.MinutosBloqueio;
                         Idioma = d.Idioma;
+                        Daltonismo = d.Daltonismo;
+                        AltoContraste = d.AltoContraste;
+                        EscalaInterface = d.EscalaInterface <= 0 ? 1.0 : d.EscalaInterface;
+                        ReduzirAnimacoes = d.ReduzirAnimacoes;
+                        LeitorTela = d.LeitorTela;
                     }
                 }
             }
@@ -58,7 +73,7 @@ namespace CofreDeSenhas
             {
                 var dir = Path.GetDirectoryName(_caminho)!;
                 if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
-                File.WriteAllText(_caminho, JsonSerializer.Serialize(new Dados { ModoEscuro = ModoEscuro, UltimoBanco = UltimoBanco, MinutosBloqueio = MinutosBloqueio, Idioma = Idioma }));
+                File.WriteAllText(_caminho, JsonSerializer.Serialize(new Dados { ModoEscuro = ModoEscuro, UltimoBanco = UltimoBanco, MinutosBloqueio = MinutosBloqueio, Idioma = Idioma, Daltonismo = Daltonismo, AltoContraste = AltoContraste, EscalaInterface = EscalaInterface, ReduzirAnimacoes = ReduzirAnimacoes, LeitorTela = LeitorTela }));
             }
             catch { }
         }

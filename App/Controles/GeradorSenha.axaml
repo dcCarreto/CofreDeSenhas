@@ -7,12 +7,14 @@
                 VerticalScrollBarVisibility="Auto">
     <StackPanel Margin="24,22,18,24">
       <TextBlock Text="{DynamicResource Generator.Title}" FontSize="20" FontWeight="Bold"
-                 Foreground="{DynamicResource TextPrimary}" />
+                 Foreground="{DynamicResource TextPrimary}"
+                 AutomationProperties.HeadingLevel="2" />
 
       <Grid ColumnDefinitions="*,132" Margin="0,14,0,16">
         <TextBlock Text="{DynamicResource Generator.Mode}" FontSize="13" Foreground="{DynamicResource TextSecondary}"
                    VerticalAlignment="Center" />
         <ComboBox Name="CmbModoGerador" Grid.Column="1" Classes="campo"
+                  AutomationProperties.Name="{DynamicResource Generator.Mode}"
                   Height="34" VerticalAlignment="Center" />
       </Grid>
 
@@ -34,16 +36,21 @@
                      MinHeight="36"
                      VerticalAlignment="Top"
                      VerticalContentAlignment="Top"
+                     AutomationProperties.Name="{DynamicResource A11y.GeneratedPassword}"
+                     AutomationProperties.HelpText="{DynamicResource A11y.GeneratedPasswordHelp}"
                      Margin="0,0,10,0" />
             <StackPanel Grid.Column="1"
                         Orientation="Horizontal"
                         Spacing="4"
                         VerticalAlignment="Top">
               <Button Classes="icone" Content="👁" Width="32" Height="32"
+                      AutomationProperties.Name="{DynamicResource Row.RevealPassword}"
                       Click="OlhoGerada_Click" />
               <Button Classes="icone" Content="⧉" Width="32" Height="32"
+                      AutomationProperties.Name="{DynamicResource Row.CopyPassword}"
                       Click="CopiarGerada_Click" />
               <Button Classes="icone" Content="⟳" Width="32" Height="32" FontSize="16"
+                      AutomationProperties.Name="{DynamicResource Generator.GeneratePassword}"
                       Click="Gerar_Click" />
             </StackPanel>
           </Grid>
@@ -55,7 +62,8 @@
       <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,6">
         <TextBlock Text="{DynamicResource Generator.Strength}" FontSize="13" Foreground="{DynamicResource TextSecondary}" />
         <TextBlock Name="LblForca" Grid.Column="1" Text="—" FontSize="13" FontWeight="Bold"
-                   Foreground="{DynamicResource TextSecondary}" />
+                   Foreground="{DynamicResource TextSecondary}"
+                   AutomationProperties.LiveSetting="Polite" />
       </Grid>
 
       <Grid ColumnDefinitions="*,6,*,6,*,6,*" Margin="0,0,0,22">
@@ -71,7 +79,8 @@
                    FontFamily="{StaticResource FonteMono}" FontSize="13" FontWeight="Bold"
                    Foreground="{DynamicResource AccentPrimary}" />
       </Grid>
-      <c:CustomSlider Name="SliderQuantidade" Minimum="1" Maximum="10" Value="1" Margin="0,0,0,18" />
+      <c:CustomSlider Name="SliderQuantidade" Minimum="1" Maximum="10" Value="1" Margin="0,0,0,18"
+                      AutomationProperties.Name="{DynamicResource Generator.Quantity}" />
 
       <StackPanel Name="PainelSenhaCaracteres">
         <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,4">
@@ -80,27 +89,32 @@
                      FontFamily="{StaticResource FonteMono}" FontSize="13" FontWeight="Bold"
                      Foreground="{DynamicResource AccentPrimary}" />
         </Grid>
-        <c:CustomSlider Name="SliderTamanho" Minimum="4" Maximum="64" Value="12" Margin="0,0,0,18" />
+        <c:CustomSlider Name="SliderTamanho" Minimum="4" Maximum="64" Value="12" Margin="0,0,0,18"
+                        AutomationProperties.Name="{DynamicResource Generator.Length}" />
 
         <Grid ColumnDefinitions="*,Auto" Height="30" Margin="0,0,0,6">
           <TextBlock Text="{DynamicResource Generator.Uppercase}" FontSize="13"
                      Foreground="{DynamicResource TextPrimary}" VerticalAlignment="Center" />
-          <c:CustomToggle Name="ToggleMaiusculas" Grid.Column="1" Checked="True" VerticalAlignment="Center" />
+          <c:CustomToggle Name="ToggleMaiusculas" Grid.Column="1" Checked="True" VerticalAlignment="Center"
+                          AutomationProperties.Name="{DynamicResource Generator.Uppercase}" />
         </Grid>
         <Grid ColumnDefinitions="*,Auto" Height="30" Margin="0,0,0,6">
           <TextBlock Text="{DynamicResource Generator.Lowercase}" FontSize="13"
                      Foreground="{DynamicResource TextPrimary}" VerticalAlignment="Center" />
-          <c:CustomToggle Name="ToggleMinusculas" Grid.Column="1" Checked="True" VerticalAlignment="Center" />
+          <c:CustomToggle Name="ToggleMinusculas" Grid.Column="1" Checked="True" VerticalAlignment="Center"
+                          AutomationProperties.Name="{DynamicResource Generator.Lowercase}" />
         </Grid>
         <Grid ColumnDefinitions="*,Auto" Height="30" Margin="0,0,0,6">
           <TextBlock Text="{DynamicResource Generator.Numbers}" FontSize="13"
                      Foreground="{DynamicResource TextPrimary}" VerticalAlignment="Center" />
-          <c:CustomToggle Name="ToggleNumeros" Grid.Column="1" Checked="True" VerticalAlignment="Center" />
+          <c:CustomToggle Name="ToggleNumeros" Grid.Column="1" Checked="True" VerticalAlignment="Center"
+                          AutomationProperties.Name="{DynamicResource Generator.Numbers}" />
         </Grid>
         <Grid ColumnDefinitions="*,Auto" Height="30" Margin="0,0,0,22">
           <TextBlock Text="{DynamicResource Generator.Special}" FontSize="13"
                      Foreground="{DynamicResource TextPrimary}" VerticalAlignment="Center" />
-          <c:CustomToggle Name="ToggleEspeciais" Grid.Column="1" VerticalAlignment="Center" />
+          <c:CustomToggle Name="ToggleEspeciais" Grid.Column="1" VerticalAlignment="Center"
+                          AutomationProperties.Name="{DynamicResource Generator.Special}" />
         </Grid>
       </StackPanel>
 
@@ -111,35 +125,44 @@
                      FontFamily="{StaticResource FonteMono}" FontSize="13" FontWeight="Bold"
                      Foreground="{DynamicResource AccentPrimary}" />
         </Grid>
-        <c:CustomSlider Name="SliderPalavras" Minimum="3" Maximum="8" Value="5" Margin="0,0,0,18" />
+        <c:CustomSlider Name="SliderPalavras" Minimum="3" Maximum="8" Value="5" Margin="0,0,0,18"
+                        AutomationProperties.Name="{DynamicResource Generator.Words}" />
 
         <Grid ColumnDefinitions="*,110" Height="36" Margin="0,0,0,8">
           <TextBlock Text="{DynamicResource Generator.Separator}" FontSize="13"
                      Foreground="{DynamicResource TextPrimary}" VerticalAlignment="Center" />
           <ComboBox Name="CmbSeparadorFrase" Grid.Column="1" Classes="campo"
+                    AutomationProperties.Name="{DynamicResource Generator.Separator}"
                     Height="34" VerticalAlignment="Center" />
         </Grid>
         <Grid ColumnDefinitions="*,Auto" Height="30" Margin="0,0,0,6">
           <TextBlock Text="{DynamicResource Generator.Capitalize}" FontSize="13"
                      Foreground="{DynamicResource TextPrimary}" VerticalAlignment="Center" />
-          <c:CustomToggle Name="ToggleCapitalizarFrase" Grid.Column="1" VerticalAlignment="Center" />
+          <c:CustomToggle Name="ToggleCapitalizarFrase" Grid.Column="1" VerticalAlignment="Center"
+                          AutomationProperties.Name="{DynamicResource Generator.Capitalize}" />
         </Grid>
         <Grid ColumnDefinitions="*,Auto" Height="30" Margin="0,0,0,22">
           <TextBlock Text="{DynamicResource Generator.AddNumber}" FontSize="13"
                      Foreground="{DynamicResource TextPrimary}" VerticalAlignment="Center" />
-          <c:CustomToggle Name="ToggleNumeroFrase" Grid.Column="1" Checked="True" VerticalAlignment="Center" />
+          <c:CustomToggle Name="ToggleNumeroFrase" Grid.Column="1" Checked="True" VerticalAlignment="Center"
+                          AutomationProperties.Name="{DynamicResource Generator.AddNumber}" />
         </Grid>
       </StackPanel>
 
       <Button Name="BtnGerar" Classes="primario" Content="{DynamicResource Generator.GeneratePassword}" Height="44"
               HorizontalAlignment="Stretch" Margin="0,0,0,12"
+              AutomationProperties.Name="{DynamicResource Generator.GeneratePassword}"
               Click="Gerar_Click" />
 
       <Grid Name="PainelAcoes" ColumnDefinitions="*,10,90">
         <Button Name="BtnSalvar" Classes="secundario" Content="{DynamicResource Generator.SaveToVault}" Height="38" FontSize="13"
-                HorizontalAlignment="Stretch" Click="SalvarNoCofre_Click" />
+                HorizontalAlignment="Stretch"
+                AutomationProperties.Name="{DynamicResource Generator.SaveToVault}"
+                Click="SalvarNoCofre_Click" />
         <Button Name="BtnLimpar" Grid.Column="2" Classes="plano" Content="{DynamicResource Generator.Clear}" Height="38"
-                HorizontalAlignment="Stretch" Click="Limpar_Click" />
+                HorizontalAlignment="Stretch"
+                AutomationProperties.Name="{DynamicResource Generator.Clear}"
+                Click="Limpar_Click" />
       </Grid>
 
     </StackPanel>

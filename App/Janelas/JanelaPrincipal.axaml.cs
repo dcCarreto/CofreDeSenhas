@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Avalonia;
+using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input;
@@ -70,6 +71,9 @@ namespace CofreDeSenhas.Janelas
 
             InitializeComponent();
             Icon = Recursos.IconeApp();
+            Acessibilidade.Vincular(this);
+            Acessibilidade.RegistrarAnunciador(this, LblAnuncioLeitorTela);
+            ConfigurarAcessibilidadeLeitorTela();
 
             CmbCategoria.ItemsSource = ConstruirFiltrosOrganizacao(Array.Empty<Senha>());
             CmbCategoria.SelectedIndex = 0;
@@ -89,13 +93,17 @@ namespace CofreDeSenhas.Janelas
             {
                 MarcarBloqueioSelecionado(Preferencias.MinutosBloqueio);
                 MarcarIdiomaSelecionado();
+                MarcarAcessibilidadeSelecionada();
+                ConfigurarAcessibilidadeLeitorTela();
                 AtualizarMenuBiometria();
             };
             Idioma.Alterado += IdiomaGlobal_Alterado;
+            Acessibilidade.Alterado += Acessibilidade_Alterado;
             Closed += (s, e) =>
             {
                 _monitor.Encerrar();
                 Idioma.Alterado -= IdiomaGlobal_Alterado;
+                Acessibilidade.Alterado -= Acessibilidade_Alterado;
             };
 
             Opened += async (s, e) =>
@@ -306,7 +314,9 @@ namespace CofreDeSenhas.Janelas
         private void AtualizarBotaoTema()
         {
             BtnTema.Content = Tema.ModoEscuro ? "☀" : "🌙";
-            ToolTip.SetTip(BtnTema, Idioma.Texto(Tema.ModoEscuro ? "Theme.Light" : "Theme.Dark"));
+            var dica = Idioma.Texto(Tema.ModoEscuro ? "Theme.Light" : "Theme.Dark");
+            ToolTip.SetTip(BtnTema, dica);
+            Avalonia.Automation.AutomationProperties.SetName(BtnTema, dica);
         }
 
         private void Idioma_Alterado(object? sender, RoutedEventArgs e)
@@ -328,6 +338,7 @@ namespace CofreDeSenhas.Janelas
             AtualizarFiltroOrganizacao();
             AtualizarContador();
             AtualizarEstadoConexao(_descricaoConexaoAtual, _falhaReconexaoAtual);
+            ConfigurarAcessibilidadeLeitorTela();
             FiltrarSenhas();
         }
 
@@ -339,6 +350,67 @@ namespace CofreDeSenhas.Janelas
             foreach (var item in MenuIdioma.Items.OfType<MenuItem>())
                 item.IsChecked = item.Tag is string codigo &&
                     string.Equals(codigo, Idioma.Atual.Codigo, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private void Daltonismo_Alterado(object? sender, RoutedEventArgs e)
+        {
+            if (sender is MenuItem item)
+                Acessibilidade.SelecionarDaltonismo(item.Tag as string);
+        }
+
+        private void Escala_Alterada(object? sender, RoutedEventArgs e)
+        {
+            if (sender is MenuItem item)
+                Acessibilidade.SelecionarEscala(item.Tag as string);
+        }
+
+        private void AltoContraste_Alterado(object? sender, RoutedEventArgs e)
+        {
+            if (sender is MenuItem item)
+                Acessibilidade.SelecionarAltoContraste(item.IsChecked);
+        }
+
+        private void ReduzirAnimacoes_Alterado(object? sender, RoutedEventArgs e)
+        {
+            if (sender is MenuItem item)
+                Acessibilidade.SelecionarReducaoMovimento(item.IsChecked);
+        }
+
+        private void LeitorTela_Alterado(object? sender, RoutedEventArgs e)
+        {
+            if (sender is MenuItem item)
+            {
+                Acessibilidade.SelecionarLeitorTela(item.IsChecked);
+                Acessibilidade.Anunciar(this, Idioma.Texto(Acessibilidade.LeitorTela
+                    ? "A11y.ScreenReaderEnabled"
+                    : "A11y.ScreenReaderDisabled"), assertivo: true, forcar: true);
+            }
+        }
+
+        private void MarcarAcessibilidadeSelecionada() =>
+            Acessibilidade.MarcarMenus(MenuDaltonismo, MenuEscala, MenuAltoContraste, MenuReduzirAnimacoes,
+                MenuLeitorTela);
+
+        private void Acessibilidade_Alterado(object? sender, EventArgs e)
+        {
+            ConfigurarAcessibilidadeLeitorTela();
+            Gerador.AtualizarTema();
+            PintarFiltroFavoritos();
+            FiltrarSenhas();
+        }
+
+        private void ConfigurarAcessibilidadeLeitorTela()
+        {
+            AutomationProperties.SetHelpText(MenuLeitorTela, Idioma.Texto("Access.ScreenReaderHelp"));
+            AutomationProperties.SetHelpText(TxtBusca, Idioma.Texto("A11y.OptionalField"));
+            AutomationProperties.SetHelpText(CmbCategoria, Idioma.Texto("A11y.OptionalField"));
+            AutomationProperties.SetName(PainelLista, Idioma.Texto("A11y.ResultsList"));
+            AutomationProperties.SetLiveSetting(LblStatus, AutomationLiveSetting.Polite);
+            AutomationProperties.SetLiveSetting(LblConexao, AutomationLiveSetting.Polite);
+            AutomationProperties.SetLiveSetting(LblVazio, AutomationLiveSetting.Polite);
+            PintarFiltroFavoritos();
+            AtualizarContador();
+            AtualizarEstadoConexao(_descricaoConexaoAtual, _falhaReconexaoAtual);
         }
 
         private async void Gerador_SolicitouSalvar(object? sender, string senha)
@@ -379,6 +451,12 @@ namespace CofreDeSenhas.Janelas
             _linhasSenha.Clear();
 
             LblVazio.IsVisible = lista.Count == 0;
+            var estadoLista = lista.Count == 0
+                ? Idioma.Texto("A11y.EmptyList")
+                : Idioma.Plural(lista.Count, "Vault.Counter.ItemSingular", "Vault.Counter.ItemPlural");
+            AutomationProperties.SetName(PainelLista, $"{Idioma.Texto("A11y.ResultsList")}: {estadoLista}");
+            AutomationProperties.SetItemStatus(PainelLista, estadoLista);
+            AutomationProperties.SetName(LblVazio, Idioma.Texto("Vault.Empty"));
 
             foreach (var senha in lista)
             {
@@ -481,6 +559,7 @@ namespace CofreDeSenhas.Janelas
             _somenteFavoritos = !_somenteFavoritos;
             PintarFiltroFavoritos();
             FiltrarSenhas();
+            Acessibilidade.Anunciar(BtnFavoritos, Idioma.Texto(_somenteFavoritos ? "A11y.FilterOn" : "A11y.FilterOff"));
         }
 
         private void PintarFiltroFavoritos()
@@ -495,6 +574,9 @@ namespace CofreDeSenhas.Janelas
                 BtnFavoritos.ClearValue(BackgroundProperty);
                 BtnFavoritos.Foreground = Tema.Pincel(Tema.FavoriteBorderColor);
             }
+
+            AutomationProperties.SetItemStatus(BtnFavoritos,
+                Idioma.Texto(_somenteFavoritos ? "A11y.FilterOn" : "A11y.FilterOff"));
         }
 
         private void AtualizarContador()
@@ -515,6 +597,8 @@ namespace CofreDeSenhas.Janelas
             }
 
             LblStatus.Text = status;
+            AutomationProperties.SetName(LblStatus, $"{Idioma.Texto("A11y.VaultStatus")}: {status}");
+            AutomationProperties.SetName(LblContadorHeader, LblContadorHeader.Text ?? "");
         }
 
         private async void FavoritarToggle(Senha s)
@@ -1178,21 +1262,24 @@ namespace CofreDeSenhas.Janelas
             if (_conectadoAoBanco && descricao != null)
             {
                 LblConexao.Text = Idioma.Formatar("Vault.Connection.Connected", descricao);
-                PontoConexao.Fill = new SolidColorBrush(Color.Parse("#3B82F6"));
+                PontoConexao.Fill = Tema.Pincel(Tema.StatusConnected);
                 MenuDesconectarBanco.IsVisible = true;
             }
             else if (falhaReconexao)
             {
                 LblConexao.Text = Idioma.Texto("Vault.Connection.DatabaseUnavailable");
-                PontoConexao.Fill = new SolidColorBrush(Color.Parse("#F59E0B"));
+                PontoConexao.Fill = Tema.Pincel(Tema.StatusWarning);
                 MenuDesconectarBanco.IsVisible = true;
             }
             else
             {
                 LblConexao.Text = Idioma.Texto("Vault.Connection.Local");
-                PontoConexao.Fill = new SolidColorBrush(Color.Parse("#22C55E"));
+                PontoConexao.Fill = Tema.Pincel(Tema.StatusLocal);
                 MenuDesconectarBanco.IsVisible = false;
             }
+
+            AutomationProperties.SetName(LblConexao,
+                $"{Idioma.Texto("A11y.ConnectionStatus")}: {LblConexao.Text}");
         }
 
         private void Reiniciar()

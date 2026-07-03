@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using Avalonia.Automation;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
@@ -19,6 +20,7 @@ namespace CofreDeSenhas.Janelas
 
             InitializeComponent();
             Icon = Recursos.IconeApp();
+            Acessibilidade.Vincular(this);
 
             AtualizarCategorias();
             CmbCategoria.SelectedIndex = (int)Categoria.Personal;
@@ -119,6 +121,8 @@ namespace CofreDeSenhas.Janelas
                 var codigo = _totp.Gerar(entrada);
                 LblCodigoTotp.Text = FormatarCodigo(codigo.Codigo);
                 LblContagemTotp.Text = Idioma.Formatar("Entry.TotpExpiresIn", codigo.SegundosRestantes);
+                AutomationProperties.SetName(LblCodigoTotp,
+                    $"{Idioma.Texto("A11y.TotpPreview")}: {LblCodigoTotp.Text}. {LblContagemTotp.Text}");
                 PainelTotp.IsVisible = true;
                 GarantirTimerTotp();
             }
