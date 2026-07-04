@@ -72,14 +72,18 @@ dados de sua escolha (SQLite, PostgreSQL, MySQL/MariaDB ou SQL Server); nesse
 caso, o cofre local e o banco são sincronizados e mantidos espelhados, sempre
 com a senha armazenada de forma cifrada.
 
-A interface é dividida em dois painéis: à esquerda, o gerador de senhas; à
-direita, o cofre, com a lista de credenciais, busca, filtros e ações por item.
+A janela principal tem uma barra lateral de navegação (cofre, favoritas,
+recentes e categorias) e, ao centro, a lista de credenciais com busca, filtro
+por categoria, auditoria e ações por item. O gerador de senhas abre em um painel
+sob demanda e também aparece lado a lado com o desbloqueio na tela de senha
+mestra, permitindo criar e copiar senhas antes mesmo de abrir o cofre.
 
 ## Capturas de tela
 
-O gerador de senhas fica à esquerda e o cofre à direita. A aplicação oferece
-tema claro e tema escuro, com a preferência persistida entre sessões. As imagens
-abaixo usam dados fictícios apenas para demonstração.
+A tela principal reúne a barra lateral de navegação, a lista de credenciais e o
+status do cofre no rodapé. A aplicação oferece tema claro e tema escuro, com a
+preferência persistida entre sessões. As imagens abaixo usam dados fictícios
+apenas para demonstração.
 
 Tema claro:
 
@@ -88,6 +92,11 @@ Tema claro:
 Tema escuro:
 
 ![Cofre de Senhas no tema escuro](docs/captura-escura.png)
+
+Na tela de senha mestra, o gerador fica à esquerda e o desbloqueio à direita, com
+seletor de idioma e, no Windows, a opção de desbloqueio por Windows Hello:
+
+![Tela de senha mestra com gerador e desbloqueio](docs/tela-login.png)
 
 ## Funcionalidades
 
@@ -108,6 +117,11 @@ Tema escuro:
   e copiar senhas sem abrir o cofre, com a opção de salvar surgindo somente após
   a autenticação.
 
+O painel do gerador, com a senha gerada, o indicador de força e as opções de
+caractere:
+
+![Gerador de senha com senha gerada e indicador de força](docs/gerador.png)
+
 ### Cofre de senhas
 
 - Cadastro, edição e remoção de credenciais, com os campos de serviço, usuário,
@@ -120,6 +134,8 @@ Tema escuro:
   categoria personalizada quando `Outro` é selecionada.
 - Busca em tempo real por serviço, usuário ou categoria personalizada, com filtro
   por categoria no mesmo seletor.
+- Barra lateral de navegação com atalhos para o cofre completo, os favoritos, os
+  itens recentes e cada categoria.
 - Indicador de força por senha armazenada.
 - Verificação de senhas comprometidas via Have I Been Pwned.
 - Auditoria local para detectar senhas fracas, repetidas ou sem atualização há
@@ -133,6 +149,16 @@ Tema escuro:
 - Edição inline do nome do serviço diretamente na lista.
 - Cópia do usuário com um clique na coluna `Usuário`, exibindo confirmação
   visual temporária na linha.
+
+A edição de uma credencial reúne serviço, usuário, senha, URL, categoria e notas,
+com o código TOTP calculado ao vivo e o histórico das senhas anteriores:
+
+![Edição de credencial com código TOTP ao vivo e histórico de senhas](docs/editar-credencial.png)
+
+A auditoria marca na própria lista as senhas fracas, repetidas ou sem atualização
+há muito tempo, tudo localmente e sem enviar nada para fora:
+
+![Lista do cofre com marcações de auditoria de senhas](docs/auditoria.png)
 
 ### Segurança e autenticação
 
@@ -189,6 +215,12 @@ Tema escuro:
 - Ícone próprio no executável, na janela e na bandeja do sistema (onde o
   ambiente gráfico oferece suporte).
 - Mesma interface e comportamento no Windows e no Linux.
+
+O menu de configurações reúne a alteração da senha mestra, o bloqueio automático,
+o idioma, a acessibilidade, a importação de CSV, a conexão a banco de dados e o
+Windows Hello:
+
+![Menu de configurações do aplicativo](docs/configuracoes.png)
 
 ## Modelo de segurança
 
