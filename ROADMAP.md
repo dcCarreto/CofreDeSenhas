@@ -138,7 +138,7 @@ Ideias e melhorias consideradas para versões futuras, agrupadas por prioridade:
 - Exibir data de exclusão do item.
 - Evitar perda acidental de credenciais importantes.
 
-#### Instalador profissional para Windows
+#### Instalador para Windows
 
 - Criar instalador para Windows.
 - Adicionar atalho no menu iniciar.
