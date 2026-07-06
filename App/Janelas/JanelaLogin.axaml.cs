@@ -32,6 +32,7 @@ namespace CofreDeSenhas.Janelas
             Acessibilidade.RegistrarAnunciador(this, LblAnuncioLeitorTela);
 
             Gerador.PermiteSalvar = false;
+            Gerador.ShowHeader = false;
 
             CmbIdioma.ItemsSource = Idioma.Idiomas;
             CmbIdioma.SelectedItem = Idioma.Atual;

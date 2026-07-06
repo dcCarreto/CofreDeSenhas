@@ -53,6 +53,14 @@ namespace CofreDeSenhas.Controles
             set { _permiteSalvar = value; AplicarPermiteSalvar(); }
         }
 
+        private bool _mostrarCabecalho = true;
+
+        public bool ShowHeader
+        {
+            get => _mostrarCabecalho;
+            set { _mostrarCabecalho = value; LblCabecalho.IsVisible = value; }
+        }
+
         public void AtualizarTema()
         {
             AtualizarBarraForca();

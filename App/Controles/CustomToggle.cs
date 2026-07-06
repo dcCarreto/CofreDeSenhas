@@ -33,8 +33,8 @@ namespace CofreDeSenhas.Controles
 
         public CustomToggle()
         {
-            Width = 46;
-            Height = 24;
+            Width = 40;
+            Height = 22;
             Focusable = true;
             Cursor = new Cursor(StandardCursorType.Hand);
             ActualThemeVariantChanged += (s, e) => InvalidateVisual();

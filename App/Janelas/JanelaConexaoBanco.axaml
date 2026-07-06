@@ -10,7 +10,7 @@
         TransparencyLevelHint="Transparent"
         WindowStartupLocation="CenterOwner">
 
-  <Border CornerRadius="12"
+  <Border CornerRadius="{StaticResource RadiusDialogo}"
           ClipToBounds="True"
           Background="{DynamicResource CardBackground}"
           BorderBrush="{DynamicResource CardBorder}"
@@ -24,7 +24,7 @@
               PointerPressed="Arrastar">
         <Grid>
           <TextBlock Name="LblTitulo" Text="{DynamicResource Db.ConnectionTitle}"
-                     FontSize="17" FontWeight="Bold"
+                     Classes="titulo"
                      Foreground="{DynamicResource TextPrimary}"
                      VerticalAlignment="Center"
                      AutomationProperties.HeadingLevel="1"

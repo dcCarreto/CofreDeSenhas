@@ -4,7 +4,9 @@ using Avalonia.Automation;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
+using Avalonia.Media;
 using Avalonia.Threading;
+using System.Globalization;
 using GerenciadorDeSenhas.Modelos;
 using GerenciadorDeSenhas.Servicos;
 
@@ -17,7 +19,7 @@ namespace CofreDeSenhas.Janelas
         private readonly Senha _senhaAtual;
         private readonly ServicoTotp _totp = new();
         private DispatcherTimer? _timerTotp;
-        private bool _historicoAberto;
+        private const int PeriodoTotp = 30;
 
         public JanelaEditarSenha(IServicoSenha servicoSenha, Senha senhaAtual, IServicoCriptografia? criptografia)
         {
@@ -161,9 +163,10 @@ namespace CofreDeSenhas.Janelas
             {
                 var codigo = _totp.Gerar(entrada);
                 LblCodigoTotp.Text = FormatarCodigo(codigo.Codigo);
-                LblContagemTotp.Text = Idioma.Formatar("Entry.TotpExpiresIn", codigo.SegundosRestantes);
+                var contagem = Idioma.Formatar("Entry.TotpExpiresIn", codigo.SegundosRestantes);
+                AtualizarAnelTotp(codigo.SegundosRestantes, PeriodoTotp);
                 AutomationProperties.SetName(LblCodigoTotp,
-                    $"{Idioma.Texto("A11y.TotpPreview")}: {LblCodigoTotp.Text}. {LblContagemTotp.Text}");
+                    $"{Idioma.Texto("A11y.TotpPreview")}: {LblCodigoTotp.Text}. {contagem}");
                 PainelTotp.IsVisible = true;
                 GarantirTimerTotp();
             }
@@ -188,6 +191,27 @@ namespace CofreDeSenhas.Janelas
         {
             _timerTotp?.Stop();
             _timerTotp = null;
+        }
+
+        private void AtualizarAnelTotp(int restantes, int periodo)
+        {
+            double fracao = periodo <= 0 ? 0 : Math.Clamp(restantes / (double)periodo, 0, 1);
+            double angulo = fracao * 360;
+            if (angulo <= 0.1)
+            {
+                AnelTotp.Data = null;
+                return;
+            }
+            if (angulo >= 359.9)
+                angulo = 359.9;
+
+            const double r = 10, cx = 13, cy = 13;
+            double rad = angulo * Math.PI / 180.0;
+            double fx = cx + r * Math.Sin(rad);
+            double fy = cy - r * Math.Cos(rad);
+            int grande = angulo > 180 ? 1 : 0;
+            AnelTotp.Data = StreamGeometry.Parse(string.Format(CultureInfo.InvariantCulture,
+                "M {0} {1} A {2} {2} 0 {3} 1 {4:0.##} {5:0.##}", cx, cy - r, r, grande, fx, fy));
         }
 
         private string CategoriaPersonalizadaAtual() =>
@@ -223,36 +247,21 @@ namespace CofreDeSenhas.Janelas
         private static string FormatarCodigo(string codigo) =>
             codigo.Length == 6 ? codigo.Insert(3, " ") : codigo;
 
-        private void AlternarHistorico_Click(object? sender, RoutedEventArgs e)
-        {
-            _historicoAberto = !_historicoAberto;
-            PainelHistorico.IsVisible = _historicoAberto && PainelHistorico.Children.Count > 0;
-            AtualizarRotuloHistorico();
-        }
-
         private void MontarHistorico()
         {
             PainelHistorico.Children.Clear();
 
             if (_criptografia == null || _senhaAtual.Historico.Count == 0)
             {
-                BtnHistorico.IsVisible = false;
-                PainelHistorico.IsVisible = false;
+                ExpHistorico.IsVisible = false;
                 return;
             }
 
             for (int i = _senhaAtual.Historico.Count - 1; i >= 0; i--)
                 PainelHistorico.Children.Add(CriarLinhaHistorico(_senhaAtual.Historico[i]));
 
-            BtnHistorico.IsVisible = true;
-            PainelHistorico.IsVisible = _historicoAberto;
-            AtualizarRotuloHistorico();
-        }
-
-        private void AtualizarRotuloHistorico()
-        {
-            var seta = _historicoAberto ? " ▲" : " ▼";
-            BtnHistorico.Content = Idioma.Formatar("Entry.HistoryHeader", _senhaAtual.Historico.Count) + seta;
+            ExpHistorico.Header = Idioma.Formatar("Entry.HistoryHeader", _senhaAtual.Historico.Count);
+            ExpHistorico.IsVisible = true;
         }
 
         private Control CriarLinhaHistorico(HistoricoSenha item)
@@ -330,9 +339,7 @@ namespace CofreDeSenhas.Janelas
         {
             TxtSenha.Text = senha;
             TxtSenha.Focus();
-            _historicoAberto = false;
-            PainelHistorico.IsVisible = false;
-            AtualizarRotuloHistorico();
+            ExpHistorico.IsExpanded = false;
         }
 
         private async Task CopiarAsync(string texto)

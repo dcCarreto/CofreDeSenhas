@@ -16,6 +16,8 @@ namespace CofreDeSenhas.Janelas
             Icon = Recursos.IconeApp();
             Acessibilidade.Vincular(this);
 
+            TxtNova.TextChanged += (s, e) => Medidor.Avaliar(TxtNova.Text);
+
             KeyDown += (s, e) =>
             {
                 if (e.Key == Key.Enter) Confirmar();

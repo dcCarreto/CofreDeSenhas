@@ -10,44 +10,36 @@
         TransparencyLevelHint="Transparent"
         WindowStartupLocation="CenterScreen">
 
-  <Border Name="Moldura"
-          CornerRadius="12"
-          ClipToBounds="True"
-          Background="{DynamicResource WorkspaceBackground}"
-          BorderBrush="{DynamicResource CardBorder}"
-          BorderThickness="1"
-          PointerPressed="Arrastar">
+  <Grid>
+    <Border Name="Moldura"
+            Margin="18"
+            CornerRadius="20"
+            ClipToBounds="True"
+            Background="{DynamicResource CardBackground}"
+            BorderBrush="{DynamicResource CardBorder}"
+            BorderThickness="1"
+            BoxShadow="{StaticResource DialogShadow}"
+            PointerPressed="Arrastar">
 
-    <Grid>
-      <Grid Margin="18" ColumnDefinitions="360,18,*">
-        <Border Grid.Column="0"
-                CornerRadius="12"
-                Background="{DynamicResource CardBackground}"
-                BorderBrush="{DynamicResource CardBorder}"
-                BorderThickness="1"
-                BoxShadow="0 3 16 0 #21262840">
-          <c:GeradorSenha Name="Gerador" />
-        </Border>
+      <Grid ColumnDefinitions="360,1,*">
+        <c:GeradorSenha Name="Gerador" Grid.Column="0" />
 
-        <Border Grid.Column="2"
-                CornerRadius="12"
-                Background="{DynamicResource CardBackground}"
-                BorderBrush="{DynamicResource CardBorder}"
-                BorderThickness="1"
-                BoxShadow="0 3 16 0 #21262840">
+        <Border Grid.Column="1" Background="{DynamicResource Separator}" />
+
+        <Grid Grid.Column="2">
           <StackPanel VerticalAlignment="Center" HorizontalAlignment="Stretch"
-                      Margin="40" MaxWidth="360">
-            <Image Source="/Ativos/app.png" Width="64" Height="64" HorizontalAlignment="Center" />
+                      Margin="44,0" MaxWidth="360">
+            <Image Source="/Ativos/app.png" Width="72" Height="72" HorizontalAlignment="Center" />
 
             <TextBlock Text="{DynamicResource App.Title}"
-                       FontSize="23" FontWeight="Bold"
+                       Classes="display"
                        Foreground="{DynamicResource TextPrimary}"
                        HorizontalAlignment="Center"
                        AutomationProperties.HeadingLevel="1"
-                       Margin="0,16,0,4" />
+                       Margin="0,18,0,4" />
 
             <TextBlock Name="LblSubtitulo"
-                       FontSize="13"
+                       Classes="corpo"
                        Foreground="{DynamicResource TextSecondary}"
                        HorizontalAlignment="Center"
                        TextAlignment="Center"
@@ -56,61 +48,62 @@
 
             <ComboBox Name="CmbIdioma"
                       Classes="campo"
-                      Height="36"
+                      TabIndex="1"
                       HorizontalAlignment="Stretch"
                       AutomationProperties.Name="{DynamicResource Settings.Language}"
                       Margin="0,0,0,18" />
 
             <TextBlock Text="{DynamicResource Login.MasterPassword}"
-                       FontSize="12"
+                       Classes="legenda"
                        Foreground="{DynamicResource TextSecondary}"
                        Margin="0,0,0,6" />
             <TextBox Name="TxtSenha"
                      Classes="campo revealPasswordButton"
+                     TabIndex="2"
                      AutomationProperties.Name="{DynamicResource Login.MasterPassword}"
                      AutomationProperties.HelpText="{DynamicResource A11y.PasswordFieldHelp}"
                      AutomationProperties.IsRequiredForForm="True"
-                     PasswordChar="●"
-                     MinHeight="42" />
+                     PasswordChar="●" />
 
             <StackPanel Name="PainelConfirmar" IsVisible="False" Margin="0,14,0,0">
               <TextBlock Text="{DynamicResource Login.ConfirmPassword}"
-                         FontSize="12"
+                         Classes="legenda"
                          Foreground="{DynamicResource TextSecondary}"
                          Margin="0,0,0,6" />
               <TextBox Name="TxtConfirmar"
                        Classes="campo revealPasswordButton"
+                       TabIndex="3"
                        AutomationProperties.Name="{DynamicResource Login.ConfirmPassword}"
                        AutomationProperties.HelpText="{DynamicResource A11y.PasswordFieldHelp}"
                        AutomationProperties.IsRequiredForForm="True"
-                       PasswordChar="●"
-                       MinHeight="42" />
+                       PasswordChar="●" />
             </StackPanel>
 
             <TextBlock Name="LblErro"
-                       FontSize="12"
+                       Classes="legenda"
                        Foreground="{DynamicResource StrengthWeak}"
                        TextWrapping="Wrap"
                        AutomationProperties.LiveSetting="Assertive"
                        MinHeight="20"
-                       Margin="0,10,0,10" />
+                       Margin="0,12,0,12" />
 
             <Button Name="BtnPrincipal"
                     Classes="primario"
-                    Height="44"
+                    TabIndex="4"
                     HorizontalAlignment="Stretch"
                     Click="Principal_Click" />
 
             <Button Name="BtnBiometria"
                     Classes="secundario"
-                    Height="42"
+                    TabIndex="5"
                     HorizontalAlignment="Stretch"
                     Margin="0,10,0,0"
                     IsVisible="False"
                     Click="Biometria_Click">
               <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
-                <PathIcon Width="15" Height="15"
-                          Data="M12 2 C16.42 2 20 5.58 20 10 L20 12 L18 12 L18 10 C18 6.69 15.31 4 12 4 C8.69 4 6 6.69 6 10 C6 13.31 8.69 16 12 16 C13.1 16 14.13 15.71 15.02 15.2 L16.03 16.94 C14.84 17.61 13.47 18 12 18 C7.58 18 4 14.42 4 10 C4 5.58 7.58 2 12 2 Z M12 6 C14.21 6 16 7.79 16 10 L16 12 L14 12 L14 10 C14 8.9 13.1 8 12 8 C10.9 8 10 8.9 10 10 C10 11.1 10.9 12 12 12 L12 14 C9.79 14 8 12.21 8 10 C8 7.79 9.79 6 12 6 Z M17 14 L22 14 L22 19 L20 19 L20 16 L17 16 Z" />
+                <Path Classes="line-icon" Width="16" Height="16"
+                      Stroke="{DynamicResource TextPrimary}"
+                      Data="{StaticResource IconeWindowsHello}" />
                 <TextBlock Name="LblBiometria" Text="{DynamicResource Login.WindowsHello}" VerticalAlignment="Center" />
               </StackPanel>
             </Button>
@@ -124,54 +117,57 @@
                        IsVisible="False"
                        Margin="0,8,0,0" />
           </StackPanel>
-        </Border>
+
+          <Button Name="BtnAcessibilidade"
+                  Classes="icone-borda"
+                  Width="36" Height="36"
+                  HorizontalAlignment="Left"
+                  VerticalAlignment="Top"
+                  Margin="20,20,0,0"
+                  TabIndex="6"
+                  ToolTip.Tip="{DynamicResource Access.Title}"
+                  AutomationProperties.Name="{DynamicResource Access.Title}">
+            <Path Classes="line-icon" Width="18" Height="18"
+                  Stroke="{DynamicResource TextSecondary}"
+                  Data="{StaticResource IconeAcessibilidade}" />
+            <Button.Flyout>
+              <MenuFlyout Placement="BottomEdgeAlignedRight">
+                <MenuItem Name="MenuDaltonismoLogin" Header="{DynamicResource Access.Colorblind}">
+                  <MenuItem Header="{DynamicResource Access.None}" ToggleType="Radio" Tag="Nenhum" Click="Daltonismo_Alterado" />
+                  <MenuItem Header="{DynamicResource Access.Protanopia}" ToggleType="Radio" Tag="Protanopia" Click="Daltonismo_Alterado" />
+                  <MenuItem Header="{DynamicResource Access.Deuteranopia}" ToggleType="Radio" Tag="Deuteranopia" Click="Daltonismo_Alterado" />
+                  <MenuItem Header="{DynamicResource Access.Tritanopia}" ToggleType="Radio" Tag="Tritanopia" Click="Daltonismo_Alterado" />
+                  <MenuItem Header="{DynamicResource Access.Monochromacy}" ToggleType="Radio" Tag="Monocromacia" Click="Daltonismo_Alterado" />
+                </MenuItem>
+                <MenuItem Name="MenuEscalaLogin" Header="{DynamicResource Access.TextSize}">
+                  <MenuItem Header="{DynamicResource Access.TextNormal}" ToggleType="Radio" Tag="1.0" Click="Escala_Alterada" />
+                  <MenuItem Header="{DynamicResource Access.TextLarge}" ToggleType="Radio" Tag="1.15" Click="Escala_Alterada" />
+                  <MenuItem Header="{DynamicResource Access.TextLarger}" ToggleType="Radio" Tag="1.30" Click="Escala_Alterada" />
+                </MenuItem>
+                <MenuItem Name="MenuAltoContrasteLogin" Header="{DynamicResource Access.HighContrast}" ToggleType="CheckBox" Click="AltoContraste_Alterado" />
+                <MenuItem Name="MenuReduzirAnimacoesLogin" Header="{DynamicResource Access.ReduceMotion}" ToggleType="CheckBox" Click="ReduzirAnimacoes_Alterado" />
+                <MenuItem Name="MenuLeitorTelaLogin" Header="{DynamicResource Access.ScreenReader}" ToggleType="CheckBox" Click="LeitorTela_Alterado" />
+              </MenuFlyout>
+            </Button.Flyout>
+          </Button>
+
+          <Button Name="BtnFechar"
+                  Classes="fechar-dialogo"
+                  Content="✕"
+                  AutomationProperties.Name="{DynamicResource Access.Close}"
+                  HorizontalAlignment="Right"
+                  VerticalAlignment="Top"
+                  Margin="0,20,20,0"
+                  TabIndex="7"
+                  Click="Fechar_Click" />
+        </Grid>
       </Grid>
+    </Border>
 
-      <Button Name="BtnAcessibilidade"
-              Classes="fechar-dialogo"
-              HorizontalAlignment="Right"
-              VerticalAlignment="Top"
-              Margin="0,26,70,0"
-              ToolTip.Tip="{DynamicResource Access.Title}"
-              AutomationProperties.Name="{DynamicResource Access.Title}">
-        <PathIcon Width="18" Height="18"
-                  Foreground="{DynamicResource TextSecondary}"
-                  Data="M12 2 C13.1 2 14 2.9 14 4 C14 5.1 13.1 6 12 6 C10.9 6 10 5.1 10 4 C10 2.9 10.9 2 12 2 Z M3 7 L21 7 L21 9 L15 9 L15 22 L13 22 L13 16 L11 16 L11 22 L9 22 L9 9 L3 9 Z" />
-        <Button.Flyout>
-          <MenuFlyout Placement="BottomEdgeAlignedRight">
-            <MenuItem Name="MenuDaltonismoLogin" Header="{DynamicResource Access.Colorblind}">
-              <MenuItem Header="{DynamicResource Access.None}" ToggleType="Radio" Tag="Nenhum" Click="Daltonismo_Alterado" />
-              <MenuItem Header="{DynamicResource Access.Protanopia}" ToggleType="Radio" Tag="Protanopia" Click="Daltonismo_Alterado" />
-              <MenuItem Header="{DynamicResource Access.Deuteranopia}" ToggleType="Radio" Tag="Deuteranopia" Click="Daltonismo_Alterado" />
-              <MenuItem Header="{DynamicResource Access.Tritanopia}" ToggleType="Radio" Tag="Tritanopia" Click="Daltonismo_Alterado" />
-              <MenuItem Header="{DynamicResource Access.Monochromacy}" ToggleType="Radio" Tag="Monocromacia" Click="Daltonismo_Alterado" />
-            </MenuItem>
-            <MenuItem Name="MenuEscalaLogin" Header="{DynamicResource Access.TextSize}">
-              <MenuItem Header="{DynamicResource Access.TextNormal}" ToggleType="Radio" Tag="1.0" Click="Escala_Alterada" />
-              <MenuItem Header="{DynamicResource Access.TextLarge}" ToggleType="Radio" Tag="1.15" Click="Escala_Alterada" />
-              <MenuItem Header="{DynamicResource Access.TextLarger}" ToggleType="Radio" Tag="1.30" Click="Escala_Alterada" />
-            </MenuItem>
-            <MenuItem Name="MenuAltoContrasteLogin" Header="{DynamicResource Access.HighContrast}" ToggleType="CheckBox" Click="AltoContraste_Alterado" />
-            <MenuItem Name="MenuReduzirAnimacoesLogin" Header="{DynamicResource Access.ReduceMotion}" ToggleType="CheckBox" Click="ReduzirAnimacoes_Alterado" />
-            <MenuItem Name="MenuLeitorTelaLogin" Header="{DynamicResource Access.ScreenReader}" ToggleType="CheckBox" Click="LeitorTela_Alterado" />
-          </MenuFlyout>
-        </Button.Flyout>
-      </Button>
-
-      <Button Name="BtnFechar"
-              Classes="fechar-dialogo"
-              Content="✕"
-              AutomationProperties.Name="{DynamicResource Access.Close}"
-              HorizontalAlignment="Right"
-              VerticalAlignment="Top"
-              Margin="0,26,26,0"
-              Click="Fechar_Click" />
-
-      <TextBlock Name="LblAnuncioLeitorTela"
-                 Width="1" Height="1"
-                 Opacity="0"
-                 IsHitTestVisible="False"
-                 AutomationProperties.LiveSetting="Assertive" />
-    </Grid>
-  </Border>
+    <TextBlock Name="LblAnuncioLeitorTela"
+               Width="1" Height="1"
+               Opacity="0"
+               IsHitTestVisible="False"
+               AutomationProperties.LiveSetting="Assertive" />
+  </Grid>
 </Window>

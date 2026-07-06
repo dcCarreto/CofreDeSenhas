@@ -153,8 +153,7 @@ namespace CofreDeSenhas.Janelas
                 try
                 {
                     await _bd.TestarConexaoAsync(cfg);
-                    MostrarErro("");
-                    await CaixaMensagem.MostrarAsync(this, Idioma.Texto("Db.ConnectionSuccess"), Idioma.Texto("Db.TestConnectionTitle"));
+                    MostrarSucesso(Idioma.Texto("Db.ConnectionSuccess"));
                 }
                 catch (Exception ex)
                 {
@@ -253,10 +252,19 @@ namespace CofreDeSenhas.Janelas
 
         private void MostrarErro(string msg)
         {
+            LblErro.Foreground = Tema.Pincel(Tema.StrengthWeak);
             LblErro.Text = msg;
             AutomationProperties.SetName(LblErro, msg);
             if (!string.IsNullOrWhiteSpace(msg))
                 Acessibilidade.Anunciar(this, msg, assertivo: true);
+        }
+
+        private void MostrarSucesso(string msg)
+        {
+            LblErro.Foreground = Tema.Pincel(Tema.StatusLocal);
+            LblErro.Text = msg;
+            AutomationProperties.SetName(LblErro, msg);
+            Acessibilidade.Anunciar(this, msg, assertivo: true);
         }
 
         private static string PrimeiraLinha(string texto)

@@ -1,0 +1,22 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="CofreDeSenhas.Controles.MedidorForca">
+
+  <StackPanel>
+    <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,6">
+      <TextBlock Text="{DynamicResource Generator.Strength}"
+                 Classes="legenda"
+                 Foreground="{DynamicResource TextSecondary}" />
+      <TextBlock Name="LblForca" Grid.Column="1" Text="—"
+                 Classes="legenda" FontWeight="Bold"
+                 Foreground="{DynamicResource TextSecondary}"
+                 AutomationProperties.LiveSetting="Polite" />
+    </Grid>
+    <Grid ColumnDefinitions="*,4,*,4,*,4,*">
+      <Border Name="Seg1" Height="5" CornerRadius="3" Background="{DynamicResource TrailInactive}" />
+      <Border Name="Seg2" Grid.Column="2" Height="5" CornerRadius="3" Background="{DynamicResource TrailInactive}" />
+      <Border Name="Seg3" Grid.Column="4" Height="5" CornerRadius="3" Background="{DynamicResource TrailInactive}" />
+      <Border Name="Seg4" Grid.Column="6" Height="5" CornerRadius="3" Background="{DynamicResource TrailInactive}" />
+    </Grid>
+  </StackPanel>
+</UserControl>

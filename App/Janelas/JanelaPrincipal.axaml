@@ -20,7 +20,7 @@
 
       <DockPanel>
         <Border DockPanel.Dock="Top"
-                Height="44"
+                Height="52"
                 Background="{DynamicResource TitleBar}"
                 BorderBrush="{DynamicResource TitleBarBorder}"
                 BorderThickness="0,0,0,1"
@@ -34,38 +34,38 @@
                          VerticalAlignment="Center" />
             </StackPanel>
 
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,5,0">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0">
               <Button Name="BtnConfig" Classes="janela"
-                      Content="⚙"
-                      FontSize="15"
-                      Foreground="{DynamicResource TextSecondary}"
                       ToolTip.Tip="{DynamicResource Settings.Tooltip}"
                       AutomationProperties.Name="{DynamicResource Settings.Tooltip}">
+                <Path Classes="line-icon" Width="18" Height="18"
+                      Stroke="{DynamicResource TextPrimary}"
+                      Data="{StaticResource IconeConfiguracoes}" />
                 <Button.Flyout>
                   <MenuFlyout Placement="BottomEdgeAlignedRight">
                     <MenuItem Header="{DynamicResource Settings.ChangeMasterPassword}" Click="AlterarSenhaMestra_Click">
                       <MenuItem.Icon>
                         <Path Classes="line-icon" Width="16" Height="16" Stroke="{DynamicResource TextSecondary}"
-                              Data="M7 11 L7 8 A5 5 0 0 1 17 8 L17 11 M6 11 L18 11 L18 21 L6 21 Z" />
+                              Data="{StaticResource IconeCofre}" />
                       </MenuItem.Icon>
                     </MenuItem>
                     <MenuItem Header="{DynamicResource Settings.RegenerateQr}" Click="RegerarQrCode_Click">
                       <MenuItem.Icon>
                         <Path Classes="line-icon" Width="16" Height="16" Stroke="{DynamicResource TextSecondary}"
-                              Data="M4 4 L10 4 L10 10 L4 10 Z M14 4 L20 4 L20 10 L14 10 Z M4 14 L10 14 L10 20 L4 20 Z M14 14 L17 14 L17 17 L14 17 Z M18 18 L20 18 L20 20 L18 20 Z" />
+                              Data="{StaticResource IconeQrCode}" />
                       </MenuItem.Icon>
                     </MenuItem>
                     <MenuItem Name="MenuBiometria" Header="{DynamicResource Settings.EnableWindowsHello}" Click="Biometria_Click">
                       <MenuItem.Icon>
                         <Path Classes="line-icon" Width="16" Height="16" Stroke="{DynamicResource TextSecondary}"
-                              Data="M7 11 C7 7.7 9.2 5.5 12 5.5 C14.8 5.5 17 7.7 17 11 M6 15 C6 18 8.5 20 12 20 C15.5 20 18 18 18 15 M9 11 C9 9.3 10.2 8.2 12 8.2 C13.8 8.2 15 9.3 15 11 L15 13 C15 14.7 13.8 16 12 16 C10.2 16 9 14.7 9 13 Z" />
+                              Data="{StaticResource IconeWindowsHello}" />
                       </MenuItem.Icon>
                     </MenuItem>
                     <Separator />
                     <MenuItem Name="MenuBloqueio" Header="{DynamicResource Settings.AutoLock}">
                       <MenuItem.Icon>
                         <Path Classes="line-icon" Width="16" Height="16" Stroke="{DynamicResource TextSecondary}"
-                              Data="M12 7 L12 12 L15 14 M21 12 A9 9 0 1 1 12 3 A9 9 0 0 1 21 12 Z" />
+                              Data="{StaticResource IconeRecentes}" />
                       </MenuItem.Icon>
                       <MenuItem Header="{DynamicResource Settings.Disabled}" ToggleType="Radio" Tag="0" Click="Bloqueio_Alterado" />
                       <MenuItem Header="{DynamicResource Settings.AfterOneMinute}" ToggleType="Radio" Tag="1" Click="Bloqueio_Alterado" />
@@ -76,7 +76,7 @@
                     <MenuItem Name="MenuIdioma" Header="{DynamicResource Settings.Language}">
                       <MenuItem.Icon>
                         <Path Classes="line-icon" Width="16" Height="16" Stroke="{DynamicResource TextSecondary}"
-                              Data="M4 5 L13 5 M8.5 3 L8.5 5 M7 5 C7.5 8.3 10.2 10.9 13.8 12 M12 5 C11.4 8.2 8.8 11.1 5 13 M14 20 L16 15 L18 20 M14.8 18 L17.2 18 M3 19 L9 19 M5 5 L5 19 L11 19" />
+                              Data="{StaticResource IconeIdioma}" />
                       </MenuItem.Icon>
                       <MenuItem Header="Português (Brasil)" ToggleType="Radio" Tag="pt-BR" Click="Idioma_Alterado" />
                       <MenuItem Header="English" ToggleType="Radio" Tag="en" Click="Idioma_Alterado" />
@@ -88,7 +88,7 @@
                     <MenuItem Name="MenuAcessibilidade" Header="{DynamicResource Access.Title}">
                       <MenuItem.Icon>
                         <Path Classes="line-icon" Width="16" Height="16" Stroke="{DynamicResource TextSecondary}"
-                              Data="M12 5 A2 2 0 1 0 12 1 A2 2 0 1 0 12 5 M4 8 L20 8 M12 8 L12 13 M8 22 L11 13 M16 22 L13 13" />
+                              Data="{StaticResource IconeAcessibilidade}" />
                       </MenuItem.Icon>
                       <MenuItem Name="MenuDaltonismo" Header="{DynamicResource Access.Colorblind}">
                         <MenuItem Header="{DynamicResource Access.None}" ToggleType="Radio" Tag="Nenhum" Click="Daltonismo_Alterado" />
@@ -110,13 +110,13 @@
                     <MenuItem Header="{DynamicResource Settings.ImportCsv}" Click="ImportarCsv_Click">
                       <MenuItem.Icon>
                         <Path Classes="line-icon" Width="16" Height="16" Stroke="{DynamicResource TextSecondary}"
-                              Data="M5 4 L19 4 L19 20 L5 20 Z M8 8 L16 8 M8 12 L16 12 M8 16 L12 16" />
+                              Data="{StaticResource IconeImportarCsv}" />
                       </MenuItem.Icon>
                     </MenuItem>
                     <MenuItem Header="{DynamicResource Settings.ConnectDatabase}" Click="ConectarBanco_Click">
                       <MenuItem.Icon>
                         <Path Classes="line-icon" Width="16" Height="16" Stroke="{DynamicResource TextSecondary}"
-                              Data="M5 6 C5 4.3 8.1 3 12 3 C15.9 3 19 4.3 19 6 C19 7.7 15.9 9 12 9 C8.1 9 5 7.7 5 6 Z M5 6 L5 12 C5 13.7 8.1 15 12 15 C15.9 15 19 13.7 19 12 L19 6 M5 12 L5 18 C5 19.7 8.1 21 12 21 C15.9 21 19 19.7 19 18 L19 12" />
+                              Data="{StaticResource IconeBanco}" />
                       </MenuItem.Icon>
                     </MenuItem>
                     <MenuItem Name="MenuDesconectarBanco" Header="{DynamicResource Settings.DisconnectDatabase}"
@@ -134,6 +134,8 @@
                       FontSize="14"
                       AutomationProperties.Name="{DynamicResource Theme.Dark}"
                       Click="Tema_Click" />
+              <Border Width="1" Height="20" Margin="6,0" VerticalAlignment="Center"
+                      Background="{DynamicResource Separator}" />
               <Button Classes="janela"
                       Content="−"
                       FontSize="17"
@@ -168,31 +170,25 @@
                       ToolTip.Tip="Alternar navegação"
                       Click="ToggleNav_Click">
                 <Path Classes="line-icon" Width="18" Height="18" Stroke="{DynamicResource TextSecondary}"
-                      Data="M4 7 L20 7 M4 12 L20 12 M4 17 L20 17" />
+                      Data="{StaticResource IconeMenu}" />
               </Button>
 
               <Button Name="BtnFabGerador"
                       DockPanel.Dock="Bottom"
-                      Width="58" Height="58"
+                      Width="60" Height="60"
                       HorizontalAlignment="Left"
-                      Margin="6,0,0,4"
+                      Margin="10,0,0,16"
                       Classes="fab"
                       ToolTip.Tip="{DynamicResource Generator.Title}"
                       Click="ToggleGerador_Click">
-                <Canvas Name="IconeFabGerador"
-                        Width="25" Height="25"
-                        RenderTransformOrigin="0.5,0.5">
-                  <Ellipse Canvas.Left="3" Canvas.Top="4"
-                           Width="10" Height="10"
-                           Stroke="White"
-                           StrokeThickness="2.4" />
-                  <Path Classes="line-icon"
-                        Width="14" Height="14"
-                        Canvas.Left="10" Canvas.Top="10"
-                        Stroke="White"
-                        StrokeThickness="2.4"
-                        Data="M1 1 L12 12 M7 7 L10 4 M9 9 L12 6" />
-                </Canvas>
+                <Path Name="IconeFabGerador"
+                      Classes="line-icon"
+                      Width="26" Height="26"
+                      Stretch="Uniform"
+                      RenderTransformOrigin="0.5,0.5"
+                      Stroke="White"
+                      StrokeThickness="2"
+                      Data="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z M16.5 7.5 A0.6 0.6 0 1 0 16.49 7.5 Z" />
               </Button>
 
               <StackPanel Margin="0,12,0,0" Spacing="4">
@@ -204,7 +200,7 @@
                       <Path Classes="line-icon"
                             Stretch="None"
                             Stroke="{DynamicResource TextSecondary}"
-                            Data="M7 10 L7 7 A5 5 0 0 1 17 7 L17 10 M6 10 L18 10 L18 21 L6 21 Z" />
+                            Data="{StaticResource IconeCofre}" />
                     </Canvas>
                     <TextBlock Name="LblNavCofre" Grid.Column="1" Text="Cofre" VerticalAlignment="Center" />
                   </Grid>
@@ -217,7 +213,7 @@
                       <Path Classes="line-icon"
                             Stretch="None"
                             Stroke="{DynamicResource TextSecondary}"
-                            Data="M12 3.5 L14.6 8.8 L20.4 9.6 L16.2 13.7 L17.2 19.5 L12 16.8 L6.8 19.5 L7.8 13.7 L3.6 9.6 L9.4 8.8 Z" />
+                            Data="{StaticResource IconeFavoritas}" />
                     </Canvas>
                     <TextBlock Name="LblNavFavoritas" Grid.Column="1" Text="Favoritas" VerticalAlignment="Center" />
                   </Grid>
@@ -230,7 +226,7 @@
                       <Path Classes="line-icon"
                             Stretch="None"
                             Stroke="{DynamicResource TextSecondary}"
-                            Data="M12 7 L12 12 L16 14 M21 12 A9 9 0 1 1 12 3 A9 9 0 0 1 21 12 Z" />
+                            Data="{StaticResource IconeRecentes}" />
                     </Canvas>
                     <TextBlock Name="LblNavRecentes" Grid.Column="1" Text="Recentes" VerticalAlignment="Center" />
                   </Grid>
@@ -244,31 +240,31 @@
                            Margin="12,0,0,6" />
                 <Button Classes="nav-item categoria" Tag="Personal" Click="NavCategoria_Click">
                   <Grid ColumnDefinitions="40,*">
-                    <Ellipse Width="9" Height="9" Fill="#2563EB" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    <Ellipse Width="9" Height="9" Fill="{DynamicResource CategoryPersonalFg}" HorizontalAlignment="Center" VerticalAlignment="Center" />
                     <TextBlock Name="LblCatJogos" Grid.Column="1" Text="Jogos" VerticalAlignment="Center" />
                   </Grid>
                 </Button>
                 <Button Classes="nav-item categoria" Tag="Social" Click="NavCategoria_Click">
                   <Grid ColumnDefinitions="40,*">
-                    <Ellipse Width="9" Height="9" Fill="#DB2777" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    <Ellipse Width="9" Height="9" Fill="{DynamicResource CategorySocialFg}" HorizontalAlignment="Center" VerticalAlignment="Center" />
                     <TextBlock Name="LblCatRedes" Grid.Column="1" Text="Redes sociais" VerticalAlignment="Center" />
                   </Grid>
                 </Button>
                 <Button Classes="nav-item categoria" Tag="Work" Click="NavCategoria_Click">
                   <Grid ColumnDefinitions="40,*">
-                    <Ellipse Width="9" Height="9" Fill="#7C3AED" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    <Ellipse Width="9" Height="9" Fill="{DynamicResource CategoryWorkFg}" HorizontalAlignment="Center" VerticalAlignment="Center" />
                     <TextBlock Name="LblCatEmail" Grid.Column="1" Text="E-mail" VerticalAlignment="Center" />
                   </Grid>
                 </Button>
                 <Button Classes="nav-item categoria" Tag="Finance" Click="NavCategoria_Click">
                   <Grid ColumnDefinitions="40,*">
-                    <Ellipse Width="9" Height="9" Fill="#16A34A" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    <Ellipse Width="9" Height="9" Fill="{DynamicResource CategoryFinanceFg}" HorizontalAlignment="Center" VerticalAlignment="Center" />
                     <TextBlock Name="LblCatFinanceiro" Grid.Column="1" Text="Financeiro" VerticalAlignment="Center" />
                   </Grid>
                 </Button>
                 <Button Classes="nav-item categoria" Tag="Other" Click="NavCategoria_Click">
                   <Grid ColumnDefinitions="40,*">
-                    <Ellipse Width="9" Height="9" Fill="#EA580C" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    <Ellipse Width="9" Height="9" Fill="{DynamicResource CategoryOtherFg}" HorizontalAlignment="Center" VerticalAlignment="Center" />
                     <TextBlock Name="LblCatOutro" Grid.Column="1" Text="Outro" VerticalAlignment="Center" />
                   </Grid>
                 </Button>
@@ -283,7 +279,7 @@
                     BorderBrush="{DynamicResource CardBorder}"
                     BorderThickness="1"
                     ClipToBounds="True"
-                    BoxShadow="0 3 16 0 #21262840">
+                    BoxShadow="{StaticResource CardShadow}">
               <DockPanel>
                 <Border DockPanel.Dock="Bottom"
                         Height="42"
@@ -291,12 +287,12 @@
                         BorderBrush="{DynamicResource CardBorder}"
                         BorderThickness="0,1,0,0"
                         CornerRadius="0,0,12,12">
-                  <Grid Margin="24,0" ColumnDefinitions="Auto,*,Auto">
+                  <Grid Margin="28,0" ColumnDefinitions="Auto,*,Auto">
                     <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                       <Path Classes="line-icon"
                             Width="15" Height="15"
                             Stroke="{DynamicResource AccentPrimary}"
-                            Data="M7 11 L7 8 A5 5 0 0 1 17 8 L17 11 M6 11 L18 11 L18 21 L6 21 Z" />
+                            Data="{StaticResource IconeCofre}" />
                       <TextBlock Name="LblStatus"
                                  Text="Cofre criptografado"
                                  FontSize="12" Foreground="{DynamicResource TextSecondary}"
@@ -309,7 +305,7 @@
                       <Path Classes="line-icon"
                             Width="15" Height="15"
                             Stroke="{DynamicResource TextSecondary}"
-                            Data="M12 7 L12 12 L15 14 M21 12 A9 9 0 1 1 12 3 A9 9 0 0 1 21 12 Z" />
+                            Data="{StaticResource IconeRecentes}" />
                       <Ellipse Name="PontoConexao" Width="8" Height="8" Fill="{DynamicResource StatusLocal}" VerticalAlignment="Center" />
                       <TextBlock Name="LblConexao" Text="{DynamicResource Vault.Connection.Local}" FontSize="12"
                                  Foreground="{DynamicResource TextSecondary}" VerticalAlignment="Center"
@@ -319,15 +315,15 @@
                   </Grid>
                 </Border>
 
-                <DockPanel Margin="24,22,24,0">
+                <DockPanel Margin="28,22,28,0">
                   <Grid DockPanel.Dock="Top" Height="50" ColumnDefinitions="Auto,Auto,*,Auto">
                     <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
                       <TextBlock Text="{DynamicResource Vault.Header}" FontSize="21" FontWeight="Bold"
                                  Foreground="{DynamicResource TextPrimary}" VerticalAlignment="Center"
                                  AutomationProperties.HeadingLevel="1" />
-                      <Border CornerRadius="10"
+                      <Border CornerRadius="{StaticResource RadiusPill}"
                               Background="{DynamicResource AccentLight}"
-                              Padding="10,3"
+                              Padding="13,4"
                               VerticalAlignment="Center">
                         <TextBlock Name="LblContadorHeader" FontSize="12" FontWeight="Bold"
                                    Foreground="{DynamicResource AccentPrimary}" />
@@ -339,30 +335,30 @@
                               AutomationProperties.Name="{DynamicResource Vault.ImportTooltip}"
                               Click="Importar_Click">
                         <Path Classes="line-icon" Width="15" Height="15" Stroke="{DynamicResource TextSecondary}"
-                              Data="M12 3 L12 13 M7 8 L12 13 L17 8 M5 17 L5 20 L19 20 L19 17" />
+                              Data="{StaticResource IconeImportar}" />
                       </Button>
                       <Button Classes="icone borda" Width="40" Height="38"
                               ToolTip.Tip="{DynamicResource Vault.ExportTooltip}"
                               AutomationProperties.Name="{DynamicResource Vault.ExportTooltip}"
                               Click="Exportar_Click">
                         <Path Classes="line-icon" Width="15" Height="15" Stroke="{DynamicResource TextSecondary}"
-                              Data="M12 21 L12 11 M7 16 L12 11 L17 16 M5 7 L5 4 L19 4 L19 7" />
+                              Data="{StaticResource IconeExportar}" />
                       </Button>
                     </StackPanel>
                   </Grid>
 
                   <Grid DockPanel.Dock="Top" Height="58" ColumnDefinitions="*,10,150,8,40,8,40,8,40,8,40,10,138">
                     <TextBox Name="TxtBusca" Grid.Column="0" Classes="campo"
-                             MinHeight="38" Height="38" VerticalAlignment="Center"
+                             MinHeight="38" Height="38" Padding="14,7" VerticalAlignment="Center"
                              Watermark="{DynamicResource Vault.SearchWatermark}"
                              AutomationProperties.Name="{DynamicResource Vault.SearchWatermark}"
                              AutomationProperties.HelpText="{DynamicResource A11y.OptionalField}"
                              TextChanged="Busca_Alterada">
                       <TextBox.InnerLeftContent>
-                        <PathIcon Width="15" Height="15" Margin="10,0,0,0"
-                                  Foreground="{DynamicResource TextSecondary}"
+                        <Path Classes="line-icon" Width="15" Height="15" Margin="10,0,0,0"
+                                  Stroke="{DynamicResource TextSecondary}"
                                   VerticalAlignment="Center"
-                                  Data="M10.5 18 C6.36 18 3 14.64 3 10.5 C3 6.36 6.36 3 10.5 3 C14.64 3 18 6.36 18 10.5 C18 12.26 17.39 13.88 16.36 15.16 L21 19.8 L19.8 21 L15.16 16.36 C13.88 17.39 12.26 18 10.5 18 Z M10.5 5 C7.46 5 5 7.46 5 10.5 C5 13.54 7.46 16 10.5 16 C13.54 16 16 13.54 16 10.5 C16 7.46 13.54 5 10.5 5 Z" />
+                                  Data="{StaticResource IconeBuscar}" />
                       </TextBox.InnerLeftContent>
                     </TextBox>
 
@@ -373,13 +369,13 @@
                                 AutomationProperties.Name="{DynamicResource Entry.Category}"
                                 AutomationProperties.HelpText="{DynamicResource A11y.OptionalField}"
                                 SelectionChanged="Filtro_Alterado" />
-                      <PathIcon Width="15" Height="15"
+                      <Path Classes="line-icon" Width="15" Height="15"
                                 Margin="12,0,0,0"
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Center"
-                                Foreground="{DynamicResource TextSecondary}"
+                                Stroke="{DynamicResource TextSecondary}"
                                 IsHitTestVisible="False"
-                                Data="M4 6 L20 6 L14 13 L14 19 L10 21 L10 13 Z" />
+                                Data="{StaticResource IconeFiltro}" />
                     </Grid>
 
                     <Button Name="BtnOrdenar" Grid.Column="4" Classes="icone borda"
@@ -388,7 +384,7 @@
                             AutomationProperties.Name="Ordenar"
                             Click="Ordenar_Click">
                       <Path Classes="line-icon" Width="16" Height="16" Stroke="{DynamicResource TextSecondary}"
-                            Data="M8 4 L8 20 M5 7 L8 4 L11 7 M16 20 L16 4 M13 17 L16 20 L19 17" />
+                            Data="{StaticResource IconeOrdenar}" />
                     </Button>
                     <Button Name="BtnVazamentos" Grid.Column="6" Classes="icone borda"
                             Width="40" Height="38" VerticalAlignment="Center"
@@ -404,7 +400,7 @@
                             AutomationProperties.Name="{DynamicResource Vault.AuditTooltip}"
                             Click="AuditarCofre_Click">
                       <Path Classes="line-icon" Width="17" Height="17" Stroke="{DynamicResource TextSecondary}"
-                            Data="M20 3 L4 3 C2.9 3 2 3.9 2 5 L2 19 C2 20.1 2.9 21 4 21 L20 21 C21.1 21 22 20.1 22 19 L22 5 C22 3.9 21.1 3 20 3 Z M10 17 L5 17 L5 15 L10 15 Z M10 13 L5 13 L5 11 L10 11 Z M10 9 L5 9 L5 7 L10 7 Z M14.82 15 L12 12.16 L13.41 10.75 L14.82 12.17 L18.59 8.4 L20 9.82 Z" />
+                            Data="{StaticResource IconeAuditoria}" />
                     </Button>
                     <Button Name="BtnFavoritos" Grid.Column="10" Classes="icone borda"
                             Width="40" Height="38" VerticalAlignment="Center"
@@ -412,14 +408,14 @@
                             AutomationProperties.Name="{DynamicResource Vault.FavoritesOnlyTooltip}"
                             Click="FiltroFavoritos_Click">
                       <Path Classes="line-icon" Width="15" Height="15" Stroke="{DynamicResource TextSecondary}"
-                            Data="M12 3.5 L14.6 8.8 L20.4 9.6 L16.2 13.7 L17.2 19.5 L12 16.8 L6.8 19.5 L7.8 13.7 L3.6 9.6 L9.4 8.8 Z" />
+                            Data="{StaticResource IconeFavoritas}" />
                     </Button>
                     <Button Grid.Column="12" Classes="primario" Width="138" Height="38" FontSize="13"
                             AutomationProperties.Name="{DynamicResource Vault.NewPassword}"
                             Click="NovaSenha_Click">
                       <StackPanel Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
                         <Path Classes="line-icon" Width="14" Height="14" Stroke="White"
-                              Data="M12 5 L12 19 M5 12 L19 12" />
+                              Data="{StaticResource IconeNovaSenha}" />
                         <TextBlock Text="{DynamicResource Vault.NewPassword}" VerticalAlignment="Center" />
                       </StackPanel>
                     </Button>
@@ -477,14 +473,25 @@
                       <StackPanel Name="PainelLista"
                                   AutomationProperties.Name="{DynamicResource A11y.ResultsList}" />
                     </ScrollViewer>
-                    <TextBlock Name="LblVazio"
-                               Text="{DynamicResource Vault.Empty}"
-                               FontSize="13"
-                               Foreground="{DynamicResource TextSecondary}"
-                               TextAlignment="Center"
-                               HorizontalAlignment="Center" VerticalAlignment="Center"
-                               AutomationProperties.LiveSetting="Polite"
-                               IsVisible="False" />
+                    <StackPanel Name="LblVazio"
+                                HorizontalAlignment="Center" VerticalAlignment="Center"
+                                Spacing="16" IsVisible="False"
+                                AutomationProperties.LiveSetting="Polite">
+                      <Border Width="96" Height="96" CornerRadius="48"
+                              BorderBrush="{DynamicResource InputBorder}" BorderThickness="1.5"
+                              HorizontalAlignment="Center">
+                        <Path Classes="line-icon" Width="40" Height="40"
+                              Stroke="{DynamicResource TextTertiary}"
+                              Data="{StaticResource IconeCofre}" />
+                      </Border>
+                      <TextBlock Classes="subtitulo" Text="{DynamicResource Vault.Empty}"
+                                 Foreground="{DynamicResource TextPrimary}"
+                                 TextAlignment="Center" TextWrapping="Wrap" MaxWidth="320"
+                                 HorizontalAlignment="Center" />
+                      <Button Classes="primario" HorizontalAlignment="Center"
+                              Content="{DynamicResource Vault.NewPassword}"
+                              Click="NovaSenha_Click" />
+                    </StackPanel>
                   </Grid>
                 </DockPanel>
               </DockPanel>
@@ -498,7 +505,7 @@
                     Background="{DynamicResource CardBackground}"
                     BorderBrush="{DynamicResource CardBorder}"
                     BorderThickness="1"
-                    BoxShadow="0 3 16 0 #21262840"
+                    BoxShadow="{StaticResource CardShadow}"
                     IsVisible="False">
               <DockPanel>
                 <Grid DockPanel.Dock="Top" Height="56" Margin="18,8,12,0" ColumnDefinitions="*,Auto">
@@ -642,7 +649,7 @@
                     Background="{DynamicResource CardBackground}"
                     BorderBrush="{DynamicResource CardBorder}"
                     BorderThickness="1"
-                    BoxShadow="0 14 36 0 #00000070"
+                    BoxShadow="{StaticResource DialogShadow}"
                     IsVisible="False">
               <DockPanel>
                 <Grid DockPanel.Dock="Top" Height="54" ColumnDefinitions="*,Auto" Margin="18,0,12,0">
@@ -655,7 +662,7 @@
                           ToolTip.Tip="Fechar gerador"
                           Click="FecharGerador_Click">
                     <Path Classes="line-icon" Width="15" Height="15" Stroke="{DynamicResource TextSecondary}"
-                          Data="M6 6 L18 18 M18 6 L6 18" />
+                          Data="{StaticResource IconeFechar}" />
                   </Button>
                 </Grid>
                 <c:GeradorSenha Name="Gerador" />
@@ -669,7 +676,7 @@
     <Border Name="RedimN" Background="Transparent" Height="6" VerticalAlignment="Top" Margin="6,0" Cursor="SizeNorthSouth" Tag="North" PointerPressed="Redimensionar" />
     <Border Name="RedimS" Background="Transparent" Height="6" VerticalAlignment="Bottom" Margin="6,0" Cursor="SizeNorthSouth" Tag="South" PointerPressed="Redimensionar" />
     <Border Name="RedimO" Background="Transparent" Width="6" HorizontalAlignment="Left" Margin="0,6" Cursor="SizeWestEast" Tag="West" PointerPressed="Redimensionar" />
-    <Border Name="RedimL" Background="Transparent" Width="6" HorizontalAlignment="Right" Margin="0,6" Cursor="SizeWestEast" Tag="East" PointerPressed="Redimensionar" />
+    <Border Name="RedimL" Background="Transparent" Width="6" HorizontalAlignment="Right" Margin="0,52,0,6" Cursor="SizeWestEast" Tag="East" PointerPressed="Redimensionar" />
     <Border Name="RedimNO" Background="Transparent" Width="10" Height="10" HorizontalAlignment="Left" VerticalAlignment="Top" Cursor="TopLeftCorner" Tag="NorthWest" PointerPressed="Redimensionar" />
     <Border Name="RedimNL" Background="Transparent" Width="10" Height="10" HorizontalAlignment="Right" VerticalAlignment="Top" Cursor="TopRightCorner" Tag="NorthEast" PointerPressed="Redimensionar" />
     <Border Name="RedimSO" Background="Transparent" Width="10" Height="10" HorizontalAlignment="Left" VerticalAlignment="Bottom" Cursor="BottomLeftCorner" Tag="SouthWest" PointerPressed="Redimensionar" />

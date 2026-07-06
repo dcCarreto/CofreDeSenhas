@@ -46,26 +46,14 @@ namespace CofreDeSenhas.Controles
         private Grid _grid = null!;
         private StackPanel _acoes = null!;
         private StackPanel _painelForca = null!;
+        private TextBlock _lblAuditoria = null!;
         private Border[] _segmentosForca = Array.Empty<Border>();
         private Button _btnOlho = null!;
         private Button _btnCopiar = null!;
         private Button? _btnTotp;
         private DispatcherTimer? _timerFeedbackUsuario;
 
-        private const string IconeOlho =
-            "M2.5 12 C4.8 7.5 8.1 5.5 12 5.5 C15.9 5.5 19.2 7.5 21.5 12 C19.2 16.5 15.9 18.5 12 18.5 C8.1 18.5 4.8 16.5 2.5 12 Z M12 15.5 C13.9 15.5 15.5 13.9 15.5 12 C15.5 10.1 13.9 8.5 12 8.5 C10.1 8.5 8.5 10.1 8.5 12 C8.5 13.9 10.1 15.5 12 15.5 Z";
-        private const string IconeOlhoFechado =
-            "M4 4 L20 20 M6.2 6.9 C4.7 8 3.5 9.7 2.5 12 C4.8 16.5 8.1 18.5 12 18.5 C13.2 18.5 14.3 18.3 15.3 17.8 M9.1 9.1 C8.7 9.7 8.5 10.8 8.5 12 C8.5 13.9 10.1 15.5 12 15.5 C13.2 15.5 14.2 14.9 14.8 14 M10.1 5.7 C10.7 5.6 11.3 5.5 12 5.5 C15.9 5.5 19.2 7.5 21.5 12 C20.8 13.4 19.9 14.6 18.9 15.6";
-        private const string IconeCopiar =
-            "M8 8 L18 8 L18 20 L8 20 Z M6 16 L4 16 L4 4 L14 4 L14 6";
-        private const string IconeEditar =
-            "M4 17 L4 20 L7 20 L18.5 8.5 L15.5 5.5 Z M14.8 6.2 L17.8 9.2";
-        private const string IconeCheck =
-            "M5 12 L10 17 L19 7";
-        private const string IconeChave =
-            "M12 8 m-4 0 a4 4 0 1 0 8 0 a4 4 0 1 0 -8 0 M12 8 m-1.5 0 a1.5 1.5 0 1 0 3 0 a1.5 1.5 0 1 0 -3 0 M12 12 L12 20 M12 16 L15 16 M12 19 L14 19";
-        private const string IconeExcluir =
-            "M5 6 L19 6 M9 6 L9 4 L15 4 L15 6 M8 9 L8.7 20 L15.3 20 L16 9 M10.5 11 L10.5 18 M13.5 11 L13.5 18";
+        private static readonly Geometry IconeCheck = StreamGeometry.Parse("M5 12 L10 17 L19 7");
 
         public Senha Senha => _senha;
 
@@ -103,7 +91,7 @@ namespace CofreDeSenhas.Controles
             _onExcluir = onExcluir;
             _onRenomearServico = onRenomearServico;
 
-            Height = 64;
+            Height = 52;
             Background = Tema.Pincel(Tema.CardBackground);
             BorderBrush = Tema.Pincel(Tema.Separator);
             BorderThickness = new Thickness(0, 0, 0, 1);
@@ -209,16 +197,17 @@ namespace CofreDeSenhas.Controles
             Grid.SetColumn(forca, 7);
             _grid.Children.Add(forca);
 
-            _btnOlho = CriarBotaoAcao(IconeOlho, Idioma.Texto("Row.RevealPassword"));
+            _btnOlho = CriarBotaoAcao(Icone("IconeRevelar"), Idioma.Texto("Row.RevealPassword"));
             _btnOlho.Click += (s, e) => AlternarRevelar();
 
-            _btnCopiar = CriarBotaoAcao(IconeCopiar, Idioma.Texto("Row.CopyPassword"));
+            _btnCopiar = CriarBotaoAcao(Icone("IconeCopiar"), Idioma.Texto("Row.CopyPassword"));
             _btnCopiar.Click += async (s, e) => await CopiarAsync();
 
-            var btnEditar = CriarBotaoAcao(IconeEditar, Idioma.Texto("Row.EditEntry"));
+            var btnEditar = CriarBotaoAcao(Icone("IconeEditar"), Idioma.Texto("Row.EditEntry"));
             btnEditar.Click += (s, e) => _onEditar(_senha);
 
-            var btnExcluir = CriarBotaoAcao(IconeExcluir, Idioma.Texto("Row.DeleteEntry"));
+            var btnExcluir = CriarBotaoAcao(Icone("IconeExcluir"), Idioma.Texto("Row.DeleteEntry"));
+            btnExcluir.Classes.Add("excluir");
             btnExcluir.Click += async (s, e) => await _onExcluir(_senha);
 
             _acoes = new StackPanel
@@ -234,7 +223,7 @@ namespace CofreDeSenhas.Controles
 
             if (_senha.TotpSegredo != null)
             {
-                _btnTotp = CriarBotaoAcao(IconeChave, Idioma.Texto("Row.CopyTotp"));
+                _btnTotp = CriarBotaoAcao(Icone("IconeTotp"), Idioma.Texto("Row.CopyTotp"));
                 _btnTotp.Click += async (s, e) => await CopiarCodigoTotpAsync();
                 _acoes.Children.Add(_btnTotp);
             }
@@ -394,7 +383,6 @@ namespace CofreDeSenhas.Controles
             {
                 Orientation = Orientation.Horizontal,
                 Spacing = 4,
-                VerticalAlignment = VerticalAlignment.Center,
                 HorizontalAlignment = HorizontalAlignment.Left
             };
 
@@ -402,8 +390,8 @@ namespace CofreDeSenhas.Controles
                 .Select(_ => new Border
                 {
                     Width = 18,
-                    Height = 7,
-                    CornerRadius = new CornerRadius(4),
+                    Height = 5,
+                    CornerRadius = new CornerRadius(3),
                     Background = Tema.Pincel(Tema.TrailInactive)
                 })
                 .ToArray();
@@ -411,7 +399,25 @@ namespace CofreDeSenhas.Controles
             foreach (var segmento in _segmentosForca)
                 _painelForca.Children.Add(segmento);
 
-            return _painelForca;
+            _lblAuditoria = new TextBlock
+            {
+                FontSize = 10,
+                FontWeight = FontWeight.SemiBold,
+                TextTrimming = TextTrimming.CharacterEllipsis,
+                MaxWidth = 92,
+                IsVisible = false,
+                Margin = new Thickness(0, 3, 0, 0)
+            };
+
+            var celula = new StackPanel
+            {
+                Orientation = Orientation.Vertical,
+                VerticalAlignment = VerticalAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Left
+            };
+            celula.Children.Add(_painelForca);
+            celula.Children.Add(_lblAuditoria);
+            return celula;
         }
 
         private StackPanel CriarCelulaOrganizacao()
@@ -615,7 +621,9 @@ namespace CofreDeSenhas.Controles
             _grid.ColumnDefinitions[9].Width = new GridLength(acoes);
         }
 
-        private static Button CriarBotaoAcao(string icone, string dica)
+        private static Geometry Icone(string chave) => (Geometry)Application.Current!.FindResource(chave)!;
+
+        private static Button CriarBotaoAcao(Geometry icone, string dica)
         {
             var btn = new Button { Content = CriarIcone(icone) };
             btn.Classes.Add("icone-linha");
@@ -624,9 +632,9 @@ namespace CofreDeSenhas.Controles
             return btn;
         }
 
-        private static AvaloniaPath CriarIcone(string data, IBrush? stroke = null) => new()
+        private static AvaloniaPath CriarIcone(Geometry data, IBrush? stroke = null) => new()
         {
-            Data = StreamGeometry.Parse(data),
+            Data = data,
             Width = 14,
             Height = 14,
             Stretch = Stretch.Uniform,
@@ -636,7 +644,7 @@ namespace CofreDeSenhas.Controles
             Fill = Brushes.Transparent
         };
 
-        private static void DefinirIcone(Button botao, string data)
+        private static void DefinirIcone(Button botao, Geometry data)
         {
             botao.Content = CriarIcone(data);
         }
@@ -649,6 +657,7 @@ namespace CofreDeSenhas.Controles
             {
                 var descricao = Idioma.Formatar("Row.PasswordCompromised", _vazamentos);
                 DefinirForcaVisual(1, Tema.StrengthWeak, descricao);
+                DefinirRotuloAuditoria(descricao, Tema.StrengthWeak);
                 AtualizarNomeAcessivel(descricao);
                 return;
             }
@@ -657,12 +666,15 @@ namespace CofreDeSenhas.Controles
             {
                 bool critico = _achadosAuditoria.Contains(TipoAchadoAuditoriaSenha.Fraca)
                     || _achadosAuditoria.Contains(TipoAchadoAuditoriaSenha.Repetida);
+                var corAuditoria = critico ? Tema.StrengthWeak : Tema.StrengthMedium;
                 var descricao = Idioma.Formatar("Row.AuditPrefix", string.Join("; ", DescreverAchadosAuditoria()));
-                DefinirForcaVisual(critico ? 1 : 2, critico ? Tema.StrengthWeak : Tema.StrengthMedium, descricao);
+                DefinirForcaVisual(critico ? 1 : 2, corAuditoria, descricao);
+                DefinirRotuloAuditoria(RotuloAuditoriaCurto(), corAuditoria);
                 AtualizarNomeAcessivel(descricao);
                 return;
             }
 
+            DefinirRotuloAuditoria(null, Tema.TextSecondary);
             string sufixo = _vazamentos == 0 ? Idioma.Texto("Row.NotFoundInBreaches") : "";
             switch (_nivelForca)
             {
@@ -725,6 +737,39 @@ namespace CofreDeSenhas.Controles
             }
         }
 
+        private void DefinirRotuloAuditoria(string? texto, Color cor)
+        {
+            if (_lblAuditoria == null)
+                return;
+
+            if (string.IsNullOrWhiteSpace(texto))
+            {
+                _lblAuditoria.IsVisible = false;
+                _lblAuditoria.Text = "";
+                return;
+            }
+
+            _lblAuditoria.Text = texto;
+            _lblAuditoria.Foreground = Tema.Pincel(cor);
+            _lblAuditoria.IsVisible = true;
+        }
+
+        private string RotuloAuditoriaCurto()
+        {
+            foreach (var achado in _achadosAuditoria)
+            {
+                return achado switch
+                {
+                    TipoAchadoAuditoriaSenha.Fraca => Idioma.Texto("Row.AuditWeak"),
+                    TipoAchadoAuditoriaSenha.Repetida => Idioma.Texto("Row.AuditRepeated"),
+                    TipoAchadoAuditoriaSenha.Antiga => Idioma.Formatar("Row.AuditOld", _diasSemAtualizacao),
+                    _ => Idioma.Texto("Row.AuditAlert")
+                };
+            }
+
+            return "";
+        }
+
         private void AlternarRevelar()
         {
             _revelada = !_revelada;
@@ -734,7 +779,7 @@ namespace CofreDeSenhas.Controles
                 _lblUsuario.FontFamily = (FontFamily)Application.Current!.FindResource("FonteMono")!;
                 _lblUsuario.FontWeight = FontWeight.Bold;
                 _lblUsuario.Foreground = Tema.Pincel(Tema.AccentPrimary);
-                DefinirIcone(_btnOlho, IconeOlhoFechado);
+                DefinirIcone(_btnOlho, Icone("IconeOcultar"));
                 ToolTip.SetTip(_btnOlho, Idioma.Texto("Row.HidePassword"));
                 AutomationProperties.SetName(_btnOlho, Idioma.Texto("Row.HidePassword"));
                 AutomationProperties.SetName(_lblUsuario, Idioma.Texto("A11y.PasswordVisible"));
@@ -743,10 +788,10 @@ namespace CofreDeSenhas.Controles
             else
             {
                 _lblUsuario.Text = _senha.Usuario;
-                _lblUsuario.FontFamily = FontFamily.Default;
+                _lblUsuario.ClearValue(TextBlock.FontFamilyProperty);
                 _lblUsuario.FontWeight = FontWeight.Normal;
                 _lblUsuario.Foreground = Tema.Pincel(Tema.TextSecondary);
-                DefinirIcone(_btnOlho, IconeOlho);
+                DefinirIcone(_btnOlho, Icone("IconeRevelar"));
                 ToolTip.SetTip(_btnOlho, Idioma.Texto("Row.RevealPassword"));
                 AutomationProperties.SetName(_btnOlho, Idioma.Texto("Row.RevealPassword"));
                 AutomationProperties.SetName(_lblUsuario, $"{_senha.Usuario} — {Idioma.Texto("Row.CopyUser")}");
@@ -771,7 +816,7 @@ namespace CofreDeSenhas.Controles
             var t = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
             t.Tick += (s, e) =>
             {
-                DefinirIcone(_btnCopiar, IconeCopiar);
+                DefinirIcone(_btnCopiar, Icone("IconeCopiar"));
                 _btnCopiar.ClearValue(Button.ForegroundProperty);
                 t.Stop();
             };
@@ -803,7 +848,7 @@ namespace CofreDeSenhas.Controles
             var t = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
             t.Tick += (s, e) =>
             {
-                DefinirIcone(_btnTotp, IconeChave);
+                DefinirIcone(_btnTotp, Icone("IconeTotp"));
                 _btnTotp.ClearValue(Button.ForegroundProperty);
                 t.Stop();
             };
@@ -823,7 +868,7 @@ namespace CofreDeSenhas.Controles
 
             _timerFeedbackUsuario?.Stop();
             _lblUsuario.Text = Idioma.Texto("Row.UserCopied");
-            _lblUsuario.FontFamily = FontFamily.Default;
+            _lblUsuario.ClearValue(TextBlock.FontFamilyProperty);
             _lblUsuario.FontWeight = FontWeight.Bold;
             _lblUsuario.Foreground = Tema.Pincel(Tema.StrengthStrong);
             ToolTip.SetTip(_lblUsuario, Idioma.Texto("Row.UserCopied"));
@@ -854,7 +899,7 @@ namespace CofreDeSenhas.Controles
             }
 
             _lblUsuario.Text = _senha.Usuario;
-            _lblUsuario.FontFamily = FontFamily.Default;
+            _lblUsuario.ClearValue(TextBlock.FontFamilyProperty);
             _lblUsuario.FontWeight = FontWeight.Normal;
             _lblUsuario.Foreground = Tema.Pincel(Tema.TextSecondary);
             AutomationProperties.SetName(_lblUsuario, $"{_senha.Usuario} — {Idioma.Texto("Row.CopyUser")}");

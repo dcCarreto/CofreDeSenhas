@@ -2,7 +2,9 @@ using Avalonia.Controls;
 using Avalonia.Automation;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Media;
 using Avalonia.Threading;
+using System.Globalization;
 using GerenciadorDeSenhas.Modelos;
 using GerenciadorDeSenhas.Servicos;
 
@@ -13,6 +15,7 @@ namespace CofreDeSenhas.Janelas
         private readonly IServicoSenha _servicoSenha;
         private readonly ServicoTotp _totp = new();
         private DispatcherTimer? _timerTotp;
+        private const int PeriodoTotp = 30;
 
         public JanelaCriarSenha(IServicoSenha servicoSenha, string? senhaGerada = null)
         {
@@ -120,9 +123,10 @@ namespace CofreDeSenhas.Janelas
             {
                 var codigo = _totp.Gerar(entrada);
                 LblCodigoTotp.Text = FormatarCodigo(codigo.Codigo);
-                LblContagemTotp.Text = Idioma.Formatar("Entry.TotpExpiresIn", codigo.SegundosRestantes);
+                var contagem = Idioma.Formatar("Entry.TotpExpiresIn", codigo.SegundosRestantes);
+                AtualizarAnelTotp(codigo.SegundosRestantes, PeriodoTotp);
                 AutomationProperties.SetName(LblCodigoTotp,
-                    $"{Idioma.Texto("A11y.TotpPreview")}: {LblCodigoTotp.Text}. {LblContagemTotp.Text}");
+                    $"{Idioma.Texto("A11y.TotpPreview")}: {LblCodigoTotp.Text}. {contagem}");
                 PainelTotp.IsVisible = true;
                 GarantirTimerTotp();
             }
@@ -147,6 +151,27 @@ namespace CofreDeSenhas.Janelas
         {
             _timerTotp?.Stop();
             _timerTotp = null;
+        }
+
+        private void AtualizarAnelTotp(int restantes, int periodo)
+        {
+            double fracao = periodo <= 0 ? 0 : Math.Clamp(restantes / (double)periodo, 0, 1);
+            double angulo = fracao * 360;
+            if (angulo <= 0.1)
+            {
+                AnelTotp.Data = null;
+                return;
+            }
+            if (angulo >= 359.9)
+                angulo = 359.9;
+
+            const double r = 10, cx = 13, cy = 13;
+            double rad = angulo * Math.PI / 180.0;
+            double fx = cx + r * Math.Sin(rad);
+            double fy = cy - r * Math.Cos(rad);
+            int grande = angulo > 180 ? 1 : 0;
+            AnelTotp.Data = StreamGeometry.Parse(string.Format(CultureInfo.InvariantCulture,
+                "M {0} {1} A {2} {2} 0 {3} 1 {4:0.##} {5:0.##}", cx, cy - r, r, grande, fx, fy));
         }
 
         private void Categoria_Alterada(object? sender, SelectionChangedEventArgs e) =>

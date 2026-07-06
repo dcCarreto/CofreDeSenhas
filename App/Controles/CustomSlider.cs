@@ -50,7 +50,7 @@ namespace CofreDeSenhas.Controles
 
         public CustomSlider()
         {
-            Height = 24;
+            Height = 32;
             Focusable = true;
             Cursor = new Cursor(StandardCursorType.Hand);
             ActualThemeVariantChanged += (s, e) => InvalidateVisual();
@@ -174,7 +174,7 @@ namespace CofreDeSenhas.Controles
                 g.DrawRectangle(Tema.Pincel(Tema.AccentPrimary), null, new RoundedRect(ativa, alturaTrilha / 2));
             }
 
-            const double raioThumb = 8;
+            const double raioThumb = 9;
             var centroThumb = new Point(inicio + preenchido, centroY);
             if (IsFocused)
                 g.DrawEllipse(null, new Pen(Tema.Pincel(Tema.AccentPrimary), 2), centroThumb, raioThumb + 3, raioThumb + 3);

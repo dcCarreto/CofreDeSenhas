@@ -21,6 +21,8 @@ namespace CofreDeSenhas.Janelas
 
             AtualizarTextos();
             PainelConfirmar.IsVisible = modoExportar;
+            Medidor.IsVisible = modoExportar;
+            TxtSenha.TextChanged += (s, e) => Medidor.Avaliar(TxtSenha.Text);
             Idioma.Alterado += Idioma_Alterado;
             Closed += (s, e) => Idioma.Alterado -= Idioma_Alterado;
 

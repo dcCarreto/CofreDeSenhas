@@ -93,6 +93,7 @@ namespace CofreDeSenhas.Janelas
             CmbCategoria.SelectedIndex = 0;
 
             Gerador.SolicitouSalvar += Gerador_SolicitouSalvar;
+            Gerador.ShowHeader = false;
 
             AtualizarBotaoTema();
             PintarFiltroFavoritos();
@@ -329,10 +330,36 @@ namespace CofreDeSenhas.Janelas
 
         private void AtualizarBotaoTema()
         {
-            BtnTema.Content = Tema.ModoEscuro ? "☀" : "☾";
+            BtnTema.Content = IconeSolLua(Tema.ModoEscuro);
             var dica = Idioma.Texto(Tema.ModoEscuro ? "Theme.Light" : "Theme.Dark");
             ToolTip.SetTip(BtnTema, dica);
             Avalonia.Automation.AutomationProperties.SetName(BtnTema, dica);
+        }
+
+        private static AvaloniaPath IconeSolLua(bool mostrarSol)
+        {
+            var geo = (Geometry)Application.Current!.FindResource(mostrarSol ? "IconeSol" : "IconeLua")!;
+            var icone = new AvaloniaPath
+            {
+                Data = geo,
+                Width = 18,
+                Height = 18,
+                Stretch = Stretch.Uniform
+            };
+
+            if (mostrarSol)
+            {
+                icone.Stroke = Tema.Pincel(Tema.TextPrimary);
+                icone.StrokeThickness = 2;
+                icone.StrokeLineCap = PenLineCap.Round;
+                icone.Fill = Brushes.Transparent;
+            }
+            else
+            {
+                icone.Fill = Tema.Pincel(Tema.TextPrimary);
+            }
+
+            return icone;
         }
 
         private void Idioma_Alterado(object? sender, RoutedEventArgs e)
