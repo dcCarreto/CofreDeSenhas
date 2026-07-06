@@ -202,6 +202,8 @@ há muito tempo, tudo localmente e sem enviar nada para fora:
 ### Interface
 
 - Janela sem moldura, com cantos arredondados e redimensionamento livre.
+- Identidade visual própria, com paleta e tokens de cor, tipografia Plus Jakarta
+  Sans, catálogo de ícones de traço e componentes consistentes nos dois temas.
 - Tema claro e tema escuro, com a preferência persistida entre sessões.
 - Recursos de acessibilidade: modos para daltonismo (protanopia, deuteranopia,
   tritanopia e monocromacia), alto contraste, escala de fonte, redução de

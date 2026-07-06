@@ -6,6 +6,20 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+### Alterado
+- Nova identidade visual em toda a aplicação, preservando as funcionalidades:
+  paleta e tokens de cor revisados nos temas claro e escuro, tipografia Plus
+  Jakarta Sans (com Inter de reserva), escala tipográfica e raios/sombras
+  padronizados.
+- Catálogo unificado de ícones de traço e componentes (botões, campos,
+  seletores, alternadores, controle deslizante e dicas) com estados consistentes
+  de interação.
+- Telas repaginadas: tela de senha mestra unificada com o gerador embutido,
+  diálogos com medidor de força, anel de progresso do TOTP e estados vazios
+  ilustrados. Novo ícone do aplicativo em múltiplas resoluções.
+- Contrastes de texto e distintivos de categoria revisados para atender ao nível
+  AA nos dois temas, com realce de foco de teclado visível em todos os controles.
+
 ## [2.0.0] - 2026-07-03
 
 Segunda geração do projeto: o que era um gerador de senhas com cofre local

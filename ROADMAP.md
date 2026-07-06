@@ -95,6 +95,22 @@ gerenciador de senhas seguro:
   versões podem ser reveladas, copiadas e reutilizadas na tela de edição,
   acompanham a exportação e são re-cifradas ao alterar a senha mestra.
 
+### Identidade visual
+
+Repaginação completa da interface, preservando todas as funcionalidades:
+
+- Paleta e tokens de cor revisados nos temas claro e escuro, com contrastes de
+  texto e distintivos ajustados para o nível AA.
+- Tipografia Plus Jakarta Sans (com Inter de reserva), escala tipográfica e
+  raios/sombras padronizados.
+- Catálogo unificado de ícones de traço e componentes (botões, campos,
+  seletores, alternadores, controle deslizante e dicas) com estados consistentes.
+- Telas repaginadas: tela de senha mestra unificada com o gerador embutido,
+  diálogos com medidor de força, anel de progresso do TOTP e estados vazios
+  ilustrados.
+- Novo ícone do aplicativo em múltiplas resoluções e realce de foco de teclado
+  visível em todos os controles.
+
 ## Planejado
 
 Ideias e melhorias consideradas para versões futuras, agrupadas por prioridade:
@@ -257,14 +273,14 @@ Ideias e melhorias consideradas para versões futuras, agrupadas por prioridade:
 
 #### Melhorias visuais e experiência de uso
 
-- Melhorar tela vazia quando não há credenciais.
+Boa parte foi entregue na repaginação da identidade visual (tela vazia
+ilustrada, revisão de espaçamentos, contraste e consistência, e foco de teclado
+visível). Continuam planejados:
+
 - Melhorar mensagens de erro.
 - Melhorar tela de primeiro uso.
 - Melhorar experiência de importação.
-- Adicionar confirmação visual mais clara após cópia.
 - Melhorar responsividade em telas menores.
-- Revisar espaçamentos, contraste e consistência visual.
-- Melhorar navegação por teclado.
 
 #### Organização avançada
 
