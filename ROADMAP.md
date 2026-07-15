@@ -110,12 +110,54 @@ Repaginação completa da interface, preservando todas as funcionalidades:
   ilustrados.
 - Novo ícone do aplicativo em múltiplas resoluções e realce de foco de teclado
   visível em todos os controles.
+- Refinamento posterior: micro-transições em botões, campos e painéis
+  (respeitando a preferência de reduzir animações), iconografia 100% vetorial no
+  lugar de glifos de fonte, correção dos ícones do painel de detalhes e
+  tradução das últimas cadeias fixas da janela principal nos seis idiomas.
+
+## Em andamento
+
+### Extensão de navegador
+
+Em desenvolvimento no branch `feature/chromiumExt`:
+
+- Comunicação local segura entre extensão e aplicativo via Native Messaging,
+  com host dedicado — o cofre nunca é exposto diretamente ao navegador.
+- Preenchimento de login somente sob ação explícita do usuário (clique).
+- Exige o cofre desbloqueado; sem cofre aberto, nada é preenchido.
+- Alvo inicial em navegadores Chromium (Chrome e Edge); Firefox avaliado em
+  seguida.
+- Recurso opcional: o aplicativo continua completo sem a extensão.
 
 ## Planejado
 
 Ideias e melhorias consideradas para versões futuras, agrupadas por prioridade:
 
 ### Alta prioridade
+
+#### Privacidade dos ícones de serviço
+
+- Hoje os ícones reais são obtidos do serviço de favicons do Google, o que
+  envia o domínio de cada credencial exibida a um terceiro — comportamento em
+  tensão com a proposta de manter tudo local.
+- Tornar a busca de favicons opcional, com consentimento explícito (desligada
+  por padrão ou pergunta única no primeiro uso).
+- Guardar os ícones baixados em cache no disco para não repetir consultas a
+  cada sessão.
+- Manter o fallback local por iniciais como padrão permanente.
+- Documentar o comportamento no README.
+
+#### Fortalecimento da derivação de chave e higiene de memória
+
+- Elevar as iterações do PBKDF2-SHA256 (hoje 100 mil) para o patamar
+  recomendado atualmente (600 mil ou mais), ou avaliar migração para Argon2id.
+- Migrar cofres existentes de forma transparente no desbloqueio, sem ação do
+  usuário e com rollback seguro.
+- Zerar a chave mestra e suas cópias na memória ao bloquear ou fechar o cofre
+  (`CryptographicOperations.ZeroMemory`), como o fluxo de biometria já faz.
+- Revisar pontos da interface que retêm senhas em texto claro além do
+  necessário (painel de detalhes, linhas reveladas).
+- Cobrir a migração com testes.
 
 #### Limpeza automática da área de transferência
 
@@ -198,14 +240,35 @@ Ideias e melhorias consideradas para versões futuras, agrupadas por prioridade:
 - Incluir códigos de recuperação na importação/exportação do banco, sempre
   cifrados.
 
-#### Verificação de integridade dos releases
+#### Releases confiáveis e bem documentados
 
-- Publicar hash SHA256 dos arquivos de release.
-- Incluir instruções para o usuário verificar o download.
-- Adicionar arquivo CHECKSUMS.txt nas releases.
-- Avaliar assinatura dos arquivos de release.
-- Avaliar assinatura de código no Windows no futuro.
-- Melhorar a confiança no binário distribuído.
+Consolida a verificação de integridade e as melhorias da página de releases,
+que se sobrepunham:
+
+- Publicar hash SHA256 dos arquivos (CHECKSUMS.txt) com instruções de
+  verificação, gerado pelo CI já existente.
+- Avaliar assinatura dos arquivos e, no futuro, assinatura de código no
+  Windows.
+- Padronizar a descrição de cada versão: changelog claro, capturas de tela,
+  downloads separados por sistema operacional.
+- Incluir instruções de instalação e de atualização, com aviso de backup antes
+  de atualizar.
+
+#### Atalhos de teclado
+
+- Definir atalhos para as ações mais frequentes: buscar, nova senha, abrir o
+  gerador, bloquear agora e copiar usuário/senha da linha selecionada.
+- Exibir uma folha de atalhos consultável dentro do aplicativo.
+- Garantir que os atalhos não conflitem com leitores de tela e com os padrões
+  de cada sistema.
+
+#### Testes automatizados de interface
+
+- Adotar Avalonia.Headless para testar os fluxos críticos da interface:
+  desbloqueio, criação e edição de credencial, cópia, bloqueio automático e
+  troca de tema/idioma.
+- Integrar ao CI existente (Windows e Linux).
+- Reduzir a dependência de verificação manual a cada mudança visual.
 
 #### Empacotamento para Linux
 
@@ -243,16 +306,12 @@ Ideias e melhorias consideradas para versões futuras, agrupadas por prioridade:
 - Permitir que o usuário desative esse histórico, caso prefira menos
   rastreamento local.
 
-#### Melhorias na página de releases
+#### Aviso de nova versão
 
-- Padronizar descrição de cada versão.
-- Incluir changelog claro.
-- Incluir capturas de tela.
-- Separar downloads por sistema operacional.
-- Incluir instruções de instalação.
-- Incluir instruções de atualização.
-- Incluir aviso de backup antes de atualizar.
-- Incluir hashes dos arquivos publicados.
+- Checagem opcional de novas versões contra as releases do GitHub.
+- Desligada por padrão e sem envio de qualquer dado além da própria consulta.
+- Aviso discreto na interface, sem download automático.
+- Nunca interromper o uso do cofre por causa de atualização.
 
 ### Baixa prioridade
 
@@ -284,13 +343,30 @@ visível). Continuam planejados:
 
 #### Organização avançada
 
-- Adicionar tags além de categorias.
-- Permitir múltiplas tags por credencial.
-- Permitir filtros combinados.
-- Permitir ordenação avançada.
-- Permitir fixar itens importantes.
-- Permitir visualização por categoria.
-- Permitir favoritos em seção separada.
+Parte já foi entregue: favoritos e navegação por categoria têm seções próprias
+na barra lateral, e etiquetas existem via categorias personalizadas em `Outro`.
+Continuam planejados:
+
+- Estender etiquetas a credenciais de qualquer categoria, com múltiplas
+  etiquetas por item.
+- Permitir filtros combinados (categoria + etiqueta + estado da auditoria).
+- Permitir ordenação por qualquer coluna da lista.
+- Permitir fixar itens importantes no topo.
+
+#### Manutenção interna
+
+Dívida técnica que não muda funcionalidades, mas reduz o custo de evoluir:
+
+- Extrair as traduções embutidas em `Idioma.cs` (milhares de linhas de tuplas)
+  para arquivos de recurso por idioma.
+- Unificar a definição da paleta de cores, hoje duplicada entre os dicionários
+  de tema do XAML e o mapa de cores da acessibilidade.
+- Dividir o code-behind da janela principal, que concentra navegação, lista,
+  detalhes, conexão de banco e importação em um único arquivo extenso.
+
+Já executado desta lista: remoção dos apelidos duplicados de recursos (as duas
+grafias do token de força "excelente"), de chaves de tradução e ícones sem uso
+e de geometrias repetidas no code-behind do gerador.
 
 #### Templates de credenciais
 
@@ -326,19 +402,6 @@ visível). Continuam planejados:
 - Adaptar atalhos, empacotamento e comportamento visual ao sistema.
 - Testar armazenamento de dados no padrão do macOS.
 
-#### Extensão de navegador
-
-- Avaliar criação de extensão para navegadores.
-- Suporte futuro possível para:
-  - Chrome;
-  - Edge;
-  - Firefox.
-- Permitir preenchimento de login com autorização explícita do usuário.
-- Impedir exposição indevida do cofre ao navegador.
-- Usar comunicação local segura entre extensão e aplicativo.
-- Exigir cofre desbloqueado.
-- Manter a extensão como recurso opcional.
-
 #### Aplicativo móvel
 
 - Avaliar versão mobile no futuro.
@@ -349,26 +412,11 @@ visível). Continuam planejados:
 - Reaproveitar domínio e regras de criptografia quando possível.
 - Resolver sincronização antes de investir em mobile.
 
-#### Assistente educativo opcional
-
-- Criar, no futuro, um assistente local ou módulo educativo sem acesso às
-  senhas.
-- Explicar conceitos de segurança.
-- Ajudar o usuário a entender o relatório do cofre.
-- Dar dicas de boas práticas.
-- Nunca acessar:
-  - senha mestra;
-  - senhas salvas;
-  - banco criptografado;
-  - chaves TOTP;
-  - códigos de recuperação;
-  - notas privadas.
-- Manter desligado por padrão.
-- Nunca depender de IA online para funcionamento essencial do app.
-
 ## Fora de escopo por enquanto
 
 - IA integrada ao núcleo do cofre.
+- Assistente educativo embutido no aplicativo (reavaliado: conteúdo educativo
+  ficará na documentação, fora do app).
 - Envio de senhas para qualquer serviço externo.
 - Armazenamento obrigatório em nuvem.
 - Conta obrigatória para usar o aplicativo.
@@ -381,24 +429,28 @@ visível). Continuam planejados:
 
 ## Ordem sugerida de execução
 
-1. Limpeza automática da área de transferência.
-2. Backup automático local.
-3. Lixeira criptografada.
-4. Instalador profissional para Windows.
-5. Relatório de segurança do cofre.
-6. Códigos de recuperação por credencial.
-7. Verificação SHA256 dos releases.
-8. Empacotamento para Linux.
-9. Modo privacidade.
-10. Histórico operacional da credencial.
-11. Melhorias na página de releases.
-12. Anexos criptografados.
-13. Organização avançada com tags.
-14. Templates de credenciais.
-15. Sincronização criptografada de ponta a ponta.
-16. macOS.
-17. Extensão de navegador.
-18. Aplicativo móvel.
+1. Privacidade dos ícones de serviço.
+2. Fortalecimento da derivação de chave e higiene de memória.
+3. Limpeza automática da área de transferência.
+4. Backup automático local.
+5. Lixeira criptografada.
+6. Conclusão da extensão de navegador (em andamento).
+7. Instalador profissional para Windows.
+8. Relatório de segurança do cofre.
+9. Códigos de recuperação por credencial.
+10. Releases confiáveis e bem documentados.
+11. Empacotamento para Linux.
+12. Atalhos de teclado.
+13. Testes automatizados de interface.
+14. Modo privacidade.
+15. Histórico operacional da credencial.
+16. Aviso de nova versão.
+17. Anexos criptografados.
+18. Organização avançada com etiquetas.
+19. Templates de credenciais.
+20. Sincronização criptografada de ponta a ponta.
+21. macOS.
+22. Aplicativo móvel.
 
 ## Como sugerir
 

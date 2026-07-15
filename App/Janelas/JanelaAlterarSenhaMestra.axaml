@@ -30,11 +30,13 @@
                      VerticalAlignment="Center"
                      AutomationProperties.HeadingLevel="1"
                      Margin="24,0,0,0" />
-          <Button Classes="fechar-dialogo" Content="✕"
+          <Button Classes="fechar-dialogo"
                   AutomationProperties.Name="{DynamicResource Access.Close}"
                   HorizontalAlignment="Right" VerticalAlignment="Center"
                   Margin="0,0,14,0"
-                  Click="Cancelar_Click" />
+                  Click="Cancelar_Click">
+            <Path Classes="line-icon" Width="14" Height="14" Data="{StaticResource IconeFechar}" />
+          </Button>
         </Grid>
       </Border>
 

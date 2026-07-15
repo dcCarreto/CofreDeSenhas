@@ -1,5 +1,6 @@
 using System.Globalization;
 using Avalonia;
+using Avalonia.Animation;
 using Avalonia.Automation;
 using Avalonia.Automation.Peers;
 using Avalonia.Controls;
@@ -96,6 +97,10 @@ namespace CofreDeSenhas.Controles
             BorderBrush = Tema.Pincel(Tema.Separator);
             BorderThickness = new Thickness(0, 0, 0, 1);
             Focusable = true;
+            Transitions = new Transitions
+            {
+                new BrushTransition { Property = BackgroundProperty, Duration = TimeSpan.FromMilliseconds(120) }
+            };
 
             Child = MontarLayout();
             AtualizarIndicador();
@@ -134,11 +139,9 @@ namespace CofreDeSenhas.Controles
 
             var estrela = new Button
             {
-                Content = _senha.Favorito ? "★" : "☆",
+                Content = CriarIconeEstrela(_senha.Favorito),
                 Width = 30,
                 Height = 30,
-                FontSize = 17,
-                Foreground = Tema.Pincel(_senha.Favorito ? Tema.FavoriteColor : Tema.FavoriteBorderColor),
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center,
                 Padding = new Thickness(0)
@@ -216,7 +219,11 @@ namespace CofreDeSenhas.Controles
                 Spacing = 4,
                 VerticalAlignment = VerticalAlignment.Center,
                 HorizontalAlignment = HorizontalAlignment.Center,
-                Opacity = 0.55
+                Opacity = 0.55,
+                Transitions = new Transitions
+                {
+                    new DoubleTransition { Property = OpacityProperty, Duration = TimeSpan.FromMilliseconds(120) }
+                }
             };
             _acoes.Children.Add(_btnOlho);
             _acoes.Children.Add(_btnCopiar);
@@ -644,6 +651,19 @@ namespace CofreDeSenhas.Controles
             Fill = Brushes.Transparent
         };
 
+        private static AvaloniaPath CriarIconeEstrela(bool favorito) => new()
+        {
+            Data = Icone("IconeFavoritas"),
+            Width = 16,
+            Height = 16,
+            Stretch = Stretch.Uniform,
+            Stroke = Tema.Pincel(favorito ? Tema.FavoriteColor : Tema.FavoriteBorderColor),
+            StrokeThickness = 1.8,
+            StrokeLineCap = PenLineCap.Round,
+            StrokeJoin = PenLineJoin.Round,
+            Fill = favorito ? Tema.Pincel(Tema.FavoriteColor) : Brushes.Transparent
+        };
+
         private static void DefinirIcone(Button botao, Geometry data)
         {
             botao.Content = CriarIcone(data);
@@ -689,7 +709,7 @@ namespace CofreDeSenhas.Controles
                     DefinirForcaVisual(3, Tema.StrengthStrong, Idioma.Texto("Row.PasswordStrong"), sufixo);
                     break;
                 case 4:
-                    DefinirForcaVisual(4, Tema.StrengthExcelent, Idioma.Texto("Generator.StrengthExcellent"), sufixo);
+                    DefinirForcaVisual(4, Tema.StrengthExcellent, Idioma.Texto("Generator.StrengthExcellent"), sufixo);
                     break;
                 default:
                     DefinirForcaVisual(0, Tema.TrailInactive, "");

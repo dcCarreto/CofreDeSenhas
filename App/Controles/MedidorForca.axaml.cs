@@ -19,7 +19,7 @@ namespace CofreDeSenhas.Controles
                 1 => (Idioma.Texto("Generator.StrengthWeak"), Tema.StrengthWeak),
                 2 => (Idioma.Texto("Generator.StrengthMedium"), Tema.StrengthMedium),
                 3 => (Idioma.Texto("Generator.StrengthStrong"), Tema.StrengthStrong),
-                4 => (Idioma.Texto("Generator.StrengthExcellent"), Tema.StrengthExcelent),
+                4 => (Idioma.Texto("Generator.StrengthExcellent"), Tema.StrengthExcellent),
                 _ => ("—", Tema.TextSecondary)
             };
 

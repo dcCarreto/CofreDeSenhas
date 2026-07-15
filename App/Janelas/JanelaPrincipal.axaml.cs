@@ -1,11 +1,14 @@
 using System.Diagnostics;
 using Avalonia;
+using Avalonia.Animation;
+using Avalonia.Animation.Easings;
 using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
+using Avalonia.Media.Transformation;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
@@ -65,13 +68,6 @@ namespace CofreDeSenhas.Janelas
         private const double LarguraMinimaCategoria = 86;
         private const double LarguraMinimaData = 78;
         private const double LarguraMinimaAcoes = 170;
-
-        private const string IconeMaximizar = "M6 6 L18 6 L18 18 L6 18 Z";
-        private const string IconeRestaurar = "M8 8 L20 8 L20 20 L8 20 Z M4 4 L16 4 L16 6 M4 4 L4 16 L6 16";
-        private const string IconeLua = "M21 12.8 C19.8 13.4 18.5 13.8 17.1 13.8 C12.2 13.8 8.2 9.8 8.2 4.9 C8.2 3.5 8.6 2.2 9.2 1 C5.1 2.2 2 6 2 10.5 C2 16.3 6.7 21 12.5 21 C17 21 20.8 17.9 21 12.8 Z";
-        private const string IconeSol = "M12 4 L12 1 M12 23 L12 20 M4.9 4.9 L2.8 2.8 M21.2 21.2 L19.1 19.1 M4 12 L1 12 M23 12 L20 12 M4.9 19.1 L2.8 21.2 M21.2 2.8 L19.1 4.9 M12 8 A4 4 0 1 0 12 16 A4 4 0 1 0 12 8";
-        private const string IconeOlho = "M2.5 12 C4.8 7.5 8.1 5.5 12 5.5 C15.9 5.5 19.2 7.5 21.5 12 C19.2 16.5 15.9 18.5 12 18.5 C8.1 18.5 4.8 16.5 2.5 12 Z M12 15.5 C13.9 15.5 15.5 13.9 15.5 12 C15.5 10.1 13.9 8.5 12 8.5 C10.1 8.5 8.5 10.1 8.5 12 C8.5 13.9 10.1 15.5 12 15.5 Z";
-        private const string IconeOlhoFechado = "M4 4 L20 20 M6.2 6.9 C4.7 8 3.5 9.7 2.5 12 C4.8 16.5 8.1 18.5 12 18.5 C13.2 18.5 14.3 18.3 15.3 17.8 M9.1 9.1 C8.7 9.7 8.5 10.8 8.5 12 C8.5 13.9 10.1 15.5 12 15.5 C13.2 15.5 14.2 14.9 14.8 14 M10.1 5.7 C10.7 5.6 11.3 5.5 12 5.5 C15.9 5.5 19.2 7.5 21.5 12 C20.8 13.4 19.9 14.6 18.9 15.6";
 
         public JanelaPrincipal(IServicoSenha servicoSenha, byte[] chaveMestra, IServicoCriptografia? criptografia = null,
             IRepositorioSenha? repositorioLocal = null, Action? aoBloquear = null)
@@ -153,7 +149,7 @@ namespace CofreDeSenhas.Janelas
             {
                 bool maximizada = WindowState == WindowState.Maximized;
                 Moldura.CornerRadius = new CornerRadius(maximizada ? 0 : 10);
-                BtnMaximizar.Content = maximizada ? "❐" : "□";
+                BtnMaximizar.Content = IconeJanela(maximizada ? "IconeRestaurar" : "IconeMaximizar");
             }
         }
 
@@ -681,9 +677,9 @@ namespace CofreDeSenhas.Janelas
             AutomationProperties.SetName(LblContadorHeader, LblContadorHeader.Text ?? "");
         }
 
-        private static AvaloniaPath CriarIcone(string data, double tamanho, IBrush? stroke = null) => new()
+        private static AvaloniaPath CriarIcone(string chave, double tamanho, IBrush? stroke = null) => new()
         {
-            Data = StreamGeometry.Parse(data),
+            Data = (Geometry)Application.Current!.FindResource(chave)!,
             Width = tamanho,
             Height = tamanho,
             Stretch = Stretch.Uniform,
@@ -693,19 +689,34 @@ namespace CofreDeSenhas.Janelas
             Fill = Brushes.Transparent
         };
 
+        private static Canvas IconeJanela(string chave)
+        {
+            var icone = new AvaloniaPath
+            {
+                Data = (Geometry)Application.Current!.FindResource(chave)!,
+                Stretch = Stretch.None
+            };
+            icone.Classes.Add("line-icon");
+
+            var moldura = new Canvas { Width = 24, Height = 24 };
+            moldura.Children.Add(icone);
+            return moldura;
+        }
+
         private static string TextoBloqueioAutomatico()
         {
             int minutos = Preferencias.MinutosBloqueio;
             return minutos <= 0
-                ? "Bloqueio automático desativado"
-                : minutos == 1
-                    ? "1 min até bloqueio automático"
-                    : $"{minutos} min até bloqueio automático";
+                ? Idioma.Texto("Footer.AutoLockOff")
+                : Idioma.Formatar("Footer.AutoLockCountdown", minutos);
         }
 
         private void ToggleGerador_Click(object? sender, RoutedEventArgs e)
         {
-            PainelGeradorFlutuante.IsVisible = !PainelGeradorFlutuante.IsVisible;
+            if (PainelGeradorFlutuante.IsVisible)
+                PainelGeradorFlutuante.IsVisible = false;
+            else
+                ExibirPainel(PainelGeradorFlutuante);
             AtualizarFabGerador();
         }
 
@@ -713,8 +724,49 @@ namespace CofreDeSenhas.Janelas
 
         private void AbrirGerador()
         {
-            PainelGeradorFlutuante.IsVisible = true;
+            ExibirPainel(PainelGeradorFlutuante);
             AtualizarFabGerador();
+        }
+
+        private static void ExibirPainel(Border painel)
+        {
+            if (painel.IsVisible)
+                return;
+
+            painel.Transitions = null;
+
+            if (Acessibilidade.ReduzirAnimacoes)
+            {
+                painel.Opacity = 1;
+                painel.RenderTransform = null;
+                painel.IsVisible = true;
+                return;
+            }
+
+            painel.Opacity = 0;
+            painel.RenderTransform = TransformOperations.Parse("translateY(10px)");
+            painel.IsVisible = true;
+
+            Dispatcher.UIThread.Post(() =>
+            {
+                painel.Transitions = new Transitions
+                {
+                    new DoubleTransition
+                    {
+                        Property = OpacityProperty,
+                        Duration = TimeSpan.FromMilliseconds(170),
+                        Easing = new CubicEaseOut()
+                    },
+                    new TransformOperationsTransition
+                    {
+                        Property = RenderTransformProperty,
+                        Duration = TimeSpan.FromMilliseconds(170),
+                        Easing = new CubicEaseOut()
+                    }
+                };
+                painel.Opacity = 1;
+                painel.RenderTransform = TransformOperations.Parse("translateY(0px)");
+            }, DispatcherPriority.Render);
         }
 
         private void FecharGerador()
@@ -731,6 +783,18 @@ namespace CofreDeSenhas.Janelas
         private void ToggleNav_Click(object? sender, RoutedEventArgs e)
         {
             _navColapsada = !_navColapsada;
+
+            NavRail.Transitions = Acessibilidade.ReduzirAnimacoes
+                ? null
+                : new Transitions
+                {
+                    new DoubleTransition
+                    {
+                        Property = WidthProperty,
+                        Duration = TimeSpan.FromMilliseconds(150),
+                        Easing = new CubicEaseOut()
+                    }
+                };
             NavRail.Width = _navColapsada ? 64 : 224;
 
             foreach (var texto in TextosNav())
@@ -840,7 +904,7 @@ namespace CofreDeSenhas.Janelas
             TxtDetalheNotas.Text = senha.Notas ?? "";
             AtualizarDetalheVisual();
             AtualizarSenhaDetalhe();
-            PainelDetalhes.IsVisible = true;
+            ExibirPainel(PainelDetalhes);
         }
 
         private void AtualizarDetalheVisual()
@@ -868,7 +932,7 @@ namespace CofreDeSenhas.Janelas
                 ? _senhaDetalhePlain
                 : new string('•', Math.Max(8, _senhaDetalhePlain.Length));
             TxtDetalheSenha.IsReadOnly = !_senhaDetalheVisivel;
-            BtnDetalheRevelar.Content = CriarIcone(_senhaDetalheVisivel ? IconeOlhoFechado : IconeOlho, 14);
+            BtnDetalheRevelar.Content = CriarIcone(_senhaDetalheVisivel ? "IconeOcultar" : "IconeRevelar", 14);
             ToolTip.SetTip(BtnDetalheRevelar, Idioma.Texto(_senhaDetalheVisivel ? "Row.HidePassword" : "Row.RevealPassword"));
         }
 

@@ -32,7 +32,7 @@ namespace CofreDeSenhas
         public static Color StrengthWeak => Acessibilidade.Cor(CorVisual.StrengthWeak, ModoEscuro);
         public static Color StrengthMedium => Acessibilidade.Cor(CorVisual.StrengthMedium, ModoEscuro);
         public static Color StrengthStrong => Acessibilidade.Cor(CorVisual.StrengthStrong, ModoEscuro);
-        public static Color StrengthExcelent => Acessibilidade.Cor(CorVisual.StrengthExcelent, ModoEscuro);
+        public static Color StrengthExcellent => Acessibilidade.Cor(CorVisual.StrengthExcellent, ModoEscuro);
 
         public static Color TrailInactive => Acessibilidade.Cor(CorVisual.TrailInactive, ModoEscuro);
         public static Color ToggleOff => Acessibilidade.Cor(CorVisual.ToggleOff, ModoEscuro);

@@ -83,7 +83,6 @@
       <SolidColorBrush x:Key="StrengthWeak" Color="#E14B4B" />
       <SolidColorBrush x:Key="StrengthMedium" Color="#E0932C" />
       <SolidColorBrush x:Key="StrengthStrong" Color="#1E9A5A" />
-      <SolidColorBrush x:Key="StrengthExcelent" Color="#2F7FD6" />
       <SolidColorBrush x:Key="StrengthExcellent" Color="#2F7FD6" />
       <SolidColorBrush x:Key="CloseButtonHover" Color="#E5484D" />
       <SolidColorBrush x:Key="CloseButtonPressed" Color="#C93A3E" />
@@ -131,6 +130,11 @@
     <Style Selector="MenuFlyoutPresenter">
       <Setter Property="FontFamily" Value="{StaticResource FontePadrao}" />
       <Setter Property="MinWidth" Value="300" />
+      <Setter Property="Background" Value="{DynamicResource CardBackground}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource CardBorder}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="12" />
+      <Setter Property="Padding" Value="6,6" />
     </Style>
     <Style Selector="ContextMenu">
       <Setter Property="FontFamily" Value="{StaticResource FontePadrao}" />
@@ -181,6 +185,14 @@
       </Setter>
     </Style>
 
+    <Style Selector="Button /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Transitions">
+        <Transitions>
+          <BrushTransition Property="Background" Duration="0:0:0.12" />
+        </Transitions>
+      </Setter>
+    </Style>
+
     <Style Selector="Button.primario">
       <Setter Property="Background" Value="{DynamicResource AccentPrimary}" />
       <Setter Property="Foreground" Value="White" />
@@ -192,7 +204,13 @@
       <Setter Property="HorizontalContentAlignment" Value="Center" />
       <Setter Property="VerticalContentAlignment" Value="Center" />
       <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
+      <Setter Property="RenderTransform" Value="scale(1)" />
       <Setter Property="Cursor" Value="Hand" />
+      <Setter Property="Transitions">
+        <Transitions>
+          <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.08" />
+        </Transitions>
+      </Setter>
     </Style>
     <Style Selector="Button.primario:pointerover /template/ ContentPresenter#PART_ContentPresenter">
       <Setter Property="Background" Value="{DynamicResource AccentHover}" />
@@ -250,26 +268,6 @@
       <Setter Property="Foreground" Value="{DynamicResource AccentPrimary}" />
     </Style>
     <Style Selector="Button.icone:disabled">
-      <Setter Property="Opacity" Value="0.4" />
-    </Style>
-
-    <Style Selector="Button.icone-borda">
-      <Setter Property="Background" Value="Transparent" />
-      <Setter Property="Foreground" Value="{DynamicResource TextSecondary}" />
-      <Setter Property="FontSize" Value="14" />
-      <Setter Property="CornerRadius" Value="{StaticResource RadiusIcone}" />
-      <Setter Property="BorderThickness" Value="1" />
-      <Setter Property="BorderBrush" Value="{DynamicResource InputBorder}" />
-      <Setter Property="Padding" Value="0" />
-      <Setter Property="HorizontalContentAlignment" Value="Center" />
-      <Setter Property="VerticalContentAlignment" Value="Center" />
-      <Setter Property="Cursor" Value="Hand" />
-    </Style>
-    <Style Selector="Button.icone-borda:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-      <Setter Property="Background" Value="{DynamicResource IconHoverBackground}" />
-      <Setter Property="Foreground" Value="{DynamicResource AccentPrimary}" />
-    </Style>
-    <Style Selector="Button.icone-borda:disabled">
       <Setter Property="Opacity" Value="0.4" />
     </Style>
 
@@ -350,6 +348,10 @@
       <Setter Property="Background" Value="{DynamicResource HoverBackground}" />
     </Style>
 
+    <Style Selector="Button.janela Path.line-icon">
+      <Setter Property="Stroke" Value="{DynamicResource TextPrimary}" />
+    </Style>
+
     <Style Selector="Button.fechar">
       <Setter Property="Background" Value="Transparent" />
       <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
@@ -359,10 +361,16 @@
       <Setter Property="Foreground" Value="White" />
       <Setter Property="CornerRadius" Value="0,10,0,0" />
     </Style>
+    <Style Selector="Button.fechar:pointerover Path.line-icon">
+      <Setter Property="Stroke" Value="White" />
+    </Style>
     <Style Selector="Button.fechar:pressed /template/ ContentPresenter#PART_ContentPresenter">
       <Setter Property="Background" Value="{DynamicResource CloseButtonPressed}" />
       <Setter Property="Foreground" Value="White" />
       <Setter Property="CornerRadius" Value="0,10,0,0" />
+    </Style>
+    <Style Selector="Button.fechar:pressed Path.line-icon">
+      <Setter Property="Stroke" Value="White" />
     </Style>
 
     <Style Selector="Button.fechar-dialogo">
@@ -378,9 +386,15 @@
       <Setter Property="VerticalContentAlignment" Value="Center" />
       <Setter Property="Cursor" Value="Hand" />
     </Style>
+    <Style Selector="Button.fechar-dialogo Path.line-icon">
+      <Setter Property="Stroke" Value="{DynamicResource TextSecondary}" />
+    </Style>
     <Style Selector="Button.fechar-dialogo:pointerover /template/ ContentPresenter#PART_ContentPresenter">
       <Setter Property="Background" Value="{DynamicResource HoverBackground}" />
       <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
+    </Style>
+    <Style Selector="Button.fechar-dialogo:pointerover Path.line-icon">
+      <Setter Property="Stroke" Value="{DynamicResource TextPrimary}" />
     </Style>
 
     <Style Selector="Button.nav-toggle">
@@ -436,7 +450,20 @@
       <Setter Property="Padding" Value="0" />
       <Setter Property="HorizontalContentAlignment" Value="Center" />
       <Setter Property="VerticalContentAlignment" Value="Center" />
+      <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
+      <Setter Property="RenderTransform" Value="scale(1)" />
       <Setter Property="Cursor" Value="Hand" />
+      <Setter Property="Transitions">
+        <Transitions>
+          <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.1" />
+        </Transitions>
+      </Setter>
+    </Style>
+    <Style Selector="Button.fab:pointerover">
+      <Setter Property="RenderTransform" Value="scale(1.06)" />
+    </Style>
+    <Style Selector="Button.fab:pressed">
+      <Setter Property="RenderTransform" Value="scale(0.94)" />
     </Style>
     <Style Selector="Button.fab /template/ ContentPresenter#PART_ContentPresenter">
       <Setter Property="BoxShadow" Value="{StaticResource FabShadow}" />
@@ -457,6 +484,13 @@
       <Setter Property="Padding" Value="14,12" />
       <Setter Property="FontSize" Value="{StaticResource TamCorpo}" />
       <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="TextBox.campo /template/ Border#PART_BorderElement">
+      <Setter Property="Transitions">
+        <Transitions>
+          <BrushTransition Property="BorderBrush" Duration="0:0:0.15" />
+        </Transitions>
+      </Setter>
     </Style>
     <Style Selector="TextBox.campo:pointerover /template/ Border#PART_BorderElement">
       <Setter Property="Background" Value="{DynamicResource InputBackground}" />

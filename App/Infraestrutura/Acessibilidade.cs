@@ -46,7 +46,7 @@ namespace CofreDeSenhas
         StrengthWeak,
         StrengthMedium,
         StrengthStrong,
-        StrengthExcelent,
+        StrengthExcellent,
         CloseButtonHover,
         CloseButtonPressed,
         StatusLocal,
@@ -99,8 +99,7 @@ namespace CofreDeSenhas
             ("StrengthWeak", CorVisual.StrengthWeak),
             ("StrengthMedium", CorVisual.StrengthMedium),
             ("StrengthStrong", CorVisual.StrengthStrong),
-            ("StrengthExcelent", CorVisual.StrengthExcelent),
-            ("StrengthExcellent", CorVisual.StrengthExcelent),
+            ("StrengthExcellent", CorVisual.StrengthExcellent),
             ("CloseButtonHover", CorVisual.CloseButtonHover),
             ("CloseButtonPressed", CorVisual.CloseButtonPressed),
             ("StatusLocal", CorVisual.StatusLocal),
@@ -135,7 +134,7 @@ namespace CofreDeSenhas
             (CorVisual.StrengthWeak, 0xFFE14B4B),
             (CorVisual.StrengthMedium, 0xFFE0932C),
             (CorVisual.StrengthStrong, 0xFF1E9A5A),
-            (CorVisual.StrengthExcelent, 0xFF2F7FD6),
+            (CorVisual.StrengthExcellent, 0xFF2F7FD6),
             (CorVisual.CloseButtonHover, 0xFFE5484D),
             (CorVisual.CloseButtonPressed, 0xFFC93A3E),
             (CorVisual.StatusLocal, 0xFF1E9A5A),
@@ -169,7 +168,7 @@ namespace CofreDeSenhas
             (CorVisual.StrengthWeak, 0xFFE14B4B),
             (CorVisual.StrengthMedium, 0xFFE0932C),
             (CorVisual.StrengthStrong, 0xFF1E9A5A),
-            (CorVisual.StrengthExcelent, 0xFF2F7FD6),
+            (CorVisual.StrengthExcellent, 0xFF2F7FD6),
             (CorVisual.CloseButtonHover, 0xFFE5484D),
             (CorVisual.CloseButtonPressed, 0xFFC93A3E),
             (CorVisual.StatusLocal, 0xFF1E9A5A),
@@ -203,7 +202,7 @@ namespace CofreDeSenhas
             (CorVisual.StrengthWeak, 0xFFD55E00),
             (CorVisual.StrengthMedium, 0xFFE69F00),
             (CorVisual.StrengthStrong, 0xFF009E73),
-            (CorVisual.StrengthExcelent, 0xFF0072B2),
+            (CorVisual.StrengthExcellent, 0xFF0072B2),
             (CorVisual.CloseButtonHover, 0xFFD55E00),
             (CorVisual.CloseButtonPressed, 0xFFA64200),
             (CorVisual.StatusLocal, 0xFF009E73),
@@ -237,7 +236,7 @@ namespace CofreDeSenhas
             (CorVisual.StrengthWeak, 0xFFD55E00),
             (CorVisual.StrengthMedium, 0xFFE69F00),
             (CorVisual.StrengthStrong, 0xFF009E73),
-            (CorVisual.StrengthExcelent, 0xFF56B4E9),
+            (CorVisual.StrengthExcellent, 0xFF56B4E9),
             (CorVisual.CloseButtonHover, 0xFFD55E00),
             (CorVisual.CloseButtonPressed, 0xFFA64200),
             (CorVisual.StatusLocal, 0xFF009E73),
@@ -271,7 +270,7 @@ namespace CofreDeSenhas
             (CorVisual.StrengthWeak, 0xFFD55E00),
             (CorVisual.StrengthMedium, 0xFFE69F00),
             (CorVisual.StrengthStrong, 0xFF0072B2),
-            (CorVisual.StrengthExcelent, 0xFFCC79A7),
+            (CorVisual.StrengthExcellent, 0xFFCC79A7),
             (CorVisual.CloseButtonHover, 0xFFD55E00),
             (CorVisual.CloseButtonPressed, 0xFFA64200),
             (CorVisual.StatusLocal, 0xFF0072B2),
@@ -305,7 +304,7 @@ namespace CofreDeSenhas
             (CorVisual.StrengthWeak, 0xFFD55E00),
             (CorVisual.StrengthMedium, 0xFFE69F00),
             (CorVisual.StrengthStrong, 0xFF56B4E9),
-            (CorVisual.StrengthExcelent, 0xFFCC79A7),
+            (CorVisual.StrengthExcellent, 0xFFCC79A7),
             (CorVisual.CloseButtonHover, 0xFFD55E00),
             (CorVisual.CloseButtonPressed, 0xFFA64200),
             (CorVisual.StatusLocal, 0xFF56B4E9),
@@ -339,7 +338,7 @@ namespace CofreDeSenhas
             (CorVisual.StrengthWeak, 0xFFD32F2F),
             (CorVisual.StrengthMedium, 0xFFE67E22),
             (CorVisual.StrengthStrong, 0xFF2E7D32),
-            (CorVisual.StrengthExcelent, 0xFF6A1B9A),
+            (CorVisual.StrengthExcellent, 0xFF6A1B9A),
             (CorVisual.CloseButtonHover, 0xFFD32F2F),
             (CorVisual.CloseButtonPressed, 0xFFA32121),
             (CorVisual.StatusLocal, 0xFF2E7D32),
@@ -373,7 +372,7 @@ namespace CofreDeSenhas
             (CorVisual.StrengthWeak, 0xFFE57373),
             (CorVisual.StrengthMedium, 0xFFE67E22),
             (CorVisual.StrengthStrong, 0xFF81C784),
-            (CorVisual.StrengthExcelent, 0xFFCE93D8),
+            (CorVisual.StrengthExcellent, 0xFFCE93D8),
             (CorVisual.CloseButtonHover, 0xFFD32F2F),
             (CorVisual.CloseButtonPressed, 0xFFA32121),
             (CorVisual.StatusLocal, 0xFF81C784),
@@ -407,7 +406,7 @@ namespace CofreDeSenhas
             (CorVisual.StrengthWeak, 0xFF1F2937),
             (CorVisual.StrengthMedium, 0xFF4B5563),
             (CorVisual.StrengthStrong, 0xFF6B7280),
-            (CorVisual.StrengthExcelent, 0xFF9CA3AF),
+            (CorVisual.StrengthExcellent, 0xFF9CA3AF),
             (CorVisual.CloseButtonHover, 0xFF374151),
             (CorVisual.CloseButtonPressed, 0xFF111827),
             (CorVisual.StatusLocal, 0xFF4B5563),
@@ -441,7 +440,7 @@ namespace CofreDeSenhas
             (CorVisual.StrengthWeak, 0xFFE5E7EB),
             (CorVisual.StrengthMedium, 0xFFC6CBD3),
             (CorVisual.StrengthStrong, 0xFFA5ADBA),
-            (CorVisual.StrengthExcelent, 0xFF7C8796),
+            (CorVisual.StrengthExcellent, 0xFF7C8796),
             (CorVisual.CloseButtonHover, 0xFFE5E7EB),
             (CorVisual.CloseButtonPressed, 0xFFFFFFFF),
             (CorVisual.StatusLocal, 0xFFA5ADBA),
@@ -626,12 +625,6 @@ namespace CofreDeSenhas
             if (leitorTela != null)
                 leitorTela.IsChecked = LeitorTela;
         }
-
-        public static Color StrengthWeak => Cor(CorVisual.StrengthWeak, Tema.ModoEscuro);
-        public static Color StrengthMedium => Cor(CorVisual.StrengthMedium, Tema.ModoEscuro);
-        public static Color StrengthStrong => Cor(CorVisual.StrengthStrong, Tema.ModoEscuro);
-        public static Color StrengthExcelent => Cor(CorVisual.StrengthExcelent, Tema.ModoEscuro);
-        public static Color FavoriteColor => Cor(CorVisual.FavoriteColor, Tema.ModoEscuro);
 
         public static Color TextoPrincipal(bool escuro) => Color.FromUInt32(escuro ? 0xFFFFFFFF : 0xFF000000);
         public static Color TextoSecundario(bool escuro) => Color.FromUInt32(escuro ? 0xFFE4E4E9 : 0xFF2B2B31);
