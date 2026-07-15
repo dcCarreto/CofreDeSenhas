@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using GerenciadorDeSenhas.Servicos;
 using Xunit;
 
@@ -157,6 +158,58 @@ public class AutenticacaoMestraTests : IDisposable
 
         Assert.Null(excecao);
         Assert.Null(_auth.Autenticar("SenhaMestra@123"));
+    }
+
+    [Fact]
+    public void PastaApp_RetornaPastaConfigurada()
+    {
+        Assert.Equal(_pasta, _auth.PastaApp);
+    }
+
+    [Fact]
+    public void CriarSenhaMestra_GravaComIteracoesAtuais_NaoPrecisaMigrar()
+    {
+        _auth.CriarSenhaMestra("SenhaMestra@123");
+
+        Assert.False(_auth.IteracoesDesatualizadas());
+    }
+
+    [Fact]
+    public void IteracoesDesatualizadas_SemArquivo_RetornaFalse()
+    {
+        Assert.False(_auth.IteracoesDesatualizadas());
+    }
+
+    [Fact]
+    public void IteracoesDesatualizadas_ComArquivoNoFormatoAntigoSemContagem_RetornaTrue()
+    {
+        EscreverAuthFormatoAntigo(_pasta, "SenhaMestra@123", 100_000);
+
+        Assert.True(_auth.IteracoesDesatualizadas());
+    }
+
+    [Fact]
+    public void Autenticar_ComArquivoNoFormatoAntigoSemContagem_UsaIteracoesLegadasEFunciona()
+    {
+        EscreverAuthFormatoAntigo(_pasta, "SenhaMestra@123", 100_000);
+
+        var chave = _auth.Autenticar("SenhaMestra@123");
+
+        Assert.NotNull(chave);
+        Assert.Equal(32, chave!.Length);
+    }
+
+    private static void EscreverAuthFormatoAntigo(string pasta, string senha, int iteracoesLegado)
+    {
+        var salt = RandomNumberGenerator.GetBytes(16);
+        var chave = Rfc2898DeriveBytes.Pbkdf2(senha, salt, iteracoesLegado, HashAlgorithmName.SHA256, 32);
+        var verificador = SHA256.HashData(chave);
+
+        var dados = new byte[16 + 32];
+        Buffer.BlockCopy(salt, 0, dados, 0, 16);
+        Buffer.BlockCopy(verificador, 0, dados, 16, 32);
+
+        File.WriteAllText(Path.Combine(pasta, "auth.dat"), Convert.ToBase64String(dados));
     }
 
     private static bool ContemSubsequencia(byte[] palheiro, byte[] agulha)

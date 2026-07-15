@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Globalization;
 using System.Net.Http;
+using System.Security.Cryptography;
 using System.Text;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
@@ -203,6 +204,10 @@ namespace CofreDeSenhas
             Timeout = TempoLimiteRequisicao
         };
 
+        private static readonly string PastaCacheDisco = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "GerenciadorSenhas", "icones");
+
         private static readonly ConcurrentDictionary<string, Bitmap> IconesProntos =
             new(StringComparer.OrdinalIgnoreCase);
 
@@ -244,6 +249,9 @@ namespace CofreDeSenhas
 
         public static async Task<Bitmap?> ObterBitmapAsync(IconeServico icone)
         {
+            if (!Preferencias.IconesOnline)
+                return null;
+
             string? dominio = NormalizarDominio(icone.Dominio);
             if (dominio == null)
                 return null;
@@ -258,7 +266,7 @@ namespace CofreDeSenhas
                 FalhasRecentes.TryRemove(dominio, out _);
             }
 
-            var download = DownloadsEmAndamento.GetOrAdd(dominio, BaixarBitmapAsync);
+            var download = DownloadsEmAndamento.GetOrAdd(dominio, CarregarOuBaixarAsync);
             try
             {
                 var bitmap = await download.ConfigureAwait(false);
@@ -280,8 +288,23 @@ namespace CofreDeSenhas
             }
         }
 
-        private static async Task<Bitmap?> BaixarBitmapAsync(string dominio)
+        public static void LimparCache()
         {
+            IconesProntos.Clear();
+            FalhasRecentes.Clear();
+            try
+            {
+                if (Directory.Exists(PastaCacheDisco))
+                    Directory.Delete(PastaCacheDisco, recursive: true);
+            }
+            catch { }
+        }
+
+        private static async Task<Bitmap?> CarregarOuBaixarAsync(string dominio)
+        {
+            if (LerDoDisco(dominio) is { } salvo)
+                return salvo;
+
             try
             {
                 string url = "https://www.google.com/s2/favicons?domain=" +
@@ -309,12 +332,46 @@ namespace CofreDeSenhas
                     return null;
 
                 memoria.Position = 0;
-                return new Bitmap(memoria);
+                var bitmap = new Bitmap(memoria);
+                GravarNoDisco(dominio, memoria.ToArray());
+                return bitmap;
             }
             catch
             {
                 return null;
             }
+        }
+
+        private static string CaminhoNoDisco(string dominio) =>
+            Path.Combine(PastaCacheDisco,
+                Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(dominio))) + ".png");
+
+        private static Bitmap? LerDoDisco(string dominio)
+        {
+            string caminho = CaminhoNoDisco(dominio);
+            try
+            {
+                if (!File.Exists(caminho))
+                    return null;
+
+                using var stream = File.OpenRead(caminho);
+                return new Bitmap(stream);
+            }
+            catch
+            {
+                try { File.Delete(caminho); } catch { }
+                return null;
+            }
+        }
+
+        private static void GravarNoDisco(string dominio, byte[] bytes)
+        {
+            try
+            {
+                Directory.CreateDirectory(PastaCacheDisco);
+                File.WriteAllBytes(CaminhoNoDisco(dominio), bytes);
+            }
+            catch { }
         }
 
         private static async Task<bool> CopiarLimitadoAsync(

@@ -212,8 +212,12 @@ há muito tempo, tudo localmente e sem enviar nada para fora:
   Brasil, inglês, espanhol, francês, alemão e italiano.
 - Layout do cofre com distribuição ajustada para priorizar a leitura do usuário,
   ícones de ação mais legíveis e distintivos de categoria compactos.
-- Banco visual de ícones por serviço, com favicons reais quando disponíveis e
-  fallback local por iniciais quando não há associação.
+- Banco visual de ícones por serviço, com fallback local por iniciais como
+  padrão. A busca de favicons reais na internet é opcional e desligada por
+  padrão: ao ativá-la no menu de configurações, o aplicativo pede consentimento
+  e envia apenas o domínio de cada serviço (nunca senhas, usuários ou outros
+  dados). Os ícones baixados ficam em cache no disco e o cache é apagado ao
+  desativar o recurso.
 - Ícone próprio no executável, na janela e na bandeja do sistema (onde o
   ambiente gráfico oferece suporte).
 - Mesma interface e comportamento no Windows e no Linux.
@@ -229,15 +233,17 @@ Windows Hello:
 | Item | Detalhe |
 |------|---------|
 | Criptografia do cofre | AES-256-GCM, garantindo confidencialidade e integridade/autenticidade |
-| Derivação de chave | PBKDF2-SHA256 com 100.000 iterações e salt aleatório de 128 bits |
+| Derivação de chave | PBKDF2-SHA256 com 600.000 iterações (patamar recomendado pela OWASP) e salt aleatório de 128 bits. Cofres criados com a contagem antiga (100.000) são migrados de forma transparente no próximo desbloqueio por senha mestra, com backup e rollback seguro |
 | Senha mestra | Nunca é armazenada. O arquivo de autenticação guarda apenas o salt e um verificador (hash SHA-256 da chave derivada) |
 | Exportação | AES-256-GCM com chave derivada por PBKDF2-SHA256 (200.000 iterações) a partir de uma senha de exportação separada |
 | Comparações sensíveis | Realizadas em tempo constante, evitando ataques de temporização |
 | Verificação de vazamento | Have I Been Pwned por k-anonymity: apenas os 5 primeiros caracteres do hash SHA-1 da senha deixam a máquina |
+| Ícones dos serviços | Fallback local por iniciais por padrão; a busca de favicons na internet é opcional, desligada por padrão e exige consentimento. Quando ativada, apenas o domínio de cada serviço é enviado ao serviço de ícones do Google (nunca senha, usuário ou nota), e os ícones ficam em cache no disco |
 | Códigos TOTP | A chave 2FA é guardada cifrada (AES-256-GCM) como a senha; os códigos são calculados localmente (RFC 6238) e nada é enviado à rede |
 | Histórico de senhas | Cada senha anterior é guardada cifrada (AES-256-GCM) como a senha atual e re-cifrada ao alterar a senha mestra; permanece somente no cofre e na exportação |
 | Cofre em banco de dados | Quando conectado a um banco externo, a coluna de senha guarda apenas o texto cifrado (AES-256-GCM); a senha do servidor de banco não é gravada em disco |
 | Windows Hello | Opcional no Windows. A chave do cofre é cifrada (AES-256-GCM) com uma chave derivada da assinatura de uma credencial do Windows Hello (chave privada no TPM); o envelope em `biometria.dat` só pode ser aberto após a autenticação biométrica |
+| Higiene de memória | A chave mestra e sua cópia interna são apagadas da memória (`CryptographicOperations.ZeroMemory`) ao bloquear ou fechar o cofre; o painel de detalhes e as linhas reveladas da lista não retêm a senha em texto claro além do necessário |
 | Local dos dados | Pasta do usuário (`%APPDATA%\GerenciadorSenhas\` no Windows, `~/.config/GerenciadorSenhas/` no Linux), fora do repositório |
 
 Observações importantes:
@@ -328,13 +334,19 @@ dados ou de serviços externos:
 Fluxo resumido da senha mestra:
 
 1. Na criação, é gerado um salt aleatório; a chave é derivada por PBKDF2-SHA256
-   (100.000 iterações) e dela se calcula um verificador SHA-256. Somente o salt e
-   o verificador são gravados em `auth.dat`. A chave nunca é persistida.
-2. Na abertura, a chave é derivada novamente a partir da senha informada e do
-   salt; o verificador é comparado em tempo constante. Se confere, a chave passa
-   a ser usada para descriptografar o cofre durante a sessão.
+   (600.000 iterações) e dela se calcula um verificador SHA-256. Somente o salt,
+   o verificador e a contagem de iterações são gravados em `auth.dat`. A chave
+   nunca é persistida.
+2. Na abertura, a chave é derivada novamente a partir da senha informada, do
+   salt e da contagem de iterações gravados; o verificador é comparado em tempo
+   constante. Se confere, a chave passa a ser usada para descriptografar o
+   cofre durante a sessão. Cofres criados com a contagem antiga (100.000) são
+   migrados nesse momento: a chave é re-derivada com a contagem atual e o cofre
+   inteiro é re-criptografado, com backup e rollback automáticos.
 3. Ao alterar a senha mestra, o cofre inteiro é descriptografado com a chave
    antiga e re-criptografado com a nova, com backup e rollback automáticos.
+4. Ao bloquear ou fechar o cofre, a chave mestra e sua cópia interna são
+   apagadas da memória.
 
 ## Tecnologias
 

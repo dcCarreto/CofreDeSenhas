@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using GerenciadorDeSenhas.Modelos;
 using GerenciadorDeSenhas.Repositorios;
 using GerenciadorDeSenhas.Servicos;
@@ -117,5 +118,77 @@ public class ServicoMudancaSenhaMestraTests : IDisposable
         var auth = new AutenticacaoMestra(_pasta);
         Assert.Null(auth.Autenticar("SenhaAntiga@123"));
         Assert.NotNull(auth.Autenticar("SenhaNova@456"));
+    }
+
+    [Fact]
+    public async Task AlterarAsync_RetornaAMesmaChaveQueAAutenticacaoPosterior()
+    {
+        await PrepararCofre("SenhaAntiga@123", ("Svc", "u", "Senha@Forte1"));
+
+        var chaveRetornada = await new ServicoMudancaSenhaMestra(_pasta)
+            .AlterarAsync("SenhaAntiga@123", "SenhaNova@456");
+
+        var chaveAutenticada = new AutenticacaoMestra(_pasta).Autenticar("SenhaNova@456");
+        Assert.Equal(chaveAutenticada, chaveRetornada);
+    }
+
+    [Fact]
+    public async Task MigrarIteracoesSeNecessarioAsync_ComCofreJaAtualizado_NaoAlteraNadaERetornaNull()
+    {
+        await PrepararCofre("SenhaAtual@123", ("Svc", "u", "Senha@Forte1"));
+
+        var resultado = await new ServicoMudancaSenhaMestra(_pasta)
+            .MigrarIteracoesSeNecessarioAsync("SenhaAtual@123");
+
+        Assert.Null(resultado);
+        Assert.NotNull(new AutenticacaoMestra(_pasta).Autenticar("SenhaAtual@123"));
+    }
+
+    [Fact]
+    public async Task MigrarIteracoesSeNecessarioAsync_ComCofreNoFormatoLegado_AtualizaIteracoesEPreservaSenhas()
+    {
+        var chaveLegada = PrepararCofreLegado(_pasta, "SenhaAtual@123", 100_000,
+            ("GitHub", "dev@git.com", "GitHub@Secreta1"));
+
+        Assert.True(new AutenticacaoMestra(_pasta).IteracoesDesatualizadas());
+
+        var novaChave = await new ServicoMudancaSenhaMestra(_pasta)
+            .MigrarIteracoesSeNecessarioAsync("SenhaAtual@123");
+
+        Assert.NotNull(novaChave);
+        Assert.NotEqual(chaveLegada, novaChave);
+        Assert.False(new AutenticacaoMestra(_pasta).IteracoesDesatualizadas());
+
+        var chaveReautenticada = new AutenticacaoMestra(_pasta).Autenticar("SenhaAtual@123");
+        Assert.Equal(novaChave, chaveReautenticada);
+
+        var crypto = new ServicoCriptografia(novaChave!);
+        var persist = new PersistenciaLocal(crypto, _pasta);
+        var senhas = await persist.CarregarSenhasAsync(novaChave!);
+        var git = Assert.Single(senhas);
+        Assert.Equal("GitHub@Secreta1", crypto.Descriptografar(git.SenhaHash));
+    }
+
+    private static byte[] PrepararCofreLegado(string pasta, string senhaMestra, int iteracoesLegado,
+        params (string nome, string usuario, string senha)[] itens)
+    {
+        var salt = RandomNumberGenerator.GetBytes(16);
+        var chave = Rfc2898DeriveBytes.Pbkdf2(senhaMestra, salt, iteracoesLegado, HashAlgorithmName.SHA256, 32);
+        var verificador = SHA256.HashData(chave);
+
+        var dados = new byte[16 + 32];
+        Buffer.BlockCopy(salt, 0, dados, 0, 16);
+        Buffer.BlockCopy(verificador, 0, dados, 16, 32);
+        File.WriteAllText(Path.Combine(pasta, "auth.dat"), Convert.ToBase64String(dados));
+
+        var crypto = new ServicoCriptografia(chave);
+        var persist = new PersistenciaLocal(crypto, pasta);
+        var repo = new RepositorioSenha(persist, chave);
+        var servico = new ServicoSenha(repo, crypto);
+        foreach (var (nome, usuario, senha) in itens)
+            servico.CriarSenhaAsync(nome, usuario, senha, Categoria.Personal).GetAwaiter().GetResult();
+        servico.PersistirAsync().GetAwaiter().GetResult();
+
+        return chave;
     }
 }

@@ -27,6 +27,7 @@ namespace CofreDeSenhas
             public double EscalaInterface { get; set; } = 1.0;
             public bool ReduzirAnimacoes { get; set; }
             public bool LeitorTela { get; set; }
+            public bool IconesOnline { get; set; }
         }
 
         private static readonly string _caminho = Path.Combine(
@@ -42,6 +43,7 @@ namespace CofreDeSenhas
         public static double EscalaInterface { get; set; } = 1.0;
         public static bool ReduzirAnimacoes { get; set; }
         public static bool LeitorTela { get; set; }
+        public static bool IconesOnline { get; set; }
 
         public static void Carregar()
         {
@@ -61,6 +63,7 @@ namespace CofreDeSenhas
                         EscalaInterface = d.EscalaInterface <= 0 ? 1.0 : d.EscalaInterface;
                         ReduzirAnimacoes = d.ReduzirAnimacoes;
                         LeitorTela = d.LeitorTela;
+                        IconesOnline = d.IconesOnline;
                     }
                 }
             }
@@ -73,7 +76,7 @@ namespace CofreDeSenhas
             {
                 var dir = Path.GetDirectoryName(_caminho)!;
                 if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
-                File.WriteAllText(_caminho, JsonSerializer.Serialize(new Dados { ModoEscuro = ModoEscuro, UltimoBanco = UltimoBanco, MinutosBloqueio = MinutosBloqueio, Idioma = Idioma, Daltonismo = Daltonismo, AltoContraste = AltoContraste, EscalaInterface = EscalaInterface, ReduzirAnimacoes = ReduzirAnimacoes, LeitorTela = LeitorTela }));
+                File.WriteAllText(_caminho, JsonSerializer.Serialize(new Dados { ModoEscuro = ModoEscuro, UltimoBanco = UltimoBanco, MinutosBloqueio = MinutosBloqueio, Idioma = Idioma, Daltonismo = Daltonismo, AltoContraste = AltoContraste, EscalaInterface = EscalaInterface, ReduzirAnimacoes = ReduzirAnimacoes, LeitorTela = LeitorTela, IconesOnline = IconesOnline }));
             }
             catch { }
         }

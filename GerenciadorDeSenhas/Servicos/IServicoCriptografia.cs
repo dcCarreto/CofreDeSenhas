@@ -4,5 +4,6 @@ namespace GerenciadorDeSenhas.Servicos
     {
         string Criptografar(string plaintext);
         string Descriptografar(string ciphertext);
+        void ZerarChave();
     }
 }

@@ -115,6 +115,30 @@ Repaginação completa da interface, preservando todas as funcionalidades:
   lugar de glifos de fonte, correção dos ícones do painel de detalhes e
   tradução das últimas cadeias fixas da janela principal nos seis idiomas.
 
+### Privacidade
+
+- Privacidade dos ícones de serviço: a busca de favicons reais passou a ser
+  opcional e desligada por padrão. Ao ativá-la no menu de configurações, o
+  aplicativo pede consentimento explícito e esclarece que apenas o domínio de
+  cada serviço é enviado ao serviço de ícones do Google. Enquanto desativada, o
+  cofre exibe somente as iniciais e não faz nenhuma requisição de rede. Os ícones
+  baixados ficam em cache no disco por domínio, e o cache é apagado ao desativar
+  o recurso. O fallback local por iniciais permanece como padrão.
+
+### Segurança
+
+- Fortalecimento da derivação de chave e higiene de memória: as iterações do
+  PBKDF2-SHA256 subiram de 100 mil para 600 mil (patamar recomendado pela
+  OWASP). Cofres criados com a contagem antiga são migrados de forma
+  transparente no próximo desbloqueio por senha mestra — sem ação do usuário
+  além de digitar a senha — reaproveitando a re-criptografia com backup e
+  rollback já usada na troca de senha mestra. Se o Windows Hello estiver
+  habilitado, ele é desativado nesse momento (o vínculo biométrico guarda a
+  chave antiga) e pode ser reativado em seguida. A chave mestra e sua cópia
+  interna são zeradas da memória (`CryptographicOperations.ZeroMemory`) ao
+  bloquear ou fechar o cofre, e o painel de detalhes e as linhas reveladas da
+  lista deixam de reter a senha em texto claro além do necessário.
+
 ## Em andamento
 
 ### Extensão de navegador
@@ -134,30 +158,6 @@ Em desenvolvimento no branch `feature/chromiumExt`:
 Ideias e melhorias consideradas para versões futuras, agrupadas por prioridade:
 
 ### Alta prioridade
-
-#### Privacidade dos ícones de serviço
-
-- Hoje os ícones reais são obtidos do serviço de favicons do Google, o que
-  envia o domínio de cada credencial exibida a um terceiro — comportamento em
-  tensão com a proposta de manter tudo local.
-- Tornar a busca de favicons opcional, com consentimento explícito (desligada
-  por padrão ou pergunta única no primeiro uso).
-- Guardar os ícones baixados em cache no disco para não repetir consultas a
-  cada sessão.
-- Manter o fallback local por iniciais como padrão permanente.
-- Documentar o comportamento no README.
-
-#### Fortalecimento da derivação de chave e higiene de memória
-
-- Elevar as iterações do PBKDF2-SHA256 (hoje 100 mil) para o patamar
-  recomendado atualmente (600 mil ou mais), ou avaliar migração para Argon2id.
-- Migrar cofres existentes de forma transparente no desbloqueio, sem ação do
-  usuário e com rollback seguro.
-- Zerar a chave mestra e suas cópias na memória ao bloquear ou fechar o cofre
-  (`CryptographicOperations.ZeroMemory`), como o fluxo de biometria já faz.
-- Revisar pontos da interface que retêm senhas em texto claro além do
-  necessário (painel de detalhes, linhas reveladas).
-- Cobrir a migração com testes.
 
 #### Limpeza automática da área de transferência
 
@@ -429,28 +429,26 @@ e de geometrias repetidas no code-behind do gerador.
 
 ## Ordem sugerida de execução
 
-1. Privacidade dos ícones de serviço.
-2. Fortalecimento da derivação de chave e higiene de memória.
-3. Limpeza automática da área de transferência.
-4. Backup automático local.
-5. Lixeira criptografada.
-6. Conclusão da extensão de navegador (em andamento).
-7. Instalador profissional para Windows.
-8. Relatório de segurança do cofre.
-9. Códigos de recuperação por credencial.
-10. Releases confiáveis e bem documentados.
-11. Empacotamento para Linux.
-12. Atalhos de teclado.
-13. Testes automatizados de interface.
-14. Modo privacidade.
-15. Histórico operacional da credencial.
-16. Aviso de nova versão.
-17. Anexos criptografados.
-18. Organização avançada com etiquetas.
-19. Templates de credenciais.
-20. Sincronização criptografada de ponta a ponta.
-21. macOS.
-22. Aplicativo móvel.
+1. Limpeza automática da área de transferência.
+2. Backup automático local.
+3. Lixeira criptografada.
+4. Conclusão da extensão de navegador (em andamento).
+5. Instalador profissional para Windows.
+6. Relatório de segurança do cofre.
+7. Códigos de recuperação por credencial.
+8. Releases confiáveis e bem documentados.
+9. Empacotamento para Linux.
+10. Atalhos de teclado.
+11. Testes automatizados de interface.
+12. Modo privacidade.
+13. Histórico operacional da credencial.
+14. Aviso de nova versão.
+15. Anexos criptografados.
+16. Organização avançada com etiquetas.
+17. Templates de credenciais.
+18. Sincronização criptografada de ponta a ponta.
+19. macOS.
+20. Aplicativo móvel.
 
 ## Como sugerir
 

@@ -6,7 +6,30 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+### Adicionado
+- Busca de ícones reais dos serviços (favicons) agora é opcional e desligada por
+  padrão. Ao ativá-la no menu de configurações, o aplicativo pede consentimento
+  explícito e esclarece que apenas o domínio de cada serviço é enviado ao serviço
+  de ícones do Google, sem senhas, usuários ou outros dados. Enquanto desativada,
+  o cofre exibe somente as iniciais e não faz nenhuma requisição de rede.
+
+### Segurança
+- As iterações do PBKDF2-SHA256 usadas para derivar a chave a partir da senha
+  mestra subiram de 100 mil para 600 mil (patamar recomendado pela OWASP).
+  Cofres criados com a contagem antiga são migrados de forma transparente no
+  próximo desbloqueio por senha mestra, com backup e rollback seguro, sem ação
+  extra do usuário. Se o Windows Hello estiver habilitado, ele é desativado
+  automaticamente nesse momento (o vínculo biométrico antigo perde a validade)
+  e pode ser reativado logo em seguida.
+- A chave mestra e sua cópia interna são apagadas da memória
+  (`CryptographicOperations.ZeroMemory`) ao bloquear ou fechar o cofre.
+- O painel de detalhes e as linhas reveladas da lista deixam de reter a senha
+  em texto claro além do tempo necessário: fechar o painel ou bloquear o cofre
+  limpa qualquer senha exibida.
+
 ### Alterado
+- Ícones baixados passam a ser guardados em cache no disco (por domínio), evitando
+  novas consultas a cada sessão. Ao desativar a busca online, o cache é apagado.
 - Nova identidade visual em toda a aplicação, preservando as funcionalidades:
   paleta e tokens de cor revisados nos temas claro e escuro, tipografia Plus
   Jakarta Sans (com Inter de reserva), escala tipográfica e raios/sombras

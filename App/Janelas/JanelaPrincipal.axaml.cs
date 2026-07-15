@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Security.Cryptography;
 using Avalonia;
 using Avalonia.Animation;
 using Avalonia.Animation.Easings;
@@ -108,6 +109,7 @@ namespace CofreDeSenhas.Janelas
                 MarcarAcessibilidadeSelecionada();
                 ConfigurarAcessibilidadeLeitorTela();
                 AtualizarMenuBiometria();
+                MenuIconesOnline.IsChecked = Preferencias.IconesOnline;
             };
             Idioma.Alterado += IdiomaGlobal_Alterado;
             Acessibilidade.Alterado += Acessibilidade_Alterado;
@@ -116,6 +118,11 @@ namespace CofreDeSenhas.Janelas
                 _monitor.Encerrar();
                 Idioma.Alterado -= IdiomaGlobal_Alterado;
                 Acessibilidade.Alterado -= Acessibilidade_Alterado;
+                FecharDetalhes();
+                foreach (var linha in _linhasSenha)
+                    linha.EsconderSenhaSeRevelada();
+                CryptographicOperations.ZeroMemory(_chaveMestra);
+                _criptografia?.ZerarChave();
             };
 
             Opened += async (s, e) =>
@@ -413,6 +420,35 @@ namespace CofreDeSenhas.Janelas
         {
             if (sender is MenuItem item)
                 Acessibilidade.SelecionarReducaoMovimento(item.IsChecked);
+        }
+
+        private async void IconesOnline_Alterado(object? sender, RoutedEventArgs e)
+        {
+            if (sender is not MenuItem item)
+                return;
+
+            if (item.IsChecked)
+            {
+                var aceitou = await CaixaMensagem.ConfirmarAsync(this,
+                    Idioma.Texto("Icons.ConsentMessage"),
+                    Idioma.Texto("Settings.OnlineIcons"),
+                    TipoMensagem.Info);
+                if (!aceitou)
+                {
+                    item.IsChecked = false;
+                    return;
+                }
+
+                Preferencias.IconesOnline = true;
+            }
+            else
+            {
+                Preferencias.IconesOnline = false;
+                IconesServico.LimparCache();
+            }
+
+            Preferencias.Salvar();
+            FiltrarSenhas();
         }
 
         private void LeitorTela_Alterado(object? sender, RoutedEventArgs e)
@@ -944,6 +980,7 @@ namespace CofreDeSenhas.Janelas
             _senhaDetalhe = null;
             _senhaDetalhePlain = "";
             _senhaDetalheVisivel = false;
+            TxtDetalheSenha.Text = "";
         }
 
         private async void ExcluirDetalhes_Click(object? sender, RoutedEventArgs e)

@@ -106,6 +106,9 @@
                       <MenuItem Name="MenuReduzirAnimacoes" Header="{DynamicResource Access.ReduceMotion}" ToggleType="CheckBox" Click="ReduzirAnimacoes_Alterado" />
                       <MenuItem Name="MenuLeitorTela" Header="{DynamicResource Access.ScreenReader}" ToggleType="CheckBox" Click="LeitorTela_Alterado" />
                     </MenuItem>
+                    <MenuItem Name="MenuIconesOnline" Header="{DynamicResource Settings.OnlineIcons}"
+                              ToggleType="CheckBox" Click="IconesOnline_Alterado"
+                              ToolTip.Tip="{DynamicResource Settings.OnlineIconsTooltip}" />
                     <Separator />
                     <MenuItem Header="{DynamicResource Settings.ImportCsv}" Click="ImportarCsv_Click">
                       <MenuItem.Icon>

@@ -224,7 +224,8 @@ namespace CofreDeSenhas.Janelas
                 var chave = _auth.Autenticar(senha);
                 if (chave != null)
                 {
-                    _aoAutenticar(chave);
+                    var chaveMigrada = await MigrarIteracoesSeNecessarioAsync(senha);
+                    _aoAutenticar(chaveMigrada ?? chave);
                     return;
                 }
 
@@ -250,6 +251,32 @@ namespace CofreDeSenhas.Janelas
 
                 TxtSenha.SelectAll();
                 TxtSenha.Focus();
+            }
+        }
+
+        private async Task<byte[]?> MigrarIteracoesSeNecessarioAsync(string senha)
+        {
+            try
+            {
+                var novaChave = await new ServicoMudancaSenhaMestra(_auth.PastaApp)
+                    .MigrarIteracoesSeNecessarioAsync(senha);
+                if (novaChave == null)
+                    return null;
+
+                if (_biometria.EstaHabilitado)
+                {
+                    await _biometria.DesabilitarAsync();
+                    await CaixaMensagem.MostrarAsync(this,
+                        Idioma.Texto("Biometric.DisabledAfterKdfUpgrade"),
+                        Idioma.Texto("Biometric.Title"),
+                        TipoMensagem.Info);
+                }
+
+                return novaChave;
+            }
+            catch
+            {
+                return null;
             }
         }
 

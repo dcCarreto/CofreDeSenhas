@@ -795,28 +795,47 @@ namespace CofreDeSenhas.Controles
             _revelada = !_revelada;
             if (_revelada)
             {
-                _lblUsuario.Text = _obterSenhaPlain(_senha) ?? "••••••••";
-                _lblUsuario.FontFamily = (FontFamily)Application.Current!.FindResource("FonteMono")!;
-                _lblUsuario.FontWeight = FontWeight.Bold;
-                _lblUsuario.Foreground = Tema.Pincel(Tema.AccentPrimary);
-                DefinirIcone(_btnOlho, Icone("IconeOcultar"));
-                ToolTip.SetTip(_btnOlho, Idioma.Texto("Row.HidePassword"));
-                AutomationProperties.SetName(_btnOlho, Idioma.Texto("Row.HidePassword"));
-                AutomationProperties.SetName(_lblUsuario, Idioma.Texto("A11y.PasswordVisible"));
+                MostrarSenhaRevelada();
                 Acessibilidade.Anunciar(this, Idioma.Texto("A11y.PasswordVisible"));
             }
             else
             {
-                _lblUsuario.Text = _senha.Usuario;
-                _lblUsuario.ClearValue(TextBlock.FontFamilyProperty);
-                _lblUsuario.FontWeight = FontWeight.Normal;
-                _lblUsuario.Foreground = Tema.Pincel(Tema.TextSecondary);
-                DefinirIcone(_btnOlho, Icone("IconeRevelar"));
-                ToolTip.SetTip(_btnOlho, Idioma.Texto("Row.RevealPassword"));
-                AutomationProperties.SetName(_btnOlho, Idioma.Texto("Row.RevealPassword"));
-                AutomationProperties.SetName(_lblUsuario, $"{_senha.Usuario} — {Idioma.Texto("Row.CopyUser")}");
+                RestaurarUsuarioOculto();
                 Acessibilidade.Anunciar(this, Idioma.Texto("A11y.PasswordHidden"));
             }
+        }
+
+        public void EsconderSenhaSeRevelada()
+        {
+            if (!_revelada)
+                return;
+
+            _revelada = false;
+            RestaurarUsuarioOculto();
+        }
+
+        private void MostrarSenhaRevelada()
+        {
+            _lblUsuario.Text = _obterSenhaPlain(_senha) ?? "••••••••";
+            _lblUsuario.FontFamily = (FontFamily)Application.Current!.FindResource("FonteMono")!;
+            _lblUsuario.FontWeight = FontWeight.Bold;
+            _lblUsuario.Foreground = Tema.Pincel(Tema.AccentPrimary);
+            DefinirIcone(_btnOlho, Icone("IconeOcultar"));
+            ToolTip.SetTip(_btnOlho, Idioma.Texto("Row.HidePassword"));
+            AutomationProperties.SetName(_btnOlho, Idioma.Texto("Row.HidePassword"));
+            AutomationProperties.SetName(_lblUsuario, Idioma.Texto("A11y.PasswordVisible"));
+        }
+
+        private void RestaurarUsuarioOculto()
+        {
+            _lblUsuario.Text = _senha.Usuario;
+            _lblUsuario.ClearValue(TextBlock.FontFamilyProperty);
+            _lblUsuario.FontWeight = FontWeight.Normal;
+            _lblUsuario.Foreground = Tema.Pincel(Tema.TextSecondary);
+            DefinirIcone(_btnOlho, Icone("IconeRevelar"));
+            ToolTip.SetTip(_btnOlho, Idioma.Texto("Row.RevealPassword"));
+            AutomationProperties.SetName(_btnOlho, Idioma.Texto("Row.RevealPassword"));
+            AutomationProperties.SetName(_lblUsuario, $"{_senha.Usuario} — {Idioma.Texto("Row.CopyUser")}");
         }
 
         private async Task CopiarAsync()
@@ -910,19 +929,11 @@ namespace CofreDeSenhas.Controles
         {
             if (_revelada)
             {
-                _lblUsuario.Text = _obterSenhaPlain(_senha) ?? "••••••••";
-                _lblUsuario.FontFamily = (FontFamily)Application.Current!.FindResource("FonteMono")!;
-                _lblUsuario.FontWeight = FontWeight.Bold;
-                _lblUsuario.Foreground = Tema.Pincel(Tema.AccentPrimary);
-                AutomationProperties.SetName(_lblUsuario, Idioma.Texto("A11y.PasswordVisible"));
+                MostrarSenhaRevelada();
                 return;
             }
 
-            _lblUsuario.Text = _senha.Usuario;
-            _lblUsuario.ClearValue(TextBlock.FontFamilyProperty);
-            _lblUsuario.FontWeight = FontWeight.Normal;
-            _lblUsuario.Foreground = Tema.Pincel(Tema.TextSecondary);
-            AutomationProperties.SetName(_lblUsuario, $"{_senha.Usuario} — {Idioma.Texto("Row.CopyUser")}");
+            RestaurarUsuarioOculto();
         }
 
         public static Color CorAvatar(string nome)

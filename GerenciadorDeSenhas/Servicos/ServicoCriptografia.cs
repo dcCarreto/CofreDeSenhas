@@ -58,5 +58,7 @@ namespace GerenciadorDeSenhas.Servicos
 
             return Encoding.UTF8.GetString(plaintext);
         }
+
+        public void ZerarChave() => CryptographicOperations.ZeroMemory(_chave);
     }
 }

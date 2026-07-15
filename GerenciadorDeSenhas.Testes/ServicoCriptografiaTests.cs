@@ -70,4 +70,14 @@ public class ServicoCriptografiaTests
 
         Assert.Equal(original, decrypted);
     }
+
+    [Fact]
+    public void ZerarChave_AposChamada_TornaOperacoesSeguintesInvalidas()
+    {
+        var cifrado = _servico.Criptografar("dados sensíveis");
+
+        _servico.ZerarChave();
+
+        Assert.ThrowsAny<CryptographicException>(() => _servico.Descriptografar(cifrado));
+    }
 }

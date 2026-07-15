@@ -18,7 +18,15 @@ namespace GerenciadorDeSenhas.Servicos
                 "GerenciadorSenhas");
         }
 
-        public async Task AlterarAsync(string senhaAtual, string novaSenha)
+        public async Task<byte[]?> MigrarIteracoesSeNecessarioAsync(string senhaAtual)
+        {
+            if (!new AutenticacaoMestra(_pastaApp).IteracoesDesatualizadas())
+                return null;
+
+            return await AlterarAsync(senhaAtual, senhaAtual);
+        }
+
+        public async Task<byte[]> AlterarAsync(string senhaAtual, string novaSenha)
         {
             if (string.IsNullOrWhiteSpace(novaSenha) || novaSenha.Length < 8)
                 throw new ArgumentException("A nova senha mestra deve ter pelo menos 8 caracteres.");
@@ -65,6 +73,7 @@ namespace GerenciadorDeSenhas.Servicos
                         .ToList();
                 }
                 await persistNovo.SalvarSenhasAsync(senhas, chaveNova);
+                return chaveNova;
             }
             catch
             {
