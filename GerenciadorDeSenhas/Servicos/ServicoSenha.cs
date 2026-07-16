@@ -1,4 +1,3 @@
-using System.Text.RegularExpressions;
 using GerenciadorDeSenhas.Modelos;
 using GerenciadorDeSenhas.Repositorios;
 
@@ -122,50 +121,9 @@ namespace GerenciadorDeSenhas.Servicos
             await _repositorio.RemoverAsync(id);
         }
 
-        public async Task<Senha?> ObterSenhaAsync(Guid id)
-        {
-            return await _repositorio.ObterPorIdAsync(id);
-        }
-
         public async Task<List<Senha>> ListarTodosAsync()
         {
             return await _repositorio.ListarTodosAsync();
-        }
-
-        public async Task<List<Senha>> BuscarPorServicoAsync(string nomeServico)
-        {
-            if (string.IsNullOrWhiteSpace(nomeServico))
-                throw new ArgumentException("Nome do serviço não pode ser vazio");
-
-            return await _repositorio.BuscarPorServicoAsync(nomeServico);
-        }
-
-        public async Task<List<Senha>> ListarPorCategoriaAsync(Categoria categoria)
-        {
-            return await _repositorio.BuscarPorCategoriaAsync(categoria);
-        }
-
-        public async Task<List<Senha>> ListarPorEtiquetaAsync(string etiqueta)
-        {
-            if (string.IsNullOrWhiteSpace(etiqueta))
-                throw new ArgumentException("A etiqueta não pode ser vazia");
-
-            var alvo = etiqueta.Trim();
-            var todas = await _repositorio.ListarTodosAsync();
-            return todas
-                .Where(s => s.Etiquetas.Any(e => string.Equals(e, alvo, StringComparison.OrdinalIgnoreCase)))
-                .ToList();
-        }
-
-        public async Task<List<string>> ListarEtiquetasAsync()
-        {
-            var todas = await _repositorio.ListarTodosAsync();
-            return Etiquetas.Distintas(todas);
-        }
-
-        public async Task<List<Senha>> ListarFavoritosAsync()
-        {
-            return await _repositorio.ListarFavoritosAsync();
         }
 
         public async Task MarcarComoFavoritoAsync(Guid id)
@@ -193,34 +151,6 @@ namespace GerenciadorDeSenhas.Servicos
         public async Task PersistirAsync()
         {
             await _repositorio.SalvarAsync();
-        }
-
-        public bool ValidarForteSenha(string senha)
-        {
-            if (string.IsNullOrWhiteSpace(senha))
-                return false;
-
-            if (senha.Length < 12)
-                return false;
-
-            if (!Regex.IsMatch(senha, @"[A-Z]"))
-                return false;
-
-            if (!Regex.IsMatch(senha, @"[a-z]"))
-                return false;
-
-            if (!Regex.IsMatch(senha, @"\d"))
-                return false;
-
-            if (!Regex.IsMatch(senha, @"[!@#$%^&*()_+\-=\[\]{};':""\|,.<>\/?]"))
-                return false;
-
-            return true;
-        }
-
-        public int ContarSenhas()
-        {
-            return _repositorio.ContarAsync().Result;
         }
 
         private static void ValidarEntrada(string nomeServico, string usuario, string senhaPlaintext)

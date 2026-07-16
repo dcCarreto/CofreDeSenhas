@@ -936,11 +936,6 @@ namespace CofreDeSenhas.Controles
             RestaurarUsuarioOculto();
         }
 
-        public static Color CorAvatar(string nome)
-        {
-            return IconesServico.CorFallback(nome);
-        }
-
         private static string TextoResumoEtiquetas(IReadOnlyList<string> etiquetas)
         {
             if (etiquetas.Count == 0)

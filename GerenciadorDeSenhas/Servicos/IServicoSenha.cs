@@ -16,28 +16,12 @@ namespace GerenciadorDeSenhas.Servicos
 
         Task RemoverSenhaAsync(Guid id);
 
-        Task<Senha?> ObterSenhaAsync(Guid id);
-
         Task<List<Senha>> ListarTodosAsync();
-
-        Task<List<Senha>> BuscarPorServicoAsync(string nomeServico);
-
-        Task<List<Senha>> ListarPorCategoriaAsync(Categoria categoria);
-
-        Task<List<Senha>> ListarPorEtiquetaAsync(string etiqueta);
-
-        Task<List<string>> ListarEtiquetasAsync();
-
-        Task<List<Senha>> ListarFavoritosAsync();
 
         Task MarcarComoFavoritoAsync(Guid id);
 
         Task RemoverDeFavoritoAsync(Guid id);
 
         Task PersistirAsync();
-
-        bool ValidarForteSenha(string senha);
-
-        int ContarSenhas();
     }
 }

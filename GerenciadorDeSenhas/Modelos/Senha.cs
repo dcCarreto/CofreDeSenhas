@@ -21,9 +21,6 @@ namespace GerenciadorDeSenhas.Modelos
 
         public bool Favorito { get; set; }
 
-        public byte[] IV { get; set; } = new byte[12];
-        public byte[] AuthTag { get; set; } = new byte[16];
-
         public DateTime DataCriacao { get; set; } = DateTime.UtcNow;
         public DateTime DataAtualizacao { get; set; } = DateTime.UtcNow;
     }

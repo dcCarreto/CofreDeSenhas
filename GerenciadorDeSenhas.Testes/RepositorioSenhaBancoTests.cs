@@ -40,7 +40,7 @@ public class RepositorioSenhaBancoTests : IDisposable
         var repo = new RepositorioSenhaBanco(_cfg);
         await repo.AdicionarAsync(NovaSenha("gmail.com", "user@gmail.com", "segredo"));
 
-        Assert.Equal(1, await repo.ContarAsync());
+        Assert.Single(await repo.ListarTodosAsync());
     }
 
     [Fact]
@@ -113,24 +113,11 @@ public class RepositorioSenhaBancoTests : IDisposable
 
         await repo.RemoverAsync(senha.Id);
 
-        Assert.Equal(0, await repo.ContarAsync());
+        Assert.Empty(await repo.ListarTodosAsync());
         Assert.Empty(await new RepositorioSenhaBanco(_cfg).ListarTodosAsync());
 
         Assert.Equal(1, await ContarLinhas("SELECT COUNT(*) FROM CofreDeSenhas"));
         Assert.Equal(1, await ContarLinhas("SELECT COUNT(*) FROM CofreDeSenhas WHERE excluido = 1"));
-    }
-
-    [Fact]
-    public async Task BuscarPorServico_EncontraPorDominio()
-    {
-        var repo = new RepositorioSenhaBanco(_cfg);
-        await repo.AdicionarAsync(NovaSenha("Netflix", "a", "1"));
-        await repo.AdicionarAsync(NovaSenha("Spotify", "b", "2"));
-
-        var achados = await repo.BuscarPorServicoAsync("flix");
-
-        Assert.Single(achados);
-        Assert.Equal("Netflix", achados[0].NomeServico);
     }
 
     [Fact]

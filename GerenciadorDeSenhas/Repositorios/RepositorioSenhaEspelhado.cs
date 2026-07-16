@@ -77,30 +77,6 @@ namespace GerenciadorDeSenhas.Repositorios
             return await _local.ListarTodosAsync();
         }
 
-        public async Task<List<Senha>> BuscarPorCategoriaAsync(Categoria categoria)
-        {
-            await SincronizarAsync();
-            return await _local.BuscarPorCategoriaAsync(categoria);
-        }
-
-        public async Task<List<Senha>> BuscarPorServicoAsync(string nomeServico)
-        {
-            await SincronizarAsync();
-            return await _local.BuscarPorServicoAsync(nomeServico);
-        }
-
-        public async Task<List<Senha>> ListarFavoritosAsync()
-        {
-            await SincronizarAsync();
-            return await _local.ListarFavoritosAsync();
-        }
-
-        public async Task<int> ContarAsync()
-        {
-            await SincronizarAsync();
-            return await _local.ContarAsync();
-        }
-
         public async Task SalvarAsync()
         {
             await SincronizarAsync();

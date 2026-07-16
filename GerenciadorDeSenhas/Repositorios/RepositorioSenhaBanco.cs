@@ -152,34 +152,6 @@ namespace GerenciadorDeSenhas.Repositorios
             return _senhas.ToList();
         }
 
-        public async Task<List<Senha>> BuscarPorCategoriaAsync(Categoria categoria)
-        {
-            await CarregarSeNecessarioAsync();
-            return _senhas.Where(s => s.Categoria == categoria).ToList();
-        }
-
-        public async Task<List<Senha>> BuscarPorServicoAsync(string nomeServico)
-        {
-            if (string.IsNullOrWhiteSpace(nomeServico))
-                throw new ArgumentException("Nome do serviço não pode ser vazio");
-
-            await CarregarSeNecessarioAsync();
-            return _senhas.Where(s =>
-                s.NomeServico.Contains(nomeServico, StringComparison.OrdinalIgnoreCase)).ToList();
-        }
-
-        public async Task<List<Senha>> ListarFavoritosAsync()
-        {
-            await CarregarSeNecessarioAsync();
-            return _senhas.Where(s => s.Favorito).ToList();
-        }
-
-        public async Task<int> ContarAsync()
-        {
-            await CarregarSeNecessarioAsync();
-            return _senhas.Count;
-        }
-
         public Task SalvarAsync() => Task.CompletedTask;
 
         public async Task GravarPorChaveAsync(Senha senha)

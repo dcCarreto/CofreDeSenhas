@@ -366,7 +366,12 @@ Dívida técnica que não muda funcionalidades, mas reduz o custo de evoluir:
 
 Já executado desta lista: remoção dos apelidos duplicados de recursos (as duas
 grafias do token de força "excelente"), de chaves de tradução e ícones sem uso
-e de geometrias repetidas no code-behind do gerador.
+e de geometrias repetidas no code-behind do gerador. Nova rodada de limpeza:
+eliminação de chaves de tradução órfãs, cores não referenciadas em `Tema.cs`,
+campos vestigiais do modelo de credencial (`IV`/`AuthTag` de um esquema de
+criptografia anterior) e de uma camada inteira de métodos de busca/contagem em
+`IRepositorioSenha`/`IServicoSenha` que nunca chegou a ser usada pela interface
+(a lista filtra tudo em memória) e só existia para os próprios testes.
 
 #### Templates de credenciais
 

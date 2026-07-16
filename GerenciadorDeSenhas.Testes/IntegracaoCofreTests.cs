@@ -87,7 +87,7 @@ public class IntegracaoCofreTests : IDisposable
         await servico1.PersistirAsync();
 
         var (servico2, cripto2) = MontarCofre(chave);
-        var recarregada = await servico2.ObterSenhaAsync(s.Id);
+        var recarregada = (await servico2.ListarTodosAsync()).FirstOrDefault(x => x.Id == s.Id);
 
         Assert.NotNull(recarregada);
         Assert.True(recarregada!.Favorito);
@@ -118,7 +118,7 @@ public class IntegracaoCofreTests : IDisposable
     }
 
     [Fact]
-    public async Task BuscaEFiltros_AposRecarregar_FuncionamCorretamente()
+    public async Task ListarTodosAsync_AposRecarregar_RetornaTodasAsSenhas()
     {
         var chave = NovaChave();
 
@@ -131,7 +131,5 @@ public class IntegracaoCofreTests : IDisposable
         var (servico2, _) = MontarCofre(chave);
 
         Assert.Equal(3, (await servico2.ListarTodosAsync()).Count);
-        Assert.Equal(2, (await servico2.BuscarPorServicoAsync("gmail")).Count);
-        Assert.Equal(2, (await servico2.ListarPorCategoriaAsync(Categoria.Work)).Count);
     }
 }

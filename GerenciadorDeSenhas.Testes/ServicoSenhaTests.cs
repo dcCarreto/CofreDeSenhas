@@ -42,6 +42,9 @@ public class ServicoSenhaTests : IDisposable
         }
     }
 
+    private async Task<Senha?> ObterAsync(Guid id) =>
+        (await _servico.ListarTodosAsync()).FirstOrDefault(s => s.Id == id);
+
     [Fact]
     public async Task CriarSenhaAsync_ComDadosValidos_CriaSenhaEncriptada()
     {
@@ -68,7 +71,7 @@ public class ServicoSenhaTests : IDisposable
             senha.Id, "Gmail", "novo@gmail.com", "NovaSenha@789",
             Categoria.Personal);
 
-        var atualizada = await _servico.ObterSenhaAsync(senha.Id);
+        var atualizada = await ObterAsync(senha.Id);
 
         Assert.NotNull(atualizada);
         Assert.Equal("novo@gmail.com", atualizada.Usuario);
@@ -81,22 +84,9 @@ public class ServicoSenhaTests : IDisposable
             "GitHub", "dev@github.com", "GitHubSenha@123", Categoria.Work);
 
         await _servico.RemoverSenhaAsync(senha.Id);
-        var removida = await _servico.ObterSenhaAsync(senha.Id);
+        var removida = await ObterAsync(senha.Id);
 
         Assert.Null(removida);
-    }
-
-    [Fact]
-    public async Task ObterSenhaAsync_ComIdExistente_RetornaSenha()
-    {
-        var criada = await _servico.CriarSenhaAsync(
-            "AWS", "admin@aws.com", "AwsSenha@123", Categoria.Finance);
-
-        var obtida = await _servico.ObterSenhaAsync(criada.Id);
-
-        Assert.NotNull(obtida);
-        Assert.Equal(criada.Id, obtida.Id);
-        Assert.Equal("AWS", obtida.NomeServico);
     }
 
     [Fact]
@@ -112,57 +102,13 @@ public class ServicoSenhaTests : IDisposable
     }
 
     [Fact]
-    public async Task BuscarPorServicoAsync_ComNomeServico_RetornaBuscaInsensitiva()
-    {
-        await _servico.CriarSenhaAsync("Gmail", "user@gmail.com", "Senha@123456", Categoria.Personal);
-        await _servico.CriarSenhaAsync("Gmail Business", "business@gmail.com", "Business@123", Categoria.Work);
-
-        var resultado = await _servico.BuscarPorServicoAsync("gmail");
-
-        Assert.Equal(2, resultado.Count);
-    }
-
-    [Fact]
-    public async Task ListarPorCategoriaAsync_RetornaApenasCategoriaSolicitada()
-    {
-        await _servico.CriarSenhaAsync("Gmail", "user@gmail.com", "Senha@123456", Categoria.Personal);
-        await _servico.CriarSenhaAsync("GitHub", "dev@github.com", "GitHubSenha@123", Categoria.Work);
-
-        var work = await _servico.ListarPorCategoriaAsync(Categoria.Work);
-
-        Assert.Single(work);
-        Assert.Equal("GitHub", work[0].NomeServico);
-    }
-
-    [Fact]
-    public async Task CriarSenhaAsync_ComEtiquetas_NormalizaEListaPorEtiqueta()
+    public async Task CriarSenhaAsync_ComEtiquetas_Normaliza()
     {
         var senha = await _servico.CriarSenhaAsync(
             "Portal Cliente", "cliente@example.com", "Senha@123456",
             Categoria.Work, etiquetas: new[] { " Clientes ", "Projetos", "clientes", "" });
 
         Assert.Equal(new[] { "Clientes", "Projetos" }, senha.Etiquetas);
-
-        var porEtiqueta = await _servico.ListarPorEtiquetaAsync("clientes");
-
-        var encontrada = Assert.Single(porEtiqueta);
-        Assert.Equal("Portal Cliente", encontrada.NomeServico);
-    }
-
-    [Fact]
-    public async Task ListarEtiquetasAsync_RetornaEtiquetasDistintas()
-    {
-        await _servico.CriarSenhaAsync("Gmail", "user@gmail.com", "Senha@123456",
-            Categoria.Personal, etiquetas: new[] { "Pessoal", "Email" });
-        await _servico.CriarSenhaAsync("GitHub", "dev@github.com", "GitHubSenha@123",
-            Categoria.Work, etiquetas: new[] { "Dev", "email" });
-
-        var etiquetas = await _servico.ListarEtiquetasAsync();
-
-        Assert.Equal(3, etiquetas.Count);
-        Assert.Contains("Pessoal", etiquetas);
-        Assert.Contains("Email", etiquetas);
-        Assert.Contains("Dev", etiquetas);
     }
 
     [Fact]
@@ -175,7 +121,7 @@ public class ServicoSenhaTests : IDisposable
         await _servico.AtualizarSenhaAsync(
             senha.Id, "Gmail", "novo@gmail.com", "NovaSenha@789", Categoria.Personal);
 
-        var atualizada = await _servico.ObterSenhaAsync(senha.Id);
+        var atualizada = await ObterAsync(senha.Id);
 
         Assert.Equal(new[] { "Pessoal", "Email" }, atualizada!.Etiquetas);
     }
@@ -191,23 +137,9 @@ public class ServicoSenhaTests : IDisposable
             senha.Id, "Gmail", "novo@gmail.com", "NovaSenha@789",
             Categoria.Personal, etiquetas: Array.Empty<string>());
 
-        var atualizada = await _servico.ObterSenhaAsync(senha.Id);
+        var atualizada = await ObterAsync(senha.Id);
 
         Assert.Empty(atualizada!.Etiquetas);
-    }
-
-    [Fact]
-    public async Task ListarFavoritosAsync_RetornaApenasMarkedFavorites()
-    {
-        var senha1 = await _servico.CriarSenhaAsync("Gmail", "user@gmail.com", "Senha@123456", Categoria.Personal);
-        var senha2 = await _servico.CriarSenhaAsync("GitHub", "dev@github.com", "GitHubSenha@123", Categoria.Work);
-
-        await _servico.MarcarComoFavoritoAsync(senha1.Id);
-
-        var favoritos = await _servico.ListarFavoritosAsync();
-
-        Assert.Single(favoritos);
-        Assert.Equal("Gmail", favoritos[0].NomeServico);
     }
 
     [Fact]
@@ -216,7 +148,7 @@ public class ServicoSenhaTests : IDisposable
         var senha = await _servico.CriarSenhaAsync("Gmail", "user@gmail.com", "Senha@123456", Categoria.Personal);
 
         await _servico.MarcarComoFavoritoAsync(senha.Id);
-        var atualizada = await _servico.ObterSenhaAsync(senha.Id);
+        var atualizada = await ObterAsync(senha.Id);
 
         Assert.True(atualizada?.Favorito);
     }
@@ -228,7 +160,7 @@ public class ServicoSenhaTests : IDisposable
         await _servico.MarcarComoFavoritoAsync(senha.Id);
 
         await _servico.RemoverDeFavoritoAsync(senha.Id);
-        var atualizada = await _servico.ObterSenhaAsync(senha.Id);
+        var atualizada = await ObterAsync(senha.Id);
 
         Assert.False(atualizada?.Favorito);
     }
@@ -242,37 +174,6 @@ public class ServicoSenhaTests : IDisposable
 
         var caminhoSenhas = Path.Combine(_pastaTemp, "senhas.json.enc");
         Assert.True(File.Exists(caminhoSenhas));
-    }
-
-    [Theory]
-    [InlineData("Senha@123456", true)]
-    [InlineData("abc123", false)]
-    [InlineData("Abc123", false)]
-    [InlineData("Abc@", false)]
-    [InlineData("Abc@123456!@#", true)]
-    [InlineData("abc@123456!@#", false)]
-    [InlineData("ABC@123456!@#", false)]
-    [InlineData("AbC@abcdef!@#", false)]
-    public void ValidarForteSenha_ComVariasCombinaçoes_RetornaResultadoCorreto(string senha, bool esperado)
-    {
-        var resultado = _servico.ValidarForteSenha(senha);
-
-        Assert.Equal(esperado, resultado);
-    }
-
-    [Fact]
-    public async Task ContarSenhas_RetornaQuantidadeCorreta()
-    {
-        for (int i = 0; i < 5; i++)
-        {
-            await _servico.CriarSenhaAsync(
-                $"Servico{i}", $"user{i}@example.com", "Senha@123456",
-                Categoria.Personal);
-        }
-
-        var total = _servico.ContarSenhas();
-
-        Assert.Equal(5, total);
     }
 
     [Fact]
@@ -346,12 +247,12 @@ public class ServicoSenhaTests : IDisposable
             "Gmail", "user@gmail.com", "Senha@123456", Categoria.Personal);
 
         await _servico.DefinirTotpAsync(senha.Id, "JBSWY3DPEHPK3PXP");
-        var comTotp = await _servico.ObterSenhaAsync(senha.Id);
+        var comTotp = await ObterAsync(senha.Id);
         Assert.NotNull(comTotp!.TotpSegredo);
         Assert.Equal("JBSWY3DPEHPK3PXP", _criptografia.Descriptografar(comTotp.TotpSegredo!));
 
         await _servico.DefinirTotpAsync(senha.Id, "");
-        var semTotp = await _servico.ObterSenhaAsync(senha.Id);
+        var semTotp = await ObterAsync(senha.Id);
         Assert.Null(semTotp!.TotpSegredo);
     }
 
@@ -365,7 +266,7 @@ public class ServicoSenhaTests : IDisposable
         await _servico.AtualizarSenhaAsync(
             senha.Id, "Gmail", "novo@gmail.com", "NovaSenha@789", Categoria.Personal);
 
-        var atualizada = await _servico.ObterSenhaAsync(senha.Id);
+        var atualizada = await ObterAsync(senha.Id);
 
         Assert.NotNull(atualizada!.TotpSegredo);
         Assert.Equal("JBSWY3DPEHPK3PXP", _criptografia.Descriptografar(atualizada.TotpSegredo!));
@@ -389,7 +290,7 @@ public class ServicoSenhaTests : IDisposable
         await _servico.AtualizarSenhaAsync(
             senha.Id, "Gmail", "user@gmail.com", "NovaSenha@789", Categoria.Personal);
 
-        var atualizada = await _servico.ObterSenhaAsync(senha.Id);
+        var atualizada = await ObterAsync(senha.Id);
 
         var anterior = Assert.Single(atualizada!.Historico);
         Assert.Equal("Senha@123456", _criptografia.Descriptografar(anterior.SenhaHash));
@@ -405,7 +306,7 @@ public class ServicoSenhaTests : IDisposable
         await _servico.AtualizarSenhaAsync(
             senha.Id, "Gmail", "novo@gmail.com", "Senha@123456", Categoria.Work);
 
-        var atualizada = await _servico.ObterSenhaAsync(senha.Id);
+        var atualizada = await ObterAsync(senha.Id);
 
         Assert.Empty(atualizada!.Historico);
         Assert.Equal("novo@gmail.com", atualizada.Usuario);
@@ -422,7 +323,7 @@ public class ServicoSenhaTests : IDisposable
         await _servico.AtualizarSenhaAsync(
             senha.Id, "Gmail", "user@gmail.com", "Terceira@333", Categoria.Personal);
 
-        var atualizada = await _servico.ObterSenhaAsync(senha.Id);
+        var atualizada = await ObterAsync(senha.Id);
 
         Assert.Equal(2, atualizada!.Historico.Count);
         Assert.Equal("Primeira@111", _criptografia.Descriptografar(atualizada.Historico[0].SenhaHash));
@@ -441,7 +342,7 @@ public class ServicoSenhaTests : IDisposable
                 senha.Id, "Gmail", "user@gmail.com", $"Senha@{i:000000}", Categoria.Personal);
         }
 
-        var atualizada = await _servico.ObterSenhaAsync(senha.Id);
+        var atualizada = await ObterAsync(senha.Id);
 
         Assert.Equal(10, atualizada!.Historico.Count);
         Assert.Equal("Senha@000005", _criptografia.Descriptografar(atualizada.Historico[0].SenhaHash));
