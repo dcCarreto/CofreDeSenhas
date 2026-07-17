@@ -11,6 +11,7 @@ namespace GerenciadorDeSenhas.Modelos
         public string? Notas { get; set; }
         public string? TotpSegredo { get; set; }
         public List<HistoricoSenhaExportada> Historico { get; set; } = new();
+        public List<CodigoRecuperacaoExportado> CodigosRecuperacao { get; set; } = new();
         public bool Favorito { get; set; }
         public DateTime DataCriacao { get; set; }
         public DateTime DataAtualizacao { get; set; }
@@ -20,5 +21,11 @@ namespace GerenciadorDeSenhas.Modelos
     {
         public string Senha { get; set; } = string.Empty;
         public DateTime DataAlteracao { get; set; }
+    }
+
+    public class CodigoRecuperacaoExportado
+    {
+        public string Codigo { get; set; } = string.Empty;
+        public bool Usado { get; set; }
     }
 }

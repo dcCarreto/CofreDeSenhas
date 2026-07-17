@@ -24,6 +24,7 @@ public class RepositorioSenhaBancoTests : IDisposable
         _criptografia = new ServicoCriptografia(chave);
 
         _bd.CriarTabelaAsync(_cfg).GetAwaiter().GetResult();
+        _bd.GarantirColunasAsync(_cfg).GetAwaiter().GetResult();
     }
 
     private Senha NovaSenha(string dominio, string usuario, string plaintext) => new()
@@ -88,6 +89,40 @@ public class RepositorioSenhaBancoTests : IDisposable
     }
 
     [Fact]
+    public async Task Adicionar_PersisteCodigosRecuperacaoEntreInstancias()
+    {
+        var repo = new RepositorioSenhaBanco(_cfg);
+        var senha = NovaSenha("app.com", "u", "s");
+        senha.CodigosRecuperacao.Add(new CodigoRecuperacao { Codigo = _criptografia.Criptografar("ABCD-1234") });
+        senha.CodigosRecuperacao.Add(new CodigoRecuperacao { Codigo = _criptografia.Criptografar("EFGH-5678"), Usado = true });
+        await repo.AdicionarAsync(senha);
+
+        var todas = await new RepositorioSenhaBanco(_cfg).ListarTodosAsync();
+
+        Assert.Single(todas);
+        Assert.Equal(2, todas[0].CodigosRecuperacao.Count);
+        Assert.Equal("ABCD-1234", _criptografia.Descriptografar(todas[0].CodigosRecuperacao[0].Codigo));
+        Assert.False(todas[0].CodigosRecuperacao[0].Usado);
+        Assert.Equal("EFGH-5678", _criptografia.Descriptografar(todas[0].CodigosRecuperacao[1].Codigo));
+        Assert.True(todas[0].CodigosRecuperacao[1].Usado);
+    }
+
+    [Fact]
+    public async Task Atualizar_PersisteMudancaNosCodigosRecuperacao()
+    {
+        var repo = new RepositorioSenhaBanco(_cfg);
+        var senha = NovaSenha("app.com", "u", "s");
+        await repo.AdicionarAsync(senha);
+
+        senha.CodigosRecuperacao.Add(new CodigoRecuperacao { Codigo = _criptografia.Criptografar("ABCD-1234") });
+        await repo.AtualizarAsync(senha);
+
+        var todas = await new RepositorioSenhaBanco(_cfg).ListarTodosAsync();
+        Assert.Single(todas[0].CodigosRecuperacao);
+        Assert.Equal("ABCD-1234", _criptografia.Descriptografar(todas[0].CodigosRecuperacao[0].Codigo));
+    }
+
+    [Fact]
     public async Task Atualizar_MudaDominioEUsuario()
     {
         var repo = new RepositorioSenhaBanco(_cfg);
@@ -118,6 +153,84 @@ public class RepositorioSenhaBancoTests : IDisposable
 
         Assert.Equal(1, await ContarLinhas("SELECT COUNT(*) FROM CofreDeSenhas"));
         Assert.Equal(1, await ContarLinhas("SELECT COUNT(*) FROM CofreDeSenhas WHERE excluido = 1"));
+    }
+
+    [Fact]
+    public async Task Remover_ApareceNaLixeiraComDataDeExclusao()
+    {
+        var repo = new RepositorioSenhaBanco(_cfg);
+        var senha = NovaSenha("site.com", "u", "s");
+        await repo.AdicionarAsync(senha);
+
+        await repo.RemoverAsync(senha.Id);
+
+        var lixeira = await repo.ListarLixeiraAsync();
+        Assert.Single(lixeira);
+        Assert.True(lixeira[0].NaLixeira);
+        Assert.NotNull(lixeira[0].DataExclusao);
+
+        var novaInstancia = await new RepositorioSenhaBanco(_cfg).ListarLixeiraAsync();
+        Assert.Single(novaInstancia);
+        Assert.NotNull(novaInstancia[0].DataExclusao);
+    }
+
+    [Fact]
+    public async Task Restaurar_TrazDeVoltaEApagaDataDeExclusao()
+    {
+        var repo = new RepositorioSenhaBanco(_cfg);
+        var senha = NovaSenha("site.com", "u", "s");
+        await repo.AdicionarAsync(senha);
+        await repo.RemoverAsync(senha.Id);
+
+        await repo.RestaurarAsync(senha.Id);
+
+        Assert.Single(await repo.ListarTodosAsync());
+        Assert.Empty(await repo.ListarLixeiraAsync());
+
+        var novaInstancia = await new RepositorioSenhaBanco(_cfg).ListarTodosAsync();
+        Assert.Single(novaInstancia);
+        Assert.Null(novaInstancia[0].DataExclusao);
+    }
+
+    [Fact]
+    public async Task RemoverDefinitivamente_ApagaALinhaDoBanco()
+    {
+        var repo = new RepositorioSenhaBanco(_cfg);
+        var senha = NovaSenha("site.com", "u", "s");
+        await repo.AdicionarAsync(senha);
+        await repo.RemoverAsync(senha.Id);
+
+        await repo.RemoverDefinitivamenteAsync(senha.Id);
+
+        Assert.Empty(await repo.ListarLixeiraAsync());
+        Assert.Equal(0, await ContarLinhas("SELECT COUNT(*) FROM CofreDeSenhas"));
+    }
+
+    [Fact]
+    public async Task EsvaziarLixeira_RemoveSomenteAsLinhasExcluidas()
+    {
+        var repo = new RepositorioSenhaBanco(_cfg);
+        var ativa = NovaSenha("ativa.com", "u", "s");
+        var excluida = NovaSenha("excluida.com", "u", "s");
+        await repo.AdicionarAsync(ativa);
+        await repo.AdicionarAsync(excluida);
+        await repo.RemoverAsync(excluida.Id);
+
+        await repo.EsvaziarLixeiraAsync();
+
+        Assert.Equal(1, await ContarLinhas("SELECT COUNT(*) FROM CofreDeSenhas"));
+        Assert.Single(await repo.ListarTodosAsync());
+    }
+
+    [Fact]
+    public async Task ExcluirDefinitivamentePorChave_ApagaALinhaDoBanco()
+    {
+        var repo = new RepositorioSenhaBanco(_cfg);
+        await repo.GravarPorChaveAsync(NovaSenha("x.com", "u", "p"));
+
+        await repo.ExcluirDefinitivamentePorChaveAsync("x.com", "u");
+
+        Assert.Equal(0, await ContarLinhas("SELECT COUNT(*) FROM CofreDeSenhas"));
     }
 
     [Fact]

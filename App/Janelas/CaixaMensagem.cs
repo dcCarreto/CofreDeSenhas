@@ -151,10 +151,30 @@ namespace CofreDeSenhas.Janelas
             };
         }
 
-        public static Task MostrarAsync(Window dono, string texto, string titulo, TipoMensagem tipo = TipoMensagem.Info) =>
-            new CaixaMensagem(texto, titulo, tipo, simNao: false).ShowDialog(dono);
+        public static async Task MostrarAsync(Window dono, string texto, string titulo, TipoMensagem tipo = TipoMensagem.Info)
+        {
+            Scrim.Mostrar(dono);
+            try
+            {
+                await new CaixaMensagem(texto, titulo, tipo, simNao: false).ShowDialog(dono);
+            }
+            finally
+            {
+                Scrim.Ocultar(dono);
+            }
+        }
 
-        public static Task<bool> ConfirmarAsync(Window dono, string texto, string titulo, TipoMensagem tipo = TipoMensagem.Aviso) =>
-            new CaixaMensagem(texto, titulo, tipo, simNao: true).ShowDialog<bool>(dono);
+        public static async Task<bool> ConfirmarAsync(Window dono, string texto, string titulo, TipoMensagem tipo = TipoMensagem.Aviso)
+        {
+            Scrim.Mostrar(dono);
+            try
+            {
+                return await new CaixaMensagem(texto, titulo, tipo, simNao: true).ShowDialog<bool>(dono);
+            }
+            finally
+            {
+                Scrim.Ocultar(dono);
+            }
+        }
     }
 }

@@ -14,9 +14,23 @@ namespace GerenciadorDeSenhas.Servicos
 
         Task DefinirTotpAsync(Guid id, string? segredoPlaintext);
 
+        Task AdicionarCodigosRecuperacaoAsync(Guid id, IEnumerable<(string Codigo, bool Usado)> codigos);
+
+        Task MarcarCodigoRecuperacaoAsync(Guid id, Guid codigoId, bool usado);
+
+        Task RemoverCodigoRecuperacaoAsync(Guid id, Guid codigoId);
+
         Task RemoverSenhaAsync(Guid id);
 
         Task<List<Senha>> ListarTodosAsync();
+
+        Task<List<Senha>> ListarLixeiraAsync();
+
+        Task RestaurarSenhaAsync(Guid id);
+
+        Task RemoverDefinitivamenteAsync(Guid id);
+
+        Task EsvaziarLixeiraAsync();
 
         Task MarcarComoFavoritoAsync(Guid id);
 

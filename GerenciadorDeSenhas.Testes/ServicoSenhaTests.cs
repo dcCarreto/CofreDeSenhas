@@ -212,6 +212,61 @@ public class ServicoSenhaTests : IDisposable
     }
 
     [Fact]
+    public async Task RemoverSenhaAsync_MoveParaLixeiraEmVezDeApagar()
+    {
+        var senha = await _servico.CriarSenhaAsync(
+            "Gmail", "user@gmail.com", "Senha@123456", Categoria.Personal);
+
+        await _servico.RemoverSenhaAsync(senha.Id);
+
+        Assert.Null(await ObterAsync(senha.Id));
+        var lixeira = await _servico.ListarLixeiraAsync();
+        Assert.Single(lixeira);
+        Assert.Equal(senha.Id, lixeira[0].Id);
+        Assert.NotNull(lixeira[0].DataExclusao);
+    }
+
+    [Fact]
+    public async Task RestaurarSenhaAsync_TrazDeVoltaParaOCofre()
+    {
+        var senha = await _servico.CriarSenhaAsync(
+            "Gmail", "user@gmail.com", "Senha@123456", Categoria.Personal);
+        await _servico.RemoverSenhaAsync(senha.Id);
+
+        await _servico.RestaurarSenhaAsync(senha.Id);
+
+        Assert.NotNull(await ObterAsync(senha.Id));
+        Assert.Empty(await _servico.ListarLixeiraAsync());
+    }
+
+    [Fact]
+    public async Task RemoverDefinitivamenteAsync_ApagaMesmoDaLixeira()
+    {
+        var senha = await _servico.CriarSenhaAsync(
+            "Gmail", "user@gmail.com", "Senha@123456", Categoria.Personal);
+        await _servico.RemoverSenhaAsync(senha.Id);
+
+        await _servico.RemoverDefinitivamenteAsync(senha.Id);
+
+        Assert.Empty(await _servico.ListarLixeiraAsync());
+    }
+
+    [Fact]
+    public async Task EsvaziarLixeiraAsync_LimpaTodosOsItensExcluidos()
+    {
+        var senha1 = await _servico.CriarSenhaAsync(
+            "Gmail", "user@gmail.com", "Senha@123456", Categoria.Personal);
+        var senha2 = await _servico.CriarSenhaAsync(
+            "GitHub", "dev@github.com", "Senha@654321", Categoria.Work);
+        await _servico.RemoverSenhaAsync(senha1.Id);
+        await _servico.RemoverSenhaAsync(senha2.Id);
+
+        await _servico.EsvaziarLixeiraAsync();
+
+        Assert.Empty(await _servico.ListarLixeiraAsync());
+    }
+
+    [Fact]
     public async Task CriarSenhaAsync_ComTotp_ArmazenaSegredoCifradoNormalizado()
     {
         var senha = await _servico.CriarSenhaAsync(
@@ -347,5 +402,100 @@ public class ServicoSenhaTests : IDisposable
         Assert.Equal(10, atualizada!.Historico.Count);
         Assert.Equal("Senha@000005", _criptografia.Descriptografar(atualizada.Historico[0].SenhaHash));
         Assert.Equal("Senha@000014", _criptografia.Descriptografar(atualizada.Historico[9].SenhaHash));
+    }
+
+    [Fact]
+    public async Task CriarSenhaAsync_ComecaSemCodigosRecuperacao()
+    {
+        var senha = await _servico.CriarSenhaAsync(
+            "Gmail", "user@gmail.com", "Senha@123456", Categoria.Personal);
+
+        Assert.Empty(senha.CodigosRecuperacao);
+    }
+
+    [Fact]
+    public async Task AdicionarCodigosRecuperacaoAsync_ArmazenaCodigosCifrados()
+    {
+        var senha = await _servico.CriarSenhaAsync(
+            "Gmail", "user@gmail.com", "Senha@123456", Categoria.Personal);
+
+        await _servico.AdicionarCodigosRecuperacaoAsync(senha.Id,
+            new[] { ("ABCD-1234", false), ("EFGH-5678", false) });
+
+        var atualizada = await ObterAsync(senha.Id);
+
+        Assert.Equal(2, atualizada!.CodigosRecuperacao.Count);
+        Assert.Equal("ABCD-1234", _criptografia.Descriptografar(atualizada.CodigosRecuperacao[0].Codigo));
+        Assert.Equal("EFGH-5678", _criptografia.Descriptografar(atualizada.CodigosRecuperacao[1].Codigo));
+        Assert.All(atualizada.CodigosRecuperacao, c => Assert.False(c.Usado));
+    }
+
+    [Fact]
+    public async Task AdicionarCodigosRecuperacaoAsync_IgnoraLinhasVazias()
+    {
+        var senha = await _servico.CriarSenhaAsync(
+            "Gmail", "user@gmail.com", "Senha@123456", Categoria.Personal);
+
+        await _servico.AdicionarCodigosRecuperacaoAsync(senha.Id,
+            new[] { ("ABCD-1234", false), ("", false), ("   ", false) });
+
+        var atualizada = await ObterAsync(senha.Id);
+
+        Assert.Single(atualizada!.CodigosRecuperacao);
+    }
+
+    [Fact]
+    public async Task AdicionarCodigosRecuperacaoAsync_ChamadasSucessivas_AcumulaSemPerderExistentes()
+    {
+        var senha = await _servico.CriarSenhaAsync(
+            "Gmail", "user@gmail.com", "Senha@123456", Categoria.Personal);
+
+        await _servico.AdicionarCodigosRecuperacaoAsync(senha.Id, new[] { ("ABCD-1234", false) });
+        await _servico.AdicionarCodigosRecuperacaoAsync(senha.Id, new[] { ("EFGH-5678", false) });
+
+        var atualizada = await ObterAsync(senha.Id);
+
+        Assert.Equal(2, atualizada!.CodigosRecuperacao.Count);
+    }
+
+    [Fact]
+    public async Task MarcarCodigoRecuperacaoAsync_AlternaEstadoUsado()
+    {
+        var senha = await _servico.CriarSenhaAsync(
+            "Gmail", "user@gmail.com", "Senha@123456", Categoria.Personal);
+        await _servico.AdicionarCodigosRecuperacaoAsync(senha.Id, new[] { ("ABCD-1234", false) });
+        var codigoId = (await ObterAsync(senha.Id))!.CodigosRecuperacao[0].Id;
+
+        await _servico.MarcarCodigoRecuperacaoAsync(senha.Id, codigoId, true);
+        Assert.True((await ObterAsync(senha.Id))!.CodigosRecuperacao[0].Usado);
+
+        await _servico.MarcarCodigoRecuperacaoAsync(senha.Id, codigoId, false);
+        Assert.False((await ObterAsync(senha.Id))!.CodigosRecuperacao[0].Usado);
+    }
+
+    [Fact]
+    public async Task MarcarCodigoRecuperacaoAsync_ComIdInexistente_LancaExcecao()
+    {
+        var senha = await _servico.CriarSenhaAsync(
+            "Gmail", "user@gmail.com", "Senha@123456", Categoria.Personal);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            _servico.MarcarCodigoRecuperacaoAsync(senha.Id, Guid.NewGuid(), true));
+    }
+
+    [Fact]
+    public async Task RemoverCodigoRecuperacaoAsync_RemoveApenasOCodigoIndicado()
+    {
+        var senha = await _servico.CriarSenhaAsync(
+            "Gmail", "user@gmail.com", "Senha@123456", Categoria.Personal);
+        await _servico.AdicionarCodigosRecuperacaoAsync(senha.Id,
+            new[] { ("ABCD-1234", false), ("EFGH-5678", false) });
+        var codigos = (await ObterAsync(senha.Id))!.CodigosRecuperacao;
+        var idParaRemover = codigos[0].Id;
+
+        await _servico.RemoverCodigoRecuperacaoAsync(senha.Id, idParaRemover);
+
+        var restante = Assert.Single((await ObterAsync(senha.Id))!.CodigosRecuperacao);
+        Assert.Equal("EFGH-5678", _criptografia.Descriptografar(restante.Codigo));
     }
 }

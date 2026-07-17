@@ -24,6 +24,9 @@
           <SolidColorBrush x:Key="AccentPrimary" Color="#6B3AA0" />
           <SolidColorBrush x:Key="AccentHover" Color="#5A2F8A" />
           <SolidColorBrush x:Key="AccentLight" Color="#F1E7FA" />
+          <SolidColorBrush x:Key="AccentText" Color="#6B3AA0" />
+          <SolidColorBrush x:Key="StrengthWeak" Color="#D33D3D" />
+          <SolidColorBrush x:Key="StrengthMedium" Color="#A66813" />
           <SolidColorBrush x:Key="TextPrimary" Color="#241F2B" />
           <SolidColorBrush x:Key="TextSecondary" Color="#6B6575" />
           <SolidColorBrush x:Key="TextTertiary" Color="#6E6976" />
@@ -58,6 +61,9 @@
           <SolidColorBrush x:Key="AccentPrimary" Color="#8452D6" />
           <SolidColorBrush x:Key="AccentHover" Color="#6F3EBD" />
           <SolidColorBrush x:Key="AccentLight" Color="#362A4D" />
+          <SolidColorBrush x:Key="AccentText" Color="#A986E8" />
+          <SolidColorBrush x:Key="StrengthWeak" Color="#E85F5F" />
+          <SolidColorBrush x:Key="StrengthMedium" Color="#E0932C" />
           <SolidColorBrush x:Key="TextPrimary" Color="#EDE9F3" />
           <SolidColorBrush x:Key="TextSecondary" Color="#A29AB0" />
           <SolidColorBrush x:Key="TextTertiary" Color="#968DA9" />
@@ -80,8 +86,6 @@
         </ResourceDictionary>
       </ResourceDictionary.ThemeDictionaries>
 
-      <SolidColorBrush x:Key="StrengthWeak" Color="#E14B4B" />
-      <SolidColorBrush x:Key="StrengthMedium" Color="#E0932C" />
       <SolidColorBrush x:Key="StrengthStrong" Color="#1E9A5A" />
       <SolidColorBrush x:Key="StrengthExcellent" Color="#2F7FD6" />
       <SolidColorBrush x:Key="CloseButtonHover" Color="#E5484D" />
@@ -135,6 +139,15 @@
       <Setter Property="BorderThickness" Value="1" />
       <Setter Property="CornerRadius" Value="12" />
       <Setter Property="Padding" Value="6,6" />
+    </Style>
+    <Style Selector="MenuItem.secao">
+      <Setter Property="IsHitTestVisible" Value="False" />
+      <Setter Property="Focusable" Value="False" />
+      <Setter Property="FontSize" Value="10" />
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="Foreground" Value="{DynamicResource TextHeader}" />
+      <Setter Property="Padding" Value="10,10,10,4" />
+      <Setter Property="MinHeight" Value="0" />
     </Style>
     <Style Selector="ContextMenu">
       <Setter Property="FontFamily" Value="{StaticResource FontePadrao}" />
@@ -317,7 +330,7 @@
 
     <Style Selector="Button.plano">
       <Setter Property="Background" Value="Transparent" />
-      <Setter Property="Foreground" Value="{DynamicResource AccentPrimary}" />
+      <Setter Property="Foreground" Value="{DynamicResource AccentText}" />
       <Setter Property="FontWeight" Value="Bold" />
       <Setter Property="FontSize" Value="{StaticResource TamBotao}" />
       <Setter Property="CornerRadius" Value="{StaticResource RadiusBotao}" />

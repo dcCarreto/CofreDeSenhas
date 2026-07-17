@@ -90,6 +90,8 @@ namespace GerenciadorDeSenhas.Servicos
             await GarantirColunaAsync(cfg, "descricao");
             await GarantirColunaAsync(cfg, "totp");
             await GarantirColunaAsync(cfg, "etiquetas");
+            await GarantirColunaAsync(cfg, "data_exclusao");
+            await GarantirColunaAsync(cfg, "codigos_recuperacao");
         }
 
         private async Task GarantirColunaAsync(ConexaoBanco cfg, string coluna)
@@ -172,6 +174,7 @@ namespace GerenciadorDeSenhas.Servicos
                     descricao TEXT,
                     totp TEXT,
                     etiquetas TEXT,
+                    codigos_recuperacao TEXT,
                     excluido INTEGER NOT NULL DEFAULT 0
                 )",
 
@@ -184,6 +187,7 @@ namespace GerenciadorDeSenhas.Servicos
                     descricao TEXT,
                     totp TEXT,
                     etiquetas TEXT,
+                    codigos_recuperacao TEXT,
                     excluido BOOLEAN NOT NULL DEFAULT FALSE
                 )",
 
@@ -196,6 +200,7 @@ namespace GerenciadorDeSenhas.Servicos
                     descricao TEXT,
                     totp TEXT,
                     etiquetas TEXT,
+                    codigos_recuperacao TEXT,
                     excluido TINYINT(1) NOT NULL DEFAULT 0
                 )",
 
@@ -208,6 +213,7 @@ namespace GerenciadorDeSenhas.Servicos
                     descricao NVARCHAR(MAX),
                     totp NVARCHAR(MAX),
                     etiquetas NVARCHAR(MAX),
+                    codigos_recuperacao NVARCHAR(MAX),
                     excluido BIT NOT NULL DEFAULT 0
                 )",
 

@@ -28,6 +28,9 @@ namespace CofreDeSenhas
             public bool ReduzirAnimacoes { get; set; }
             public bool LeitorTela { get; set; }
             public bool IconesOnline { get; set; }
+            public int SegundosLimpezaClipboard { get; set; } = 30;
+            public string FrequenciaBackup { get; set; } = "Semanal";
+            public int MaximoBackups { get; set; } = 10;
         }
 
         private static readonly string _caminho = Path.Combine(
@@ -44,6 +47,9 @@ namespace CofreDeSenhas
         public static bool ReduzirAnimacoes { get; set; }
         public static bool LeitorTela { get; set; }
         public static bool IconesOnline { get; set; }
+        public static int SegundosLimpezaClipboard { get; set; } = 30;
+        public static string FrequenciaBackup { get; set; } = "Semanal";
+        public static int MaximoBackups { get; set; } = 10;
 
         public static void Carregar()
         {
@@ -64,6 +70,9 @@ namespace CofreDeSenhas
                         ReduzirAnimacoes = d.ReduzirAnimacoes;
                         LeitorTela = d.LeitorTela;
                         IconesOnline = d.IconesOnline;
+                        SegundosLimpezaClipboard = d.SegundosLimpezaClipboard;
+                        FrequenciaBackup = string.IsNullOrEmpty(d.FrequenciaBackup) ? "Semanal" : d.FrequenciaBackup;
+                        MaximoBackups = d.MaximoBackups <= 0 ? 10 : d.MaximoBackups;
                     }
                 }
             }
@@ -76,7 +85,7 @@ namespace CofreDeSenhas
             {
                 var dir = Path.GetDirectoryName(_caminho)!;
                 if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
-                File.WriteAllText(_caminho, JsonSerializer.Serialize(new Dados { ModoEscuro = ModoEscuro, UltimoBanco = UltimoBanco, MinutosBloqueio = MinutosBloqueio, Idioma = Idioma, Daltonismo = Daltonismo, AltoContraste = AltoContraste, EscalaInterface = EscalaInterface, ReduzirAnimacoes = ReduzirAnimacoes, LeitorTela = LeitorTela, IconesOnline = IconesOnline }));
+                File.WriteAllText(_caminho, JsonSerializer.Serialize(new Dados { ModoEscuro = ModoEscuro, UltimoBanco = UltimoBanco, MinutosBloqueio = MinutosBloqueio, Idioma = Idioma, Daltonismo = Daltonismo, AltoContraste = AltoContraste, EscalaInterface = EscalaInterface, ReduzirAnimacoes = ReduzirAnimacoes, LeitorTela = LeitorTela, IconesOnline = IconesOnline, SegundosLimpezaClipboard = SegundosLimpezaClipboard, FrequenciaBackup = FrequenciaBackup, MaximoBackups = MaximoBackups }));
             }
             catch { }
         }

@@ -77,6 +77,43 @@ namespace GerenciadorDeSenhas.Repositorios
             return await _local.ListarTodosAsync();
         }
 
+        public async Task<List<Senha>> ListarLixeiraAsync()
+        {
+            await SincronizarAsync();
+            return await _local.ListarLixeiraAsync();
+        }
+
+        public async Task RestaurarAsync(Guid id)
+        {
+            await SincronizarAsync();
+
+            await _local.RestaurarAsync(id);
+
+            var senha = await _local.ObterPorIdAsync(id);
+            if (senha != null)
+                await _banco.GravarPorChaveAsync(senha);
+        }
+
+        public async Task RemoverDefinitivamenteAsync(Guid id)
+        {
+            await SincronizarAsync();
+
+            var senha = await _local.ObterPorIdAsync(id);
+            await _local.RemoverDefinitivamenteAsync(id);
+            if (senha != null)
+                await _banco.ExcluirDefinitivamentePorChaveAsync(senha.NomeServico, senha.Usuario);
+        }
+
+        public async Task EsvaziarLixeiraAsync()
+        {
+            await SincronizarAsync();
+
+            var lixeira = await _local.ListarLixeiraAsync();
+            await _local.EsvaziarLixeiraAsync();
+            foreach (var senha in lixeira)
+                await _banco.ExcluirDefinitivamentePorChaveAsync(senha.NomeServico, senha.Usuario);
+        }
+
         public async Task SalvarAsync()
         {
             await SincronizarAsync();

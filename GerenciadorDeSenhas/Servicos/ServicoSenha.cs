@@ -79,6 +79,54 @@ namespace GerenciadorDeSenhas.Servicos
             await _repositorio.AtualizarAsync(senha);
         }
 
+        public async Task AdicionarCodigosRecuperacaoAsync(Guid id, IEnumerable<(string Codigo, bool Usado)> codigos)
+        {
+            var senha = await _repositorio.ObterPorIdAsync(id);
+            if (senha == null)
+                throw new InvalidOperationException($"Senha com ID {id} não encontrada");
+
+            var novos = (codigos ?? Enumerable.Empty<(string Codigo, bool Usado)>())
+                .Where(c => !string.IsNullOrWhiteSpace(c.Codigo))
+                .Select(c => new CodigoRecuperacao
+                {
+                    Codigo = _criptografia.Criptografar(c.Codigo.Trim()),
+                    Usado = c.Usado
+                });
+
+            senha.CodigosRecuperacao.AddRange(novos);
+            senha.DataAtualizacao = DateTime.UtcNow;
+
+            await _repositorio.AtualizarAsync(senha);
+        }
+
+        public async Task MarcarCodigoRecuperacaoAsync(Guid id, Guid codigoId, bool usado)
+        {
+            var senha = await _repositorio.ObterPorIdAsync(id);
+            if (senha == null)
+                throw new InvalidOperationException($"Senha com ID {id} não encontrada");
+
+            var codigo = senha.CodigosRecuperacao.FirstOrDefault(c => c.Id == codigoId);
+            if (codigo == null)
+                throw new InvalidOperationException($"Código de recuperação com ID {codigoId} não encontrado");
+
+            codigo.Usado = usado;
+            senha.DataAtualizacao = DateTime.UtcNow;
+
+            await _repositorio.AtualizarAsync(senha);
+        }
+
+        public async Task RemoverCodigoRecuperacaoAsync(Guid id, Guid codigoId)
+        {
+            var senha = await _repositorio.ObterPorIdAsync(id);
+            if (senha == null)
+                throw new InvalidOperationException($"Senha com ID {id} não encontrada");
+
+            senha.CodigosRecuperacao.RemoveAll(c => c.Id == codigoId);
+            senha.DataAtualizacao = DateTime.UtcNow;
+
+            await _repositorio.AtualizarAsync(senha);
+        }
+
         private string? CifrarTotp(string? segredoPlaintext)
         {
             if (string.IsNullOrWhiteSpace(segredoPlaintext))
@@ -124,6 +172,26 @@ namespace GerenciadorDeSenhas.Servicos
         public async Task<List<Senha>> ListarTodosAsync()
         {
             return await _repositorio.ListarTodosAsync();
+        }
+
+        public async Task<List<Senha>> ListarLixeiraAsync()
+        {
+            return await _repositorio.ListarLixeiraAsync();
+        }
+
+        public async Task RestaurarSenhaAsync(Guid id)
+        {
+            await _repositorio.RestaurarAsync(id);
+        }
+
+        public async Task RemoverDefinitivamenteAsync(Guid id)
+        {
+            await _repositorio.RemoverDefinitivamenteAsync(id);
+        }
+
+        public async Task EsvaziarLixeiraAsync()
+        {
+            await _repositorio.EsvaziarLixeiraAsync();
         }
 
         public async Task MarcarComoFavoritoAsync(Guid id)

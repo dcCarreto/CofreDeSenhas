@@ -12,6 +12,81 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
   explícito e esclarece que apenas o domínio de cada serviço é enviado ao serviço
   de ícones do Google, sem senhas, usuários ou outros dados. Enquanto desativada,
   o cofre exibe somente as iniciais e não faz nenhuma requisição de rede.
+- Limpeza automática da área de transferência: a senha copiada (pela lista,
+  pelo painel de detalhes, pelo histórico de senhas anteriores ou pelo gerador)
+  some da área de transferência depois de um tempo configurável no menu de
+  configurações (15, 30 ou 60 segundos, ou desativado — 30 segundos por
+  padrão), com aviso discreto de quando isso vai acontecer. Se outro conteúdo
+  for copiado antes desse tempo, a limpeza automática não o sobrescreve.
+- Backup automático local: tela própria de "Backup e restauração..." no menu
+  de configurações, com frequência configurável (manual, diário ou semanal —
+  semanal por padrão), quantidade máxima de backups mantidos (5, 10 ou 20),
+  backup manual a qualquer momento e data do último backup exibida. Qualquer
+  backup listado pode ser restaurado, sempre com aviso e confirmação antes de
+  substituir o cofre atual; a restauração fica indisponível com um banco de
+  dados conectado. Os backups permanecem sempre cifrados.
+- Painel de detalhes: a categoria agora pode ser trocada diretamente por ali
+  (antes só era possível pela edição completa), com suporte a categoria
+  personalizada. Quando a credencial tem autenticação em duas etapas (2FA)
+  configurada, o painel passa a mostrar o código atual com contagem
+  regressiva e botão de copiar — antes isso ficava invisível fora da edição
+  completa. Um link "Edição completa..." abre a tela completa (2FA e
+  histórico de senhas) sem perder o lugar.
+- Lixeira criptografada: excluir uma credencial agora move para uma lixeira
+  interna (nova seção "Lixeira" na navegação) em vez de apagar na hora, com
+  a data da exclusão exibida em cada item. Da lixeira dá para restaurar a
+  credencial, excluí-la definitivamente ou esvaziar a lixeira inteira de uma
+  vez, sempre com confirmação antes de qualquer exclusão definitiva. Os
+  itens da lixeira continuam cifrados junto com o resto do cofre, tanto no
+  cofre local quanto em um banco de dados conectado.
+- Instalador para Windows (`CofreDeSenhas-Setup-X.Y.Z.exe`, via Inno Setup):
+  não exige privilégios de administrador, cria atalho no menu iniciar
+  (opcionalmente na área de trabalho) e registra a desinstalação em
+  "Aplicativos e recursos". Ao desinstalar, o cofre em
+  `%APPDATA%\GerenciadorSenhas` é preservado por padrão — apagá-lo exige
+  confirmação explícita numa caixa de diálogo, com "manter" como opção
+  padrão; desinstalações silenciosas nunca apagam o cofre. O executável
+  autocontido sem instalador continua disponível como alternativa.
+- Relatório de segurança do cofre: nova tela na barra de ferramentas com uma
+  pontuação geral (0 a 100) do cofre, calculada a partir de senhas fracas,
+  repetidas, antigas e comprometidas, além de contas sem verificação em duas
+  etapas, sem URL ou sem categoria definida. Cada linha mostra quantos itens
+  têm aquele problema e pode ser clicada para filtrar a lista principal por
+  ele, com aviso do filtro ativo e opção de limpá-lo a qualquer momento. A
+  verificação de vazamentos (Have I Been Pwned) é disparada pela própria
+  tela e continua opcional; o restante do relatório é sempre calculado
+  localmente.
+- Códigos de recuperação por credencial: novo campo na tela de edição para
+  colar um ou mais códigos de backup (um por linha). Cada código pode ser
+  copiado individualmente, marcado como usado — sem apagar, só fica
+  esmaecido na lista — ou removido, sempre com confirmação antes de
+  remover. Ficam ocultos por padrão, como as senhas, com opção de revelar.
+  Todos os códigos são cifrados individualmente e acompanham a exportação
+  protegida e a importação/exportação com banco de dados conectado.
+- Releases confiáveis e bem documentados: workflow de CI que, ao receber uma
+  tag `vX.Y.Z`, publica o instalador e o executável portátil do Windows e o
+  pacote do Linux, gera `CHECKSUMS.txt` com o hash SHA256 de cada arquivo e
+  cria a release no GitHub como rascunho, seguindo um modelo padronizado
+  (destaques, changelog, capturas de tela, downloads por sistema
+  operacional, instalação/atualização com aviso de backup e verificação dos
+  hashes). A publicação continua manual. README documenta como conferir os
+  hashes; assinatura de código no Windows foi avaliada e fica registrada
+  como item futuro do roadmap.
+
+### Corrigido
+- O painel de detalhes agora flutua sobre a lista de senhas em vez de
+  espremê-la: antes, abrir os detalhes de uma credencial podia esconder por
+  completo as colunas de força e de ações de todas as linhas, sem rolagem e
+  sem aviso, em janelas no tamanho padrão.
+- O botão "Salvar alterações" do painel de detalhes não corta mais o próprio
+  texto.
+- Contraste de cores revisado em quatro pontos que ficavam abaixo do mínimo
+  recomendado (WCAG AA): a estrela de favorito preenchida, a cor de força
+  "média", a cor de força "fraca" quando usada como texto pequeno (inclusive
+  em mensagens de erro) e o roxo de destaque quando usado como texto no tema
+  escuro.
+- O botão "Nova senha" abre a tela de cadastro de uma credencial, como
+  esperado — antes abria por engano o gerador de senha avulso.
 
 ### Segurança
 - As iterações do PBKDF2-SHA256 usadas para derivar a chave a partir da senha
@@ -42,6 +117,16 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
   ilustrados. Novo ícone do aplicativo em múltiplas resoluções.
 - Contrastes de texto e distintivos de categoria revisados para atender ao nível
   AA nos dois temas, com realce de foco de teclado visível em todos os controles.
+- Diálogos e caixas de mensagem agora escurecem a janela por trás ao abrir,
+  reforçando que o restante do aplicativo está temporariamente bloqueado.
+- O nome do serviço no painel de detalhes deixou de parecer um campo de
+  formulário comum: agora é exibido como título, sem caixa nem borda visíveis
+  em repouso, continuando editável com um clique.
+- Botões de busca/filtro da barra de ferramentas agora ficam visualmente
+  separados do botão "+ Nova senha" por um espaçamento maior e um divisor
+  sutil, deixando clara a ação principal da tela.
+- Menu de configurações reorganizado em seções rotuladas (Segurança,
+  Aparência e Dados) em vez de uma lista única com mais de dez itens.
 
 ## [2.0.0] - 2026-07-03
 

@@ -139,6 +139,71 @@ Repaginação completa da interface, preservando todas as funcionalidades:
   bloquear ou fechar o cofre, e o painel de detalhes e as linhas reveladas da
   lista deixam de reter a senha em texto claro além do necessário.
 
+### Não lançado
+
+- Limpeza automática da área de transferência: ao copiar a senha de uma
+  credencial (pela lista, pelo painel de detalhes, pelo histórico de senhas
+  anteriores ou pelo gerador), a área de transferência é apagada
+  automaticamente depois de um tempo configurável (15, 30 ou 60 segundos, ou
+  desativado — 30 segundos por padrão) no menu de configurações. Um aviso
+  discreto (dica do botão, leitor de tela e, no gerador, a própria mensagem de
+  sucesso) informa quando a senha copiada será removida. Se o usuário copiar
+  outro conteúdo antes do tempo configurado, a limpeza automática não
+  sobrescreve o que foi copiado por último.
+- Backup automático local: pela tela "Backup e restauração..." no menu de
+  configurações, é possível escolher a frequência do backup automático
+  (manual apenas, diário ou semanal — semanal por padrão) e a quantidade
+  máxima de backups mantidos (5, 10 ou 20). O backup é verificado a cada
+  desbloqueio do cofre e, se estiver na hora, roda sozinho; também pode ser
+  disparado manualmente a qualquer momento. A tela mostra a data do último
+  backup e a lista dos backups disponíveis, com a opção de restaurar
+  qualquer um deles — sempre com aviso e confirmação antes de sobrescrever o
+  cofre atual. Restauração fica indisponível enquanto o cofre estiver
+  conectado a um banco de dados externo, para não gerar conflito com a
+  sincronização. Os backups continuam sempre cifrados, do mesmo jeito que o
+  cofre local.
+- Lixeira criptografada: excluir uma credencial agora move para uma lixeira
+  interna em vez de apagar na hora, com a data da exclusão exibida. Da
+  lixeira dá para restaurar a credencial, excluí-la definitivamente ou
+  esvaziar a lixeira inteira de uma vez — sempre com confirmação antes de
+  qualquer exclusão definitiva. Os itens da lixeira continuam cifrados junto
+  com o resto do cofre, e o mesmo comportamento vale tanto para o cofre local
+  quanto para um banco de dados conectado.
+- Instalador para Windows: instalador `CofreDeSenhas-Setup-X.Y.Z.exe` (via
+  Inno Setup), sem exigir privilégios de administrador, com atalho no menu
+  iniciar, ícone correto e entrada em "Aplicativos e recursos" para
+  desinstalar. Ao desinstalar, o cofre em `%APPDATA%\GerenciadorSenhas` é
+  preservado por padrão; apagá-lo exige confirmação explícita, com "manter"
+  como opção padrão.
+- Relatório de segurança do cofre: nova tela, acessível pela barra de
+  ferramentas do cofre, com uma pontuação geral (0 a 100) calculada a partir
+  de senhas fracas, repetidas, antigas e comprometidas, além de contas sem
+  verificação em duas etapas, sem URL ou sem categoria definida. Cada linha
+  mostra a quantidade de itens afetados e pode ser clicada para filtrar a
+  lista principal por aquele problema, com um aviso indicando o filtro ativo
+  e a opção de limpá-lo. A verificação de vazamentos (Have I Been Pwned)
+  continua opcional e é disparada pela própria tela; todo o resto do
+  relatório é calculado localmente, sem enviar dados para fora.
+- Códigos de recuperação por credencial: campo próprio na tela de edição
+  para colar um ou mais códigos de backup (um por linha), guardados
+  individualmente cifrados. Cada código pode ser copiado, marcado como
+  usado (fica esmaecido na lista, sem ser apagado) ou removido, com
+  confirmação antes da remoção. Ficam ocultos por padrão, com opção de
+  revelar. Acompanham a exportação protegida e a importação/exportação do
+  banco de dados, sempre cifrados.
+- Releases confiáveis e bem documentados: novo workflow de CI
+  (`.github/workflows/release.yml`) que, ao receber uma tag `vX.Y.Z`, gera o
+  instalador e o executável portátil do Windows e o pacote do Linux, calcula
+  o hash SHA256 de cada arquivo (`CHECKSUMS.txt`) e cria a release no GitHub
+  como rascunho, com um modelo padronizado
+  (`.github/RELEASE_TEMPLATE.md`) cobrindo destaques, changelog, capturas de
+  tela, downloads por sistema operacional, instruções de instalação e
+  atualização (com aviso de backup antes de atualizar) e verificação dos
+  hashes. Fica como rascunho de propósito: a publicação continua sendo uma
+  decisão manual. O README ganhou instruções de verificação de integridade.
+  Assinatura de código no Windows foi avaliada e documentada como item
+  futuro, condicionada à obtenção de um certificado.
+
 ## Em andamento
 
 ### Extensão de navegador
@@ -157,102 +222,7 @@ Em desenvolvimento no branch `feature/chromiumExt`:
 
 Ideias e melhorias consideradas para versões futuras, agrupadas por prioridade:
 
-### Alta prioridade
-
-#### Limpeza automática da área de transferência
-
-- Limpar automaticamente a área de transferência após copiar uma senha.
-- Permitir configuração do tempo de limpeza:
-  - 15 segundos;
-  - 30 segundos;
-  - 60 segundos;
-  - desativado.
-- Exibir aviso discreto informando que a senha copiada será removida.
-- Evitar sobrescrever o clipboard se o usuário copiar outro conteúdo depois da
-  senha.
-- Adicionar testes para o comportamento de limpeza quando possível.
-
-#### Backup automático local
-
-- Criar backup automático do cofre em intervalos configuráveis.
-- Permitir opções como:
-  - diário;
-  - semanal;
-  - manual apenas.
-- Definir quantidade máxima de backups mantidos.
-- Exibir data do último backup realizado.
-- Permitir restauração de backup pela interface.
-- Avisar o usuário antes de restaurar um backup.
-- Preservar o modelo offline do aplicativo.
-- Manter backups sempre criptografados.
-
-#### Lixeira criptografada
-
-- Ao excluir uma credencial, mover primeiro para uma lixeira interna.
-- Permitir restaurar credenciais excluídas.
-- Permitir exclusão definitiva.
-- Permitir limpar a lixeira.
-- Manter os itens da lixeira criptografados junto com o cofre.
-- Exibir data de exclusão do item.
-- Evitar perda acidental de credenciais importantes.
-
-#### Instalador para Windows
-
-- Criar instalador para Windows.
-- Adicionar atalho no menu iniciar.
-- Adicionar opção de desinstalação.
-- Configurar ícone corretamente.
-- Preservar dados do cofre ao desinstalar, salvo decisão explícita do usuário.
-- Avaliar formatos:
-  - MSI;
-  - EXE;
-  - MSIX.
-- Documentar instalação e remoção.
-
-#### Relatório de segurança do cofre
-
-- Criar tela de resumo de segurança.
-- Exibir pontuação geral do cofre.
-- Mostrar quantidade de:
-  - senhas fracas;
-  - senhas repetidas;
-  - senhas antigas;
-  - senhas comprometidas;
-  - contas sem TOTP cadastrado;
-  - contas sem URL;
-  - contas sem categoria.
-- Permitir filtrar a lista a partir de cada problema.
-- Exibir recomendações locais sem enviar dados para fora.
-- Manter a auditoria funcionando offline, exceto quando o usuário ativar a
-  verificação opcional de vazamentos.
-
 ### Média prioridade
-
-#### Códigos de recuperação por credencial
-
-- Adicionar campo próprio para códigos de recuperação.
-- Permitir salvar múltiplos códigos por credencial.
-- Permitir copiar um código individual.
-- Permitir marcar código como usado.
-- Permitir ocultar ou revelar os códigos.
-- Armazenar todos os códigos de forma cifrada.
-- Incluir códigos de recuperação na exportação protegida.
-- Incluir códigos de recuperação na importação/exportação do banco, sempre
-  cifrados.
-
-#### Releases confiáveis e bem documentados
-
-Consolida a verificação de integridade e as melhorias da página de releases,
-que se sobrepunham:
-
-- Publicar hash SHA256 dos arquivos (CHECKSUMS.txt) com instruções de
-  verificação, gerado pelo CI já existente.
-- Avaliar assinatura dos arquivos e, no futuro, assinatura de código no
-  Windows.
-- Padronizar a descrição de cada versão: changelog claro, capturas de tela,
-  downloads separados por sistema operacional.
-- Incluir instruções de instalação e de atualização, com aviso de backup antes
-  de atualizar.
 
 #### Atalhos de teclado
 
@@ -344,8 +314,10 @@ visível). Continuam planejados:
 #### Organização avançada
 
 Parte já foi entregue: favoritos e navegação por categoria têm seções próprias
-na barra lateral, e etiquetas existem via categorias personalizadas em `Outro`.
-Continuam planejados:
+na barra lateral, e o serviço `Etiquetas` já existe — mas só é usado para
+guardar o nome da categoria personalizada em `Outro` (uma etiqueta por item,
+só nessa categoria), não como sistema de múltiplas etiquetas por item em
+qualquer categoria. Continuam planejados:
 
 - Estender etiquetas a credenciais de qualquer categoria, com múltiplas
   etiquetas por item.
@@ -425,7 +397,6 @@ criptografia anterior) e de uma camada inteira de métodos de busca/contagem em
 - Envio de senhas para qualquer serviço externo.
 - Armazenamento obrigatório em nuvem.
 - Conta obrigatória para usar o aplicativo.
-- Assinatura paga.
 - Recursos bloqueados atrás de pagamento.
 - Coleta de telemetria sensível.
 - Recuperação de senha mestra por servidor externo.
@@ -434,26 +405,19 @@ criptografia anterior) e de uma camada inteira de métodos de busca/contagem em
 
 ## Ordem sugerida de execução
 
-1. Limpeza automática da área de transferência.
-2. Backup automático local.
-3. Lixeira criptografada.
-4. Conclusão da extensão de navegador (em andamento).
-5. Instalador profissional para Windows.
-6. Relatório de segurança do cofre.
-7. Códigos de recuperação por credencial.
-8. Releases confiáveis e bem documentados.
-9. Empacotamento para Linux.
-10. Atalhos de teclado.
-11. Testes automatizados de interface.
-12. Modo privacidade.
-13. Histórico operacional da credencial.
-14. Aviso de nova versão.
-15. Anexos criptografados.
-16. Organização avançada com etiquetas.
-17. Templates de credenciais.
-18. Sincronização criptografada de ponta a ponta.
-19. macOS.
-20. Aplicativo móvel.
+1. Conclusão da extensão de navegador (em andamento).
+2. Empacotamento para Linux.
+3. Atalhos de teclado.
+4. Testes automatizados de interface.
+5. Modo privacidade.
+6. Histórico operacional da credencial.
+7. Aviso de nova versão.
+8. Anexos criptografados.
+9. Organização avançada com etiquetas.
+10. Templates de credenciais.
+11. Sincronização criptografada de ponta a ponta.
+12. macOS.
+13. Aplicativo móvel.
 
 ## Como sugerir
 

@@ -69,7 +69,8 @@ namespace GerenciadorDeSenhas.Repositorios
             if (senha == null)
                 throw new InvalidOperationException($"Senha com ID {id} não encontrada");
 
-            _senhas.Remove(senha);
+            senha.NaLixeira = true;
+            senha.DataExclusao = DateTime.UtcNow;
         }
 
         public async Task<Senha?> ObterPorIdAsync(Guid id)
@@ -81,7 +82,37 @@ namespace GerenciadorDeSenhas.Repositorios
         public async Task<List<Senha>> ListarTodosAsync()
         {
             await CarregarSeNecessarioAsync();
-            return _senhas.ToList();
+            return _senhas.Where(s => !s.NaLixeira).ToList();
+        }
+
+        public async Task<List<Senha>> ListarLixeiraAsync()
+        {
+            await CarregarSeNecessarioAsync();
+            return _senhas.Where(s => s.NaLixeira).ToList();
+        }
+
+        public async Task RestaurarAsync(Guid id)
+        {
+            await CarregarSeNecessarioAsync();
+
+            var senha = _senhas.FirstOrDefault(s => s.Id == id);
+            if (senha == null)
+                throw new InvalidOperationException($"Senha com ID {id} não encontrada");
+
+            senha.NaLixeira = false;
+            senha.DataExclusao = null;
+        }
+
+        public async Task RemoverDefinitivamenteAsync(Guid id)
+        {
+            await CarregarSeNecessarioAsync();
+            _senhas.RemoveAll(s => s.Id == id);
+        }
+
+        public async Task EsvaziarLixeiraAsync()
+        {
+            await CarregarSeNecessarioAsync();
+            _senhas.RemoveAll(s => s.NaLixeira);
         }
 
         public async Task SalvarAsync()

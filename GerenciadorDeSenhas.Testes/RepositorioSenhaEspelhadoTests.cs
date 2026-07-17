@@ -25,6 +25,7 @@ public class RepositorioSenhaEspelhadoTests : IDisposable
         _cripto = new ServicoCriptografia(_chave);
 
         _bd.CriarTabelaAsync(_cfg).GetAwaiter().GetResult();
+        _bd.GarantirColunasAsync(_cfg).GetAwaiter().GetResult();
     }
 
     private RepositorioSenha NovoLocal() => new(new PersistenciaEmMemoria(), _chave);
@@ -87,6 +88,54 @@ public class RepositorioSenhaEspelhadoTests : IDisposable
         Assert.Empty(await local.ListarTodosAsync());
         Assert.Empty(await NovoBanco().ListarTodosAsync());
         Assert.Equal(1, await ContarLinhas("SELECT COUNT(*) FROM CofreDeSenhas WHERE excluido = 1"));
+    }
+
+    [Fact]
+    public async Task Restaurar_TrazDeVoltaNosDoisLados()
+    {
+        var local = NovoLocal();
+        var espelho = new RepositorioSenhaEspelhado(local, NovoBanco());
+        var senha = Nova("app", "u", "s");
+        await espelho.AdicionarAsync(senha);
+        await espelho.RemoverAsync(senha.Id);
+
+        await espelho.RestaurarAsync(senha.Id);
+
+        Assert.Single(await local.ListarTodosAsync());
+        Assert.Contains(await NovoBanco().ListarTodosAsync(), s => s.NomeServico == "app");
+        Assert.Equal(0, await ContarLinhas("SELECT COUNT(*) FROM CofreDeSenhas WHERE excluido = 1"));
+    }
+
+    [Fact]
+    public async Task RemoverDefinitivamente_ApagaNosDoisLados()
+    {
+        var local = NovoLocal();
+        var espelho = new RepositorioSenhaEspelhado(local, NovoBanco());
+        var senha = Nova("app", "u", "s");
+        await espelho.AdicionarAsync(senha);
+        await espelho.RemoverAsync(senha.Id);
+
+        await espelho.RemoverDefinitivamenteAsync(senha.Id);
+
+        Assert.Empty(await local.ListarLixeiraAsync());
+        Assert.Equal(0, await ContarLinhas("SELECT COUNT(*) FROM CofreDeSenhas"));
+    }
+
+    [Fact]
+    public async Task EsvaziarLixeira_ApagaNosDoisLados()
+    {
+        var local = NovoLocal();
+        var espelho = new RepositorioSenhaEspelhado(local, NovoBanco());
+        var ativa = Nova("ativa", "u", "s");
+        var excluida = Nova("excluida", "u", "s");
+        await espelho.AdicionarAsync(ativa);
+        await espelho.AdicionarAsync(excluida);
+        await espelho.RemoverAsync(excluida.Id);
+
+        await espelho.EsvaziarLixeiraAsync();
+
+        Assert.Empty(await local.ListarLixeiraAsync());
+        Assert.Equal(1, await ContarLinhas("SELECT COUNT(*) FROM CofreDeSenhas"));
     }
 
     private async Task<long> ContarLinhas(string sql)

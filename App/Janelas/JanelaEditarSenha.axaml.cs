@@ -46,6 +46,7 @@ namespace CofreDeSenhas.Janelas
 
             TxtTotp.TextChanged += (s, e) => AtualizarPreviewTotp();
             MontarHistorico();
+            MontarCodigosRecuperacao();
             Idioma.Alterado += Idioma_Alterado;
             Closed += (s, e) =>
             {
@@ -78,6 +79,7 @@ namespace CofreDeSenhas.Janelas
             AtualizarCategorias();
             AtualizarPreviewTotp();
             MontarHistorico();
+            MontarCodigosRecuperacao();
         }
 
         private void AtualizarTitulo()
@@ -294,7 +296,7 @@ namespace CofreDeSenhas.Janelas
             AutomationProperties.SetName(campo, Idioma.Texto("A11y.PreviousPassword"));
 
             var btnCopiar = CriarBotaoHistorico(Idioma.Texto("Row.CopyPassword"), Idioma.Texto("Row.CopyPassword"));
-            btnCopiar.Click += async (_, _) => await CopiarAsync(plain);
+            btnCopiar.Click += async (_, _) => await CopiarAsync(plain, btnCopiar);
 
             var btnUsar = CriarBotaoHistorico(Idioma.Texto("Entry.HistoryUse"), Idioma.Texto("Entry.HistoryUseTooltip"));
             btnUsar.Click += (_, _) => UsarSenhaAnterior(plain);
@@ -335,6 +337,130 @@ namespace CofreDeSenhas.Janelas
             return botao;
         }
 
+        private void MontarCodigosRecuperacao()
+        {
+            PainelCodigosRecuperacao.Children.Clear();
+
+            foreach (var item in _senhaAtual.CodigosRecuperacao)
+                PainelCodigosRecuperacao.Children.Add(CriarLinhaCodigoRecuperacao(item));
+        }
+
+        private Control CriarLinhaCodigoRecuperacao(CodigoRecuperacao item)
+        {
+            string plain;
+            if (_criptografia == null)
+            {
+                plain = string.Empty;
+            }
+            else
+            {
+                try { plain = _criptografia.Descriptografar(item.Codigo); }
+                catch { plain = string.Empty; }
+            }
+
+            var campo = new TextBox
+            {
+                PasswordChar = '●',
+                IsReadOnly = true,
+                Text = plain,
+                FontSize = 13,
+                Margin = new Thickness(0, 0, 8, 0),
+                VerticalAlignment = VerticalAlignment.Center,
+                Opacity = item.Usado ? 0.55 : 1.0
+            };
+            campo.Classes.Add("campo");
+            campo.Classes.Add("revealPasswordButton");
+            AutomationProperties.SetName(campo, Idioma.Texto("A11y.RecoveryCode"));
+
+            var btnCopiar = CriarBotaoHistorico(Idioma.Texto("Row.CopyRecoveryCode"), Idioma.Texto("Row.CopyRecoveryCode"));
+            btnCopiar.Click += async (_, _) => await CopiarAsync(plain, btnCopiar);
+
+            var rotuloUsado = Idioma.Texto(item.Usado ? "Entry.RecoveryCodeUnmark" : "Entry.RecoveryCodeMarkUsed");
+            var btnUsado = CriarBotaoHistorico(rotuloUsado, rotuloUsado);
+            btnUsado.Click += async (_, _) => await AlternarUsadoAsync(item);
+
+            var rotuloRemover = Idioma.Texto("Entry.RecoveryCodeRemove");
+            var btnRemover = CriarBotaoHistorico(rotuloRemover, rotuloRemover);
+            btnRemover.Click += async (_, _) => await RemoverCodigoAsync(item);
+
+            var acoes = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                Spacing = 4,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            acoes.Children.Add(btnCopiar);
+            acoes.Children.Add(btnUsado);
+            acoes.Children.Add(btnRemover);
+
+            var linha = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto") };
+            Grid.SetColumn(campo, 0);
+            Grid.SetColumn(acoes, 1);
+            linha.Children.Add(campo);
+            linha.Children.Add(acoes);
+            return linha;
+        }
+
+        private async void AdicionarCodigosRecuperacao_Click(object? sender, RoutedEventArgs e)
+        {
+            var linhas = (TxtNovosCodigos.Text ?? "")
+                .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(l => l.Trim())
+                .Where(l => l.Length > 0)
+                .ToList();
+
+            if (linhas.Count == 0)
+                return;
+
+            try
+            {
+                await _servicoSenha.AdicionarCodigosRecuperacaoAsync(_senhaAtual.Id, linhas.Select(c => (c, false)));
+                await _servicoSenha.PersistirAsync();
+                TxtNovosCodigos.Text = "";
+                MontarCodigosRecuperacao();
+            }
+            catch (Exception ex)
+            {
+                await CaixaMensagem.MostrarAsync(this,
+                    Idioma.Formatar("Entry.RecoveryCodesAddError", ex.Message), Idioma.Texto("Common.Error"), TipoMensagem.Erro);
+            }
+        }
+
+        private async Task AlternarUsadoAsync(CodigoRecuperacao item)
+        {
+            try
+            {
+                await _servicoSenha.MarcarCodigoRecuperacaoAsync(_senhaAtual.Id, item.Id, !item.Usado);
+                await _servicoSenha.PersistirAsync();
+                MontarCodigosRecuperacao();
+            }
+            catch (Exception ex)
+            {
+                await CaixaMensagem.MostrarAsync(this,
+                    Idioma.Formatar("Entry.RecoveryCodeMarkError", ex.Message), Idioma.Texto("Common.Error"), TipoMensagem.Erro);
+            }
+        }
+
+        private async Task RemoverCodigoAsync(CodigoRecuperacao item)
+        {
+            var confirmar = await CaixaMensagem.ConfirmarAsync(this,
+                Idioma.Texto("Entry.RecoveryCodeRemoveConfirm"), Idioma.Texto("Entry.RecoveryCodeRemove"));
+            if (!confirmar)
+                return;
+
+            try
+            {
+                await _servicoSenha.RemoverCodigoRecuperacaoAsync(_senhaAtual.Id, item.Id);
+                await _servicoSenha.PersistirAsync();
+                MontarCodigosRecuperacao();
+            }
+            catch (Exception ex)
+            {
+                await CaixaMensagem.MostrarAsync(this,
+                    Idioma.Formatar("Entry.RecoveryCodeRemoveError", ex.Message), Idioma.Texto("Common.Error"), TipoMensagem.Erro);
+            }
+        }
+
         private void UsarSenhaAnterior(string senha)
         {
             TxtSenha.Text = senha;
@@ -342,7 +468,7 @@ namespace CofreDeSenhas.Janelas
             ExpHistorico.IsExpanded = false;
         }
 
-        private async Task CopiarAsync(string texto)
+        private async Task CopiarAsync(string texto, Button? origem = null)
         {
             if (string.IsNullOrEmpty(texto))
                 return;
@@ -354,7 +480,32 @@ namespace CofreDeSenhas.Janelas
                 catch { }
             }
 
-            Acessibilidade.Anunciar(this, Idioma.Formatar("A11y.Copied", Idioma.Texto("A11y.PreviousPassword")));
+            int segundos = Preferencias.SegundosLimpezaClipboard;
+            if (segundos > 0 && clipboard != null)
+            {
+                Acessibilidade.Anunciar(this,
+                    Idioma.Formatar("A11y.CopiedWillClear", Idioma.Texto("A11y.PreviousPassword"), segundos));
+                _ = ServicoLimpezaClipboard.ProgramarLimpezaAsync(new AreaTransferenciaAvalonia(clipboard), texto, segundos);
+
+                if (origem != null)
+                {
+                    var mensagem = Idioma.Formatar("Row.PasswordCopiedClearing", segundos);
+                    ToolTip.SetTip(origem, mensagem);
+                    AutomationProperties.SetName(origem, mensagem);
+                    var t = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+                    t.Tick += (s, e) =>
+                    {
+                        ToolTip.SetTip(origem, Idioma.Texto("Row.CopyPassword"));
+                        AutomationProperties.SetName(origem, Idioma.Texto("Row.CopyPassword"));
+                        t.Stop();
+                    };
+                    t.Start();
+                }
+            }
+            else
+            {
+                Acessibilidade.Anunciar(this, Idioma.Formatar("A11y.Copied", Idioma.Texto("A11y.PreviousPassword")));
+            }
         }
     }
 }

@@ -18,6 +18,7 @@ namespace CofreDeSenhas
 
         public static Color AccentPrimary => Acessibilidade.Cor(CorVisual.AccentPrimary, ModoEscuro);
         public static Color AccentLight => Acessibilidade.Cor(CorVisual.AccentLight, ModoEscuro);
+        public static Color AccentText => Acessibilidade.Cor(CorVisual.AccentText, ModoEscuro);
 
         public static Color TextPrimary => Acessibilidade.Cor(CorVisual.TextPrimary, ModoEscuro);
         public static Color TextSecondary => Acessibilidade.Cor(CorVisual.TextSecondary, ModoEscuro);

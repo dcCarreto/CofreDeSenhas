@@ -19,7 +19,12 @@ namespace GerenciadorDeSenhas.Modelos
 
         public List<HistoricoSenha> Historico { get; set; } = new();
 
+        public List<CodigoRecuperacao> CodigosRecuperacao { get; set; } = new();
+
         public bool Favorito { get; set; }
+
+        public bool NaLixeira { get; set; }
+        public DateTime? DataExclusao { get; set; }
 
         public DateTime DataCriacao { get; set; } = DateTime.UtcNow;
         public DateTime DataAtualizacao { get; set; } = DateTime.UtcNow;

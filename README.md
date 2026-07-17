@@ -269,8 +269,20 @@ A forma mais simples de usar o programa é baixar o executável pronto na págin
 No Windows:
 
 1. Acesse a [última versão](../../releases/latest).
-2. Baixe o arquivo `CofreDeSenhas.exe`.
-3. Execute.
+2. Baixe o instalador `CofreDeSenhas-Setup-X.Y.Z.exe`.
+3. Execute e siga o assistente. Não é preciso ser administrador: por padrão o
+   programa é instalado só para o usuário atual, com atalho no menu iniciar
+   (e, opcionalmente, na área de trabalho) e entrada em "Aplicativos e
+   recursos" para desinstalar depois.
+4. Se preferir não instalar nada, o executável autocontido `CofreDeSenhas.exe`
+   (sem instalador) também fica disponível na página da release — é só
+   baixar e executar.
+
+Para desinstalar, use "Aplicativos e recursos" do Windows (ou o atalho
+"Desinstalar Cofre de Senhas" no menu iniciar). O cofre em
+`%APPDATA%\GerenciadorSenhas` é preservado por padrão; o desinstalador
+pergunta explicitamente se você também quer apagar esses dados, com a opção
+padrão sendo manter.
 
 No Linux, com o .NET 10 SDK instalado, o script de instalação compila, publica e
 registra o aplicativo para o usuário atual (sem sudo):
@@ -289,6 +301,26 @@ No primeiro uso, o programa pedirá a criação de uma senha mestra. Guarde-a co
 cuidado: ela é a única forma de abrir o cofre. Um cofre exportado (`.gsenhas`)
 em uma plataforma pode ser importado na outra.
 
+### Verificando a integridade dos arquivos
+
+Toda release publicada a partir desta versão inclui um `CHECKSUMS.txt` com o
+hash SHA256 de cada arquivo disponibilizado. Depois de baixar, é possível
+conferir que o arquivo não foi alterado no caminho:
+
+```
+# Windows (PowerShell)
+Get-FileHash .\arquivo-baixado -Algorithm SHA256
+
+# Linux / macOS (na pasta onde os arquivos foram baixados)
+sha256sum -c CHECKSUMS.txt
+```
+
+Compare o valor calculado com o que consta em `CHECKSUMS.txt`. Os arquivos
+ainda não são assinados digitalmente — assinatura de código no Windows exige
+um certificado pago e é um item avaliado para o futuro (veja o
+[roadmap](ROADMAP.md)) — então o hash SHA256 é, por enquanto, a forma de
+verificação disponível.
+
 ## Estrutura do projeto
 
 ```
@@ -298,7 +330,7 @@ CofreDeSenhas.sln
 │  ├─ Controles/                 Controles customizados de UI
 │  ├─ Infraestrutura/            Tema, preferências, recursos e utilitários
 │  ├─ Ativos/                    Ícone do aplicativo
-│  └─ distribuicao/              Atalho .desktop e scripts de instalação (Linux)
+│  └─ distribuicao/              Scripts e atalhos de instalação (Linux e Windows)
 ├─ GerenciadorDeSenhas/          Biblioteca de domínio
 │  ├─ Modelos/                   Entidades (Senha, Categoria, SenhaExportada,
 │  │                             TipoBanco, ConexaoBanco)
@@ -401,6 +433,30 @@ Para Linux x64:
 ```
 dotnet publish App/App.csproj -f net10.0 -c Release -r linux-x64 --self-contained -o publish-linux
 ```
+
+### Instalador do Windows
+
+O instalador (`CofreDeSenhas-Setup-X.Y.Z.exe`) é gerado com o
+[Inno Setup](https://jrsoftware.org/isinfo.php) a partir do executável já
+publicado. Com o Inno Setup instalado (`winget install JRSoftware.InnoSetup`),
+rode:
+
+```
+.\App\distribuicao\gerar-instalador.ps1
+```
+
+O script publica o aplicativo (mesmo comando acima) e compila
+`App/distribuicao/cofre-de-senhas.iss`, deixando o instalador em `dist/`. A
+versão é lida automaticamente de `App/App.csproj` (ou pode ser informada com
+`-Versao X.Y.Z`).
+
+O instalador não exige privilégios de administrador (instala só para o
+usuário atual, em `%LocalAppData%\Programs\Cofre de Senhas`, com opção de
+instalar para todos os usuários), cria o atalho no menu iniciar e registra a
+desinstalação em "Aplicativos e recursos". Ao desinstalar, os dados do cofre
+em `%APPDATA%\GerenciadorSenhas` são preservados por padrão — apagá-los exige
+confirmação explícita numa caixa de diálogo (com "Não" como opção padrão);
+desinstalações silenciosas (`/VERYSILENT`) nunca apagam o cofre.
 
 O script `App/distribuicao/instalar.sh` faz esse publish e ainda registra o
 atalho e o ícone no ambiente de trabalho.

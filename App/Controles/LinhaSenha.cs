@@ -819,7 +819,7 @@ namespace CofreDeSenhas.Controles
             _lblUsuario.Text = _obterSenhaPlain(_senha) ?? "••••••••";
             _lblUsuario.FontFamily = (FontFamily)Application.Current!.FindResource("FonteMono")!;
             _lblUsuario.FontWeight = FontWeight.Bold;
-            _lblUsuario.Foreground = Tema.Pincel(Tema.AccentPrimary);
+            _lblUsuario.Foreground = Tema.Pincel(Tema.AccentText);
             DefinirIcone(_btnOlho, Icone("IconeOcultar"));
             ToolTip.SetTip(_btnOlho, Idioma.Texto("Row.HidePassword"));
             AutomationProperties.SetName(_btnOlho, Idioma.Texto("Row.HidePassword"));
@@ -851,12 +851,32 @@ namespace CofreDeSenhas.Controles
 
             DefinirIcone(_btnCopiar, IconeCheck);
             _btnCopiar.Foreground = Tema.Pincel(Tema.StrengthStrong);
-            Acessibilidade.Anunciar(this, Idioma.Formatar("A11y.Copied", Idioma.Texto("Row.CopyPassword")));
+
+            int segundos = Preferencias.SegundosLimpezaClipboard;
+            bool vaiLimpar = segundos > 0 && clipboard != null;
+            if (vaiLimpar)
+            {
+                var mensagem = Idioma.Formatar("Row.PasswordCopiedClearing", segundos);
+                ToolTip.SetTip(_btnCopiar, mensagem);
+                AutomationProperties.SetName(_btnCopiar, mensagem);
+                Acessibilidade.Anunciar(this, Idioma.Formatar("A11y.CopiedWillClear", Idioma.Texto("Row.CopyPassword"), segundos));
+                _ = ServicoLimpezaClipboard.ProgramarLimpezaAsync(new AreaTransferenciaAvalonia(clipboard!), plain, segundos);
+            }
+            else
+            {
+                Acessibilidade.Anunciar(this, Idioma.Formatar("A11y.Copied", Idioma.Texto("Row.CopyPassword")));
+            }
+
             var t = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
             t.Tick += (s, e) =>
             {
                 DefinirIcone(_btnCopiar, Icone("IconeCopiar"));
                 _btnCopiar.ClearValue(Button.ForegroundProperty);
+                if (vaiLimpar)
+                {
+                    ToolTip.SetTip(_btnCopiar, Idioma.Texto("Row.CopyPassword"));
+                    AutomationProperties.SetName(_btnCopiar, Idioma.Texto("Row.CopyPassword"));
+                }
                 t.Stop();
             };
             t.Start();

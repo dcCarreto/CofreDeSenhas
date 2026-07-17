@@ -86,7 +86,7 @@
           <Grid ColumnDefinitions="Auto,*,Auto">
             <TextBlock Name="LblCodigoTotp" FontFamily="{DynamicResource FonteMono}"
                        FontSize="20" FontWeight="Bold" LetterSpacing="1"
-                       Foreground="{DynamicResource AccentPrimary}" VerticalAlignment="Center"
+                       Foreground="{DynamicResource AccentText}" VerticalAlignment="Center"
                        AutomationProperties.Name="{DynamicResource A11y.TotpPreview}"
                        AutomationProperties.LiveSetting="Polite" />
             <Grid Grid.Column="2" Width="26" Height="26" VerticalAlignment="Center">
@@ -97,6 +97,18 @@
             </Grid>
           </Grid>
         </Border>
+
+        <TextBlock Text="{DynamicResource Entry.RecoveryCodes}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
+        <StackPanel Name="PainelCodigosRecuperacao" Spacing="8" Margin="0,0,0,8" />
+        <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,14">
+          <TextBox Name="TxtNovosCodigos" Classes="campo" AcceptsReturn="True" Height="60"
+                   Watermark="{DynamicResource Entry.RecoveryCodesWatermark}"
+                   AutomationProperties.Name="{DynamicResource Entry.RecoveryCodes}"
+                   AutomationProperties.HelpText="{DynamicResource A11y.OptionalField}" />
+          <Button Grid.Column="1" Classes="secundario" Content="{DynamicResource Entry.RecoveryCodesAdd}"
+                  Height="34" Margin="8,0,0,0" VerticalAlignment="Bottom" Click="AdicionarCodigosRecuperacao_Click"
+                  AutomationProperties.Name="{DynamicResource Entry.RecoveryCodesAdd}" />
+        </Grid>
 
         <TextBlock Text="{DynamicResource Entry.Category}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
         <ComboBox Name="CmbCategoria" Classes="campo" HorizontalAlignment="Stretch" Margin="0,0,0,14"
