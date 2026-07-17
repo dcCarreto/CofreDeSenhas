@@ -179,6 +179,9 @@ DocProject/Help/html
 # Click-Once directory
 publish/
 
+# Instalador Windows gerado (Inno Setup)
+dist/
+
 # Publish Web Output
 *.[Pp]ublish.xml
 *.azurePubxml
