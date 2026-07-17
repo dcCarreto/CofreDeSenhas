@@ -251,19 +251,30 @@ namespace CofreDeSenhas.Controles
 
             var btnCopiarTodas = new Button
             {
-                Content = CriarConteudoBotao("IconeCopiar", Idioma.Texto("Generator.CopyAll"), 13, Tema.Pincel(Tema.AccentPrimary)),
+                Content = CriarConteudoBotao("IconeCopiar", Idioma.Texto("Generator.CopyAll"), 13, Tema.Pincel(Tema.AccentText)),
                 Height = 26,
                 FontSize = 12,
-                Foreground = Tema.Pincel(Tema.AccentPrimary),
+                Foreground = Tema.Pincel(Tema.AccentText),
                 HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right
             };
             btnCopiarTodas.Classes.Add("plano");
             AutomationProperties.SetName(btnCopiarTodas, Idioma.Texto("A11y.CopyAllGenerated"));
             btnCopiarTodas.Click += async (s, e) =>
             {
+                var texto = string.Join(Environment.NewLine, _senhasGeradas);
                 if (AreaTransferencia != null)
-                    try { await AreaTransferencia.SetTextAsync(string.Join(Environment.NewLine, _senhasGeradas)); } catch { }
-                Acessibilidade.Anunciar(this, Idioma.Formatar("A11y.Copied", Idioma.Texto("Generator.CopyAll")));
+                    try { await AreaTransferencia.SetTextAsync(texto); } catch { }
+
+                int segundos = Preferencias.SegundosLimpezaClipboard;
+                if (segundos > 0 && AreaTransferencia != null)
+                {
+                    Acessibilidade.Anunciar(this, Idioma.Formatar("A11y.CopiedWillClear", Idioma.Texto("Generator.CopyAll"), segundos));
+                    _ = ServicoLimpezaClipboard.ProgramarLimpezaAsync(new AreaTransferenciaAvalonia(AreaTransferencia), texto, segundos);
+                }
+                else
+                {
+                    Acessibilidade.Anunciar(this, Idioma.Formatar("A11y.Copied", Idioma.Texto("Generator.CopyAll")));
+                }
             };
 
             var header = new Grid { Margin = new Thickness(0, 0, 0, 6) };
@@ -300,7 +311,19 @@ namespace CofreDeSenhas.Controles
                     try { await AreaTransferencia.SetTextAsync(senha); } catch { }
                 btnCopiar.Content = CriarIcone("IconeCheck", 13);
                 btnCopiar.Foreground = Tema.Pincel(Tema.StrengthStrong);
-                Acessibilidade.Anunciar(this, Idioma.Formatar("A11y.Copied", ItemGeradoNome));
+
+                int segundos = Preferencias.SegundosLimpezaClipboard;
+                bool vaiLimpar = segundos > 0 && AreaTransferencia != null;
+                if (vaiLimpar)
+                {
+                    Acessibilidade.Anunciar(this, Idioma.Formatar("A11y.CopiedWillClear", ItemGeradoNome, segundos));
+                    _ = ServicoLimpezaClipboard.ProgramarLimpezaAsync(new AreaTransferenciaAvalonia(AreaTransferencia!), senha, segundos);
+                }
+                else
+                {
+                    Acessibilidade.Anunciar(this, Idioma.Formatar("A11y.Copied", ItemGeradoNome));
+                }
+
                 var t = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
                 t.Tick += (ss, ee) =>
                 {
@@ -364,11 +387,25 @@ namespace CofreDeSenhas.Controles
             if (string.IsNullOrEmpty(_senhaGerada) || AreaTransferencia == null)
                 return;
             await AreaTransferencia.SetTextAsync(_senhaGerada);
-            Acessibilidade.Anunciar(this, Idioma.Formatar("A11y.Copied", ItemGeradoNome));
+
+            int segundos = Preferencias.SegundosLimpezaClipboard;
+            string mensagem;
+            if (segundos > 0)
+            {
+                Acessibilidade.Anunciar(this, Idioma.Formatar("A11y.CopiedWillClear", ItemGeradoNome, segundos));
+                _ = ServicoLimpezaClipboard.ProgramarLimpezaAsync(new AreaTransferenciaAvalonia(AreaTransferencia), _senhaGerada, segundos);
+                mensagem = ModoFraseSenha
+                    ? Idioma.Formatar("Generator.PassphraseCopiedClearing", segundos)
+                    : Idioma.Formatar("Generator.PasswordCopiedClearing", segundos);
+            }
+            else
+            {
+                Acessibilidade.Anunciar(this, Idioma.Formatar("A11y.Copied", ItemGeradoNome));
+                mensagem = ModoFraseSenha ? Idioma.Texto("Generator.PassphraseCopied") : Idioma.Texto("Generator.PasswordCopied");
+            }
+
             if (JanelaDona is { } janela)
-                await CaixaMensagem.MostrarAsync(janela,
-                    ModoFraseSenha ? Idioma.Texto("Generator.PassphraseCopied") : Idioma.Texto("Generator.PasswordCopied"),
-                    Idioma.Texto("Common.Success"));
+                await CaixaMensagem.MostrarAsync(janela, mensagem, Idioma.Texto("Common.Success"));
         }
 
         private void Limpar_Click(object? sender, RoutedEventArgs e)

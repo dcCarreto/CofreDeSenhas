@@ -88,7 +88,7 @@
         <TextBlock Text="{DynamicResource Generator.Quantity}" FontSize="13" Foreground="{DynamicResource TextSecondary}" />
         <TextBlock Name="LblQuantidadeValor" Grid.Column="1" Text="1"
                    FontFamily="{StaticResource FonteMono}" FontSize="13" FontWeight="Bold"
-                   Foreground="{DynamicResource AccentPrimary}" />
+                   Foreground="{DynamicResource AccentText}" />
       </Grid>
       <c:CustomSlider Name="SliderQuantidade" Minimum="1" Maximum="10" Value="1" Margin="0,0,0,18"
                       AutomationProperties.Name="{DynamicResource Generator.Quantity}" />
@@ -98,7 +98,7 @@
           <TextBlock Text="{DynamicResource Generator.Length}" FontSize="13" Foreground="{DynamicResource TextSecondary}" />
           <TextBlock Name="LblTamanhoValor" Grid.Column="1" Text="12"
                      FontFamily="{StaticResource FonteMono}" FontSize="13" FontWeight="Bold"
-                     Foreground="{DynamicResource AccentPrimary}" />
+                     Foreground="{DynamicResource AccentText}" />
         </Grid>
         <c:CustomSlider Name="SliderTamanho" Minimum="4" Maximum="64" Value="12" Margin="0,0,0,18"
                         AutomationProperties.Name="{DynamicResource Generator.Length}" />
@@ -142,7 +142,7 @@
           <TextBlock Text="{DynamicResource Generator.Words}" FontSize="13" Foreground="{DynamicResource TextSecondary}" />
           <TextBlock Name="LblPalavrasValor" Grid.Column="1" Text="5"
                      FontFamily="{StaticResource FonteMono}" FontSize="13" FontWeight="Bold"
-                     Foreground="{DynamicResource AccentPrimary}" />
+                     Foreground="{DynamicResource AccentText}" />
         </Grid>
         <c:CustomSlider Name="SliderPalavras" Minimum="3" Maximum="8" Value="5" Margin="0,0,0,18"
                         AutomationProperties.Name="{DynamicResource Generator.Words}" />
