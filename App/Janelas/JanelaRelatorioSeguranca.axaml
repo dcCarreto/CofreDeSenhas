@@ -1,0 +1,76 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="CofreDeSenhas.Janelas.JanelaRelatorioSeguranca"
+        Title="{DynamicResource SecurityReport.Title}"
+        Width="480"
+        Height="660"
+        MinWidth="420"
+        MinHeight="480"
+        SystemDecorations="None"
+        Background="Transparent"
+        TransparencyLevelHint="Transparent"
+        WindowStartupLocation="CenterOwner">
+
+  <Border CornerRadius="{StaticResource RadiusDialogo}"
+          ClipToBounds="True"
+          Background="{DynamicResource CardBackground}"
+          BorderBrush="{DynamicResource CardBorder}"
+          BorderThickness="1">
+
+    <DockPanel>
+      <Border DockPanel.Dock="Top"
+              Height="56"
+              BorderBrush="{DynamicResource CardBorder}"
+              BorderThickness="0,0,0,1"
+              PointerPressed="Arrastar">
+        <Grid>
+          <TextBlock Text="{DynamicResource SecurityReport.Title}"
+                     Classes="titulo"
+                     Foreground="{DynamicResource TextPrimary}"
+                     VerticalAlignment="Center"
+                     AutomationProperties.HeadingLevel="1"
+                     Margin="24,0,0,0" />
+          <Button Classes="fechar-dialogo"
+                  AutomationProperties.Name="{DynamicResource Access.Close}"
+                  HorizontalAlignment="Right" VerticalAlignment="Center"
+                  Margin="0,0,14,0"
+                  Click="Fechar_Click">
+            <Path Classes="line-icon" Width="14" Height="14" Data="{StaticResource IconeFechar}" />
+          </Button>
+        </Grid>
+      </Border>
+
+      <Border DockPanel.Dock="Bottom"
+              Height="72"
+              BorderBrush="{DynamicResource CardBorder}"
+              BorderThickness="0,1,0,0">
+        <StackPanel Orientation="Horizontal" Spacing="10"
+                    HorizontalAlignment="Right" VerticalAlignment="Center" Margin="24,0">
+          <Button Classes="secundario" Content="{DynamicResource Common.Close}"
+                  MinWidth="120" Height="40" Click="Fechar_Click" />
+        </StackPanel>
+      </Border>
+
+      <ScrollViewer>
+        <StackPanel Margin="24,18,24,16" Spacing="16">
+          <Border Background="{DynamicResource InputBackground}"
+                  BorderBrush="{DynamicResource InputBorder}" BorderThickness="1"
+                  CornerRadius="{StaticResource RadiusInput}" Padding="18,16">
+            <StackPanel Spacing="4" HorizontalAlignment="Center">
+              <TextBlock Name="LblPontuacao" FontSize="40" FontWeight="Bold" HorizontalAlignment="Center" />
+              <TextBlock Name="LblPontuacaoRotulo" FontSize="13" FontWeight="SemiBold" HorizontalAlignment="Center" />
+              <TextBlock Text="{DynamicResource SecurityReport.ScoreLabel}" FontSize="11"
+                         Foreground="{DynamicResource TextSecondary}" HorizontalAlignment="Center" />
+            </StackPanel>
+          </Border>
+
+          <TextBlock Name="LblTudoCerto" Text="{DynamicResource SecurityReport.AllGood}"
+                     FontSize="13" Foreground="{DynamicResource TextSecondary}" TextWrapping="Wrap"
+                     IsVisible="False" />
+
+          <StackPanel Name="PainelLinhas" Spacing="8" />
+        </StackPanel>
+      </ScrollViewer>
+    </DockPanel>
+  </Border>
+</Window>
