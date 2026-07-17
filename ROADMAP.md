@@ -203,6 +203,17 @@ Repaginação completa da interface, preservando todas as funcionalidades:
   decisão manual. O README ganhou instruções de verificação de integridade.
   Assinatura de código no Windows foi avaliada e documentada como item
   futuro, condicionada à obtenção de um certificado.
+- Empacotamento para Linux: novo `App/distribuicao/gerar-appimage.sh` gera um
+  AppImage autocontido (`CofreDeSenhas-X.Y.Z-x86_64.AppImage`), que roda em
+  qualquer distribuição x86_64 sem exigir o SDK do .NET nem instalação —
+  passou a ser publicado a cada release junto com o pacote `.tar.gz` e o
+  instalador do Windows, com checksum no `CHECKSUMS.txt`. O script de
+  instalação (`instalar.sh`/`desinstalar.sh`) foi mantido como alternativa
+  para quem prefere compilar do código-fonte; ambos preservam o cofre em
+  `~/.config/GerenciadorSenhas` na remoção e funcionam em X11 e Wayland.
+  Pacote `.deb` e Flatpak foram avaliados e adiados: exigiriam manter um
+  repositório próprio ou publicação no Flathub, esforço que não se justifica
+  agora com o AppImage já cobrindo o uso sem gerenciador de pacotes.
 
 ## Em andamento
 
@@ -239,16 +250,6 @@ Ideias e melhorias consideradas para versões futuras, agrupadas por prioridade:
   troca de tema/idioma.
 - Integrar ao CI existente (Windows e Linux).
 - Reduzir a dependência de verificação manual a cada mudança visual.
-
-#### Empacotamento para Linux
-
-- Criar AppImage.
-- Avaliar pacote .deb.
-- Avaliar Flatpak no futuro.
-- Manter script de instalação atual.
-- Documentar instalação por distribuição.
-- Garantir que o cofre local seja preservado na remoção.
-- Garantir compatibilidade com X11 e Wayland.
 
 #### Modo privacidade
 
@@ -406,18 +407,17 @@ criptografia anterior) e de uma camada inteira de métodos de busca/contagem em
 ## Ordem sugerida de execução
 
 1. Conclusão da extensão de navegador (em andamento).
-2. Empacotamento para Linux.
-3. Atalhos de teclado.
-4. Testes automatizados de interface.
-5. Modo privacidade.
-6. Histórico operacional da credencial.
-7. Aviso de nova versão.
-8. Anexos criptografados.
-9. Organização avançada com etiquetas.
-10. Templates de credenciais.
-11. Sincronização criptografada de ponta a ponta.
-12. macOS.
-13. Aplicativo móvel.
+2. Atalhos de teclado.
+3. Testes automatizados de interface.
+4. Modo privacidade.
+5. Histórico operacional da credencial.
+6. Aviso de nova versão.
+7. Anexos criptografados.
+8. Organização avançada com etiquetas.
+9. Templates de credenciais.
+10. Sincronização criptografada de ponta a ponta.
+11. macOS.
+12. Aplicativo móvel.
 
 ## Como sugerir
 

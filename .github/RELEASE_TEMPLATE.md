@@ -26,6 +26,7 @@
 | --- | --- | --- |
 | Windows | `CofreDeSenhas-Setup-X.Y.Z.exe` | Instalador (recomendado). Não exige administrador. |
 | Windows | `CofreDeSenhas-X.Y.Z-win-x64-portatil.exe` | Executável único, sem instalação. |
+| Linux | `CofreDeSenhas-X.Y.Z-x86_64.AppImage` | Recomendado. Dê permissão de execução e rode — não exige o SDK do .NET instalado. |
 | Linux | `CofreDeSenhas-X.Y.Z-linux-x64.tar.gz` | Extraia e execute `CofreDeSenhas`, ou use `App/distribuicao/instalar.sh` para registrar atalho e ícone. |
 
 ## Instalação

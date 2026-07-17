@@ -72,6 +72,13 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
   hashes). A publicação continua manual. README documenta como conferir os
   hashes; assinatura de código no Windows foi avaliada e fica registrada
   como item futuro do roadmap.
+- Empacotamento para Linux: cada release agora inclui um AppImage
+  (`CofreDeSenhas-X.Y.Z-x86_64.AppImage`), gerado por
+  `App/distribuicao/gerar-appimage.sh` e publicado automaticamente pelo
+  workflow de release. Roda em qualquer distribuição x86_64 sem exigir o
+  SDK do .NET instalado. O script de instalação continua disponível para
+  quem prefere compilar do código-fonte. Pacote `.deb` e Flatpak foram
+  avaliados e adiados por exigirem manutenção de repositório próprio.
 
 ### Corrigido
 - O painel de detalhes agora flutua sobre a lista de senhas em vez de

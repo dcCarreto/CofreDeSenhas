@@ -284,8 +284,26 @@ Para desinstalar, use "Aplicativos e recursos" do Windows (ou o atalho
 pergunta explicitamente se você também quer apagar esses dados, com a opção
 padrão sendo manter.
 
-No Linux, com o .NET 10 SDK instalado, o script de instalação compila, publica e
-registra o aplicativo para o usuário atual (sem sudo):
+No Linux, a forma mais simples é o **AppImage**: baixe
+`CofreDeSenhas-X.Y.Z-x86_64.AppImage` na [última versão](../../releases/latest),
+dê permissão de execução e rode — não precisa instalar o .NET nem nada além
+disso:
+
+```
+chmod +x CofreDeSenhas-X.Y.Z-x86_64.AppImage
+./CofreDeSenhas-X.Y.Z-x86_64.AppImage
+```
+
+Funciona em qualquer distribuição x86_64 recente, com integração automática de
+ícone e atalho de menu se você usar um integrador de AppImage (AppImageLauncher,
+Gear Lever etc.); sem um, basta executar o arquivo diretamente. O AppImage
+também pode ser gerado localmente com `App/distribuicao/gerar-appimage.sh`
+(com o .NET 10 SDK e `appimagetool` disponíveis).
+
+Quem preferir compilar a partir do código-fonte, ou quer o atalho no menu de
+aplicativos sem depender de um integrador de AppImage, pode usar o script de
+instalação, que exige o .NET 10 SDK instalado e compila, publica e registra o
+aplicativo para o usuário atual (sem sudo):
 
 ```
 ./App/distribuicao/instalar.sh
@@ -294,8 +312,15 @@ registra o aplicativo para o usuário atual (sem sudo):
 O script publica o binário em `~/.local/opt/cofre-de-senhas`, registra o atalho
 "Cofre de Senhas" no menu de aplicativos e instala o ícone. Para remover,
 execute `./App/distribuicao/desinstalar.sh` (o cofre em
-`~/.config/GerenciadorSenhas` é preservado). Funciona em ambientes X11 e
-Wayland.
+`~/.config/GerenciadorSenhas` é preservado). Tanto o AppImage quanto o script
+funcionam em ambientes X11 e Wayland.
+
+Pacotes `.deb` e Flatpak foram avaliados e ficaram de fora por enquanto: exigem
+manter um repositório próprio (ou publicação no Flathub) para atualizações
+automáticas, o que não compensa o esforço com um único mantenedor e o AppImage
+já cobre o caso de uso de "baixar e rodar" sem depender de gerenciador de
+pacotes. Fica como possibilidade futura se houver demanda (veja o
+[roadmap](ROADMAP.md)).
 
 No primeiro uso, o programa pedirá a criação de uma senha mestra. Guarde-a com
 cuidado: ela é a única forma de abrir o cofre. Um cofre exportado (`.gsenhas`)

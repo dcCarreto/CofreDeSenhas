@@ -94,6 +94,11 @@ jobs:
           mkdir -p dist
           tar -czf "dist/CofreDeSenhas-${{ steps.versao.outputs.versao }}-linux-x64.tar.gz" -C publish-linux .
 
+      - name: Gerar AppImage
+        run: |
+          chmod +x App/distribuicao/gerar-appimage.sh
+          ./App/distribuicao/gerar-appimage.sh "${{ steps.versao.outputs.versao }}"
+
       - name: Enviar artefato do Linux
         uses: actions/upload-artifact@v4
         with:
