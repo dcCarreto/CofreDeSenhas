@@ -110,6 +110,69 @@ public class PersistenciaLocalTests : IDisposable
     }
 
     [Fact]
+    public async Task ListarBackups_ComVariosBackups_RetornaOrdenadosPorDataDecrescente()
+    {
+        var senhas = new List<Senha> { NovaSenhaDeTeste("Serviço1") };
+
+        await _persistencia.BackupAutomaticoAsync(senhas, _chave);
+        await Task.Delay(10);
+        await _persistencia.BackupAutomaticoAsync(senhas, _chave);
+        await Task.Delay(10);
+        await _persistencia.BackupAutomaticoAsync(senhas, _chave);
+
+        var backups = _persistencia.ListarBackups();
+
+        Assert.Equal(3, backups.Count);
+        Assert.True(backups[0].DataUtc >= backups[1].DataUtc);
+        Assert.True(backups[1].DataUtc >= backups[2].DataUtc);
+    }
+
+    [Fact]
+    public async Task BackupAutomaticoAsync_ComQuantidadeMaximaMenor_MantemApenasAsMaisRecentes()
+    {
+        var senhas = new List<Senha> { NovaSenhaDeTeste("Serviço1") };
+
+        for (int i = 0; i < 5; i++)
+        {
+            await _persistencia.BackupAutomaticoAsync(senhas, _chave, quantidadeMaxima: 3);
+            await Task.Delay(10);
+        }
+
+        var backups = _persistencia.ListarBackups();
+
+        Assert.Equal(3, backups.Count);
+    }
+
+    [Fact]
+    public async Task CarregarBackupAsync_ComBackupSalvo_RetornaListaIntacta()
+    {
+        var senhas = new List<Senha> { NovaSenhaDeTeste("ServicoBackup") };
+
+        await _persistencia.BackupAutomaticoAsync(senhas, _chave);
+        var backup = Assert.Single(_persistencia.ListarBackups());
+
+        var restauradas = await _persistencia.CarregarBackupAsync(backup.Caminho);
+
+        Assert.Single(restauradas);
+        Assert.Equal("ServicoBackup", restauradas[0].NomeServico);
+    }
+
+    [Fact]
+    public void ListarBackups_SemBackupsRealizados_RetornaListaVazia()
+    {
+        Assert.Empty(_persistencia.ListarBackups());
+    }
+
+    private Senha NovaSenhaDeTeste(string nomeServico) => new()
+    {
+        Id = Guid.NewGuid(),
+        NomeServico = nomeServico,
+        Usuario = "user@example.com",
+        SenhaHash = _criptografia.Criptografar("senha123"),
+        Categoria = Categoria.Personal
+    };
+
+    [Fact]
     public async Task ValidarIntegridade_ComEstruturaValida_RetornaTrue()
     {
         var senhas = new List<Senha>

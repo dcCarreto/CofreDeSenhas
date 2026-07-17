@@ -93,7 +93,7 @@ namespace GerenciadorDeSenhas.Servicos
             }
         }
 
-        public async Task BackupAutomaticoAsync(List<Senha> senhas, byte[] chave)
+        public async Task BackupAutomaticoAsync(List<Senha> senhas, byte[] chave, int quantidadeMaxima = 10)
         {
             if (senhas == null)
                 throw new ArgumentNullException(nameof(senhas));
@@ -119,7 +119,7 @@ namespace GerenciadorDeSenhas.Servicos
 
                 await File.WriteAllTextAsync(caminhoBackup, criptografado);
 
-                LimparBackupsAntigos();
+                LimparBackupsAntigos(quantidadeMaxima);
             }
             catch (Exception ex)
             {
@@ -127,7 +127,35 @@ namespace GerenciadorDeSenhas.Servicos
             }
         }
 
-        private void LimparBackupsAntigos()
+        public List<InfoBackup> ListarBackups()
+        {
+            if (!Directory.Exists(_pastaBackup))
+                return new List<InfoBackup>();
+
+            return Directory.GetFiles(_pastaBackup, "senhas_backup_*.json.enc")
+                .Select(f => new InfoBackup(f, File.GetLastWriteTimeUtc(f)))
+                .OrderByDescending(b => b.DataUtc)
+                .ToList();
+        }
+
+        public async Task<List<Senha>> CarregarBackupAsync(string caminhoArquivo)
+        {
+            if (string.IsNullOrWhiteSpace(caminhoArquivo))
+                throw new ArgumentException("Caminho do backup não pode ser vazio", nameof(caminhoArquivo));
+
+            try
+            {
+                var criptografado = await File.ReadAllTextAsync(caminhoArquivo);
+                var json = _criptografia.Descriptografar(criptografado);
+                return JsonSerializer.Deserialize<List<Senha>>(json) ?? new List<Senha>();
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"Erro ao carregar backup: {ex.Message}", ex);
+            }
+        }
+
+        private void LimparBackupsAntigos(int quantidadeMaxima)
         {
             try
             {
@@ -135,9 +163,9 @@ namespace GerenciadorDeSenhas.Servicos
                     .OrderByDescending(f => File.GetLastWriteTimeUtc(f))
                     .ToList();
 
-                if (arquivos.Count > 10)
+                if (arquivos.Count > quantidadeMaxima)
                 {
-                    for (int i = 10; i < arquivos.Count; i++)
+                    for (int i = quantidadeMaxima; i < arquivos.Count; i++)
                     {
                         File.Delete(arquivos[i]);
                     }
