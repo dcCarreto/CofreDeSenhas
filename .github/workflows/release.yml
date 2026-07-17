@@ -1,0 +1,132 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    name: Gerar artefatos do Windows
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Determinar versão
+        id: versao
+        shell: pwsh
+        run: |
+          $csproj = Get-Content App\App.csproj -Raw
+          if ($csproj -notmatch "<Version>([^<]+)</Version>") {
+            throw "Não foi possível determinar a versão em App\App.csproj."
+          }
+          "versao=$($Matches[1])" >> $env:GITHUB_OUTPUT
+
+      - name: Garantir Inno Setup instalado
+        shell: pwsh
+        run: |
+          $candidatos = @(
+            "$env:LOCALAPPDATA\Programs\Inno Setup 6\ISCC.exe",
+            "C:\Program Files (x86)\Inno Setup 6\ISCC.exe",
+            "C:\Program Files\Inno Setup 6\ISCC.exe"
+          )
+          $iscc = $candidatos | Where-Object { Test-Path $_ } | Select-Object -First 1
+          if (-not $iscc -and -not (Get-Command iscc.exe -ErrorAction SilentlyContinue)) {
+            Write-Host "Inno Setup não encontrado, instalando via Chocolatey..."
+            choco install innosetup -y --no-progress
+          }
+
+      - name: Publicar executável e gerar instalador
+        shell: pwsh
+        run: .\App\distribuicao\gerar-instalador.ps1 -Versao "${{ steps.versao.outputs.versao }}"
+
+      - name: Empacotar o executável portátil
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          Copy-Item "publish\CofreDeSenhas.exe" "dist\CofreDeSenhas-${{ steps.versao.outputs.versao }}-win-x64-portatil.exe"
+
+      - name: Enviar artefatos do Windows
+        uses: actions/upload-artifact@v4
+        with:
+          name: artefatos-windows
+          path: dist/*
+          if-no-files-found: error
+
+  build-linux:
+    name: Gerar artefato do Linux
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Determinar versão
+        id: versao
+        run: |
+          versao=$(grep -oP '(?<=<Version>)[^<]+' App/App.csproj)
+          if [ -z "$versao" ]; then
+            echo "Não foi possível determinar a versão em App/App.csproj." >&2
+            exit 1
+          fi
+          echo "versao=$versao" >> "$GITHUB_OUTPUT"
+
+      - name: Publicar (linux-x64, autocontido)
+        run: |
+          dotnet publish App/App.csproj -f net10.0 -c Release -r linux-x64 \
+            --self-contained true -o publish-linux
+
+      - name: Empacotar em tar.gz
+        run: |
+          mkdir -p dist
+          tar -czf "dist/CofreDeSenhas-${{ steps.versao.outputs.versao }}-linux-x64.tar.gz" -C publish-linux .
+
+      - name: Enviar artefato do Linux
+        uses: actions/upload-artifact@v4
+        with:
+          name: artefatos-linux
+          path: dist/*
+          if-no-files-found: error
+
+  publicar-release:
+    name: Publicar release (rascunho)
+    needs: [ build-windows, build-linux ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Baixar artefatos
+        uses: actions/download-artifact@v4
+        with:
+          path: artefatos
+          merge-multiple: true
+
+      - name: Gerar CHECKSUMS.txt
+        run: |
+          mkdir -p dist
+          cp artefatos/* dist/
+          cd dist
+          sha256sum * > CHECKSUMS.txt
+          cat CHECKSUMS.txt
+
+      - name: Criar release em rascunho
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          generate_release_notes: true
+          body_path: .github/RELEASE_TEMPLATE.md
+          files: dist/*
