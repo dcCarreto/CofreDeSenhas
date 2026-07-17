@@ -83,6 +83,12 @@
                       <MenuItem Header="{DynamicResource Settings.ClipboardClear.After30}" ToggleType="Radio" Tag="30" Click="LimpezaClipboard_Alterada" />
                       <MenuItem Header="{DynamicResource Settings.ClipboardClear.After60}" ToggleType="Radio" Tag="60" Click="LimpezaClipboard_Alterada" />
                     </MenuItem>
+                    <MenuItem Header="{DynamicResource Settings.LockNow}" Click="BloquearAgora_Click">
+                      <MenuItem.Icon>
+                        <Path Classes="line-icon" Width="16" Height="16" Stroke="{DynamicResource TextSecondary}"
+                              Data="{StaticResource IconeCadeado}" />
+                      </MenuItem.Icon>
+                    </MenuItem>
                     <Separator />
                     <MenuItem Classes="secao" Header="{DynamicResource Settings.SectionAppearance}" />
                     <MenuItem Name="MenuIdioma" Header="{DynamicResource Settings.Language}">
@@ -146,6 +152,14 @@
                       <MenuItem.Icon>
                         <Path Classes="line-icon" Width="16" Height="16" Stroke="{DynamicResource TextSecondary}"
                               Data="{StaticResource IconeBancoDesconectado}" />
+                      </MenuItem.Icon>
+                    </MenuItem>
+                    <Separator />
+                    <MenuItem Classes="secao" Header="{DynamicResource Settings.SectionHelp}" />
+                    <MenuItem Header="{DynamicResource Settings.KeyboardShortcuts}" Click="AtalhosTeclado_Click">
+                      <MenuItem.Icon>
+                        <Path Classes="line-icon" Width="16" Height="16" Stroke="{DynamicResource TextSecondary}"
+                              Data="{StaticResource IconeAtalhoTeclado}" />
                       </MenuItem.Icon>
                     </MenuItem>
                   </MenuFlyout>

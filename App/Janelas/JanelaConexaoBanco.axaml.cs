@@ -35,10 +35,7 @@ namespace CofreDeSenhas.Janelas
             Idioma.Alterado += Idioma_Alterado;
             Closed += (s, e) => Idioma.Alterado -= Idioma_Alterado;
 
-            KeyDown += (s, e) =>
-            {
-                if (e.Key == Key.Escape) Close(false);
-            };
+            this.FecharComEsc();
 
             Opened += (s, e) => (_txtArquivo ?? _txtHost)?.Focus();
         }
@@ -273,11 +270,7 @@ namespace CofreDeSenhas.Janelas
             return quebra < 0 ? texto : texto[..quebra].TrimEnd('\r');
         }
 
-        private void Arrastar(object? sender, PointerPressedEventArgs e)
-        {
-            if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed && e.Source is not TextBox)
-                BeginMoveDrag(e);
-        }
+        private void Arrastar(object? sender, PointerPressedEventArgs e) => this.HabilitarArraste(e, origem => origem is TextBox);
 
         private void Cancelar_Click(object? sender, RoutedEventArgs e) => Close(false);
     }

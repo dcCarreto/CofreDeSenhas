@@ -45,7 +45,7 @@ namespace CofreDeSenhas
         {
             var pasta = pastaApp ?? Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "GerenciadorSenhas");
+                CaminhosApp.PastaDados);
 
             _caminhoRegistro = Path.Combine(pasta, "biometria.dat");
         }

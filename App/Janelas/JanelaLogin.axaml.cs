@@ -93,40 +93,15 @@ namespace CofreDeSenhas.Janelas
             Gerador.AtualizarTema();
         }
 
-        private void Daltonismo_Alterado(object? sender, RoutedEventArgs e)
-        {
-            if (sender is MenuItem item)
-                Acessibilidade.SelecionarDaltonismo(item.Tag as string);
-        }
+        private void Daltonismo_Alterado(object? sender, RoutedEventArgs e) => Acessibilidade.TratarClickDaltonismo(sender);
 
-        private void Escala_Alterada(object? sender, RoutedEventArgs e)
-        {
-            if (sender is MenuItem item)
-                Acessibilidade.SelecionarEscala(item.Tag as string);
-        }
+        private void Escala_Alterada(object? sender, RoutedEventArgs e) => Acessibilidade.TratarClickEscala(sender);
 
-        private void AltoContraste_Alterado(object? sender, RoutedEventArgs e)
-        {
-            if (sender is MenuItem item)
-                Acessibilidade.SelecionarAltoContraste(item.IsChecked);
-        }
+        private void AltoContraste_Alterado(object? sender, RoutedEventArgs e) => Acessibilidade.TratarClickAltoContraste(sender);
 
-        private void ReduzirAnimacoes_Alterado(object? sender, RoutedEventArgs e)
-        {
-            if (sender is MenuItem item)
-                Acessibilidade.SelecionarReducaoMovimento(item.IsChecked);
-        }
+        private void ReduzirAnimacoes_Alterado(object? sender, RoutedEventArgs e) => Acessibilidade.TratarClickReducaoMovimento(sender);
 
-        private void LeitorTela_Alterado(object? sender, RoutedEventArgs e)
-        {
-            if (sender is MenuItem item)
-            {
-                Acessibilidade.SelecionarLeitorTela(item.IsChecked);
-                Acessibilidade.Anunciar(this, Idioma.Texto(Acessibilidade.LeitorTela
-                    ? "A11y.ScreenReaderEnabled"
-                    : "A11y.ScreenReaderDisabled"), assertivo: true, forcar: true);
-            }
-        }
+        private void LeitorTela_Alterado(object? sender, RoutedEventArgs e) => Acessibilidade.TratarClickLeitorTela(this, sender);
 
         private async void Principal_Click(object? sender, RoutedEventArgs e) => await ConfirmarAsync();
 
@@ -187,7 +162,7 @@ namespace CofreDeSenhas.Janelas
 
             if (_primeiroAcesso)
             {
-                if (senha.Length < 8)
+                if (senha.Length < AutenticacaoMestra.TamanhoMinimoSenha)
                 {
                     MostrarErro(Idioma.Texto("Login.Error.PasswordLength"));
                     return;

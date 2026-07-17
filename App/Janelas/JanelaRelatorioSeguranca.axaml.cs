@@ -30,10 +30,7 @@ namespace CofreDeSenhas.Janelas
 
             AtualizarConteudo();
 
-            KeyDown += (s, e) =>
-            {
-                if (e.Key == Key.Escape) Close(false);
-            };
+            this.FecharComEsc();
         }
 
         private void AtualizarConteudo()
@@ -201,11 +198,7 @@ namespace CofreDeSenhas.Janelas
             Close(true);
         }
 
-        private void Arrastar(object? sender, PointerPressedEventArgs e)
-        {
-            if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
-                BeginMoveDrag(e);
-        }
+        private void Arrastar(object? sender, PointerPressedEventArgs e) => this.HabilitarArraste(e);
 
         private void Fechar_Click(object? sender, RoutedEventArgs e) => Close(false);
     }

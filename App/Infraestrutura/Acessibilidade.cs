@@ -606,6 +606,40 @@ namespace CofreDeSenhas
             Preferencias.Salvar();
         }
 
+        public static void TratarClickDaltonismo(object? sender)
+        {
+            if (sender is MenuItem item)
+                SelecionarDaltonismo(item.Tag as string);
+        }
+
+        public static void TratarClickEscala(object? sender)
+        {
+            if (sender is MenuItem item)
+                SelecionarEscala(item.Tag as string);
+        }
+
+        public static void TratarClickAltoContraste(object? sender)
+        {
+            if (sender is MenuItem item)
+                SelecionarAltoContraste(item.IsChecked);
+        }
+
+        public static void TratarClickReducaoMovimento(object? sender)
+        {
+            if (sender is MenuItem item)
+                SelecionarReducaoMovimento(item.IsChecked);
+        }
+
+        public static void TratarClickLeitorTela(Control janela, object? sender)
+        {
+            if (sender is not MenuItem item)
+                return;
+
+            SelecionarLeitorTela(item.IsChecked);
+            Anunciar(janela, Idioma.Texto(LeitorTela ? "A11y.ScreenReaderEnabled" : "A11y.ScreenReaderDisabled"),
+                assertivo: true, forcar: true);
+        }
+
         public static void MarcarMenus(MenuItem? daltonismo, MenuItem? escala, MenuItem? altoContraste,
             MenuItem? reduzirAnimacoes, MenuItem? leitorTela = null)
         {

@@ -14,7 +14,7 @@ namespace CofreDeSenhas.Janelas
     {
         private readonly IServicoSenha _servicoSenha;
         private readonly ServicoTotp _totp = new();
-        private DispatcherTimer? _timerTotp;
+        private readonly TotpPreview.Temporizador _timerTotp = new();
         private const int PeriodoTotp = 30;
 
         public JanelaCriarSenha(IServicoSenha servicoSenha, string? senhaGerada = null)
@@ -37,18 +37,14 @@ namespace CofreDeSenhas.Janelas
             Idioma.Alterado += Idioma_Alterado;
             Closed += (s, e) =>
             {
-                PararTimerTotp();
+                _timerTotp.Parar();
                 Idioma.Alterado -= Idioma_Alterado;
             };
 
             Opened += (s, e) => TxtNomeServico.Focus();
         }
 
-        private void Arrastar(object? sender, PointerPressedEventArgs e)
-        {
-            if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
-                BeginMoveDrag(e);
-        }
+        private void Arrastar(object? sender, PointerPressedEventArgs e) => this.HabilitarArraste(e);
 
         private void Cancelar_Click(object? sender, RoutedEventArgs e) => Close(false);
 
@@ -115,63 +111,26 @@ namespace CofreDeSenhas.Janelas
             if (string.IsNullOrWhiteSpace(entrada) || !_totp.SegredoValido(entrada))
             {
                 PainelTotp.IsVisible = false;
-                PararTimerTotp();
+                _timerTotp.Parar();
                 return;
             }
 
             try
             {
                 var codigo = _totp.Gerar(entrada);
-                LblCodigoTotp.Text = FormatarCodigo(codigo.Codigo);
+                LblCodigoTotp.Text = TotpPreview.FormatarCodigo(codigo.Codigo);
                 var contagem = Idioma.Formatar("Entry.TotpExpiresIn", codigo.SegundosRestantes);
-                AtualizarAnelTotp(codigo.SegundosRestantes, PeriodoTotp);
+                AnelTotp.Data = TotpPreview.ConstruirAnelProgresso(codigo.SegundosRestantes, PeriodoTotp, raio: 10, centro: 13);
                 AutomationProperties.SetName(LblCodigoTotp,
                     $"{Idioma.Texto("A11y.TotpPreview")}: {LblCodigoTotp.Text}. {contagem}");
                 PainelTotp.IsVisible = true;
-                GarantirTimerTotp();
+                _timerTotp.Garantir(AtualizarPreviewTotp);
             }
             catch
             {
                 PainelTotp.IsVisible = false;
-                PararTimerTotp();
+                _timerTotp.Parar();
             }
-        }
-
-        private void GarantirTimerTotp()
-        {
-            if (_timerTotp != null)
-                return;
-
-            _timerTotp = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
-            _timerTotp.Tick += (s, e) => AtualizarPreviewTotp();
-            _timerTotp.Start();
-        }
-
-        private void PararTimerTotp()
-        {
-            _timerTotp?.Stop();
-            _timerTotp = null;
-        }
-
-        private void AtualizarAnelTotp(int restantes, int periodo)
-        {
-            double fracao = periodo <= 0 ? 0 : Math.Clamp(restantes / (double)periodo, 0, 1);
-            double angulo = fracao * 360;
-            if (angulo <= 0.1)
-            {
-                AnelTotp.Data = null;
-                return;
-            }
-            if (angulo >= 359.9)
-                angulo = 359.9;
-
-            const double r = 10, cx = 13, cy = 13;
-            double rad = angulo * Math.PI / 180.0;
-            double fx = cx + r * Math.Sin(rad);
-            double fy = cy - r * Math.Cos(rad);
-            int grande = angulo > 180 ? 1 : 0;
-            AnelTotp.Data = StreamGeometry.Parse(string.Format(CultureInfo.InvariantCulture,
-                "M {0} {1} A {2} {2} 0 {3} 1 {4:0.##} {5:0.##}", cx, cy - r, r, grande, fx, fy));
         }
 
         private void Categoria_Alterada(object? sender, SelectionChangedEventArgs e) =>
@@ -198,8 +157,5 @@ namespace CofreDeSenhas.Janelas
 
             return (Categoria.Other, Etiquetas.Normalizar(new[] { texto ?? "" }));
         }
-
-        private static string FormatarCodigo(string codigo) =>
-            codigo.Length == 6 ? codigo.Insert(3, " ") : codigo;
     }
 }

@@ -21,10 +21,7 @@ namespace CofreDeSenhas.Janelas
 
             MontarGrade();
 
-            KeyDown += (s, e) =>
-            {
-                if (e.Key == Key.Escape) Close(false);
-            };
+            this.FecharComEsc();
         }
 
         private void MontarGrade()
@@ -127,11 +124,7 @@ namespace CofreDeSenhas.Janelas
             });
         }
 
-        private void Arrastar(object? sender, PointerPressedEventArgs e)
-        {
-            if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
-                BeginMoveDrag(e);
-        }
+        private void Arrastar(object? sender, PointerPressedEventArgs e) => this.HabilitarArraste(e);
 
         private void Cancelar_Click(object? sender, RoutedEventArgs e) => Close(false);
     }

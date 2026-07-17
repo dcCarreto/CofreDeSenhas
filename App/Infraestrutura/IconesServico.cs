@@ -206,7 +206,7 @@ namespace CofreDeSenhas
 
         private static readonly string PastaCacheDisco = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "GerenciadorSenhas", "icones");
+            CaminhosApp.PastaDados, "icones");
 
         private static readonly ConcurrentDictionary<string, Bitmap> IconesProntos =
             new(StringComparer.OrdinalIgnoreCase);

@@ -28,8 +28,8 @@ namespace GerenciadorDeSenhas.Servicos
 
         public async Task<byte[]> AlterarAsync(string senhaAtual, string novaSenha)
         {
-            if (string.IsNullOrWhiteSpace(novaSenha) || novaSenha.Length < 8)
-                throw new ArgumentException("A nova senha mestra deve ter pelo menos 8 caracteres.");
+            if (string.IsNullOrWhiteSpace(novaSenha) || novaSenha.Length < AutenticacaoMestra.TamanhoMinimoSenha)
+                throw new ArgumentException($"A nova senha mestra deve ter pelo menos {AutenticacaoMestra.TamanhoMinimoSenha} caracteres.");
 
             var auth = new AutenticacaoMestra(_pastaApp);
             var chaveAntiga = auth.Autenticar(senhaAtual)

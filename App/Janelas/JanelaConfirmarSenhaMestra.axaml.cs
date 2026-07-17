@@ -18,20 +18,12 @@ namespace CofreDeSenhas.Janelas
             Icon = Recursos.IconeApp();
             Acessibilidade.Vincular(this);
 
-            KeyDown += (s, e) =>
-            {
-                if (e.Key == Key.Enter) Confirmar();
-                if (e.Key == Key.Escape) Close(false);
-            };
+            this.FecharComEscConfirmarComEnter(Confirmar);
 
             Opened += (s, e) => TxtSenha.Focus();
         }
 
-        private void Arrastar(object? sender, PointerPressedEventArgs e)
-        {
-            if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed && e.Source is not TextBox)
-                BeginMoveDrag(e);
-        }
+        private void Arrastar(object? sender, PointerPressedEventArgs e) => this.HabilitarArraste(e, origem => origem is TextBox);
 
         private void Cancelar_Click(object? sender, RoutedEventArgs e) => Close(false);
 

@@ -48,9 +48,7 @@ namespace GerenciadorDeSenhas.Servicos
         {
             ValidarEntrada(nomeServico, usuario, senhaPlaintext);
 
-            var senha = await _repositorio.ObterPorIdAsync(id);
-            if (senha == null)
-                throw new InvalidOperationException($"Senha com ID {id} não encontrada");
+            var senha = await ObterOuFalharAsync(id);
 
             RegistrarHistoricoSeMudou(senha, senhaPlaintext);
 
@@ -69,9 +67,7 @@ namespace GerenciadorDeSenhas.Servicos
 
         public async Task DefinirTotpAsync(Guid id, string? segredoPlaintext)
         {
-            var senha = await _repositorio.ObterPorIdAsync(id);
-            if (senha == null)
-                throw new InvalidOperationException($"Senha com ID {id} não encontrada");
+            var senha = await ObterOuFalharAsync(id);
 
             senha.TotpSegredo = CifrarTotp(segredoPlaintext);
             senha.DataAtualizacao = DateTime.UtcNow;
@@ -81,9 +77,7 @@ namespace GerenciadorDeSenhas.Servicos
 
         public async Task AdicionarCodigosRecuperacaoAsync(Guid id, IEnumerable<(string Codigo, bool Usado)> codigos)
         {
-            var senha = await _repositorio.ObterPorIdAsync(id);
-            if (senha == null)
-                throw new InvalidOperationException($"Senha com ID {id} não encontrada");
+            var senha = await ObterOuFalharAsync(id);
 
             var novos = (codigos ?? Enumerable.Empty<(string Codigo, bool Usado)>())
                 .Where(c => !string.IsNullOrWhiteSpace(c.Codigo))
@@ -101,9 +95,7 @@ namespace GerenciadorDeSenhas.Servicos
 
         public async Task MarcarCodigoRecuperacaoAsync(Guid id, Guid codigoId, bool usado)
         {
-            var senha = await _repositorio.ObterPorIdAsync(id);
-            if (senha == null)
-                throw new InvalidOperationException($"Senha com ID {id} não encontrada");
+            var senha = await ObterOuFalharAsync(id);
 
             var codigo = senha.CodigosRecuperacao.FirstOrDefault(c => c.Id == codigoId);
             if (codigo == null)
@@ -117,14 +109,20 @@ namespace GerenciadorDeSenhas.Servicos
 
         public async Task RemoverCodigoRecuperacaoAsync(Guid id, Guid codigoId)
         {
-            var senha = await _repositorio.ObterPorIdAsync(id);
-            if (senha == null)
-                throw new InvalidOperationException($"Senha com ID {id} não encontrada");
+            var senha = await ObterOuFalharAsync(id);
 
             senha.CodigosRecuperacao.RemoveAll(c => c.Id == codigoId);
             senha.DataAtualizacao = DateTime.UtcNow;
 
             await _repositorio.AtualizarAsync(senha);
+        }
+
+        private async Task<Senha> ObterOuFalharAsync(Guid id)
+        {
+            var senha = await _repositorio.ObterPorIdAsync(id);
+            if (senha == null)
+                throw new InvalidOperationException($"Senha com ID {id} não encontrada");
+            return senha;
         }
 
         private string? CifrarTotp(string? segredoPlaintext)
@@ -162,9 +160,7 @@ namespace GerenciadorDeSenhas.Servicos
 
         public async Task RemoverSenhaAsync(Guid id)
         {
-            var senha = await _repositorio.ObterPorIdAsync(id);
-            if (senha == null)
-                throw new InvalidOperationException($"Senha com ID {id} não encontrada");
+            var senha = await ObterOuFalharAsync(id);
 
             await _repositorio.RemoverAsync(id);
         }
@@ -196,9 +192,7 @@ namespace GerenciadorDeSenhas.Servicos
 
         public async Task MarcarComoFavoritoAsync(Guid id)
         {
-            var senha = await _repositorio.ObterPorIdAsync(id);
-            if (senha == null)
-                throw new InvalidOperationException($"Senha com ID {id} não encontrada");
+            var senha = await ObterOuFalharAsync(id);
 
             senha.Favorito = true;
             senha.DataAtualizacao = DateTime.UtcNow;
@@ -207,9 +201,7 @@ namespace GerenciadorDeSenhas.Servicos
 
         public async Task RemoverDeFavoritoAsync(Guid id)
         {
-            var senha = await _repositorio.ObterPorIdAsync(id);
-            if (senha == null)
-                throw new InvalidOperationException($"Senha com ID {id} não encontrada");
+            var senha = await ObterOuFalharAsync(id);
 
             senha.Favorito = false;
             senha.DataAtualizacao = DateTime.UtcNow;

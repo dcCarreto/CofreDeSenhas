@@ -44,11 +44,7 @@ namespace CofreDeSenhas.Janelas
             var header = new Grid { Height = 56 };
             header.Children.Add(lblTitulo);
             header.Children.Add(btnFechar);
-            header.PointerPressed += (s, e) =>
-            {
-                if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
-                    BeginMoveDrag(e);
-            };
+            header.PointerPressed += (s, e) => this.HabilitarArraste(e);
 
             var bordaHeader = new Border { Child = header, BorderThickness = new Thickness(0, 0, 0, 1) };
             bordaHeader.Bind(Border.BorderBrushProperty, this.GetResourceObservable("CardBorder"));
@@ -145,10 +141,7 @@ namespace CofreDeSenhas.Janelas
             AutomationProperties.SetName(this, titulo);
             Acessibilidade.Vincular(this);
 
-            KeyDown += (s, e) =>
-            {
-                if (e.Key == Key.Escape) Close(false);
-            };
+            this.FecharComEsc();
         }
 
         public static async Task MostrarAsync(Window dono, string texto, string titulo, TipoMensagem tipo = TipoMensagem.Info)

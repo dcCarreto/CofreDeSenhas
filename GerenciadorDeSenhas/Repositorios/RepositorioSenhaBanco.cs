@@ -7,6 +7,9 @@ namespace GerenciadorDeSenhas.Repositorios
 {
     public class RepositorioSenhaBanco : IRepositorioSenha
     {
+        private const string ColunasInsert = "usuario, senha, dominio, descricao, totp, etiquetas, codigos_recuperacao, excluido";
+        private const string ParametrosInsert = "@usuario, @senha, @dominio, @descricao, @totp, @etiquetas, @codigos_recuperacao, @excluido";
+
         private readonly ConexaoBanco _cfg;
         private readonly ServicoBancoDados _bd = new();
         private readonly string _tabela = ServicoBancoDados.NomeTabela;
@@ -20,6 +23,13 @@ namespace GerenciadorDeSenhas.Repositorios
             _cfg = cfg ?? throw new ArgumentNullException(nameof(cfg));
         }
 
+        private async Task<DbConnection> AbrirConexaoAsync()
+        {
+            var con = _bd.CriarConexao(_cfg);
+            await con.OpenAsync();
+            return con;
+        }
+
         private async Task CarregarSeNecessarioAsync()
         {
             if (_carregado) return;
@@ -27,8 +37,7 @@ namespace GerenciadorDeSenhas.Repositorios
             _senhas = new List<Senha>();
             _mapa.Clear();
 
-            await using var con = _bd.CriarConexao(_cfg);
-            await con.OpenAsync();
+            await using var con = await AbrirConexaoAsync();
 
             await using var cmd = con.CreateCommand();
             cmd.CommandText = $"SELECT id, usuario, senha, dominio, descricao, totp, etiquetas, codigos_recuperacao, excluido, data_exclusao FROM {_tabela}";
@@ -42,13 +51,13 @@ namespace GerenciadorDeSenhas.Repositorios
                     NomeServico = leitor["dominio"] is string dominio ? dominio : "",
                     Usuario = (string)leitor["usuario"],
                     SenhaHash = (string)leitor["senha"],
-                    Notas = leitor["descricao"] is string descricao ? descricao : null,
-                    TotpSegredo = leitor["totp"] is string totp ? totp : null,
-                    Etiquetas = DesserializarEtiquetas(leitor["etiquetas"]),
-                    CodigosRecuperacao = DesserializarCodigosRecuperacao(leitor["codigos_recuperacao"]),
+                    Notas = leitor[ServicoBancoDados.ColunaDescricao] is string descricao ? descricao : null,
+                    TotpSegredo = leitor[ServicoBancoDados.ColunaTotp] is string totp ? totp : null,
+                    Etiquetas = DesserializarEtiquetas(leitor[ServicoBancoDados.ColunaEtiquetas]),
+                    CodigosRecuperacao = DesserializarCodigosRecuperacao(leitor[ServicoBancoDados.ColunaCodigosRecuperacao]),
                     Categoria = Categoria.Other,
                     NaLixeira = Convert.ToBoolean(leitor["excluido"]),
-                    DataExclusao = DesserializarData(leitor["data_exclusao"])
+                    DataExclusao = DesserializarData(leitor[ServicoBancoDados.ColunaDataExclusao])
                 };
                 _senhas.Add(senha);
                 _mapa[senha.Id] = Convert.ToInt64(leitor["id"]);
@@ -62,15 +71,13 @@ namespace GerenciadorDeSenhas.Repositorios
             if (senha == null) throw new ArgumentNullException(nameof(senha));
             await CarregarSeNecessarioAsync();
 
-            await using var con = _bd.CriarConexao(_cfg);
-            await con.OpenAsync();
+            await using var con = await AbrirConexaoAsync();
 
             long id;
             if (_cfg.Tipo == TipoBanco.PostgreSQL)
             {
                 await using var cmd = con.CreateCommand();
-                cmd.CommandText = $"INSERT INTO {_tabela} (usuario, senha, dominio, descricao, totp, etiquetas, codigos_recuperacao, excluido) " +
-                                  "VALUES (@usuario, @senha, @dominio, @descricao, @totp, @etiquetas, @codigos_recuperacao, @excluido) RETURNING id";
+                cmd.CommandText = $"INSERT INTO {_tabela} ({ColunasInsert}) VALUES ({ParametrosInsert}) RETURNING id";
                 PreencherCampos(cmd, senha);
                 id = Convert.ToInt64(await cmd.ExecuteScalarAsync());
             }
@@ -78,8 +85,7 @@ namespace GerenciadorDeSenhas.Repositorios
             {
                 await using (var cmd = con.CreateCommand())
                 {
-                    cmd.CommandText = $"INSERT INTO {_tabela} (usuario, senha, dominio, descricao, totp, etiquetas, codigos_recuperacao, excluido) " +
-                                      "VALUES (@usuario, @senha, @dominio, @descricao, @totp, @etiquetas, @codigos_recuperacao, @excluido)";
+                    cmd.CommandText = $"INSERT INTO {_tabela} ({ColunasInsert}) VALUES ({ParametrosInsert})";
                     PreencherCampos(cmd, senha);
                     await cmd.ExecuteNonQueryAsync();
                 }
@@ -101,8 +107,7 @@ namespace GerenciadorDeSenhas.Repositorios
             if (!_mapa.TryGetValue(senha.Id, out var id))
                 throw new InvalidOperationException($"Senha com ID {senha.Id} não encontrada");
 
-            await using var con = _bd.CriarConexao(_cfg);
-            await con.OpenAsync();
+            await using var con = await AbrirConexaoAsync();
 
             await using var cmd = con.CreateCommand();
             cmd.CommandText = $"UPDATE {_tabela} SET usuario = @usuario, senha = @senha, dominio = @dominio, descricao = @descricao, totp = @totp, etiquetas = @etiquetas, codigos_recuperacao = @codigos_recuperacao WHERE id = @id";
@@ -132,8 +137,7 @@ namespace GerenciadorDeSenhas.Repositorios
 
             var agora = DateTime.UtcNow;
 
-            await using var con = _bd.CriarConexao(_cfg);
-            await con.OpenAsync();
+            await using var con = await AbrirConexaoAsync();
 
             await using var cmd = con.CreateCommand();
             cmd.CommandText = $"UPDATE {_tabela} SET excluido = @excluido, data_exclusao = @data_exclusao WHERE id = @id";
@@ -175,8 +179,7 @@ namespace GerenciadorDeSenhas.Repositorios
             if (!_mapa.TryGetValue(id, out var idBanco))
                 throw new InvalidOperationException($"Senha com ID {id} não encontrada");
 
-            await using var con = _bd.CriarConexao(_cfg);
-            await con.OpenAsync();
+            await using var con = await AbrirConexaoAsync();
 
             await using var cmd = con.CreateCommand();
             cmd.CommandText = $"UPDATE {_tabela} SET excluido = @excluido, data_exclusao = @data_exclusao WHERE id = @id";
@@ -200,8 +203,7 @@ namespace GerenciadorDeSenhas.Repositorios
             if (!_mapa.TryGetValue(id, out var idBanco))
                 return;
 
-            await using var con = _bd.CriarConexao(_cfg);
-            await con.OpenAsync();
+            await using var con = await AbrirConexaoAsync();
 
             await using var cmd = con.CreateCommand();
             cmd.CommandText = $"DELETE FROM {_tabela} WHERE id = @id";
@@ -225,15 +227,13 @@ namespace GerenciadorDeSenhas.Repositorios
 
         public async Task GravarPorChaveAsync(Senha senha)
         {
-            await using var con = _bd.CriarConexao(_cfg);
-            await con.OpenAsync();
+            await using var con = await AbrirConexaoAsync();
             await GravarAsync(con, null, senha);
         }
 
         public async Task GravarVariasPorChaveAsync(IEnumerable<Senha> senhas)
         {
-            await using var con = _bd.CriarConexao(_cfg);
-            await con.OpenAsync();
+            await using var con = await AbrirConexaoAsync();
             await using var tx = await con.BeginTransactionAsync();
             foreach (var senha in senhas)
                 await GravarAsync(con, tx, senha);
@@ -242,8 +242,7 @@ namespace GerenciadorDeSenhas.Repositorios
 
         public async Task ExcluirPorChaveAsync(string dominio, string usuario)
         {
-            await using var con = _bd.CriarConexao(_cfg);
-            await con.OpenAsync();
+            await using var con = await AbrirConexaoAsync();
 
             await using var cmd = con.CreateCommand();
             cmd.CommandText = $"UPDATE {_tabela} SET excluido = @excluido WHERE dominio = @dominio AND usuario = @usuario";
@@ -255,8 +254,7 @@ namespace GerenciadorDeSenhas.Repositorios
 
         public async Task ExcluirDefinitivamentePorChaveAsync(string dominio, string usuario)
         {
-            await using var con = _bd.CriarConexao(_cfg);
-            await con.OpenAsync();
+            await using var con = await AbrirConexaoAsync();
 
             await using var cmd = con.CreateCommand();
             cmd.CommandText = $"DELETE FROM {_tabela} WHERE dominio = @dominio AND usuario = @usuario";

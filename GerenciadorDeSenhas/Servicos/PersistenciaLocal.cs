@@ -7,6 +7,17 @@ namespace GerenciadorDeSenhas.Servicos
 {
     public class PersistenciaLocal : IPersistenciaLocal
     {
+        public const int QuantidadeMaximaBackupsPadrao = 10;
+
+        private const int TentativasEscrita = 3;
+        private static readonly TimeSpan EsperaEntreTentativas = TimeSpan.FromMilliseconds(100);
+
+        private static readonly JsonSerializerOptions OpcoesJson = new()
+        {
+            WriteIndented = false,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+        };
+
         private readonly IServicoCriptografia _criptografia;
         private readonly string _pastaApp;
         private readonly string _caminhoSenhas;
@@ -43,17 +54,11 @@ namespace GerenciadorDeSenhas.Servicos
             if (chave == null)
                 throw new ArgumentNullException(nameof(chave));
 
-            var opcoes = new JsonSerializerOptions
-            {
-                WriteIndented = false,
-                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-            };
-
-            var json = JsonSerializer.Serialize(senhas, opcoes);
+            var json = JsonSerializer.Serialize(senhas, OpcoesJson);
 
             var criptografado = _criptografia.Criptografar(json);
 
-            int tentativas = 3;
+            int tentativas = TentativasEscrita;
             while (tentativas > 0)
             {
                 try
@@ -64,7 +69,7 @@ namespace GerenciadorDeSenhas.Servicos
                 catch (IOException) when (tentativas > 1)
                 {
                     tentativas--;
-                    await Task.Delay(100);
+                    await Task.Delay(EsperaEntreTentativas);
                 }
             }
         }
@@ -93,7 +98,7 @@ namespace GerenciadorDeSenhas.Servicos
             }
         }
 
-        public async Task BackupAutomaticoAsync(List<Senha> senhas, byte[] chave, int quantidadeMaxima = 10)
+        public async Task BackupAutomaticoAsync(List<Senha> senhas, byte[] chave, int quantidadeMaxima = QuantidadeMaximaBackupsPadrao)
         {
             if (senhas == null)
                 throw new ArgumentNullException(nameof(senhas));
@@ -103,13 +108,7 @@ namespace GerenciadorDeSenhas.Servicos
 
             try
             {
-                var opcoes = new JsonSerializerOptions
-                {
-                    WriteIndented = false,
-                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-                };
-
-                var json = JsonSerializer.Serialize(senhas, opcoes);
+                var json = JsonSerializer.Serialize(senhas, OpcoesJson);
 
                 var criptografado = _criptografia.Criptografar(json);
 

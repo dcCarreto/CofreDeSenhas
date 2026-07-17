@@ -214,6 +214,14 @@ Repaginação completa da interface, preservando todas as funcionalidades:
   Pacote `.deb` e Flatpak foram avaliados e adiados: exigiriam manter um
   repositório próprio ou publicação no Flathub, esforço que não se justifica
   agora com o AppImage já cobrindo o uso sem gerenciador de pacotes.
+- Atalhos de teclado: `Ctrl+F` foca a busca, `Ctrl+N` abre nova senha,
+  `Ctrl+G` abre/fecha o gerador, `Ctrl+L` bloqueia o cofre na hora (novo item
+  "Bloquear agora" no menu de configurações) e `Ctrl+Shift+U`/`Ctrl+Shift+P`
+  copiam o usuário/a senha da linha selecionada — a com foco de teclado, ou a
+  primeira da lista se nenhuma estiver focada. Uma folha de atalhos
+  consultável (menu de configurações → "Atalhos de teclado...") lista todas
+  as combinações. Nenhum atalho usa Insert/Caps Lock (modificadores padrão de
+  leitores de tela como NVDA e JAWS) nem combinações reservadas pelo sistema.
 
 ## Em andamento
 
@@ -234,14 +242,6 @@ Em desenvolvimento no branch `feature/chromiumExt`:
 Ideias e melhorias consideradas para versões futuras, agrupadas por prioridade:
 
 ### Média prioridade
-
-#### Atalhos de teclado
-
-- Definir atalhos para as ações mais frequentes: buscar, nova senha, abrir o
-  gerador, bloquear agora e copiar usuário/senha da linha selecionada.
-- Exibir uma folha de atalhos consultável dentro do aplicativo.
-- Garantir que os atalhos não conflitem com leitores de tela e com os padrões
-  de cada sistema.
 
 #### Testes automatizados de interface
 
@@ -407,17 +407,16 @@ criptografia anterior) e de uma camada inteira de métodos de busca/contagem em
 ## Ordem sugerida de execução
 
 1. Conclusão da extensão de navegador (em andamento).
-2. Atalhos de teclado.
-3. Testes automatizados de interface.
-4. Modo privacidade.
-5. Histórico operacional da credencial.
-6. Aviso de nova versão.
-7. Anexos criptografados.
-8. Organização avançada com etiquetas.
-9. Templates de credenciais.
-10. Sincronização criptografada de ponta a ponta.
-11. macOS.
-12. Aplicativo móvel.
+2. Testes automatizados de interface.
+3. Modo privacidade.
+4. Histórico operacional da credencial.
+5. Aviso de nova versão.
+6. Anexos criptografados.
+7. Organização avançada com etiquetas.
+8. Templates de credenciais.
+9. Sincronização criptografada de ponta a ponta.
+10. macOS.
+11. Aplicativo móvel.
 
 ## Como sugerir
 

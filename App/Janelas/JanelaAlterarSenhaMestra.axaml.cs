@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Automation;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using GerenciadorDeSenhas.Servicos;
 
 namespace CofreDeSenhas.Janelas
 {
@@ -18,20 +19,12 @@ namespace CofreDeSenhas.Janelas
 
             TxtNova.TextChanged += (s, e) => Medidor.Avaliar(TxtNova.Text);
 
-            KeyDown += (s, e) =>
-            {
-                if (e.Key == Key.Enter) Confirmar();
-                if (e.Key == Key.Escape) Close(false);
-            };
+            this.FecharComEscConfirmarComEnter(Confirmar);
 
             Opened += (s, e) => TxtAtual.Focus();
         }
 
-        private void Arrastar(object? sender, PointerPressedEventArgs e)
-        {
-            if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed && e.Source is not TextBox)
-                BeginMoveDrag(e);
-        }
+        private void Arrastar(object? sender, PointerPressedEventArgs e) => this.HabilitarArraste(e, origem => origem is TextBox);
 
         private void Cancelar_Click(object? sender, RoutedEventArgs e) => Close(false);
 
@@ -44,7 +37,7 @@ namespace CofreDeSenhas.Janelas
                 MostrarErro(Idioma.Texto("Master.ErrorCurrentRequired"));
                 return;
             }
-            if ((TxtNova.Text ?? "").Length < 8)
+            if ((TxtNova.Text ?? "").Length < AutenticacaoMestra.TamanhoMinimoSenha)
             {
                 MostrarErro(Idioma.Texto("Master.ErrorNewLength"));
                 return;

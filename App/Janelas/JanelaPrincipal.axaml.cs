@@ -24,6 +24,8 @@ namespace CofreDeSenhas.Janelas
 {
     public partial class JanelaPrincipal : Window
     {
+        private enum ColunaTabela { Servico, Usuario, Categoria, Data, Acoes }
+
         private IServicoSenha _servicoSenha;
         private IServicoSenha _servicoSenhaLocal;
         private readonly byte[] _chaveMestra;
@@ -43,6 +45,7 @@ namespace CofreDeSenhas.Janelas
 
         private List<Senha> _senhasAtuais = new();
         private readonly List<LinhaSenha> _linhasSenha = new();
+        private LinhaSenha? _linhaFocada;
         private readonly Dictionary<Guid, ItemAuditoriaSenha> _itensAuditoria = new();
         private ResultadoAuditoriaCofre? _resultadoAuditoria;
         private readonly Dictionary<Guid, int> _vazamentosPorId = new();
@@ -57,15 +60,15 @@ namespace CofreDeSenhas.Janelas
         private Senha? _senhaDetalhe;
         private string _senhaDetalhePlain = "";
         private bool _senhaDetalheVisivel;
-        private DispatcherTimer? _timerTotpDetalhe;
+        private readonly TotpPreview.Temporizador _timerTotpDetalhe = new();
         private const int PeriodoTotpDetalhe = 30;
         private double _larguraServico = 140;
         private double _larguraUsuario = 240;
         private double _larguraCategoria = 108;
         private double _larguraData = 92;
         private double _larguraAcoes = 170;
-        private string? _colunaEmRedimensionamento;
-        private string? _colunaDireitaEmRedimensionamento;
+        private ColunaTabela? _colunaEmRedimensionamento;
+        private ColunaTabela? _colunaDireitaEmRedimensionamento;
         private double _inicioRedimensionamentoX;
         private double _larguraInicialRedimensionamento;
         private double _larguraDireitaInicialRedimensionamento;
@@ -121,6 +124,7 @@ namespace CofreDeSenhas.Janelas
             };
             Idioma.Alterado += IdiomaGlobal_Alterado;
             Acessibilidade.Alterado += Acessibilidade_Alterado;
+            AddHandler(KeyDownEvent, Atalho_KeyDown, RoutingStrategies.Tunnel);
             Closed += (s, e) =>
             {
                 _monitor.Encerrar();
@@ -138,6 +142,59 @@ namespace CofreDeSenhas.Janelas
                 AjustarLargurasIniciais();
                 await IniciarAsync();
             };
+        }
+
+        private void Atalho_KeyDown(object? sender, KeyEventArgs e)
+        {
+            var atalho = AtalhosTeclado.Encontrar(e.Key, e.KeyModifiers);
+            if (atalho == null)
+                return;
+
+            switch (atalho.Acao)
+            {
+                case AtalhosTeclado.Acao.Buscar:
+                    TxtBusca.Focus();
+                    TxtBusca.SelectAll();
+                    break;
+                case AtalhosTeclado.Acao.NovaSenha:
+                    NovaSenha_Click(this, new RoutedEventArgs());
+                    break;
+                case AtalhosTeclado.Acao.AbrirGerador:
+                    ToggleGerador_Click(this, new RoutedEventArgs());
+                    break;
+                case AtalhosTeclado.Acao.BloquearAgora:
+                    BloquearAgora_Click(this, new RoutedEventArgs());
+                    break;
+                case AtalhosTeclado.Acao.CopiarUsuario:
+                    _ = CopiarUsuarioLinhaFocadaAsync();
+                    break;
+                case AtalhosTeclado.Acao.CopiarSenha:
+                    _ = CopiarSenhaLinhaFocadaAsync();
+                    break;
+            }
+            e.Handled = true;
+        }
+
+        private void BloquearAgora_Click(object? sender, RoutedEventArgs e) => _aoBloquear?.Invoke();
+
+        private async Task CopiarUsuarioLinhaFocadaAsync()
+        {
+            if (_naLixeira) return;
+            var linha = _linhaFocada ?? _linhasSenha.FirstOrDefault();
+            if (linha != null) await linha.CopiarUsuarioAsync();
+        }
+
+        private async Task CopiarSenhaLinhaFocadaAsync()
+        {
+            if (_naLixeira) return;
+            var linha = _linhaFocada ?? _linhasSenha.FirstOrDefault();
+            if (linha != null) await linha.CopiarAsync();
+        }
+
+        private async void AtalhosTeclado_Click(object? sender, RoutedEventArgs e)
+        {
+            var dlg = new JanelaAtalhosTeclado();
+            await AbrirDialogoAsync<bool>(dlg);
         }
 
         private async Task IniciarAsync()
@@ -168,9 +225,7 @@ namespace CofreDeSenhas.Janelas
 
             try
             {
-                var frequencia = Enum.TryParse<FrequenciaBackup>(Preferencias.FrequenciaBackup, out var f)
-                    ? f
-                    : FrequenciaBackup.Semanal;
+                var frequencia = Preferencias.FrequenciaBackupAtual;
 
                 var persistencia = new PersistenciaLocal(_criptografia);
                 var backups = persistencia.ListarBackups();
@@ -219,9 +274,10 @@ namespace CofreDeSenhas.Janelas
 
         private void RedimensionarColuna_PointerPressed(object? sender, PointerPressedEventArgs e)
         {
-            if (sender is not Border divisor || divisor.Tag is not string coluna)
+            if (sender is not Border divisor || divisor.Tag is not string tag)
                 return;
 
+            var coluna = Enum.Parse<ColunaTabela>(tag);
             var colunaDireita = ObterColunaDireita(coluna);
             if (colunaDireita == null)
                 return;
@@ -230,7 +286,7 @@ namespace CofreDeSenhas.Janelas
             _colunaDireitaEmRedimensionamento = colunaDireita;
             _inicioRedimensionamentoX = e.GetPosition(GridCabecalhoTabela).X;
             _larguraInicialRedimensionamento = ObterLarguraColuna(coluna);
-            _larguraDireitaInicialRedimensionamento = ObterLarguraColuna(colunaDireita);
+            _larguraDireitaInicialRedimensionamento = ObterLarguraColuna(colunaDireita.Value);
             e.Pointer.Capture(divisor);
             e.Handled = true;
         }
@@ -240,16 +296,19 @@ namespace CofreDeSenhas.Janelas
             if (_colunaEmRedimensionamento == null || _colunaDireitaEmRedimensionamento == null)
                 return;
 
+            var colunaEsquerda = _colunaEmRedimensionamento.Value;
+            var colunaDireita = _colunaDireitaEmRedimensionamento.Value;
+
             var delta = e.GetPosition(GridCabecalhoTabela).X - _inicioRedimensionamentoX;
-            var minimoEsquerda = ObterLarguraMinimaColuna(_colunaEmRedimensionamento);
-            var minimoDireita = ObterLarguraMinimaColuna(_colunaDireitaEmRedimensionamento);
+            var minimoEsquerda = ObterLarguraMinimaColuna(colunaEsquerda);
+            var minimoDireita = ObterLarguraMinimaColuna(colunaDireita);
             var deltaMinimo = minimoEsquerda - _larguraInicialRedimensionamento;
             var deltaMaximo = _larguraDireitaInicialRedimensionamento - minimoDireita;
 
             delta = Math.Clamp(delta, deltaMinimo, deltaMaximo);
 
-            DefinirLarguraColuna(_colunaEmRedimensionamento, _larguraInicialRedimensionamento + delta);
-            DefinirLarguraColuna(_colunaDireitaEmRedimensionamento, _larguraDireitaInicialRedimensionamento - delta);
+            DefinirLarguraColuna(colunaEsquerda, _larguraInicialRedimensionamento + delta);
+            DefinirLarguraColuna(colunaDireita, _larguraDireitaInicialRedimensionamento - delta);
             AplicarLargurasColunas();
             e.Handled = true;
         }
@@ -286,52 +345,52 @@ namespace CofreDeSenhas.Janelas
             AplicarLargurasColunas();
         }
 
-        private double ObterLarguraColuna(string coluna) => coluna switch
+        private double ObterLarguraColuna(ColunaTabela coluna) => coluna switch
         {
-            "Servico" => _larguraServico,
-            "Usuario" => _larguraUsuario,
-            "Categoria" => _larguraCategoria,
-            "Data" => _larguraData,
-            "Acoes" => _larguraAcoes,
+            ColunaTabela.Servico => _larguraServico,
+            ColunaTabela.Usuario => _larguraUsuario,
+            ColunaTabela.Categoria => _larguraCategoria,
+            ColunaTabela.Data => _larguraData,
+            ColunaTabela.Acoes => _larguraAcoes,
             _ => 0
         };
 
-        private static string? ObterColunaDireita(string coluna) => coluna switch
+        private static ColunaTabela? ObterColunaDireita(ColunaTabela coluna) => coluna switch
         {
-            "Servico" => "Usuario",
-            "Usuario" => "Categoria",
-            "Categoria" => "Data",
-            "Data" => "Acoes",
+            ColunaTabela.Servico => ColunaTabela.Usuario,
+            ColunaTabela.Usuario => ColunaTabela.Categoria,
+            ColunaTabela.Categoria => ColunaTabela.Data,
+            ColunaTabela.Data => ColunaTabela.Acoes,
             _ => null
         };
 
-        private static double ObterLarguraMinimaColuna(string coluna) => coluna switch
+        private static double ObterLarguraMinimaColuna(ColunaTabela coluna) => coluna switch
         {
-            "Servico" => LarguraMinimaServico,
-            "Usuario" => LarguraMinimaUsuario,
-            "Categoria" => LarguraMinimaCategoria,
-            "Data" => LarguraMinimaData,
-            "Acoes" => LarguraMinimaAcoes,
+            ColunaTabela.Servico => LarguraMinimaServico,
+            ColunaTabela.Usuario => LarguraMinimaUsuario,
+            ColunaTabela.Categoria => LarguraMinimaCategoria,
+            ColunaTabela.Data => LarguraMinimaData,
+            ColunaTabela.Acoes => LarguraMinimaAcoes,
             _ => 0
         };
 
-        private void DefinirLarguraColuna(string coluna, double largura)
+        private void DefinirLarguraColuna(ColunaTabela coluna, double largura)
         {
             switch (coluna)
             {
-                case "Servico":
+                case ColunaTabela.Servico:
                     _larguraServico = Math.Max(LarguraMinimaServico, largura);
                     break;
-                case "Usuario":
+                case ColunaTabela.Usuario:
                     _larguraUsuario = Math.Max(LarguraMinimaUsuario, largura);
                     break;
-                case "Categoria":
+                case ColunaTabela.Categoria:
                     _larguraCategoria = Math.Max(LarguraMinimaCategoria, largura);
                     break;
-                case "Data":
+                case ColunaTabela.Data:
                     _larguraData = Math.Max(LarguraMinimaData, largura);
                     break;
-                case "Acoes":
+                case ColunaTabela.Acoes:
                     _larguraAcoes = Math.Max(LarguraMinimaAcoes, largura);
                     break;
             }
@@ -439,29 +498,13 @@ namespace CofreDeSenhas.Janelas
                     string.Equals(codigo, Idioma.Atual.Codigo, StringComparison.OrdinalIgnoreCase);
         }
 
-        private void Daltonismo_Alterado(object? sender, RoutedEventArgs e)
-        {
-            if (sender is MenuItem item)
-                Acessibilidade.SelecionarDaltonismo(item.Tag as string);
-        }
+        private void Daltonismo_Alterado(object? sender, RoutedEventArgs e) => Acessibilidade.TratarClickDaltonismo(sender);
 
-        private void Escala_Alterada(object? sender, RoutedEventArgs e)
-        {
-            if (sender is MenuItem item)
-                Acessibilidade.SelecionarEscala(item.Tag as string);
-        }
+        private void Escala_Alterada(object? sender, RoutedEventArgs e) => Acessibilidade.TratarClickEscala(sender);
 
-        private void AltoContraste_Alterado(object? sender, RoutedEventArgs e)
-        {
-            if (sender is MenuItem item)
-                Acessibilidade.SelecionarAltoContraste(item.IsChecked);
-        }
+        private void AltoContraste_Alterado(object? sender, RoutedEventArgs e) => Acessibilidade.TratarClickAltoContraste(sender);
 
-        private void ReduzirAnimacoes_Alterado(object? sender, RoutedEventArgs e)
-        {
-            if (sender is MenuItem item)
-                Acessibilidade.SelecionarReducaoMovimento(item.IsChecked);
-        }
+        private void ReduzirAnimacoes_Alterado(object? sender, RoutedEventArgs e) => Acessibilidade.TratarClickReducaoMovimento(sender);
 
         private async void IconesOnline_Alterado(object? sender, RoutedEventArgs e)
         {
@@ -492,16 +535,7 @@ namespace CofreDeSenhas.Janelas
             FiltrarSenhas();
         }
 
-        private void LeitorTela_Alterado(object? sender, RoutedEventArgs e)
-        {
-            if (sender is MenuItem item)
-            {
-                Acessibilidade.SelecionarLeitorTela(item.IsChecked);
-                Acessibilidade.Anunciar(this, Idioma.Texto(Acessibilidade.LeitorTela
-                    ? "A11y.ScreenReaderEnabled"
-                    : "A11y.ScreenReaderDisabled"), assertivo: true, forcar: true);
-            }
-        }
+        private void LeitorTela_Alterado(object? sender, RoutedEventArgs e) => Acessibilidade.TratarClickLeitorTela(this, sender);
 
         private void MarcarAcessibilidadeSelecionada() =>
             Acessibilidade.MarcarMenus(MenuDaltonismo, MenuEscala, MenuAltoContraste, MenuReduzirAnimacoes,
@@ -591,6 +625,7 @@ namespace CofreDeSenhas.Janelas
         {
             PainelLista.Children.Clear();
             _linhasSenha.Clear();
+            _linhaFocada = null;
 
             LblVazio.IsVisible = lista.Count == 0;
             TxtVazioMensagem.Text = Idioma.Texto("Vault.Empty");
@@ -608,6 +643,7 @@ namespace CofreDeSenhas.Janelas
                     ExcluirSenhaAsync, RenomearServicoAsync);
                 linha.DefinirLargurasColunas(_larguraServico, _larguraUsuario, _larguraCategoria, _larguraData, _larguraAcoes);
                 linha.SolicitouDetalhes += Linha_SolicitouDetalhes;
+                linha.GotFocus += (s, e) => _linhaFocada = linha;
 
                 var plain = ObterSenhaPlain(senha);
                 if (!string.IsNullOrEmpty(plain))
@@ -1386,67 +1422,27 @@ namespace CofreDeSenhas.Janelas
             if (string.IsNullOrEmpty(segredo) || !_totp.SegredoValido(segredo))
             {
                 PainelDetalheTotp.IsVisible = false;
-                PararTimerTotpDetalhes();
+                _timerTotpDetalhe.Parar();
                 return;
             }
 
             try
             {
                 var codigo = _totp.Gerar(segredo);
-                LblDetalheCodigoTotp.Text = FormatarCodigoTotpDetalhes(codigo.Codigo);
+                LblDetalheCodigoTotp.Text = TotpPreview.FormatarCodigo(codigo.Codigo);
                 var contagem = Idioma.Formatar("Entry.TotpExpiresIn", codigo.SegundosRestantes);
-                AtualizarAnelDetalheTotp(codigo.SegundosRestantes, PeriodoTotpDetalhe);
+                AnelDetalheTotp.Data = TotpPreview.ConstruirAnelProgresso(codigo.SegundosRestantes, PeriodoTotpDetalhe, raio: 9, centro: 12);
                 AutomationProperties.SetName(LblDetalheCodigoTotp,
                     $"{Idioma.Texto("A11y.TotpPreview")}: {LblDetalheCodigoTotp.Text}. {contagem}");
                 PainelDetalheTotp.IsVisible = true;
-                GarantirTimerTotpDetalhes();
+                _timerTotpDetalhe.Garantir(AtualizarTotpDetalhes);
             }
             catch
             {
                 PainelDetalheTotp.IsVisible = false;
-                PararTimerTotpDetalhes();
+                _timerTotpDetalhe.Parar();
             }
         }
-
-        private void GarantirTimerTotpDetalhes()
-        {
-            if (_timerTotpDetalhe != null)
-                return;
-
-            _timerTotpDetalhe = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
-            _timerTotpDetalhe.Tick += (s, e) => AtualizarTotpDetalhes();
-            _timerTotpDetalhe.Start();
-        }
-
-        private void PararTimerTotpDetalhes()
-        {
-            _timerTotpDetalhe?.Stop();
-            _timerTotpDetalhe = null;
-        }
-
-        private void AtualizarAnelDetalheTotp(int restantes, int periodo)
-        {
-            double fracao = periodo <= 0 ? 0 : Math.Clamp(restantes / (double)periodo, 0, 1);
-            double angulo = fracao * 360;
-            if (angulo <= 0.1)
-            {
-                AnelDetalheTotp.Data = null;
-                return;
-            }
-            if (angulo >= 359.9)
-                angulo = 359.9;
-
-            const double r = 9, cx = 12, cy = 12;
-            double rad = angulo * Math.PI / 180.0;
-            double fx = cx + r * Math.Sin(rad);
-            double fy = cy - r * Math.Cos(rad);
-            int grande = angulo > 180 ? 1 : 0;
-            AnelDetalheTotp.Data = StreamGeometry.Parse(string.Format(CultureInfo.InvariantCulture,
-                "M {0} {1} A {2} {2} 0 {3} 1 {4:0.##} {5:0.##}", cx, cy - r, r, grande, fx, fy));
-        }
-
-        private static string FormatarCodigoTotpDetalhes(string codigo) =>
-            codigo.Length == 6 ? codigo.Insert(3, " ") : codigo;
 
         private async void CopiarTotpDetalhes_Click(object? sender, RoutedEventArgs e)
         {
@@ -1487,7 +1483,7 @@ namespace CofreDeSenhas.Janelas
             _senhaDetalhePlain = "";
             _senhaDetalheVisivel = false;
             TxtDetalheSenha.Text = "";
-            PararTimerTotpDetalhes();
+            _timerTotpDetalhe.Parar();
             PainelDetalheTotp.IsVisible = false;
         }
 

@@ -44,10 +44,7 @@ namespace CofreDeSenhas.Janelas
             AtualizarUltimoBackup();
             AtualizarListaBackups(permiteRestaurar);
 
-            KeyDown += (s, e) =>
-            {
-                if (e.Key == Key.Escape) Close(false);
-            };
+            this.FecharComEsc();
         }
 
         private void MontarFrequencia()
@@ -62,9 +59,7 @@ namespace CofreDeSenhas.Janelas
             };
             CmbFrequencia.ItemsSource = opcoes;
 
-            var atual = Enum.TryParse<FrequenciaBackup>(Preferencias.FrequenciaBackup, out var f)
-                ? f
-                : FrequenciaBackup.Semanal;
+            var atual = Preferencias.FrequenciaBackupAtual;
             var indice = opcoes.FindIndex(o => o.Valor == atual);
             CmbFrequencia.SelectedIndex = indice >= 0 ? indice : 2;
 
@@ -192,11 +187,7 @@ namespace CofreDeSenhas.Janelas
         private static string FormatarData(DateTime dataUtc) =>
             dataUtc.ToLocalTime().ToString("g", Idioma.CulturaAtual);
 
-        private void Arrastar(object? sender, PointerPressedEventArgs e)
-        {
-            if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
-                BeginMoveDrag(e);
-        }
+        private void Arrastar(object? sender, PointerPressedEventArgs e) => this.HabilitarArraste(e);
 
         private void Fechar_Click(object? sender, RoutedEventArgs e) => Close(false);
     }

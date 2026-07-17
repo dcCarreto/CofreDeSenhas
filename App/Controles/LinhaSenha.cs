@@ -838,33 +838,22 @@ namespace CofreDeSenhas.Controles
             AutomationProperties.SetName(_lblUsuario, $"{_senha.Usuario} — {Idioma.Texto("Row.CopyUser")}");
         }
 
-        private async Task CopiarAsync()
+        internal async Task CopiarAsync()
         {
             var plain = _obterSenhaPlain(_senha);
             if (string.IsNullOrEmpty(plain)) return;
 
             var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
-            if (clipboard != null)
-            {
-                try { await clipboard.SetTextAsync(plain); } catch { }
-            }
+            var vaiLimpar = await AreaTransferenciaFeedback.CopiarComAvisoAsync(clipboard, plain, this, Idioma.Texto("Row.CopyPassword"));
 
             DefinirIcone(_btnCopiar, IconeCheck);
             _btnCopiar.Foreground = Tema.Pincel(Tema.StrengthStrong);
 
-            int segundos = Preferencias.SegundosLimpezaClipboard;
-            bool vaiLimpar = segundos > 0 && clipboard != null;
             if (vaiLimpar)
             {
-                var mensagem = Idioma.Formatar("Row.PasswordCopiedClearing", segundos);
+                var mensagem = Idioma.Formatar("Row.PasswordCopiedClearing", Preferencias.SegundosLimpezaClipboard);
                 ToolTip.SetTip(_btnCopiar, mensagem);
                 AutomationProperties.SetName(_btnCopiar, mensagem);
-                Acessibilidade.Anunciar(this, Idioma.Formatar("A11y.CopiedWillClear", Idioma.Texto("Row.CopyPassword"), segundos));
-                _ = ServicoLimpezaClipboard.ProgramarLimpezaAsync(new AreaTransferenciaAvalonia(clipboard!), plain, segundos);
-            }
-            else
-            {
-                Acessibilidade.Anunciar(this, Idioma.Formatar("A11y.Copied", Idioma.Texto("Row.CopyPassword")));
             }
 
             var t = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
@@ -914,7 +903,7 @@ namespace CofreDeSenhas.Controles
             t.Start();
         }
 
-        private async Task CopiarUsuarioAsync()
+        internal async Task CopiarUsuarioAsync()
         {
             if (string.IsNullOrWhiteSpace(_senha.Usuario))
                 return;

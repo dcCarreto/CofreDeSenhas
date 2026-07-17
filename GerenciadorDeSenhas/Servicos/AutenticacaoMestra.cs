@@ -9,6 +9,7 @@ namespace GerenciadorDeSenhas.Servicos
         private const int SaltSize = 16;
         private const int KeySize = 32;
         private const int VerificadorSize = 32;
+        public const int TamanhoMinimoSenha = 8;
 
         // OWASP recomenda 600 mil iterações para PBKDF2-HMAC-SHA256 (dez/2023).
         // Cofres criados com a contagem antiga (100 mil) são migrados de forma
@@ -39,8 +40,8 @@ namespace GerenciadorDeSenhas.Servicos
         {
             if (string.IsNullOrWhiteSpace(senha))
                 throw new ArgumentException("A senha mestra não pode ser vazia.");
-            if (senha.Length < 8)
-                throw new ArgumentException("A senha mestra deve ter pelo menos 8 caracteres.");
+            if (senha.Length < TamanhoMinimoSenha)
+                throw new ArgumentException($"A senha mestra deve ter pelo menos {TamanhoMinimoSenha} caracteres.");
 
             var salt = RandomNumberGenerator.GetBytes(SaltSize);
             var chave = DerivarChave(senha, salt, IteracoesAtuais);

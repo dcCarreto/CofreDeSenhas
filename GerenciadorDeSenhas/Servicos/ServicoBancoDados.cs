@@ -11,6 +11,12 @@ namespace GerenciadorDeSenhas.Servicos
     {
         public const string NomeTabela = "CofreDeSenhas";
 
+        public const string ColunaDescricao = "descricao";
+        public const string ColunaTotp = "totp";
+        public const string ColunaEtiquetas = "etiquetas";
+        public const string ColunaDataExclusao = "data_exclusao";
+        public const string ColunaCodigosRecuperacao = "codigos_recuperacao";
+
         public DbConnection CriarConexao(ConexaoBanco cfg) => cfg.Tipo switch
         {
             TipoBanco.SQLite => new SqliteConnection(MontarStringConexao(cfg)),
@@ -57,16 +63,21 @@ namespace GerenciadorDeSenhas.Servicos
             _ => throw new NotSupportedException($"Banco não suportado: {cfg.Tipo}")
         };
 
+        private async Task<DbConnection> AbrirConexaoAsync(ConexaoBanco cfg)
+        {
+            var con = CriarConexao(cfg);
+            await con.OpenAsync();
+            return con;
+        }
+
         public async Task TestarConexaoAsync(ConexaoBanco cfg)
         {
-            await using var con = CriarConexao(cfg);
-            await con.OpenAsync();
+            await using var con = await AbrirConexaoAsync(cfg);
         }
 
         public async Task<bool> TabelaExisteAsync(ConexaoBanco cfg)
         {
-            await using var con = CriarConexao(cfg);
-            await con.OpenAsync();
+            await using var con = await AbrirConexaoAsync(cfg);
 
             await using var cmd = con.CreateCommand();
             cmd.CommandText = ConsultaExistencia(cfg.Tipo);
@@ -77,8 +88,7 @@ namespace GerenciadorDeSenhas.Servicos
 
         public async Task CriarTabelaAsync(ConexaoBanco cfg)
         {
-            await using var con = CriarConexao(cfg);
-            await con.OpenAsync();
+            await using var con = await AbrirConexaoAsync(cfg);
 
             await using var cmd = con.CreateCommand();
             cmd.CommandText = Ddl(cfg.Tipo);
@@ -87,17 +97,16 @@ namespace GerenciadorDeSenhas.Servicos
 
         public async Task GarantirColunasAsync(ConexaoBanco cfg)
         {
-            await GarantirColunaAsync(cfg, "descricao");
-            await GarantirColunaAsync(cfg, "totp");
-            await GarantirColunaAsync(cfg, "etiquetas");
-            await GarantirColunaAsync(cfg, "data_exclusao");
-            await GarantirColunaAsync(cfg, "codigos_recuperacao");
+            await GarantirColunaAsync(cfg, ColunaDescricao);
+            await GarantirColunaAsync(cfg, ColunaTotp);
+            await GarantirColunaAsync(cfg, ColunaEtiquetas);
+            await GarantirColunaAsync(cfg, ColunaDataExclusao);
+            await GarantirColunaAsync(cfg, ColunaCodigosRecuperacao);
         }
 
         private async Task GarantirColunaAsync(ConexaoBanco cfg, string coluna)
         {
-            await using var con = CriarConexao(cfg);
-            await con.OpenAsync();
+            await using var con = await AbrirConexaoAsync(cfg);
 
             await using (var verifica = con.CreateCommand())
             {

@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Automation;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using GerenciadorDeSenhas.Servicos;
 
 namespace CofreDeSenhas.Janelas
 {
@@ -26,20 +27,12 @@ namespace CofreDeSenhas.Janelas
             Idioma.Alterado += Idioma_Alterado;
             Closed += (s, e) => Idioma.Alterado -= Idioma_Alterado;
 
-            KeyDown += (s, e) =>
-            {
-                if (e.Key == Key.Enter) Confirmar();
-                if (e.Key == Key.Escape) Close(false);
-            };
+            this.FecharComEscConfirmarComEnter(Confirmar);
 
             Opened += (s, e) => TxtSenha.Focus();
         }
 
-        private void Arrastar(object? sender, PointerPressedEventArgs e)
-        {
-            if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed && e.Source is not TextBox)
-                BeginMoveDrag(e);
-        }
+        private void Arrastar(object? sender, PointerPressedEventArgs e) => this.HabilitarArraste(e, origem => origem is TextBox);
 
         private void Cancelar_Click(object? sender, RoutedEventArgs e) => Close(false);
 
@@ -77,7 +70,7 @@ namespace CofreDeSenhas.Janelas
 
             if (_modoExportar)
             {
-                if (senha.Length < 8)
+                if (senha.Length < ServicoExportacao.TamanhoMinimoSenha)
                 {
                     MostrarErro(Idioma.Texto("ExportDialog.PasswordLength"));
                     return;

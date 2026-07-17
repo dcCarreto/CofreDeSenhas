@@ -11,6 +11,7 @@ namespace GerenciadorDeSenhas.Servicos
         private const int PesoSemTotp = 5;
         private const int PesoSemUrl = 3;
         private const int PesoSemCategoria = 2;
+        private const int PontuacaoMaxima = 100;
 
         public static RelatorioSegurancaCofre Gerar(IReadOnlyCollection<Senha> senhas,
             ResultadoAuditoriaCofre auditoria, IReadOnlyDictionary<Guid, int>? vazamentosPorId = null)
@@ -49,7 +50,7 @@ namespace GerenciadorDeSenhas.Servicos
             int comprometidas, int semTotp, int semUrl, int semCategoria)
         {
             if (total == 0)
-                return 100;
+                return PontuacaoMaxima;
 
             double penalidade =
                 PesoFraca * ((double)fracas / total) +
@@ -60,8 +61,8 @@ namespace GerenciadorDeSenhas.Servicos
                 PesoSemUrl * ((double)semUrl / total) +
                 PesoSemCategoria * ((double)semCategoria / total);
 
-            int pontuacao = 100 - (int)Math.Round(penalidade, MidpointRounding.AwayFromZero);
-            return Math.Clamp(pontuacao, 0, 100);
+            int pontuacao = PontuacaoMaxima - (int)Math.Round(penalidade, MidpointRounding.AwayFromZero);
+            return Math.Clamp(pontuacao, 0, PontuacaoMaxima);
         }
     }
 }

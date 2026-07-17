@@ -79,6 +79,13 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
   SDK do .NET instalado. O script de instalação continua disponível para
   quem prefere compilar do código-fonte. Pacote `.deb` e Flatpak foram
   avaliados e adiados por exigirem manutenção de repositório próprio.
+- Atalhos de teclado para as ações mais frequentes: `Ctrl+F` busca,
+  `Ctrl+N` cria uma nova senha, `Ctrl+G` abre/fecha o gerador, `Ctrl+L`
+  bloqueia o cofre na hora e `Ctrl+Shift+U`/`Ctrl+Shift+P` copiam o
+  usuário/a senha da linha com foco de teclado (ou a primeira da lista,
+  sem foco em nenhuma). O menu de configurações ganhou os itens
+  "Bloquear agora" e, numa nova seção "Ajuda", "Atalhos de teclado...",
+  que abre uma folha consultável com todas as combinações.
 
 ### Corrigido
 - O painel de detalhes agora flutua sobre a lista de senhas em vez de
