@@ -152,6 +152,14 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
   edição mais recente por credencial inteira, incluindo exclusão e
   restauração da lixeira. Anexos ainda não sincronizam nesta primeira
   versão.
+- `SECURITY.md` com a política de divulgação responsável de
+  vulnerabilidades: como reportar (aviso de segurança privado do GitHub,
+  nunca issue pública), o que esperar de resposta e o escopo do projeto.
+- `THREAT_MODEL.md` documentando o que o cofre protege, os perfis de
+  atacante considerados e o que fica deliberadamente fora de escopo —
+  incluindo, sem rodeios, que a chave mestra fica em memória comum do
+  processo enquanto o cofre está aberto, sem proteção contra dump de
+  memória ou swap/hibernação.
 
 ### Corrigido
 - O painel de detalhes agora flutua sobre a lista de senhas em vez de

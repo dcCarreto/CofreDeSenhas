@@ -362,6 +362,15 @@ Repaginação completa da interface, preservando todas as funcionalidades:
   anexos (ficam só no dispositivo que os criou, mesma decisão já tomada
   para a lista de anexos em si) e sincronização em tempo real (é sempre
   por verificação periódica ou manual, nunca imediata).
+- `SECURITY.md` com a política de divulgação responsável de
+  vulnerabilidades: como reportar (aviso de segurança privado do GitHub,
+  nunca issue pública), o que esperar de resposta e o escopo do projeto.
+- `THREAT_MODEL.md` documentando o modelo de ameaça do cofre: o que é
+  protegido, os perfis de atacante considerados (acesso ao arquivo sem a
+  senha mestra, acesso à memória do processo com o cofre aberto, atacante
+  de rede, pasta de sincronização ou banco de dados comprometidos) e o que
+  fica deliberadamente fora de escopo (SO comprometido, perda da senha
+  mestra sem recuperação possível, engenharia social).
 
 ## Em andamento
 
@@ -401,12 +410,11 @@ Ideias e melhorias consideradas para versões futuras, agrupadas por prioridade:
 
 - Suporte a chave de hardware (FIDO2/YubiKey) como alternativa de
   desbloqueio, cobrindo também o Linux — hoje sem nenhuma opção além da
-  senha mestra, diferente do Windows (Windows Hello).
-- Criar um `SECURITY.md` com a política de divulgação responsável de
-  vulnerabilidades.
-- Documentar o modelo de ameaça do cofre: o que é protegido e contra qual
-  tipo de atacante, para dar mais transparência a usuários e
-  contribuidores.
+  senha mestra, diferente do Windows (Windows Hello). Avaliado e adiado por
+  enquanto: exigiria interop nativo em duas plataformas (`webauthn.dll` no
+  Windows, bindings para `libfido2` no Linux, sem binding .NET pronto hoje)
+  e não há hardware físico disponível para validar o fluxo de ponta a
+  ponta.
 
 ### Novas funcionalidades a avaliar
 
