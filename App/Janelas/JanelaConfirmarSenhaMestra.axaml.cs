@@ -12,11 +12,21 @@ namespace CofreDeSenhas.Janelas
 
         public string SenhaConfirmada { get; private set; } = string.Empty;
 
-        public JanelaConfirmarSenhaMestra()
+        public JanelaConfirmarSenhaMestra(string? titulo = null, string? instrucao = null, string? textoBotao = null)
         {
             InitializeComponent();
             Icon = Recursos.IconeApp();
             Acessibilidade.Vincular(this);
+
+            if (titulo != null)
+            {
+                Title = titulo;
+                LblTitulo.Text = titulo;
+            }
+            if (instrucao != null)
+                LblInstrucao.Text = instrucao;
+            if (textoBotao != null)
+                BtnConfirmar.Content = textoBotao;
 
             this.FecharComEscConfirmarComEnter(Confirmar);
 

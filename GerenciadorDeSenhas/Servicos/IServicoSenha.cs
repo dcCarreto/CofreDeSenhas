@@ -44,6 +44,8 @@ namespace GerenciadorDeSenhas.Servicos
 
         Task RegistrarCopiaAsync(Guid id, TipoCampoCopiado campo);
 
+        Task AplicarSincronizadoAsync(SenhaExportada item);
+
         Task PersistirAsync();
     }
 }

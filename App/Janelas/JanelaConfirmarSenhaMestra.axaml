@@ -1,7 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="CofreDeSenhas.Janelas.JanelaConfirmarSenhaMestra"
-        Title="{DynamicResource Qr.RegenerateTitle}"
+        Title="Confirmar senha mestra"
         Width="440"
         SizeToContent="Height"
         CanResize="False"
@@ -23,7 +23,8 @@
               BorderThickness="0,0,0,1"
               PointerPressed="Arrastar">
         <Grid>
-          <TextBlock Text="{DynamicResource Qr.RegenerateTitle}"
+          <TextBlock Name="LblTitulo"
+                     Text="{DynamicResource Qr.RegenerateTitle}"
                      Classes="titulo"
                      Foreground="{DynamicResource TextPrimary}"
                      VerticalAlignment="Center"
@@ -44,7 +45,7 @@
               BorderBrush="{DynamicResource CardBorder}"
               BorderThickness="0,1,0,0">
         <Grid Margin="24,0">
-          <Button Name="BtnGerar" Classes="primario" Content="{DynamicResource Qr.GenerateButton}"
+          <Button Name="BtnConfirmar" Classes="primario" Content="{DynamicResource Qr.GenerateButton}"
                   Width="200" Height="40"
                   HorizontalAlignment="Left" VerticalAlignment="Center"
                   Click="Gerar_Click" />
@@ -56,7 +57,8 @@
       </Border>
 
       <StackPanel Margin="24,16,24,10" Spacing="4">
-        <TextBlock Text="{DynamicResource Qr.RegenerateInstruction}"
+        <TextBlock Name="LblInstrucao"
+                   Text="{DynamicResource Qr.RegenerateInstruction}"
                    FontSize="12"
                    Foreground="{DynamicResource TextSecondary}"
                    TextWrapping="Wrap"

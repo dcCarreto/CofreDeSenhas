@@ -59,7 +59,7 @@ namespace GerenciadorDeSenhas.Repositorios
             existente.TotpSegredo = senha.TotpSegredo;
             existente.Favorito = senha.Favorito;
             existente.Fixado = senha.Fixado;
-            existente.DataAtualizacao = DateTime.UtcNow;
+            existente.DataAtualizacao = senha.DataAtualizacao;
         }
 
         public async Task RegistrarCopiaAsync(Guid id, TipoCampoCopiado campo)

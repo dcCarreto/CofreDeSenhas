@@ -252,6 +252,79 @@ namespace GerenciadorDeSenhas.Servicos
             await _repositorio.RegistrarCopiaAsync(id, campo);
         }
 
+        public async Task AplicarSincronizadoAsync(SenhaExportada item)
+        {
+            var historico = item.Historico
+                .Where(h => !string.IsNullOrEmpty(h.Senha))
+                .Select(h => new HistoricoSenha
+                {
+                    SenhaHash = _criptografia.Criptografar(h.Senha),
+                    DataAlteracao = h.DataAlteracao
+                })
+                .ToList();
+
+            var codigosRecuperacao = item.CodigosRecuperacao
+                .Where(c => !string.IsNullOrEmpty(c.Codigo))
+                .Select(c => new CodigoRecuperacao
+                {
+                    Codigo = _criptografia.Criptografar(c.Codigo),
+                    Usado = c.Usado
+                })
+                .ToList();
+
+            var existente = await _repositorio.ObterPorIdAsync(item.Id);
+            if (existente != null)
+            {
+                existente.NomeServico = item.NomeServico;
+                existente.Usuario = item.Usuario;
+                existente.SenhaHash = _criptografia.Criptografar(item.Senha);
+                existente.Url = item.Url;
+                existente.Categoria = item.Categoria;
+                existente.Etiquetas = Etiquetas.Normalizar(item.Etiquetas);
+                existente.Notas = item.Notas;
+                existente.Tipo = item.Tipo;
+                existente.CamposExtras = CifrarCamposExtras(item.CamposExtras);
+                existente.TotpSegredo = CifrarTotp(item.TotpSegredo);
+                existente.Historico = historico;
+                existente.CodigosRecuperacao = codigosRecuperacao;
+                existente.Favorito = item.Favorito;
+                existente.Fixado = item.Fixado;
+                existente.NaLixeira = item.NaLixeira;
+                existente.DataExclusao = item.DataExclusao;
+                existente.DataCriacao = item.DataCriacao;
+                existente.DataAtualizacao = item.DataAtualizacao;
+
+                await _repositorio.AtualizarAsync(existente);
+            }
+            else
+            {
+                var novo = new Senha
+                {
+                    Id = item.Id,
+                    NomeServico = item.NomeServico,
+                    Usuario = item.Usuario,
+                    SenhaHash = _criptografia.Criptografar(item.Senha),
+                    Url = item.Url,
+                    Categoria = item.Categoria,
+                    Etiquetas = Etiquetas.Normalizar(item.Etiquetas),
+                    Notas = item.Notas,
+                    Tipo = item.Tipo,
+                    CamposExtras = CifrarCamposExtras(item.CamposExtras),
+                    TotpSegredo = CifrarTotp(item.TotpSegredo),
+                    Historico = historico,
+                    CodigosRecuperacao = codigosRecuperacao,
+                    Favorito = item.Favorito,
+                    Fixado = item.Fixado,
+                    NaLixeira = item.NaLixeira,
+                    DataExclusao = item.DataExclusao,
+                    DataCriacao = item.DataCriacao,
+                    DataAtualizacao = item.DataAtualizacao
+                };
+
+                await _repositorio.AdicionarAsync(novo);
+            }
+        }
+
         public async Task PersistirAsync()
         {
             await _repositorio.SalvarAsync();

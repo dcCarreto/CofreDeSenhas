@@ -223,6 +223,93 @@ public class ServicoSenhaTests : IDisposable
     }
 
     [Fact]
+    public async Task AplicarSincronizadoAsync_ComIdInexistente_CriaSenhaPreservandoId()
+    {
+        var id = Guid.NewGuid();
+        var item = new SenhaExportada
+        {
+            Id = id,
+            NomeServico = "Servico Sincronizado",
+            Usuario = "usuario@teste.com",
+            Senha = "SenhaSincronizada@123",
+            Categoria = Categoria.Work,
+            Tipo = TipoCredencial.Servidor,
+            CamposExtras = new Dictionary<string, string> { ["host"] = "10.0.0.1" },
+            DataCriacao = DateTime.UtcNow.AddDays(-1),
+            DataAtualizacao = DateTime.UtcNow
+        };
+
+        await _servico.AplicarSincronizadoAsync(item);
+        var salva = await ObterAsync(id);
+
+        Assert.NotNull(salva);
+        Assert.Equal("Servico Sincronizado", salva!.NomeServico);
+        Assert.Equal(TipoCredencial.Servidor, salva.Tipo);
+        Assert.Equal("10.0.0.1", _criptografia.Descriptografar(salva.CamposExtras["host"]));
+        Assert.NotEqual("SenhaSincronizada@123", salva.SenhaHash);
+        Assert.Equal("SenhaSincronizada@123", _criptografia.Descriptografar(salva.SenhaHash));
+    }
+
+    [Fact]
+    public async Task AplicarSincronizadoAsync_ComIdExistente_AtualizaTodosOsCampos()
+    {
+        var senha = await _servico.CriarSenhaAsync(
+            "Gmail", "user@gmail.com", "Senha@123456", Categoria.Personal);
+
+        var item = new SenhaExportada
+        {
+            Id = senha.Id,
+            NomeServico = "Gmail Atualizado",
+            Usuario = "novo@gmail.com",
+            Senha = "NovaSenha@789",
+            Categoria = Categoria.Work,
+            Tipo = TipoCredencial.Login,
+            Favorito = true,
+            Fixado = true,
+            DataCriacao = senha.DataCriacao,
+            DataAtualizacao = DateTime.UtcNow.AddMinutes(5)
+        };
+
+        await _servico.AplicarSincronizadoAsync(item);
+        var atualizada = await ObterAsync(senha.Id);
+
+        Assert.NotNull(atualizada);
+        Assert.Equal("Gmail Atualizado", atualizada!.NomeServico);
+        Assert.Equal("novo@gmail.com", atualizada.Usuario);
+        Assert.True(atualizada.Favorito);
+        Assert.True(atualizada.Fixado);
+        Assert.Equal(item.DataAtualizacao, atualizada.DataAtualizacao);
+    }
+
+    [Fact]
+    public async Task AplicarSincronizadoAsync_ComNaLixeira_MarcaComoExcluidaLocalmente()
+    {
+        var senha = await _servico.CriarSenhaAsync(
+            "Gmail", "user@gmail.com", "Senha@123456", Categoria.Personal);
+
+        var dataExclusao = DateTime.UtcNow;
+        var item = new SenhaExportada
+        {
+            Id = senha.Id,
+            NomeServico = senha.NomeServico,
+            Usuario = senha.Usuario,
+            Senha = "Senha@123456",
+            Categoria = senha.Categoria,
+            NaLixeira = true,
+            DataExclusao = dataExclusao,
+            DataCriacao = senha.DataCriacao,
+            DataAtualizacao = DateTime.UtcNow.AddMinutes(1)
+        };
+
+        await _servico.AplicarSincronizadoAsync(item);
+
+        var lixeira = await _servico.ListarLixeiraAsync();
+        var itemLixeira = Assert.Single(lixeira);
+        Assert.Equal(senha.Id, itemLixeira.Id);
+        Assert.Equal(dataExclusao, itemLixeira.DataExclusao);
+    }
+
+    [Fact]
     public async Task MarcarComoFavoritoAsync_MarcaSenhaComoFavorita()
     {
         var senha = await _servico.CriarSenhaAsync("Gmail", "user@gmail.com", "Senha@123456", Categoria.Personal);

@@ -16,7 +16,7 @@ namespace App.Testes
             var chaveOriginal = auth.CriarSenhaMestra("SenhaDeTeste123!");
 
             byte[]? chaveRecebida = null;
-            var login = new JanelaLogin(auth, chave => chaveRecebida = chave);
+            var login = new JanelaLogin(auth, (chave, senha) => chaveRecebida = chave);
             login.Show();
 
             login.Encontrar<TextBox>("TxtSenha").Text = "SenhaDeTeste123!";
@@ -36,7 +36,7 @@ namespace App.Testes
             auth.CriarSenhaMestra("SenhaDeTeste123!");
 
             byte[]? chaveRecebida = null;
-            var login = new JanelaLogin(auth, chave => chaveRecebida = chave);
+            var login = new JanelaLogin(auth, (chave, senha) => chaveRecebida = chave);
             login.Show();
 
             login.Encontrar<TextBox>("TxtSenha").Text = "SenhaErrada!";

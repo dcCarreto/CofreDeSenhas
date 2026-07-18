@@ -2,6 +2,7 @@ namespace GerenciadorDeSenhas.Modelos
 {
     public class SenhaExportada
     {
+        public Guid Id { get; set; } = Guid.NewGuid();
         public string NomeServico { get; set; } = string.Empty;
         public string Usuario { get; set; } = string.Empty;
         public string Senha { get; set; } = string.Empty;
@@ -16,6 +17,9 @@ namespace GerenciadorDeSenhas.Modelos
         public List<CodigoRecuperacaoExportado> CodigosRecuperacao { get; set; } = new();
         public List<AnexoExportado> Anexos { get; set; } = new();
         public bool Favorito { get; set; }
+        public bool Fixado { get; set; }
+        public bool NaLixeira { get; set; }
+        public DateTime? DataExclusao { get; set; }
         public DateTime DataCriacao { get; set; }
         public DateTime DataAtualizacao { get; set; }
     }

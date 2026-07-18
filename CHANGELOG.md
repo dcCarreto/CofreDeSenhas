@@ -138,6 +138,20 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
   tipo escolhido. Exportação e importação (`.gsenhas`) carregam tipo e
   campos extras. Local por dispositivo, como a categoria e os itens
   fixados, sem sincronizar para bancos de dados conectados.
+- Sincronização criptografada de ponta a ponta: novo item
+  "Sincronização..." no menu de configurações liga o cofre a outros
+  dispositivos através de uma pasta compartilhada (Dropbox, OneDrive,
+  Google Drive ou qualquer pasta sincronizada por outro meio) — o
+  aplicativo só lê e escreve um arquivo cifrado ali dentro, sem falar
+  diretamente com nenhum provedor. A chave de sincronização deriva da
+  própria senha mestra (mesma senha em todos os dispositivos), e os dados
+  saem cifrados com AES-256-GCM antes de qualquer gravação, então o
+  provedor de nuvem nunca vê texto puro. Sincroniza ao desbloquear, em
+  intervalo configurável (5 a 60 minutos) ou sob demanda; sem pasta
+  acessível, o cofre continua funcionando 100% local. Conflitos usam a
+  edição mais recente por credencial inteira, incluindo exclusão e
+  restauração da lixeira. Anexos ainda não sincronizam nesta primeira
+  versão.
 
 ### Corrigido
 - O painel de detalhes agora flutua sobre a lista de senhas em vez de

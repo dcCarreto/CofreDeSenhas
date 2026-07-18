@@ -327,6 +327,32 @@ Repaginação completa da interface, preservando todas as funcionalidades:
   coluna própria no banco, desde a v2.0.0) e os itens fixados, tipo e
   campos extras são hoje só locais: não sincronizam para bancos de dados
   conectados.
+- Sincronização criptografada de ponta a ponta: novo item "Sincronização..."
+  no menu de configurações permite ligar o cofre a outros dispositivos
+  através de uma pasta compartilhada — normalmente a pasta local de um
+  cliente de nuvem já instalado (Dropbox, OneDrive, Google Drive, iCloud
+  Drive) ou qualquer pasta sincronizada por outro meio. O aplicativo nunca
+  fala diretamente com nenhum provedor: só lê e escreve um arquivo cifrado
+  dentro da pasta escolhida, deixando o transporte real por conta do
+  cliente de sincronização que o usuário já usa — por isso qualquer
+  provedor funciona, sem integração dedicada. A chave de criptografia é
+  derivada da própria senha mestra do cofre (a mesma senha mestra precisa
+  ser usada em todos os dispositivos que compartilham a pasta); os dados
+  saem cifrados com AES-256-GCM antes de qualquer gravação em disco, então
+  o provedor de nuvem nunca vê texto puro. A sincronização roda uma vez ao
+  desbloquear o cofre, em intervalo configurável (5, 15, 30 ou 60 minutos)
+  e sob demanda pelo botão "Sincronizar agora"; falhas (pasta inacessível,
+  sem rede) são silenciosas e o cofre continua funcionando 100% local,
+  como se a sincronização estivesse desligada. Conflitos são resolvidos
+  por credencial inteira, não campo a campo: quando o mesmo item muda em
+  dois dispositivos, vale a edição mais recente — diferente da mesclagem
+  "local sempre vence" já usada na conexão a bancos de dados, que faz
+  sentido para um banco compartilhado com um dispositivo principal, mas
+  não para dispositivos simétricos sem prioridade entre si. Exclusão e
+  restauração da lixeira também sincronizam. Fora desta primeira versão:
+  anexos (ficam só no dispositivo que os criou, mesma decisão já tomada
+  para a lista de anexos em si) e sincronização em tempo real (é sempre
+  por verificação periódica ou manual, nunca imediata).
 
 ## Em andamento
 
@@ -381,16 +407,6 @@ criptografia anterior) e de uma camada inteira de métodos de busca/contagem em
 
 ### Futuro
 
-#### Sincronização criptografada de ponta a ponta
-
-- Implementar sincronização opcional entre dispositivos.
-- Manter criptografia de ponta a ponta.
-- Garantir que o servidor nunca tenha acesso às senhas em texto puro.
-- Permitir uso de provedores escolhidos pelo usuário.
-- Avaliar sincronização via arquivo em nuvem do próprio usuário.
-- Resolver conflitos de forma clara e segura.
-- Manter funcionamento offline como padrão.
-
 #### Versão para macOS
 
 - Avaliar suporte oficial ao macOS.
@@ -427,9 +443,8 @@ criptografia anterior) e de uma camada inteira de métodos de busca/contagem em
 ## Ordem sugerida de execução
 
 1. Conclusão da extensão de navegador (em andamento).
-2. Sincronização criptografada de ponta a ponta.
-3. macOS.
-4. Aplicativo móvel.
+2. macOS.
+3. Aplicativo móvel.
 
 ## Como sugerir
 

@@ -33,6 +33,7 @@ namespace CofreDeSenhas.Janelas
         private readonly IServicoCriptografia? _criptografia;
         private readonly ServicoAnexos? _servicoAnexos;
         private IRepositorioSenha? _repositorioLocal;
+        private ServicoSincronizacao? _servicoSincronizacao;
         private readonly ServicoDesbloqueioBiometrico _biometria = new();
         private readonly ServicoAuditoriaSenha _servicoAuditoria = new();
         private readonly ServicoVazamento _servicoVazamento = new();
@@ -41,6 +42,8 @@ namespace CofreDeSenhas.Janelas
         private readonly ServicoTotp _totp = new();
         private readonly Action? _aoBloquear;
         private readonly MonitorInatividade _monitor;
+        private readonly DispatcherTimer _timerSincronizacao;
+        private bool _sincronizando;
         private bool _conectadoAoBanco;
         private string? _descricaoConexaoAtual;
         private bool _falhaReconexaoAtual;
@@ -86,7 +89,8 @@ namespace CofreDeSenhas.Janelas
         private const double LarguraMinimaAcoes = 200;
 
         public JanelaPrincipal(IServicoSenha servicoSenha, byte[] chaveMestra, IServicoCriptografia? criptografia = null,
-            IRepositorioSenha? repositorioLocal = null, Action? aoBloquear = null)
+            IRepositorioSenha? repositorioLocal = null, Action? aoBloquear = null,
+            ServicoSincronizacao? servicoSincronizacao = null)
         {
             _servicoSenha = servicoSenha ?? throw new ArgumentNullException(nameof(servicoSenha));
             _servicoSenhaLocal = _servicoSenha;
@@ -94,6 +98,7 @@ namespace CofreDeSenhas.Janelas
             _criptografia = criptografia;
             _servicoAnexos = criptografia != null ? new ServicoAnexos(criptografia) : null;
             _repositorioLocal = repositorioLocal;
+            _servicoSincronizacao = servicoSincronizacao;
             _aoBloquear = aoBloquear;
 
             InitializeComponent();
@@ -136,9 +141,14 @@ namespace CofreDeSenhas.Janelas
             Idioma.Alterado += IdiomaGlobal_Alterado;
             Acessibilidade.Alterado += Acessibilidade_Alterado;
             AddHandler(KeyDownEvent, Atalho_KeyDown, RoutingStrategies.Tunnel);
+            _timerSincronizacao = new DispatcherTimer();
+            _timerSincronizacao.Tick += async (s, e) => await SincronizarAsync(silencioso: true);
+            AjustarTimerSincronizacao();
+
             Closed += (s, e) =>
             {
                 _monitor.Encerrar();
+                _timerSincronizacao.Stop();
                 Idioma.Alterado -= IdiomaGlobal_Alterado;
                 Acessibilidade.Alterado -= Acessibilidade_Alterado;
                 FecharDetalhes();
@@ -146,6 +156,7 @@ namespace CofreDeSenhas.Janelas
                     linha.EsconderSenhaSeRevelada();
                 CryptographicOperations.ZeroMemory(_chaveMestra);
                 _criptografia?.ZerarChave();
+                _servicoSincronizacao?.ZerarChave();
             };
 
             Opened += async (s, e) =>
@@ -153,6 +164,7 @@ namespace CofreDeSenhas.Janelas
                 AjustarLargurasIniciais();
                 await IniciarAsync();
                 _ = VerificarAtualizacaoAsync();
+                _ = SincronizarAsync(silencioso: true);
             };
         }
 
@@ -625,6 +637,107 @@ namespace CofreDeSenhas.Janelas
             LblAtualizacaoDisponivel.Text = Idioma.Formatar("Update.Available", versao);
             AutomationProperties.SetName(LblAtualizacaoDisponivel, Idioma.Formatar("Update.Available", versao));
             PainelAtualizacaoDisponivel.IsVisible = true;
+        }
+
+        private void AjustarTimerSincronizacao()
+        {
+            var perfil = Preferencias.Sincronizacao;
+            if (perfil == null || perfil.FrequenciaMinutos <= 0 || _servicoSincronizacao == null)
+            {
+                _timerSincronizacao.Stop();
+                return;
+            }
+
+            _timerSincronizacao.Interval = TimeSpan.FromMinutes(perfil.FrequenciaMinutos);
+            _timerSincronizacao.Start();
+        }
+
+        private async void Sincronizacao_Click(object? sender, RoutedEventArgs e)
+        {
+            if (_repositorioLocal == null || _criptografia == null)
+            {
+                await CaixaMensagem.MostrarAsync(this,
+                    Idioma.Texto("Db.FeatureUnavailable"), Idioma.Texto("Sync.Title"), TipoMensagem.Aviso);
+                return;
+            }
+
+            var dlg = new JanelaSincronizacao(_servicoSincronizacao,
+                servico => _servicoSincronizacao = servico,
+                () => SincronizarAsync(silencioso: false));
+
+            await AbrirDialogoAsync<bool>(dlg);
+            AjustarTimerSincronizacao();
+        }
+
+        private async Task<bool> SincronizarAsync(bool silencioso)
+        {
+            if (_servicoSincronizacao == null || Preferencias.Sincronizacao is not { } perfil || _sincronizando)
+                return false;
+
+            _sincronizando = true;
+            try
+            {
+                var caminho = Path.Combine(perfil.Pasta, ServicoSincronizacao.NomeArquivo);
+
+                var locais = new List<SenhaExportada>();
+                var todasLocais = (await _servicoSenha.ListarTodosAsync()).Concat(await _servicoSenha.ListarLixeiraAsync());
+                foreach (var s in todasLocais)
+                {
+                    var plain = ObterSenhaPlain(s);
+                    if (plain == null)
+                        continue;
+
+                    locais.Add(new SenhaExportada
+                    {
+                        Id = s.Id,
+                        NomeServico = s.NomeServico,
+                        Usuario = s.Usuario,
+                        Senha = plain,
+                        Url = s.Url,
+                        Categoria = s.Categoria,
+                        Etiquetas = s.Etiquetas.ToList(),
+                        Notas = s.Notas,
+                        Tipo = s.Tipo,
+                        CamposExtras = ObterCamposExtrasPlain(s),
+                        TotpSegredo = ObterTotpPlain(s),
+                        Historico = ObterHistoricoPlain(s),
+                        CodigosRecuperacao = ObterCodigosRecuperacaoPlain(s),
+                        Favorito = s.Favorito,
+                        Fixado = s.Fixado,
+                        NaLixeira = s.NaLixeira,
+                        DataExclusao = s.DataExclusao,
+                        DataCriacao = s.DataCriacao,
+                        DataAtualizacao = s.DataAtualizacao
+                    });
+                }
+
+                var remotas = await _servicoSincronizacao.LerAsync(caminho);
+                var mescladas = ServicoSincronizacao.MesclarListas(locais, remotas);
+
+                foreach (var item in mescladas)
+                    await _servicoSenha.AplicarSincronizadoAsync(item);
+                await _servicoSenha.PersistirAsync();
+
+                var salt = Convert.FromBase64String(perfil.Salt);
+                await _servicoSincronizacao.EscreverAsync(caminho, salt, perfil.Iteracoes, mescladas);
+
+                perfil.UltimaSincronizacao = DateTime.UtcNow;
+                Preferencias.Salvar();
+
+                await CarregarSenhasAsync();
+                return true;
+            }
+            catch
+            {
+                if (!silencioso)
+                    await CaixaMensagem.MostrarAsync(this,
+                        Idioma.Texto("Sync.Error"), Idioma.Texto("Common.Error"), TipoMensagem.Erro);
+                return false;
+            }
+            finally
+            {
+                _sincronizando = false;
+            }
         }
 
         private void AbrirNovaVersao_PointerReleased(object? sender, PointerReleasedEventArgs e)

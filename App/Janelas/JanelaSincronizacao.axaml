@@ -1,0 +1,96 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="CofreDeSenhas.Janelas.JanelaSincronizacao"
+        Title="{DynamicResource Sync.Title}"
+        Width="480"
+        SizeToContent="Height"
+        MinWidth="420"
+        SystemDecorations="None"
+        Background="Transparent"
+        TransparencyLevelHint="Transparent"
+        WindowStartupLocation="CenterOwner">
+
+  <Border CornerRadius="{StaticResource RadiusDialogo}"
+          ClipToBounds="True"
+          Background="{DynamicResource CardBackground}"
+          BorderBrush="{DynamicResource CardBorder}"
+          BorderThickness="1">
+
+    <DockPanel>
+      <Border DockPanel.Dock="Top"
+              Height="56"
+              BorderBrush="{DynamicResource CardBorder}"
+              BorderThickness="0,0,0,1"
+              PointerPressed="Arrastar">
+        <Grid>
+          <TextBlock Text="{DynamicResource Sync.Title}"
+                     Classes="titulo"
+                     Foreground="{DynamicResource TextPrimary}"
+                     VerticalAlignment="Center"
+                     AutomationProperties.HeadingLevel="1"
+                     Margin="24,0,0,0" />
+          <Button Classes="fechar-dialogo"
+                  AutomationProperties.Name="{DynamicResource Access.Close}"
+                  HorizontalAlignment="Right" VerticalAlignment="Center"
+                  Margin="0,0,14,0"
+                  Click="Fechar_Click">
+            <Path Classes="line-icon" Width="14" Height="14" Data="{StaticResource IconeFechar}" />
+          </Button>
+        </Grid>
+      </Border>
+
+      <Border DockPanel.Dock="Bottom"
+              Height="72"
+              BorderBrush="{DynamicResource CardBorder}"
+              BorderThickness="0,1,0,0">
+        <StackPanel Orientation="Horizontal" Spacing="10"
+                    HorizontalAlignment="Right" VerticalAlignment="Center" Margin="24,0">
+          <Button Classes="secundario" Content="{DynamicResource Common.Close}"
+                  MinWidth="120" Height="40" Click="Fechar_Click" />
+        </StackPanel>
+      </Border>
+
+      <StackPanel Margin="24,18,24,16" Spacing="14">
+        <TextBlock Text="{DynamicResource Sync.Explanation}" FontSize="12"
+                   Foreground="{DynamicResource TextSecondary}" TextWrapping="Wrap" />
+
+        <StackPanel Name="PainelInativo" Spacing="10">
+          <Button Name="BtnAtivar" Classes="primario" Content="{DynamicResource Sync.Enable}"
+                  Height="40" Click="Ativar_Click"
+                  AutomationProperties.Name="{DynamicResource Sync.Enable}" />
+        </StackPanel>
+
+        <StackPanel Name="PainelAtivo" Spacing="14" IsVisible="False">
+          <StackPanel Spacing="6">
+            <TextBlock Text="{DynamicResource Sync.Folder}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
+            <TextBlock Name="LblPasta" FontSize="13" Foreground="{DynamicResource TextPrimary}"
+                       TextWrapping="Wrap" TextTrimming="CharacterEllipsis" />
+          </StackPanel>
+
+          <StackPanel Spacing="6">
+            <TextBlock Text="{DynamicResource Sync.Frequency}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
+            <ComboBox Name="CmbFrequencia" Classes="campo" HorizontalAlignment="Stretch"
+                      AutomationProperties.Name="{DynamicResource Sync.Frequency}"
+                      SelectionChanged="Frequencia_Alterada" />
+          </StackPanel>
+
+          <Border Background="{DynamicResource InputBackground}"
+                  BorderBrush="{DynamicResource InputBorder}" BorderThickness="1"
+                  CornerRadius="{StaticResource RadiusInput}" Padding="12,10">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Name="LblUltimaSincronizacao" FontSize="13" Foreground="{DynamicResource TextPrimary}"
+                         VerticalAlignment="Center" TextWrapping="Wrap" />
+              <Button Grid.Column="1" Classes="secundario" Content="{DynamicResource Sync.Now}"
+                      Height="34" Margin="10,0,0,0" Click="SincronizarAgora_Click"
+                      AutomationProperties.Name="{DynamicResource Sync.Now}" />
+            </Grid>
+          </Border>
+
+          <Button Name="BtnDesativar" Classes="secundario" Content="{DynamicResource Sync.Disable}"
+                  Height="34" HorizontalAlignment="Left" Click="Desativar_Click"
+                  AutomationProperties.Name="{DynamicResource Sync.Disable}" />
+        </StackPanel>
+      </StackPanel>
+    </DockPanel>
+  </Border>
+</Window>
