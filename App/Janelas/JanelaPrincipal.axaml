@@ -746,7 +746,7 @@
                     </StackPanel>
 
                     <StackPanel Spacing="6">
-                      <TextBlock Text="{DynamicResource Entry.UserEmail}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
+                      <TextBlock Name="LblDetalheUsuario" Text="{DynamicResource Entry.UserEmail}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
                       <Grid ColumnDefinitions="Auto,*,Auto">
                         <Path Classes="line-icon" Width="16" Height="16" Margin="0,0,8,0" VerticalAlignment="Center"
                               Stroke="{DynamicResource TextSecondary}"
@@ -764,7 +764,7 @@
                     </StackPanel>
 
                     <StackPanel Spacing="6">
-                      <TextBlock Text="{DynamicResource Entry.Password}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
+                      <TextBlock Name="LblDetalheSenha" Text="{DynamicResource Entry.Password}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
                       <Grid ColumnDefinitions="Auto,*,Auto,Auto">
                         <Path Classes="line-icon" Width="16" Height="16" Margin="0,0,8,0" VerticalAlignment="Center"
                               Stroke="{DynamicResource TextSecondary}"

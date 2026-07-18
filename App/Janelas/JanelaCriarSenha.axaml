@@ -58,16 +58,22 @@
                  AutomationProperties.Name="{DynamicResource Entry.ServiceName}"
                  AutomationProperties.IsRequiredForForm="True" />
 
-        <TextBlock Text="{DynamicResource Entry.UserEmail}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
+        <TextBlock Text="{DynamicResource Entry.Type}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
+        <ComboBox Name="CmbTipo" Classes="campo" HorizontalAlignment="Stretch" Margin="0,0,0,14"
+                  AutomationProperties.Name="{DynamicResource Entry.Type}" />
+
+        <TextBlock Name="LblUsuario" Text="{DynamicResource Entry.UserEmail}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
         <TextBox Name="TxtUsuario" Classes="campo" Margin="0,0,0,14"
                  AutomationProperties.Name="{DynamicResource Entry.UserEmail}"
                  AutomationProperties.IsRequiredForForm="True" />
 
-        <TextBlock Text="{DynamicResource Entry.Password}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
+        <TextBlock Name="LblSenha" Text="{DynamicResource Entry.Password}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
         <TextBox Name="TxtSenha" Classes="campo revealPasswordButton" PasswordChar="●" Margin="0,0,0,14"
                  AutomationProperties.Name="{DynamicResource Entry.Password}"
                  AutomationProperties.HelpText="{DynamicResource A11y.PasswordFieldHelp}"
                  AutomationProperties.IsRequiredForForm="True" />
+
+        <StackPanel Name="PainelCamposExtras" Spacing="4" />
 
         <TextBlock Text="{DynamicResource Entry.TotpOptional}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
         <TextBox Name="TxtTotp" Classes="campo"

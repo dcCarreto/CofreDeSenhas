@@ -990,6 +990,21 @@ namespace CofreDeSenhas.Janelas
             catch { return null; }
         }
 
+        private Dictionary<string, string> ObterCamposExtrasPlain(Senha s)
+        {
+            var resultado = new Dictionary<string, string>();
+            if (_criptografia == null)
+                return resultado;
+
+            foreach (var (chave, valorCifrado) in s.CamposExtras)
+            {
+                try { resultado[chave] = _criptografia.Descriptografar(valorCifrado); }
+                catch { }
+            }
+
+            return resultado;
+        }
+
         private List<HistoricoSenhaExportada> ObterHistoricoPlain(Senha s)
         {
             var historico = new List<HistoricoSenhaExportada>();
@@ -1566,6 +1581,9 @@ namespace CofreDeSenhas.Janelas
             TxtDetalheUsuario.Text = senha.Usuario;
             TxtDetalheUrl.Text = senha.Url ?? "";
             TxtDetalheNotas.Text = senha.Notas ?? "";
+
+            LblDetalheUsuario.Text = TemplatesCredencial.RotuloUsuario(senha.Tipo);
+            LblDetalheSenha.Text = TemplatesCredencial.RotuloSenha(senha.Tipo);
 
             TxtDetalheEtiquetas.Text = Etiquetas.Formatar(senha.Etiquetas);
             CmbDetalheCategoria.ItemsSource = CategoriasUI.Rotulos;
@@ -2188,6 +2206,8 @@ namespace CofreDeSenhas.Janelas
                         Categoria = s.Categoria,
                         Etiquetas = s.Etiquetas.ToList(),
                         Notas = s.Notas,
+                        Tipo = s.Tipo,
+                        CamposExtras = ObterCamposExtrasPlain(s),
                         TotpSegredo = ObterTotpPlain(s),
                         Historico = ObterHistoricoPlain(s),
                         CodigosRecuperacao = ObterCodigosRecuperacaoPlain(s),
@@ -2347,7 +2367,8 @@ namespace CofreDeSenhas.Janelas
 
                 var totp = _totp.SegredoValido(item.TotpSegredo) ? item.TotpSegredo : null;
                 var nova = await _servicoSenha.CriarSenhaAsync(
-                    item.NomeServico, item.Usuario, item.Senha, item.Categoria, item.Url, item.Notas, totp, item.Etiquetas);
+                    item.NomeServico, item.Usuario, item.Senha, item.Categoria, item.Url, item.Notas, totp, item.Etiquetas,
+                    item.Tipo, item.CamposExtras);
                 if (item.Favorito)
                     await _servicoSenha.MarcarComoFavoritoAsync(nova.Id);
                 RestaurarHistorico(nova, item.Historico);

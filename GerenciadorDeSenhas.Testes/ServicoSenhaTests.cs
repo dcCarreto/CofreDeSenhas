@@ -143,6 +143,86 @@ public class ServicoSenhaTests : IDisposable
     }
 
     [Fact]
+    public async Task CriarSenhaAsync_SemTipo_UsaLoginPorPadraoSemCamposExtras()
+    {
+        var senha = await _servico.CriarSenhaAsync(
+            "Gmail", "user@gmail.com", "Senha@123456", Categoria.Personal);
+
+        Assert.Equal(TipoCredencial.Login, senha.Tipo);
+        Assert.Empty(senha.CamposExtras);
+    }
+
+    [Fact]
+    public async Task CriarSenhaAsync_ComTipoECamposExtras_ArmazenaCamposCifrados()
+    {
+        var senha = await _servico.CriarSenhaAsync(
+            "Cartão Nubank", "titular", "4111111111111111", Categoria.Finance,
+            tipo: TipoCredencial.Cartao,
+            camposExtras: new Dictionary<string, string>
+            {
+                ["validade"] = "12/29",
+                ["cvv"] = "123"
+            });
+
+        Assert.Equal(TipoCredencial.Cartao, senha.Tipo);
+        Assert.Equal(2, senha.CamposExtras.Count);
+        Assert.NotEqual("12/29", senha.CamposExtras["validade"]);
+        Assert.NotEqual("123", senha.CamposExtras["cvv"]);
+        Assert.Equal("12/29", _criptografia.Descriptografar(senha.CamposExtras["validade"]));
+        Assert.Equal("123", _criptografia.Descriptografar(senha.CamposExtras["cvv"]));
+    }
+
+    [Fact]
+    public async Task CriarSenhaAsync_ComCampoExtraVazio_IgnoraCampo()
+    {
+        var senha = await _servico.CriarSenhaAsync(
+            "Wi-Fi Casa", "ssid", "senhaRede123", Categoria.Personal,
+            tipo: TipoCredencial.WiFi,
+            camposExtras: new Dictionary<string, string> { ["seguranca"] = "", ["banda"] = "5GHz" });
+
+        Assert.Single(senha.CamposExtras);
+        Assert.True(senha.CamposExtras.ContainsKey("banda"));
+        Assert.False(senha.CamposExtras.ContainsKey("seguranca"));
+    }
+
+    [Fact]
+    public async Task AtualizarSenhaAsync_SemTipo_PreservaTipoECamposExtrasExistentes()
+    {
+        var senha = await _servico.CriarSenhaAsync(
+            "Servidor Prod", "root", "SenhaServidor@1", Categoria.Work,
+            tipo: TipoCredencial.Servidor,
+            camposExtras: new Dictionary<string, string> { ["host"] = "10.0.0.1" });
+
+        await _servico.AtualizarSenhaAsync(
+            senha.Id, "Servidor Prod", "root", "NovaSenhaServidor@2", Categoria.Work);
+
+        var atualizada = await ObterAsync(senha.Id);
+
+        Assert.Equal(TipoCredencial.Servidor, atualizada!.Tipo);
+        Assert.Equal("10.0.0.1", _criptografia.Descriptografar(atualizada.CamposExtras["host"]));
+    }
+
+    [Fact]
+    public async Task AtualizarSenhaAsync_ComNovoTipoECamposExtras_Substitui()
+    {
+        var senha = await _servico.CriarSenhaAsync(
+            "Servidor Prod", "root", "SenhaServidor@1", Categoria.Work,
+            tipo: TipoCredencial.Servidor,
+            camposExtras: new Dictionary<string, string> { ["host"] = "10.0.0.1" });
+
+        await _servico.AtualizarSenhaAsync(
+            senha.Id, "Servidor Prod", "root", "NovaSenhaServidor@2", Categoria.Work,
+            tipo: TipoCredencial.BancoDados,
+            camposExtras: new Dictionary<string, string> { ["motor"] = "PostgreSQL" });
+
+        var atualizada = await ObterAsync(senha.Id);
+
+        Assert.Equal(TipoCredencial.BancoDados, atualizada!.Tipo);
+        Assert.False(atualizada.CamposExtras.ContainsKey("host"));
+        Assert.Equal("PostgreSQL", _criptografia.Descriptografar(atualizada.CamposExtras["motor"]));
+    }
+
+    [Fact]
     public async Task MarcarComoFavoritoAsync_MarcaSenhaComoFavorita()
     {
         var senha = await _servico.CriarSenhaAsync("Gmail", "user@gmail.com", "Senha@123456", Categoria.Personal);

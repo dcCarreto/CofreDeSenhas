@@ -9,6 +9,8 @@ namespace GerenciadorDeSenhas.Modelos
         public Categoria Categoria { get; set; }
         public List<string> Etiquetas { get; set; } = new();
         public string? Notas { get; set; }
+        public TipoCredencial Tipo { get; set; } = TipoCredencial.Login;
+        public Dictionary<string, string> CamposExtras { get; set; } = new();
         public string? TotpSegredo { get; set; }
         public List<HistoricoSenhaExportada> Historico { get; set; } = new();
         public List<CodigoRecuperacaoExportado> CodigosRecuperacao { get; set; } = new();

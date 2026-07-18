@@ -128,6 +128,16 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
   para ordenar por qualquer um deles, com seta indicando coluna e sentido
   ativos. Novo botão "Fixar no topo" em cada linha mantém credenciais
   importantes sempre nas primeiras posições, independente da ordenação.
+- Templates de credenciais: novo campo "Tipo de credencial" na criação e na
+  edição, com sete modelos (Login, Cartão, Chave de licença, Wi-Fi,
+  Servidor, Banco de dados, Documento seguro). Cada tipo renomeia os campos
+  de usuário/senha para o vocabulário certo e, quando aplicável, mostra
+  campos extras próprios (Cartão: validade, CVV, bandeira; Wi-Fi: segurança,
+  banda; Servidor/Banco de dados: host, porta e mais alguns) — todos
+  cifrados individualmente. O painel de detalhes usa os mesmos rótulos do
+  tipo escolhido. Exportação e importação (`.gsenhas`) carregam tipo e
+  campos extras. Local por dispositivo, como a categoria e os itens
+  fixados, sem sincronizar para bancos de dados conectados.
 
 ### Corrigido
 - O painel de detalhes agora flutua sobre a lista de senhas em vez de

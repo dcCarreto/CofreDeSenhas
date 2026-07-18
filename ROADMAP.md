@@ -308,6 +308,25 @@ Repaginação completa da interface, preservando todas as funcionalidades:
   como nome da categoria personalizada exibido na lista. Fixação é local
   por dispositivo, como os favoritos, sem sincronizar para bancos de dados
   conectados.
+- Templates de credenciais: a criação e a edição ganharam um campo "Tipo de
+  credencial" com sete modelos — Login, Cartão, Chave de licença, Wi-Fi,
+  Servidor, Banco de dados e Documento seguro. Escolher um tipo diferente de
+  Login renomeia os campos principais para o vocabulário certo (em Cartão,
+  "Usuário"/"Senha" viram "Titular do cartão"/"Número do cartão"; em Wi-Fi,
+  "Nome da rede (SSID)"/"Senha da rede"; em Chave de licença,
+  "Produto/Software"/"Chave de licença"; em Documento seguro,
+  "Título"/"Conteúdo sensível") e mostra campos extras específicos do tipo
+  (Cartão: validade, CVV, bandeira; Wi-Fi: segurança, banda; Servidor: host,
+  porta, protocolo; Banco de dados: host, porta, nome do banco, motor) — sem
+  extras, Login/Chave de licença/Documento seguro usam só os campos
+  renomeados. Cada campo extra é cifrado individualmente com a mesma chave
+  mestra, como o TOTP. O painel de detalhes também usa os rótulos do tipo
+  escolhido; a edição completa dos campos extras continua exclusiva das
+  telas de criação/edição. Exportação e importação (`.gsenhas`) carregam
+  tipo e campos extras normalmente. Assim como a categoria (que nunca teve
+  coluna própria no banco, desde a v2.0.0) e os itens fixados, tipo e
+  campos extras são hoje só locais: não sincronizam para bancos de dados
+  conectados.
 
 ## Em andamento
 
@@ -360,19 +379,6 @@ criptografia anterior) e de uma camada inteira de métodos de busca/contagem em
 `IRepositorioSenha`/`IServicoSenha` que nunca chegou a ser usada pela interface
 (a lista filtra tudo em memória) e só existia para os próprios testes.
 
-#### Templates de credenciais
-
-- Criar modelos para tipos diferentes de entrada:
-  - login comum;
-  - cartão;
-  - chave de licença;
-  - Wi-Fi;
-  - servidor;
-  - banco de dados;
-  - documento seguro.
-- Permitir campos específicos por tipo.
-- Manter todos os campos sensíveis criptografados.
-
 ### Futuro
 
 #### Sincronização criptografada de ponta a ponta
@@ -421,10 +427,9 @@ criptografia anterior) e de uma camada inteira de métodos de busca/contagem em
 ## Ordem sugerida de execução
 
 1. Conclusão da extensão de navegador (em andamento).
-2. Templates de credenciais.
-3. Sincronização criptografada de ponta a ponta.
-4. macOS.
-5. Aplicativo móvel.
+2. Sincronização criptografada de ponta a ponta.
+3. macOS.
+4. Aplicativo móvel.
 
 ## Como sugerir
 

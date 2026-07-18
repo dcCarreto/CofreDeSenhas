@@ -19,7 +19,8 @@ namespace GerenciadorDeSenhas.Servicos
 
         public async Task<Senha> CriarSenhaAsync(string nomeServico, string usuario, string senhaPlaintext,
             Categoria categoria, string? url = null, string? notas = null, string? totpSegredo = null,
-            IEnumerable<string>? etiquetas = null)
+            IEnumerable<string>? etiquetas = null, TipoCredencial tipo = TipoCredencial.Login,
+            IReadOnlyDictionary<string, string>? camposExtras = null)
         {
             ValidarEntrada(nomeServico, usuario, senhaPlaintext);
 
@@ -35,6 +36,8 @@ namespace GerenciadorDeSenhas.Servicos
                 Notas = notas,
                 TotpSegredo = CifrarTotp(totpSegredo),
                 Favorito = false,
+                Tipo = tipo,
+                CamposExtras = CifrarCamposExtras(camposExtras),
                 DataCriacao = DateTime.UtcNow,
                 DataAtualizacao = DateTime.UtcNow
             };
@@ -44,7 +47,8 @@ namespace GerenciadorDeSenhas.Servicos
         }
 
         public async Task AtualizarSenhaAsync(Guid id, string nomeServico, string usuario, string senhaPlaintext,
-            Categoria categoria, string? url = null, string? notas = null, IEnumerable<string>? etiquetas = null)
+            Categoria categoria, string? url = null, string? notas = null, IEnumerable<string>? etiquetas = null,
+            TipoCredencial? tipo = null, IReadOnlyDictionary<string, string>? camposExtras = null)
         {
             ValidarEntrada(nomeServico, usuario, senhaPlaintext);
 
@@ -60,9 +64,26 @@ namespace GerenciadorDeSenhas.Servicos
                 senha.Etiquetas = Etiquetas.Normalizar(etiquetas);
             senha.Url = url;
             senha.Notas = notas;
+            if (tipo.HasValue)
+                senha.Tipo = tipo.Value;
+            if (camposExtras != null)
+                senha.CamposExtras = CifrarCamposExtras(camposExtras);
             senha.DataAtualizacao = DateTime.UtcNow;
 
             await _repositorio.AtualizarAsync(senha);
+        }
+
+        private Dictionary<string, string> CifrarCamposExtras(IReadOnlyDictionary<string, string>? camposExtras)
+        {
+            var resultado = new Dictionary<string, string>();
+            if (camposExtras == null)
+                return resultado;
+
+            foreach (var (chave, valor) in camposExtras)
+                if (!string.IsNullOrWhiteSpace(valor))
+                    resultado[chave] = _criptografia.Criptografar(valor);
+
+            return resultado;
         }
 
         public async Task DefinirTotpAsync(Guid id, string? segredoPlaintext)

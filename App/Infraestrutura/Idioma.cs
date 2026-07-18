@@ -115,6 +115,17 @@ namespace CofreDeSenhas
                 .Distinct(StringComparer.OrdinalIgnoreCase);
         }
 
+        public static string RotuloTipoCredencial(TipoCredencial tipo) => tipo switch
+        {
+            TipoCredencial.Cartao => Texto("CredType.Cartao"),
+            TipoCredencial.ChaveLicenca => Texto("CredType.ChaveLicenca"),
+            TipoCredencial.WiFi => Texto("CredType.WiFi"),
+            TipoCredencial.Servidor => Texto("CredType.Servidor"),
+            TipoCredencial.BancoDados => Texto("CredType.BancoDados"),
+            TipoCredencial.DocumentoSeguro => Texto("CredType.DocumentoSeguro"),
+            _ => Texto("CredType.Login")
+        };
+
         private static IdiomaDisponivel Resolver(string? codigo)
         {
             if (!string.IsNullOrWhiteSpace(codigo))

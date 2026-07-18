@@ -1,3 +1,4 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Automation;
 using Avalonia.Input;
@@ -28,6 +29,11 @@ namespace CofreDeSenhas.Janelas
             AtualizarCategorias();
             CmbCategoria.SelectedIndex = (int)Categoria.Personal;
 
+            CmbTipo.ItemsSource = TemplatesCredencial.Rotulos;
+            CmbTipo.SelectedIndex = 0;
+            CmbTipo.SelectionChanged += (s, e) => AtualizarCamposPorTipo();
+            AtualizarCamposPorTipo();
+
             if (!string.IsNullOrEmpty(senhaGerada))
                 TxtSenha.Text = senhaGerada;
 
@@ -50,6 +56,11 @@ namespace CofreDeSenhas.Janelas
         {
             AtualizarCategorias();
             AtualizarPreviewTotp();
+
+            var selecionadoTipo = Math.Max(0, CmbTipo.SelectedIndex);
+            CmbTipo.ItemsSource = TemplatesCredencial.Rotulos;
+            CmbTipo.SelectedIndex = selecionadoTipo;
+            AtualizarCamposPorTipo();
         }
 
         private void AtualizarCategorias()
@@ -58,6 +69,49 @@ namespace CofreDeSenhas.Janelas
             CmbCategoria.ItemsSource = CategoriasUI.Rotulos;
             CmbCategoria.SelectedIndex = selecionado;
         }
+
+        private void AtualizarCamposPorTipo()
+        {
+            var tipo = TemplatesCredencial.ObterTipo(CmbTipo.SelectedIndex);
+            LblUsuario.Text = TemplatesCredencial.RotuloUsuario(tipo);
+            AutomationProperties.SetName(TxtUsuario, TemplatesCredencial.RotuloUsuario(tipo));
+            LblSenha.Text = TemplatesCredencial.RotuloSenha(tipo);
+            AutomationProperties.SetName(TxtSenha, TemplatesCredencial.RotuloSenha(tipo));
+
+            var valoresAtuais = PainelCamposExtras.Children
+                .OfType<TextBox>()
+                .Where(t => t.Tag is string)
+                .ToDictionary(t => (string)t.Tag!, t => t.Text ?? "");
+
+            PainelCamposExtras.Children.Clear();
+            foreach (var campo in TemplatesCredencial.CamposExtras(tipo))
+            {
+                var rotulo = new TextBlock
+                {
+                    Text = campo.Rotulo,
+                    FontSize = 12,
+                    Foreground = Tema.Pincel(Tema.TextSecondary)
+                };
+                var caixa = new TextBox
+                {
+                    Classes = { "campo" },
+                    Margin = new Thickness(0, 0, 0, 14),
+                    Tag = campo.Chave
+                };
+                AutomationProperties.SetName(caixa, campo.Rotulo);
+                if (valoresAtuais.TryGetValue(campo.Chave, out var valor))
+                    caixa.Text = valor;
+
+                PainelCamposExtras.Children.Add(rotulo);
+                PainelCamposExtras.Children.Add(caixa);
+            }
+        }
+
+        private Dictionary<string, string> LerCamposExtras() =>
+            PainelCamposExtras.Children
+                .OfType<TextBox>()
+                .Where(t => t.Tag is string)
+                .ToDictionary(t => (string)t.Tag!, t => t.Text ?? "");
 
         private async void Salvar_Click(object? sender, RoutedEventArgs e)
         {
@@ -83,6 +137,7 @@ namespace CofreDeSenhas.Janelas
                 }
 
                 var (categoria, etiquetas) = LerCategoriaEEtiquetas();
+                var tipo = TemplatesCredencial.ObterTipo(CmbTipo.SelectedIndex);
                 await _servicoSenha.CriarSenhaAsync(
                     TxtNomeServico.Text!,
                     TxtUsuario.Text!,
@@ -91,7 +146,9 @@ namespace CofreDeSenhas.Janelas
                     string.IsNullOrWhiteSpace(TxtUrl.Text) ? null : TxtUrl.Text,
                     string.IsNullOrWhiteSpace(TxtNotas.Text) ? null : TxtNotas.Text,
                     string.IsNullOrWhiteSpace(totp) ? null : totp,
-                    etiquetas);
+                    etiquetas,
+                    tipo,
+                    LerCamposExtras());
 
                 await _servicoSenha.PersistirAsync();
                 Close(true);

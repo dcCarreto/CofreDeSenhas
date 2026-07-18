@@ -6,11 +6,13 @@ namespace GerenciadorDeSenhas.Servicos
     {
         Task<Senha> CriarSenhaAsync(string nomeServico, string usuario, string senhaPlaintext,
             Categoria categoria, string? url = null, string? notas = null, string? totpSegredo = null,
-            IEnumerable<string>? etiquetas = null);
+            IEnumerable<string>? etiquetas = null, TipoCredencial tipo = TipoCredencial.Login,
+            IReadOnlyDictionary<string, string>? camposExtras = null);
 
         Task AtualizarSenhaAsync(Guid id, string nomeServico, string usuario, string senhaPlaintext,
             Categoria categoria, string? url = null, string? notas = null,
-            IEnumerable<string>? etiquetas = null);
+            IEnumerable<string>? etiquetas = null, TipoCredencial? tipo = null,
+            IReadOnlyDictionary<string, string>? camposExtras = null);
 
         Task DefinirTotpAsync(Guid id, string? segredoPlaintext);
 
