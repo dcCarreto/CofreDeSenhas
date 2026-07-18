@@ -186,17 +186,28 @@ há muito tempo, tudo localmente e sem enviar nada para fora:
   do cofre e a cada alteração da senha mestra. O QR code mostra uma versão em
   senha-frase da senha mestra, e não a senha original caractere a caractere.
 
-### Banco de dados (opcional)
+### Banco de dados externo (self-hosted/compartilhado)
 
 - Conexão a um banco de dados externo pelo menu de configurações, com suporte a
-  SQLite, PostgreSQL, MySQL/MariaDB e SQL Server, e teste de conexão.
-- Sincronização automática ao conectar: as duas bases são mescladas e, em
-  conflito de serviço + usuário, a senha do cofre local prevalece.
+  SQLite, PostgreSQL, MySQL/MariaDB e SQL Server, e teste de conexão. Pensado
+  para uso self-hosted ou compartilhado com outras pessoas de confiança — para
+  sincronizar só os seus próprios dispositivos, sem manter um banco de dados,
+  use a sincronização por pasta compartilhada, no menu de configurações
+  ("Sincronização...").
+- Cada credencial tem uma identidade estável (`guid_id`), a mesma usada pela
+  sincronização por pasta. Ao conectar, as duas bases são mescladas por
+  credencial: em conflito, vale a edição mais recente — não mais "o cofre
+  local sempre prevalece".
 - A partir daí os dois ficam espelhados: cada criação, edição ou exclusão é
   gravada tanto no cofre local quanto no banco.
 - Detecção da tabela `CofreDeSenhas`, com a opção de criá-la caso não exista, e
-  migração leve que adiciona colunas novas a tabelas já existentes.
-- A senha é sempre gravada de forma cifrada, nunca em texto puro.
+  migração leve que adiciona colunas novas a tabelas já existentes — incluindo,
+  hoje, URL, categoria, tipo de credencial e campos extras, histórico de
+  senhas anteriores, favorito e fixado, os mesmos campos que já sincronizavam
+  pela pasta cifrada.
+- A senha é sempre gravada de forma cifrada, nunca em texto puro; nome de
+  serviço, usuário, notas e etiquetas ficam em texto puro nas colunas
+  correspondentes (ver [modelo de ameaça](THREAT_MODEL.md)).
 - O último perfil de conexão é lembrado para agilizar reconexões; a senha do
   servidor de banco nunca é gravada em disco.
 
