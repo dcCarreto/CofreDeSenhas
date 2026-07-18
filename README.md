@@ -23,6 +23,7 @@ MIT. Você pode usá-lo, estudá-lo, modificá-lo e compartilhá-lo livremente.
 - [Capturas de tela](#capturas-de-tela)
 - [Funcionalidades](#funcionalidades)
 - [Modelo de segurança](#modelo-de-segurança)
+- [Política de segurança e divulgação de vulnerabilidades](SECURITY.md)
 - [Download e instalação](#download-e-instalação)
 - [Estrutura do projeto](#estrutura-do-projeto)
 - [Arquitetura](#arquitetura)
@@ -259,6 +260,10 @@ Observações importantes:
   números e símbolos comuns viram nomes legíveis. Trata-se de uma codificação,
   não de criptografia. Por isso ele é opcional e acompanhado de aviso: deve ser
   guardado em local seguro e off-line.
+
+Para saber como reportar uma vulnerabilidade encontrada no cofre, veja a
+[política de segurança](SECURITY.md). Para o que o desenho de segurança do cofre
+cobre e o que fica deliberadamente fora dele, veja o [modelo de ameaça](THREAT_MODEL.md).
 
 ## Download e instalação
 
