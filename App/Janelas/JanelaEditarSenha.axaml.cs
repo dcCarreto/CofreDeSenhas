@@ -5,6 +5,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using System.Globalization;
 using GerenciadorDeSenhas.Modelos;
@@ -17,15 +18,18 @@ namespace CofreDeSenhas.Janelas
         private readonly IServicoSenha _servicoSenha;
         private readonly IServicoCriptografia? _criptografia;
         private readonly Senha _senhaAtual;
+        private readonly ServicoAnexos? _servicoAnexos;
         private readonly ServicoTotp _totp = new();
         private readonly TotpPreview.Temporizador _timerTotp = new();
         private const int PeriodoTotp = 30;
 
-        public JanelaEditarSenha(IServicoSenha servicoSenha, Senha senhaAtual, IServicoCriptografia? criptografia)
+        public JanelaEditarSenha(IServicoSenha servicoSenha, Senha senhaAtual, IServicoCriptografia? criptografia,
+            ServicoAnexos? servicoAnexos = null)
         {
             _servicoSenha = servicoSenha ?? throw new ArgumentNullException(nameof(servicoSenha));
             _senhaAtual = senhaAtual ?? throw new ArgumentNullException(nameof(senhaAtual));
             _criptografia = criptografia;
+            _servicoAnexos = servicoAnexos ?? (criptografia != null ? new ServicoAnexos(criptografia) : null);
 
             InitializeComponent();
             Icon = Recursos.IconeApp();
@@ -47,6 +51,7 @@ namespace CofreDeSenhas.Janelas
             TxtTotp.TextChanged += (s, e) => AtualizarPreviewTotp();
             MontarHistorico();
             MontarCodigosRecuperacao();
+            MontarAnexos();
             Idioma.Alterado += Idioma_Alterado;
             Closed += (s, e) =>
             {
@@ -76,6 +81,7 @@ namespace CofreDeSenhas.Janelas
             AtualizarPreviewTotp();
             MontarHistorico();
             MontarCodigosRecuperacao();
+            MontarAnexos();
         }
 
         private void AtualizarTitulo()
@@ -415,6 +421,125 @@ namespace CofreDeSenhas.Janelas
                 await CaixaMensagem.MostrarAsync(this,
                     Idioma.Formatar("Entry.RecoveryCodeRemoveError", ex.Message), Idioma.Texto("Common.Error"), TipoMensagem.Erro);
             }
+        }
+
+        private void MontarAnexos()
+        {
+            PainelAnexos.Children.Clear();
+            BtnAdicionarAnexo.IsEnabled = _servicoAnexos != null &&
+                _senhaAtual.Anexos.Count < ServicoAnexos.QuantidadeMaximaPorCredencial;
+
+            foreach (var item in _senhaAtual.Anexos)
+                PainelAnexos.Children.Add(CriarLinhaAnexo(item));
+        }
+
+        private Control CriarLinhaAnexo(AnexoSenha item)
+        {
+            var nome = new TextBlock
+            {
+                Text = $"{item.NomeArquivo} ({FormatarTamanhoAnexo(item.TamanhoBytes)})",
+                FontSize = 13,
+                VerticalAlignment = VerticalAlignment.Center,
+                TextTrimming = TextTrimming.CharacterEllipsis
+            };
+            AutomationProperties.SetName(nome, item.NomeArquivo);
+
+            var btnBaixar = CriarBotaoHistorico(Idioma.Texto("Entry.AttachmentDownload"), Idioma.Texto("Entry.AttachmentDownload"));
+            btnBaixar.Click += async (_, _) => await BaixarAnexoAsync(item);
+
+            var btnRemover = CriarBotaoHistorico(Idioma.Texto("Entry.AttachmentRemove"), Idioma.Texto("Entry.AttachmentRemove"));
+            btnRemover.Click += async (_, _) => await RemoverAnexoAsync(item);
+
+            var acoes = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                Spacing = 4,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            acoes.Children.Add(btnBaixar);
+            acoes.Children.Add(btnRemover);
+
+            var linha = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto") };
+            Grid.SetColumn(nome, 0);
+            Grid.SetColumn(acoes, 1);
+            linha.Children.Add(nome);
+            linha.Children.Add(acoes);
+            return linha;
+        }
+
+        private static string FormatarTamanhoAnexo(long bytes) =>
+            bytes < 1024 * 1024 ? $"{Math.Max(1, bytes / 1024)} KB" : $"{bytes / 1024.0 / 1024.0:0.0} MB";
+
+        private async void AdicionarAnexo_Click(object? sender, RoutedEventArgs e)
+        {
+            if (_servicoAnexos == null)
+                return;
+
+            var arquivos = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+            {
+                Title = Idioma.Texto("Entry.AttachmentsAdd"),
+                AllowMultiple = false
+            });
+            if (arquivos.Count == 0)
+                return;
+
+            try
+            {
+                await using var origem = await arquivos[0].OpenReadAsync();
+                using var memoria = new MemoryStream();
+                await origem.CopyToAsync(memoria);
+
+                await _servicoAnexos.AdicionarAsync(_senhaAtual, arquivos[0].Name, memoria.ToArray());
+                await _servicoSenha.PersistirAsync();
+                MontarAnexos();
+            }
+            catch (LimiteAnexoExcedidoException ex)
+            {
+                await CaixaMensagem.MostrarAsync(this, ex.Message, Idioma.Texto("Entry.AttachmentsAdd"), TipoMensagem.Aviso);
+            }
+            catch (Exception ex)
+            {
+                await CaixaMensagem.MostrarAsync(this,
+                    Idioma.Formatar("Entry.AttachmentAddError", ex.Message), Idioma.Texto("Common.Error"), TipoMensagem.Erro);
+            }
+        }
+
+        private async Task BaixarAnexoAsync(AnexoSenha item)
+        {
+            if (_servicoAnexos == null)
+                return;
+
+            var arquivo = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+            {
+                Title = Idioma.Texto("Entry.AttachmentDownload"),
+                SuggestedFileName = item.NomeArquivo
+            });
+            if (arquivo == null)
+                return;
+
+            try
+            {
+                var bytes = await _servicoAnexos.LerAsync(item);
+                await using var destino = await arquivo.OpenWriteAsync();
+                await destino.WriteAsync(bytes);
+            }
+            catch (Exception ex)
+            {
+                await CaixaMensagem.MostrarAsync(this,
+                    Idioma.Formatar("Entry.AttachmentDownloadError", ex.Message), Idioma.Texto("Common.Error"), TipoMensagem.Erro);
+            }
+        }
+
+        private async Task RemoverAnexoAsync(AnexoSenha item)
+        {
+            var confirmar = await CaixaMensagem.ConfirmarAsync(this,
+                Idioma.Formatar("Entry.AttachmentRemoveConfirm", item.NomeArquivo), Idioma.Texto("Entry.AttachmentRemove"));
+            if (!confirmar || _servicoAnexos == null)
+                return;
+
+            _servicoAnexos.Remover(_senhaAtual, item.Id);
+            await _servicoSenha.PersistirAsync();
+            MontarAnexos();
         }
 
         private void UsarSenhaAnterior(string senha)

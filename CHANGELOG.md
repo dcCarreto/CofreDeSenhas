@@ -111,6 +111,14 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
   GitHub e mostra um aviso discreto e dispensável na barra inferior quando
   há uma versão mais nova, com link para a página de releases — sem
   download automático e sem enviar nada além da própria consulta.
+- Anexos criptografados: a tela de edição completa ganhou uma seção para
+  prender pequenos arquivos a uma credencial (até 5 por credencial, 5 MB
+  cada, 100 MB no total do cofre) — cada um cifrado com AES-256-GCM e
+  gravado como arquivo próprio em `anexos/`, mantendo o cofre principal
+  leve. Baixar descriptografa e salva onde o usuário escolher; excluir a
+  credencial em definitivo limpa os anexos junto. Exportar/importar o
+  cofre (`.gsenhas`) inclui os anexos. Ficam sempre só no dispositivo
+  local, sem sincronizar para bancos de dados conectados.
 
 ### Corrigido
 - O painel de detalhes agora flutua sobre a lista de senhas em vez de

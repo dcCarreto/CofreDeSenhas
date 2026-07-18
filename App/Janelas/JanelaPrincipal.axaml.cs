@@ -30,6 +30,7 @@ namespace CofreDeSenhas.Janelas
         private IServicoSenha _servicoSenhaLocal;
         private readonly byte[] _chaveMestra;
         private readonly IServicoCriptografia? _criptografia;
+        private readonly ServicoAnexos? _servicoAnexos;
         private IRepositorioSenha? _repositorioLocal;
         private readonly ServicoDesbloqueioBiometrico _biometria = new();
         private readonly ServicoAuditoriaSenha _servicoAuditoria = new();
@@ -89,6 +90,7 @@ namespace CofreDeSenhas.Janelas
             _servicoSenhaLocal = _servicoSenha;
             _chaveMestra = chaveMestra?.ToArray() ?? throw new ArgumentNullException(nameof(chaveMestra));
             _criptografia = criptografia;
+            _servicoAnexos = criptografia != null ? new ServicoAnexos(criptografia) : null;
             _repositorioLocal = repositorioLocal;
             _aoBloquear = aoBloquear;
 
@@ -929,6 +931,7 @@ namespace CofreDeSenhas.Janelas
 
             try
             {
+                _servicoAnexos?.RemoverTodos(senha);
                 await _servicoSenha.RemoverDefinitivamenteAsync(senha.Id);
                 await _servicoSenha.PersistirAsync();
                 await CarregarSenhasAsync();
@@ -954,6 +957,10 @@ namespace CofreDeSenhas.Janelas
 
             try
             {
+                if (_servicoAnexos != null)
+                    foreach (var item in _itensLixeira)
+                        _servicoAnexos.RemoverTodos(item);
+
                 await _servicoSenha.EsvaziarLixeiraAsync();
                 await _servicoSenha.PersistirAsync();
                 await CarregarSenhasAsync();
@@ -1025,6 +1032,31 @@ namespace CofreDeSenhas.Janelas
             }
 
             return codigos;
+        }
+
+        private async Task<List<AnexoExportado>> ObterAnexosExportadosAsync(Senha s)
+        {
+            var anexos = new List<AnexoExportado>();
+            if (_servicoAnexos == null)
+                return anexos;
+
+            foreach (var item in s.Anexos)
+            {
+                try
+                {
+                    var bytes = await _servicoAnexos.LerAsync(item);
+                    anexos.Add(new AnexoExportado
+                    {
+                        NomeArquivo = item.NomeArquivo,
+                        ConteudoBase64 = Convert.ToBase64String(bytes)
+                    });
+                }
+                catch
+                {
+                }
+            }
+
+            return anexos;
         }
 
         private void Filtro_Alterado(object? sender, SelectionChangedEventArgs e) => FiltrarSenhas();
@@ -1590,7 +1622,7 @@ namespace CofreDeSenhas.Janelas
                 return;
 
             var id = _senhaDetalhe.Id;
-            var dlg = new JanelaEditarSenha(_servicoSenha, _senhaDetalhe, _criptografia);
+            var dlg = new JanelaEditarSenha(_servicoSenha, _senhaDetalhe, _criptografia, _servicoAnexos);
             if (await AbrirDialogoAsync<bool>(dlg))
                 await CarregarSenhasAsync();
 
@@ -1771,7 +1803,7 @@ namespace CofreDeSenhas.Janelas
 
         private async void EditarSenha(Senha s)
         {
-            var dlg = new JanelaEditarSenha(_servicoSenha, s, _criptografia);
+            var dlg = new JanelaEditarSenha(_servicoSenha, s, _criptografia, _servicoAnexos);
             if (await AbrirDialogoAsync<bool>(dlg))
                 await CarregarSenhasAsync();
         }
@@ -2073,6 +2105,7 @@ namespace CofreDeSenhas.Janelas
                         TotpSegredo = ObterTotpPlain(s),
                         Historico = ObterHistoricoPlain(s),
                         CodigosRecuperacao = ObterCodigosRecuperacaoPlain(s),
+                        Anexos = await ObterAnexosExportadosAsync(s),
                         Favorito = s.Favorito,
                         DataCriacao = s.DataCriacao,
                         DataAtualizacao = s.DataAtualizacao
@@ -2235,6 +2268,7 @@ namespace CofreDeSenhas.Janelas
                 if (item.CodigosRecuperacao is { Count: > 0 })
                     await _servicoSenha.AdicionarCodigosRecuperacaoAsync(nova.Id,
                         item.CodigosRecuperacao.Select(c => (c.Codigo, c.Usado)));
+                await RestaurarAnexosAsync(nova, item.Anexos);
                 adicionadas++;
             }
 
@@ -2257,6 +2291,24 @@ namespace CofreDeSenhas.Janelas
                     DataAlteracao = h.DataAlteracao
                 })
                 .ToList();
+        }
+
+        private async Task RestaurarAnexosAsync(Senha destino, List<AnexoExportado>? anexos)
+        {
+            if (anexos == null || anexos.Count == 0 || _servicoAnexos == null)
+                return;
+
+            foreach (var item in anexos)
+            {
+                try
+                {
+                    var bytes = Convert.FromBase64String(item.ConteudoBase64);
+                    await _servicoAnexos.AdicionarAsync(destino, item.NomeArquivo, bytes);
+                }
+                catch
+                {
+                }
+            }
         }
 
         private async void AlterarSenhaMestra_Click(object? sender, RoutedEventArgs e)

@@ -21,6 +21,8 @@ namespace GerenciadorDeSenhas.Modelos
 
         public List<CodigoRecuperacao> CodigosRecuperacao { get; set; } = new();
 
+        public List<AnexoSenha> Anexos { get; set; } = new();
+
         public bool Favorito { get; set; }
 
         public bool NaLixeira { get; set; }

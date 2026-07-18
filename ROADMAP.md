@@ -271,6 +271,26 @@ Repaginação completa da interface, preservando todas as funcionalidades:
   interromper o uso do cofre. Dispensar o aviso lembra a versão dispensada
   (guardada nas preferências) para não repetir o mesmo aviso a cada
   abertura do cofre.
+- Anexos criptografados: a tela de edição completa ganhou uma seção
+  "Anexos" para prender pequenos arquivos a uma credencial (até 5 por
+  credencial, 5 MB cada, 100 MB no total do cofre) — pensada para QR code
+  de 2FA, chave de recuperação, PDF de backup ou qualquer documento/imagem
+  relacionado. Cada anexo é cifrado com AES-256-GCM (a mesma chave mestra)
+  e gravado como um arquivo próprio em `anexos/` dentro da pasta do cofre
+  — só a lista de nome/tamanho fica junto com a credencial, então o
+  arquivo principal do cofre continua leve mesmo com anexos grandes. Baixar
+  descriptografa e salva onde o usuário escolher; remover apaga o arquivo
+  cifrado do disco, e excluir a credencial em definitivo (ou esvaziar a
+  lixeira) limpa os anexos dela junto. Exportar/importar o cofre
+  (`.gsenhas`) inclui os anexos, cifrados dentro do mesmo envelope
+  protegido pela senha de exportação. Ficam sempre só no dispositivo local
+  que os criou — não sincronizam para bancos de dados conectados (mesma
+  decisão já tomada para as datas de última cópia). Limitação conhecida:
+  no caso raro de conexão direta a um banco sem espelho local, os
+  metadados de anexo (nome/tamanho) podem não sobreviver a um recarregamento,
+  já que não existe hoje uma coluna dedicada no banco para essa lista —
+  os arquivos cifrados em si não são apagados, só a referência pode ficar
+  órfã nesse cenário específico.
 
 ## Em andamento
 
@@ -291,21 +311,6 @@ Em desenvolvimento no branch `feature/chromiumExt`:
 Ideias e melhorias consideradas para versões futuras, agrupadas por prioridade:
 
 ### Baixa prioridade
-
-#### Anexos criptografados
-
-- Permitir anexar arquivos pequenos a uma credencial.
-- Usos possíveis:
-  - QR code de 2FA;
-  - chave de recuperação;
-  - PDF de backup;
-  - documento relacionado;
-  - imagem ou texto sensível.
-- Armazenar anexos sempre criptografados.
-- Definir limite de tamanho por anexo.
-- Definir limite total de anexos no cofre.
-- Permitir exportar e importar anexos junto com o cofre.
-- Avaliar impacto no desempenho e no tamanho do arquivo criptografado.
 
 #### Melhorias visuais e experiência de uso
 
@@ -413,12 +418,11 @@ criptografia anterior) e de uma camada inteira de métodos de busca/contagem em
 ## Ordem sugerida de execução
 
 1. Conclusão da extensão de navegador (em andamento).
-2. Anexos criptografados.
-3. Organização avançada com etiquetas.
-4. Templates de credenciais.
-5. Sincronização criptografada de ponta a ponta.
-6. macOS.
-7. Aplicativo móvel.
+2. Organização avançada com etiquetas.
+3. Templates de credenciais.
+4. Sincronização criptografada de ponta a ponta.
+5. macOS.
+6. Aplicativo móvel.
 
 ## Como sugerir
 

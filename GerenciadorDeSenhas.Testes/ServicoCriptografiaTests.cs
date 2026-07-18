@@ -72,6 +72,31 @@ public class ServicoCriptografiaTests
     }
 
     [Fact]
+    public void CriptografarBytes_EDescriptografarBytes_RoundTripPreservaConteudo()
+    {
+        var original = new byte[1024];
+        using (var rng = RandomNumberGenerator.Create())
+            rng.GetBytes(original);
+
+        var cifrado = _servico.CriptografarBytes(original);
+        var decifrado = _servico.DescriptografarBytes(cifrado);
+
+        Assert.Equal(original, decifrado);
+        Assert.NotEqual(original, cifrado);
+    }
+
+    [Fact]
+    public void CriptografarBytes_DuasVezes_ProduzResultadosDiferentes()
+    {
+        var dados = new byte[] { 1, 2, 3, 4, 5 };
+
+        var cifrado1 = _servico.CriptografarBytes(dados);
+        var cifrado2 = _servico.CriptografarBytes(dados);
+
+        Assert.NotEqual(cifrado1, cifrado2);
+    }
+
+    [Fact]
     public void ZerarChave_AposChamada_TornaOperacoesSeguintesInvalidas()
     {
         var cifrado = _servico.Criptografar("dados sensíveis");

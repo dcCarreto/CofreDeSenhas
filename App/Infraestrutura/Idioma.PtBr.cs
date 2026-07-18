@@ -234,6 +234,13 @@ namespace CofreDeSenhas
             ("Entry.RecoveryCodesAddError", "Erro ao adicionar códigos de recuperação: {0}"),
             ("Entry.RecoveryCodeMarkError", "Erro ao atualizar o código de recuperação: {0}"),
             ("Entry.RecoveryCodeRemoveError", "Erro ao remover o código de recuperação: {0}"),
+            ("Entry.Attachments", "Anexos"),
+            ("Entry.AttachmentsAdd", "Adicionar anexo..."),
+            ("Entry.AttachmentDownload", "Baixar"),
+            ("Entry.AttachmentRemove", "Remover"),
+            ("Entry.AttachmentRemoveConfirm", "Remover o anexo \"{0}\"? Essa ação não pode ser desfeita."),
+            ("Entry.AttachmentAddError", "Erro ao adicionar anexo: {0}"),
+            ("Entry.AttachmentDownloadError", "Erro ao baixar anexo: {0}"),
             ("A11y.RecoveryCode", "Código de recuperação"),
 
             ("ExportDialog.ExportTitle", "Exportar senhas"),

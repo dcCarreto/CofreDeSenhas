@@ -110,6 +110,12 @@
                   AutomationProperties.Name="{DynamicResource Entry.RecoveryCodesAdd}" />
         </Grid>
 
+        <TextBlock Text="{DynamicResource Entry.Attachments}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
+        <StackPanel Name="PainelAnexos" Spacing="8" Margin="0,0,0,8" />
+        <Button Name="BtnAdicionarAnexo" Classes="secundario" Content="{DynamicResource Entry.AttachmentsAdd}"
+                Height="34" Margin="0,0,0,14" HorizontalAlignment="Left" Click="AdicionarAnexo_Click"
+                AutomationProperties.Name="{DynamicResource Entry.AttachmentsAdd}" />
+
         <TextBlock Text="{DynamicResource Entry.Category}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
         <ComboBox Name="CmbCategoria" Classes="campo" HorizontalAlignment="Stretch" Margin="0,0,0,14"
                   AutomationProperties.Name="{DynamicResource Entry.Category}"
