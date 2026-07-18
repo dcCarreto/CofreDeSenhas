@@ -7,8 +7,8 @@ namespace GerenciadorDeSenhas.Repositorios
 {
     public class RepositorioSenhaBanco : IRepositorioSenha
     {
-        private const string ColunasInsert = "usuario, senha, dominio, descricao, totp, etiquetas, codigos_recuperacao, excluido, data_criacao, data_atualizacao, url, categoria, tipo, campos_extras, historico, favorito, fixado";
-        private const string ParametrosInsert = "@usuario, @senha, @dominio, @descricao, @totp, @etiquetas, @codigos_recuperacao, @excluido, @data_criacao, @data_atualizacao, @url, @categoria, @tipo, @campos_extras, @historico, @favorito, @fixado";
+        private const string ColunasInsert = "usuario, senha, dominio, descricao, totp, etiquetas, codigos_recuperacao, excluido, data_criacao, data_atualizacao, url, categoria, tipo, campos_extras, historico, favorito, fixado, guid_id";
+        private const string ParametrosInsert = "@usuario, @senha, @dominio, @descricao, @totp, @etiquetas, @codigos_recuperacao, @excluido, @data_criacao, @data_atualizacao, @url, @categoria, @tipo, @campos_extras, @historico, @favorito, @fixado, @guid_id";
 
         private readonly ConexaoBanco _cfg;
         private readonly ServicoBancoDados _bd = new();
@@ -42,14 +42,14 @@ namespace GerenciadorDeSenhas.Repositorios
             await using var con = await AbrirConexaoAsync();
 
             await using var cmd = con.CreateCommand();
-            cmd.CommandText = $"SELECT id, usuario, senha, dominio, descricao, totp, etiquetas, codigos_recuperacao, excluido, data_exclusao, data_criacao, data_atualizacao, data_ultima_copia_senha, data_ultima_copia_usuario, data_ultima_copia_totp, url, categoria, tipo, campos_extras, historico, favorito, fixado FROM {_tabela}";
+            cmd.CommandText = $"SELECT id, usuario, senha, dominio, descricao, totp, etiquetas, codigos_recuperacao, excluido, data_exclusao, data_criacao, data_atualizacao, data_ultima_copia_senha, data_ultima_copia_usuario, data_ultima_copia_totp, url, categoria, tipo, campos_extras, historico, favorito, fixado, guid_id FROM {_tabela}";
 
             await using var leitor = await cmd.ExecuteReaderAsync();
             while (await leitor.ReadAsync())
             {
                 var senha = new Senha
                 {
-                    Id = Guid.NewGuid(),
+                    Id = leitor[ServicoBancoDados.ColunaGuidId] is string guidTexto && Guid.TryParse(guidTexto, out var guid) ? guid : Guid.NewGuid(),
                     NomeServico = leitor["dominio"] is string dominio ? dominio : "",
                     Usuario = (string)leitor["usuario"],
                     SenhaHash = (string)leitor["senha"],
@@ -297,6 +297,28 @@ namespace GerenciadorDeSenhas.Repositorios
             await tx.CommitAsync();
         }
 
+        public async Task SubstituirGuidAsync(Guid guidAntigo, Guid guidNovo)
+        {
+            await CarregarSeNecessarioAsync();
+
+            if (!_mapa.TryGetValue(guidAntigo, out var idInterno))
+                return;
+
+            await using var con = await AbrirConexaoAsync();
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = $"UPDATE {_tabela} SET guid_id = @guid_id WHERE id = @id";
+            Parametro(cmd, "@guid_id", guidNovo.ToString());
+            Parametro(cmd, "@id", idInterno);
+            await cmd.ExecuteNonQueryAsync();
+
+            _mapa.Remove(guidAntigo);
+            _mapa[guidNovo] = idInterno;
+
+            var senha = _senhas.FirstOrDefault(s => s.Id == guidAntigo);
+            if (senha != null)
+                senha.Id = guidNovo;
+        }
+
         public async Task ExcluirPorChaveAsync(string dominio, string usuario)
         {
             await using var con = await AbrirConexaoAsync();
@@ -337,7 +359,7 @@ namespace GerenciadorDeSenhas.Repositorios
             cmd.Transaction = tx;
             if (id.HasValue)
             {
-                cmd.CommandText = $"UPDATE {_tabela} SET senha = @senha, descricao = @descricao, totp = @totp, etiquetas = @etiquetas, codigos_recuperacao = @codigos_recuperacao, excluido = @excluido, data_atualizacao = @data_atualizacao, data_exclusao = @data_exclusao, url = @url, categoria = @categoria, tipo = @tipo, campos_extras = @campos_extras, historico = @historico, favorito = @favorito, fixado = @fixado WHERE id = @id";
+                cmd.CommandText = $"UPDATE {_tabela} SET senha = @senha, descricao = @descricao, totp = @totp, etiquetas = @etiquetas, codigos_recuperacao = @codigos_recuperacao, excluido = @excluido, data_atualizacao = @data_atualizacao, data_exclusao = @data_exclusao, url = @url, categoria = @categoria, tipo = @tipo, campos_extras = @campos_extras, historico = @historico, favorito = @favorito, fixado = @fixado, guid_id = @guid_id WHERE id = @id";
                 Parametro(cmd, "@senha", senha.SenhaHash);
                 Parametro(cmd, "@descricao", senha.Notas);
                 Parametro(cmd, "@totp", senha.TotpSegredo);
@@ -353,6 +375,7 @@ namespace GerenciadorDeSenhas.Repositorios
                 Parametro(cmd, "@historico", SerializarHistorico(senha.Historico));
                 Parametro(cmd, "@favorito", SerializarBool(senha.Favorito));
                 Parametro(cmd, "@fixado", SerializarBool(senha.Fixado));
+                Parametro(cmd, "@guid_id", senha.Id.ToString());
                 Parametro(cmd, "@id", id.Value);
             }
             else
@@ -382,6 +405,7 @@ namespace GerenciadorDeSenhas.Repositorios
             Parametro(cmd, "@historico", SerializarHistorico(senha.Historico));
             Parametro(cmd, "@favorito", SerializarBool(senha.Favorito));
             Parametro(cmd, "@fixado", SerializarBool(senha.Fixado));
+            Parametro(cmd, "@guid_id", senha.Id.ToString());
         }
 
         private static string? SerializarEtiquetas(List<string> etiquetas) =>

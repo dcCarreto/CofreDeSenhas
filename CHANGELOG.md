@@ -166,6 +166,13 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
   fora do banco. A conexão a banco de dados externo passa a ser apresentada
   como recurso self-hosted/compartilhado, não mais como sincronização
   pessoal.
+- Banco de dados externo ganha identidade estável por credencial (coluna
+  `guid_id`, preenchida automaticamente em tabelas antigas) e passa a usar
+  o mesmo motor de mesclagem por "edição mais recente" já usado pela pasta
+  de sincronização, no lugar da mesclagem "local sempre vence" de antes.
+  Uma reconciliação de identidade legada, feita uma única vez por
+  dispositivo, evita duplicar credenciais que já estavam pareadas pelo
+  modelo antigo de nome de serviço + usuário.
 
 ### Corrigido
 - Três bugs na escrita espelhada com banco de dados externo: a exclusão

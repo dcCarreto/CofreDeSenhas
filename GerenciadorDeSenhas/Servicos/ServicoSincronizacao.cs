@@ -92,21 +92,8 @@ namespace GerenciadorDeSenhas.Servicos
             await File.WriteAllTextAsync(caminhoArquivo, JsonSerializer.Serialize(envelope));
         }
 
-        public static List<SenhaExportada> MesclarListas(IReadOnlyList<SenhaExportada> locais, IReadOnlyList<SenhaExportada> remotos)
-        {
-            var resultado = new Dictionary<Guid, SenhaExportada>();
-
-            foreach (var item in locais)
-                resultado[item.Id] = item;
-
-            foreach (var item in remotos)
-            {
-                if (!resultado.TryGetValue(item.Id, out var existente) || item.DataAtualizacao > existente.DataAtualizacao)
-                    resultado[item.Id] = item;
-            }
-
-            return resultado.Values.ToList();
-        }
+        public static List<SenhaExportada> MesclarListas(IReadOnlyList<SenhaExportada> locais, IReadOnlyList<SenhaExportada> remotos) =>
+            MesclaSincronizacao.Mesclar(locais, remotos, item => item.Id, item => item.DataAtualizacao);
 
         private sealed class EnvelopeSincronizacao
         {

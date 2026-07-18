@@ -2742,9 +2742,11 @@ namespace CofreDeSenhas.Janelas
             try
             {
                 var repoBanco = new RepositorioSenhaBanco(cfg);
-                IRepositorioSenha repoAtivo = _repositorioLocal != null
-                    ? new RepositorioSenhaEspelhado(_repositorioLocal, repoBanco)
-                    : repoBanco;
+                var espelho = _repositorioLocal != null
+                    ? new RepositorioSenhaEspelhado(_repositorioLocal, repoBanco,
+                        reconciliacaoJaRealizada: Preferencias.UltimoBanco?.ReconciliacaoInicialConcluida ?? false)
+                    : null;
+                IRepositorioSenha repoAtivo = (IRepositorioSenha?)espelho ?? repoBanco;
                 var servico = new ServicoSenha(repoAtivo, _criptografia!);
 
                 await servico.ListarTodosAsync();
@@ -2764,8 +2766,14 @@ namespace CofreDeSenhas.Janelas
                         SenhaCifrada = cfg.Tipo == TipoBanco.SQLite || string.IsNullOrEmpty(cfg.SenhaServidor)
                             ? null
                             : _criptografia!.Criptografar(cfg.SenhaServidor),
-                        Conectado = true
+                        Conectado = true,
+                        ReconciliacaoInicialConcluida = espelho?.ReconciliacaoRealizadaNestaSessao == true
                     };
+                    Preferencias.Salvar();
+                }
+                else if (espelho?.ReconciliacaoRealizadaNestaSessao == true && Preferencias.UltimoBanco != null)
+                {
+                    Preferencias.UltimoBanco.ReconciliacaoInicialConcluida = true;
                     Preferencias.Salvar();
                 }
 

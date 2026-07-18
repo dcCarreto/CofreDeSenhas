@@ -381,6 +381,33 @@ public class RepositorioSenhaBancoTests : IDisposable
     }
 
     [Fact]
+    public async Task Adicionar_PreservaOMesmoGuidEntreInstancias()
+    {
+        var repo = new RepositorioSenhaBanco(_cfg);
+        var senha = NovaSenha("estavel.com", "u", "s");
+        await repo.AdicionarAsync(senha);
+
+        var carregada = (await new RepositorioSenhaBanco(_cfg).ListarTodosAsync()).Single();
+
+        Assert.Equal(senha.Id, carregada.Id);
+    }
+
+    [Fact]
+    public async Task SubstituirGuid_TrocaOIdentificadorEPreservaALinha()
+    {
+        var repo = new RepositorioSenhaBanco(_cfg);
+        var senha = NovaSenha("legado.com", "u", "s");
+        await repo.AdicionarAsync(senha);
+
+        var novoGuid = Guid.NewGuid();
+        await repo.SubstituirGuidAsync(senha.Id, novoGuid);
+
+        var carregada = (await new RepositorioSenhaBanco(_cfg).ListarTodosAsync()).Single();
+        Assert.Equal(novoGuid, carregada.Id);
+        Assert.Equal("legado.com", carregada.NomeServico);
+    }
+
+    [Fact]
     public async Task GravarPorChave_AtualizarPreservaDataAtualizacaoEExcluidoENovosCampos()
     {
         var repo = new RepositorioSenhaBanco(_cfg);

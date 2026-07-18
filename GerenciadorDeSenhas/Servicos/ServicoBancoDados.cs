@@ -28,6 +28,7 @@ namespace GerenciadorDeSenhas.Servicos
         public const string ColunaHistorico = "historico";
         public const string ColunaFavorito = "favorito";
         public const string ColunaFixado = "fixado";
+        public const string ColunaGuidId = "guid_id";
 
         public DbConnection CriarConexao(ConexaoBanco cfg) => cfg.Tipo switch
         {
@@ -107,7 +108,7 @@ namespace GerenciadorDeSenhas.Servicos
             await cmd.ExecuteNonQueryAsync();
         }
 
-        public async Task GarantirColunasAsync(ConexaoBanco cfg)
+        public async Task<IReadOnlySet<long>> GarantirColunasAsync(ConexaoBanco cfg)
         {
             await GarantirColunaAsync(cfg, ColunaDescricao);
             await GarantirColunaAsync(cfg, ColunaTotp);
@@ -126,6 +127,43 @@ namespace GerenciadorDeSenhas.Servicos
             await GarantirColunaAsync(cfg, ColunaHistorico);
             await GarantirColunaAsync(cfg, ColunaFavorito);
             await GarantirColunaAsync(cfg, ColunaFixado);
+            await GarantirColunaAsync(cfg, ColunaGuidId);
+
+            return await PreencherGuidsFaltantesAsync(cfg);
+        }
+
+        private async Task<IReadOnlySet<long>> PreencherGuidsFaltantesAsync(ConexaoBanco cfg)
+        {
+            await using var con = await AbrirConexaoAsync(cfg);
+
+            var pendentes = new List<long>();
+            await using (var busca = con.CreateCommand())
+            {
+                busca.CommandText = $"SELECT id FROM {NomeTabela} WHERE {ColunaGuidId} IS NULL";
+                await using var leitor = await busca.ExecuteReaderAsync();
+                while (await leitor.ReadAsync())
+                    pendentes.Add(Convert.ToInt64(leitor[0]));
+            }
+
+            foreach (var id in pendentes)
+            {
+                await using var cmd = con.CreateCommand();
+                cmd.CommandText = $"UPDATE {NomeTabela} SET {ColunaGuidId} = @guid WHERE id = @id";
+
+                var guidParam = cmd.CreateParameter();
+                guidParam.ParameterName = "@guid";
+                guidParam.Value = Guid.NewGuid().ToString();
+                cmd.Parameters.Add(guidParam);
+
+                var idParam = cmd.CreateParameter();
+                idParam.ParameterName = "@id";
+                idParam.Value = id;
+                cmd.Parameters.Add(idParam);
+
+                await cmd.ExecuteNonQueryAsync();
+            }
+
+            return pendentes.ToHashSet();
         }
 
         private async Task GarantirColunaAsync(ConexaoBanco cfg, string coluna)

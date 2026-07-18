@@ -382,6 +382,16 @@ Repaginação completa da interface, preservando todas as funcionalidades:
   externo passa a ser apresentada como recurso self-hosted/compartilhado,
   não mais como sincronização pessoal — esse papel é da sincronização por
   pasta cifrada.
+- Consolidação da sincronização: o banco de dados externo ganha identidade
+  estável por credencial (coluna `guid_id`, preenchida automaticamente em
+  tabelas antigas que não a tinham) e passa a usar o mesmo motor de
+  mesclagem por "edição mais recente" já usado pela pasta cifrada — em vez
+  da mesclagem "local sempre vence" de antes, que fazia sentido só para um
+  banco com um dispositivo principal, não para dispositivos simétricos. Uma
+  reconciliação de identidade legada, feita uma única vez por dispositivo
+  na primeira sincronização após esta atualização, evita duplicar
+  credenciais que já estavam pareadas pelo modelo antigo (nome de serviço +
+  usuário).
 
 ## Em andamento
 
@@ -402,15 +412,6 @@ Em desenvolvimento no branch `feature/chromiumExt`:
 Ideias e melhorias consideradas para versões futuras, agrupadas por prioridade:
 
 ### Segurança e sincronização
-
-#### Consolidação da sincronização
-
-- Unificar o modelo de conflito das duas vias de sincronização: substituir a
-  mesclagem "local sempre vence" usada hoje na conexão a banco de dados pelo
-  mesmo motor de "edição mais recente" já usado pela pasta cifrada, dando ao
-  banco uma identidade estável por credencial (hoje inexistente — o
-  pareamento é só por nome de serviço + usuário, e o banco nem tem uma
-  coluna própria de identificador).
 
 #### Reforço de segurança
 
