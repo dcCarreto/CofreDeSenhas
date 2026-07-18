@@ -199,7 +199,7 @@ namespace CofreDeSenhas.Janelas
                 var chave = _auth.Autenticar(senha);
                 if (chave != null)
                 {
-                    var chaveMigrada = await MigrarIteracoesSeNecessarioAsync(senha);
+                    var chaveMigrada = await MigrarKdfSeNecessarioAsync(senha);
                     _aoAutenticar(chaveMigrada ?? chave, senha);
                     return;
                 }
@@ -229,12 +229,12 @@ namespace CofreDeSenhas.Janelas
             }
         }
 
-        private async Task<byte[]?> MigrarIteracoesSeNecessarioAsync(string senha)
+        private async Task<byte[]?> MigrarKdfSeNecessarioAsync(string senha)
         {
             try
             {
                 var novaChave = await new ServicoMudancaSenhaMestra(_auth.PastaApp)
-                    .MigrarIteracoesSeNecessarioAsync(senha);
+                    .MigrarKdfSeNecessarioAsync(senha);
                 if (novaChave == null)
                     return null;
 

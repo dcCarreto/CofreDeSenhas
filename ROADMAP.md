@@ -138,6 +138,16 @@ Repaginação completa da interface, preservando todas as funcionalidades:
   interna são zeradas da memória (`CryptographicOperations.ZeroMemory`) ao
   bloquear ou fechar o cofre, e o painel de detalhes e as linhas reveladas da
   lista deixam de reter a senha em texto claro além do necessário.
+- Migração da derivação de chave de PBKDF2-SHA256 para Argon2id (64 MiB de
+  memória, 3 iterações, paralelismo 1), o padrão atual recomendado por
+  resistir melhor a ataques por GPU/ASIC — o PBKDF2, por mais que se suba a
+  contagem de iterações, continua sendo barato demais de paralelizar em
+  hardware dedicado. Cofres ainda em PBKDF2-SHA256 (de qualquer contagem de
+  iterações) são migrados de forma transparente no próximo desbloqueio por
+  senha mestra, reaproveitando o mesmo mecanismo de re-criptografia com
+  backup e rollback já usado na troca de senha mestra e na migração anterior
+  — incluindo a desativação e reoferta do Windows Hello, pelo mesmo motivo
+  de o vínculo biométrico guardar a chave antiga.
 
 ### Não lançado
 
@@ -389,8 +399,6 @@ Ideias e melhorias consideradas para versões futuras, agrupadas por prioridade:
 
 #### Reforço de segurança
 
-- Migrar a derivação de chave de PBKDF2-SHA256 para Argon2id, padrão atual
-  recomendado por resistir melhor a ataques por GPU/ASIC.
 - Suporte a chave de hardware (FIDO2/YubiKey) como alternativa de
   desbloqueio, cobrindo também o Linux — hoje sem nenhuma opção além da
   senha mestra, diferente do Windows (Windows Hello).

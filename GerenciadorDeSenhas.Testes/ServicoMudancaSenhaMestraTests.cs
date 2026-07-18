@@ -133,31 +133,31 @@ public class ServicoMudancaSenhaMestraTests : IDisposable
     }
 
     [Fact]
-    public async Task MigrarIteracoesSeNecessarioAsync_ComCofreJaAtualizado_NaoAlteraNadaERetornaNull()
+    public async Task MigrarKdfSeNecessarioAsync_ComCofreJaAtualizado_NaoAlteraNadaERetornaNull()
     {
         await PrepararCofre("SenhaAtual@123", ("Svc", "u", "Senha@Forte1"));
 
         var resultado = await new ServicoMudancaSenhaMestra(_pasta)
-            .MigrarIteracoesSeNecessarioAsync("SenhaAtual@123");
+            .MigrarKdfSeNecessarioAsync("SenhaAtual@123");
 
         Assert.Null(resultado);
         Assert.NotNull(new AutenticacaoMestra(_pasta).Autenticar("SenhaAtual@123"));
     }
 
     [Fact]
-    public async Task MigrarIteracoesSeNecessarioAsync_ComCofreNoFormatoLegado_AtualizaIteracoesEPreservaSenhas()
+    public async Task MigrarKdfSeNecessarioAsync_ComCofreNoFormatoLegado_MigraParaArgon2idEPreservaSenhas()
     {
         var chaveLegada = PrepararCofreLegado(_pasta, "SenhaAtual@123", 100_000,
             ("GitHub", "dev@git.com", "GitHub@Secreta1"));
 
-        Assert.True(new AutenticacaoMestra(_pasta).IteracoesDesatualizadas());
+        Assert.True(new AutenticacaoMestra(_pasta).KdfDesatualizado());
 
         var novaChave = await new ServicoMudancaSenhaMestra(_pasta)
-            .MigrarIteracoesSeNecessarioAsync("SenhaAtual@123");
+            .MigrarKdfSeNecessarioAsync("SenhaAtual@123");
 
         Assert.NotNull(novaChave);
         Assert.NotEqual(chaveLegada, novaChave);
-        Assert.False(new AutenticacaoMestra(_pasta).IteracoesDesatualizadas());
+        Assert.False(new AutenticacaoMestra(_pasta).KdfDesatualizado());
 
         var chaveReautenticada = new AutenticacaoMestra(_pasta).Autenticar("SenhaAtual@123");
         Assert.Equal(novaChave, chaveReautenticada);

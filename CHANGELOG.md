@@ -176,6 +176,13 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
   extra do usuário. Se o Windows Hello estiver habilitado, ele é desativado
   automaticamente nesse momento (o vínculo biométrico antigo perde a validade)
   e pode ser reativado logo em seguida.
+- A derivação de chave da senha mestra migrou de PBKDF2-SHA256 para Argon2id
+  (64 MiB de memória, 3 iterações, paralelismo 1), o padrão atual recomendado
+  por resistir melhor a ataques por GPU/ASIC. Cofres ainda em PBKDF2-SHA256
+  (de qualquer contagem de iterações) são migrados de forma transparente no
+  próximo desbloqueio por senha mestra, com o mesmo mecanismo de backup e
+  rollback seguro — inclusive a desativação e reoferta do Windows Hello,
+  pelo mesmo motivo de antes.
 - A chave mestra e sua cópia interna são apagadas da memória
   (`CryptographicOperations.ZeroMemory`) ao bloquear ou fechar o cofre.
 - O painel de detalhes e as linhas reveladas da lista deixam de reter a senha

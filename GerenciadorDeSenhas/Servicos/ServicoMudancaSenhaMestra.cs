@@ -18,9 +18,9 @@ namespace GerenciadorDeSenhas.Servicos
                 "GerenciadorSenhas");
         }
 
-        public async Task<byte[]?> MigrarIteracoesSeNecessarioAsync(string senhaAtual)
+        public async Task<byte[]?> MigrarKdfSeNecessarioAsync(string senhaAtual)
         {
-            if (!new AutenticacaoMestra(_pastaApp).IteracoesDesatualizadas())
+            if (!new AutenticacaoMestra(_pastaApp).KdfDesatualizado())
                 return null;
 
             return await AlterarAsync(senhaAtual, senhaAtual);

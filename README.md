@@ -233,7 +233,7 @@ Windows Hello:
 | Item | Detalhe |
 |------|---------|
 | Criptografia do cofre | AES-256-GCM, garantindo confidencialidade e integridade/autenticidade |
-| Derivação de chave | PBKDF2-SHA256 com 600.000 iterações (patamar recomendado pela OWASP) e salt aleatório de 128 bits. Cofres criados com a contagem antiga (100.000) são migrados de forma transparente no próximo desbloqueio por senha mestra, com backup e rollback seguro |
+| Derivação de chave | Argon2id (64 MiB de memória, 3 iterações, paralelismo 1), o padrão atual recomendado por resistir melhor a ataques por GPU/ASIC, com salt aleatório de 128 bits. Cofres ainda em PBKDF2-SHA256 (de versões anteriores) são migrados de forma transparente no próximo desbloqueio por senha mestra, com backup e rollback seguro |
 | Senha mestra | Nunca é armazenada. O arquivo de autenticação guarda apenas o salt e um verificador (hash SHA-256 da chave derivada) |
 | Exportação | AES-256-GCM com chave derivada por PBKDF2-SHA256 (200.000 iterações) a partir de uma senha de exportação separada |
 | Comparações sensíveis | Realizadas em tempo constante, evitando ataques de temporização |
@@ -390,16 +390,16 @@ dados ou de serviços externos:
 
 Fluxo resumido da senha mestra:
 
-1. Na criação, é gerado um salt aleatório; a chave é derivada por PBKDF2-SHA256
-   (600.000 iterações) e dela se calcula um verificador SHA-256. Somente o salt,
-   o verificador e a contagem de iterações são gravados em `auth.dat`. A chave
-   nunca é persistida.
+1. Na criação, é gerado um salt aleatório; a chave é derivada por Argon2id
+   (64 MiB, 3 iterações, paralelismo 1) e dela se calcula um verificador
+   SHA-256. Somente o salt, o verificador e os parâmetros de derivação são
+   gravados em `auth.dat`. A chave nunca é persistida.
 2. Na abertura, a chave é derivada novamente a partir da senha informada, do
-   salt e da contagem de iterações gravados; o verificador é comparado em tempo
+   salt e dos parâmetros gravados; o verificador é comparado em tempo
    constante. Se confere, a chave passa a ser usada para descriptografar o
-   cofre durante a sessão. Cofres criados com a contagem antiga (100.000) são
-   migrados nesse momento: a chave é re-derivada com a contagem atual e o cofre
-   inteiro é re-criptografado, com backup e rollback automáticos.
+   cofre durante a sessão. Cofres ainda em PBKDF2-SHA256 (de versões
+   anteriores) são migrados nesse momento: a chave é re-derivada com Argon2id
+   e o cofre inteiro é re-criptografado, com backup e rollback automáticos.
 3. Ao alterar a senha mestra, o cofre inteiro é descriptografado com a chave
    antiga e re-criptografado com a nova, com backup e rollback automáticos.
 4. Ao bloquear ou fechar o cofre, a chave mestra e sua cópia interna são
@@ -410,7 +410,8 @@ Fluxo resumido da senha mestra:
 - C# e .NET 10.
 - Avalonia e XAML para a interface, multiplataforma (Windows e Linux).
 - Criptografia da biblioteca padrão (`System.Security.Cryptography`):
-  AES-256-GCM e PBKDF2-SHA256.
+  AES-256-GCM e PBKDF2-SHA256 (exportação e migração de cofres antigos), mais
+  Argon2id (`Konscious.Security.Cryptography.Argon2`) para a chave do cofre.
 - Serialização com `System.Text.Json`.
 - Acesso a banco de dados por ADO.NET: Microsoft.Data.Sqlite, Npgsql,
   MySqlConnector e Microsoft.Data.SqlClient.
