@@ -102,6 +102,43 @@ public class RepositorioSenhaTests : IDisposable
     }
 
     [Fact]
+    public async Task RegistrarCopiaAsync_GravaApenasADataDoCampoIndicado()
+    {
+        var senha = new Senha
+        {
+            Id = Guid.NewGuid(),
+            NomeServico = "Gmail",
+            Usuario = "user@gmail.com",
+            SenhaHash = _criptografia.Criptografar("senha123"),
+            Categoria = Categoria.Personal
+        };
+
+        await _repositorio.AdicionarAsync(senha);
+
+        await _repositorio.RegistrarCopiaAsync(senha.Id, TipoCampoCopiado.Senha);
+        var apenasSenha = await _repositorio.ObterPorIdAsync(senha.Id);
+
+        Assert.NotNull(apenasSenha!.DataUltimaCopiaSenha);
+        Assert.Null(apenasSenha.DataUltimaCopiaUsuario);
+        Assert.Null(apenasSenha.DataUltimaCopiaTotp);
+
+        await _repositorio.RegistrarCopiaAsync(senha.Id, TipoCampoCopiado.Usuario);
+        await _repositorio.RegistrarCopiaAsync(senha.Id, TipoCampoCopiado.Totp);
+        var todos = await _repositorio.ObterPorIdAsync(senha.Id);
+
+        Assert.NotNull(todos!.DataUltimaCopiaSenha);
+        Assert.NotNull(todos.DataUltimaCopiaUsuario);
+        Assert.NotNull(todos.DataUltimaCopiaTotp);
+    }
+
+    [Fact]
+    public async Task RegistrarCopiaAsync_ComIdInexistente_LancaExcecao()
+    {
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            _repositorio.RegistrarCopiaAsync(Guid.NewGuid(), TipoCampoCopiado.Senha));
+    }
+
+    [Fact]
     public async Task RemoverAsync_ComSenhaExistente_Remove()
     {
         var senha = new Senha

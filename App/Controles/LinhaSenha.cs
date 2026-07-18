@@ -25,6 +25,7 @@ namespace CofreDeSenhas.Controles
         private readonly Action<Senha> _onEditar;
         private readonly Func<Senha, Task> _onExcluir;
         private readonly Func<Senha, string, Task> _onRenomearServico;
+        private readonly Func<Senha, TipoCampoCopiado, Task>? _onRegistrarCopia;
         private readonly ServicoTotp _totp = new();
 
         private bool _revelada;
@@ -100,7 +101,8 @@ namespace CofreDeSenhas.Controles
 
         public LinhaSenha(Senha senha, Func<Senha, string?> obterSenhaPlain,
             Func<Senha, string?> obterTotpPlain, Action<Senha> onFavoritar, Action<Senha> onEditar,
-            Func<Senha, Task> onExcluir, Func<Senha, string, Task> onRenomearServico)
+            Func<Senha, Task> onExcluir, Func<Senha, string, Task> onRenomearServico,
+            Func<Senha, TipoCampoCopiado, Task>? onRegistrarCopia = null)
         {
             _senha = senha;
             _obterSenhaPlain = obterSenhaPlain;
@@ -109,6 +111,7 @@ namespace CofreDeSenhas.Controles
             _onEditar = onEditar;
             _onExcluir = onExcluir;
             _onRenomearServico = onRenomearServico;
+            _onRegistrarCopia = onRegistrarCopia;
 
             Height = 52;
             Background = Tema.Pincel(Tema.CardBackground);
@@ -883,6 +886,11 @@ namespace CofreDeSenhas.Controles
             AutomationProperties.SetName(_lblUsuario, $"{_senha.Usuario} — {Idioma.Texto("Row.CopyUser")}");
         }
 
+        private Task RegistrarCopiaSeHabilitadoAsync(TipoCampoCopiado campo) =>
+            _onRegistrarCopia != null && Preferencias.RegistrarHistoricoUso
+                ? _onRegistrarCopia(_senha, campo)
+                : Task.CompletedTask;
+
         internal async Task CopiarAsync()
         {
             var plain = _obterSenhaPlain(_senha);
@@ -890,6 +898,7 @@ namespace CofreDeSenhas.Controles
 
             var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
             var vaiLimpar = await AreaTransferenciaFeedback.CopiarComAvisoAsync(clipboard, plain, this, Idioma.Texto("Row.CopyPassword"));
+            await RegistrarCopiaSeHabilitadoAsync(TipoCampoCopiado.Senha);
 
             DefinirIcone(_btnCopiar, IconeCheck);
             _btnCopiar.Foreground = Tema.Pincel(Tema.StrengthStrong);
@@ -934,6 +943,7 @@ namespace CofreDeSenhas.Controles
             {
                 try { await clipboard.SetTextAsync(codigo); } catch { }
             }
+            await RegistrarCopiaSeHabilitadoAsync(TipoCampoCopiado.Totp);
 
             DefinirIcone(_btnTotp, IconeCheck);
             _btnTotp.Foreground = Tema.Pincel(Tema.StrengthStrong);
@@ -958,6 +968,7 @@ namespace CofreDeSenhas.Controles
             {
                 try { await clipboard.SetTextAsync(_senha.Usuario); } catch { }
             }
+            await RegistrarCopiaSeHabilitadoAsync(TipoCampoCopiado.Usuario);
 
             _timerFeedbackUsuario?.Stop();
             _lblUsuario.Text = Idioma.Texto("Row.UserCopied");

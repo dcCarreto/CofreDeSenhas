@@ -16,6 +16,11 @@ namespace GerenciadorDeSenhas.Servicos
         public const string ColunaEtiquetas = "etiquetas";
         public const string ColunaDataExclusao = "data_exclusao";
         public const string ColunaCodigosRecuperacao = "codigos_recuperacao";
+        public const string ColunaDataCriacao = "data_criacao";
+        public const string ColunaDataAtualizacao = "data_atualizacao";
+        public const string ColunaDataUltimaCopiaSenha = "data_ultima_copia_senha";
+        public const string ColunaDataUltimaCopiaUsuario = "data_ultima_copia_usuario";
+        public const string ColunaDataUltimaCopiaTotp = "data_ultima_copia_totp";
 
         public DbConnection CriarConexao(ConexaoBanco cfg) => cfg.Tipo switch
         {
@@ -102,6 +107,11 @@ namespace GerenciadorDeSenhas.Servicos
             await GarantirColunaAsync(cfg, ColunaEtiquetas);
             await GarantirColunaAsync(cfg, ColunaDataExclusao);
             await GarantirColunaAsync(cfg, ColunaCodigosRecuperacao);
+            await GarantirColunaAsync(cfg, ColunaDataCriacao);
+            await GarantirColunaAsync(cfg, ColunaDataAtualizacao);
+            await GarantirColunaAsync(cfg, ColunaDataUltimaCopiaSenha);
+            await GarantirColunaAsync(cfg, ColunaDataUltimaCopiaUsuario);
+            await GarantirColunaAsync(cfg, ColunaDataUltimaCopiaTotp);
         }
 
         private async Task GarantirColunaAsync(ConexaoBanco cfg, string coluna)

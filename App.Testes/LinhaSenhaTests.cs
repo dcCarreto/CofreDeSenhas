@@ -12,7 +12,8 @@ namespace App.Testes
 {
     public class LinhaSenhaTests
     {
-        private static (Window janela, LinhaSenha linha) CriarLinhaEmJanela(Senha senha, string senhaPlain)
+        private static (Window janela, LinhaSenha linha) CriarLinhaEmJanela(Senha senha, string senhaPlain,
+            Func<Senha, TipoCampoCopiado, Task>? onRegistrarCopia = null)
         {
             var linha = new LinhaSenha(senha,
                 s => senhaPlain,
@@ -20,7 +21,8 @@ namespace App.Testes
                 s => { },
                 s => { },
                 s => Task.CompletedTask,
-                (s, nome) => Task.CompletedTask);
+                (s, nome) => Task.CompletedTask,
+                onRegistrarCopia);
 
             var janela = new Window { Content = linha, Width = 800, Height = 100 };
             janela.Show();
@@ -84,6 +86,22 @@ namespace App.Testes
 
             Assert.NotNull(janela.TextoPorConteudo("Servico Privado"));
             Assert.NotNull(janela.TextoPorConteudo("usuario.privado"));
+        }
+
+        [AvaloniaFact]
+        public async Task CopiarAsync_DisparaCallbackDeRegistrarCopiaComCampoSenha()
+        {
+            var senha = new Senha { Id = Guid.NewGuid(), NomeServico = "Servico", Usuario = "usuario", SenhaHash = "irrelevante-para-o-teste" };
+            TipoCampoCopiado? campoRegistrado = null;
+            var (janela, linha) = CriarLinhaEmJanela(senha, "SenhaSecreta123!",
+                (s, campo) => { campoRegistrado = campo; return Task.CompletedTask; });
+
+            var botaoCopiar = linha.BotaoPorNomeAutomacao(Idioma.Texto("Row.CopyPassword"));
+            botaoCopiar.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+
+            await TesteUtil.AguardarAsync(() => campoRegistrado != null);
+
+            Assert.Equal(TipoCampoCopiado.Senha, campoRegistrado);
         }
     }
 }

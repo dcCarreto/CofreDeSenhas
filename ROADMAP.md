@@ -246,6 +246,21 @@ Repaginação completa da interface, preservando todas as funcionalidades:
   bloquear o cofre — pelo atalho, pelo menu ou por inatividade — a área de
   transferência agora é sempre limpa no mesmo instante, não só depois do
   temporizador de limpeza automática.
+- Histórico operacional da credencial: o painel de detalhes passa a mostrar
+  quando cada credencial foi criada e editada pela última vez, e quando a
+  senha, o usuário e o código TOTP foram copiados pela última vez (ou
+  "nunca", se ainda não aconteceu) — atualizado na hora a cada cópia, tanto
+  pela lista quanto pelo próprio painel. Novo item "Registrar histórico de
+  uso" no menu de configurações (ativado por padrão) permite desligar só o
+  registro das datas de cópia; desligado, as datas já salvas continuam
+  visíveis, só param de avançar. As datas de criação e edição sempre foram
+  gravadas no cofre local mas nunca chegavam a um banco de dados conectado
+  — lacuna fechada nesta rodada, com as cinco datas migradas
+  automaticamente para os quatro motores suportados. Já a mirror-sync
+  específica de "gravar por chave" (usada ao reconciliar local com banco
+  logo após conectar) ficou de fora: sincroniza a credencial em si, mas as
+  datas de cópia permanecem uma informação só local, específica do
+  dispositivo, sem tentar reconciliar entre local e banco a cada cópia.
 
 ## Em andamento
 
@@ -266,18 +281,6 @@ Em desenvolvimento no branch `feature/chromiumExt`:
 Ideias e melhorias consideradas para versões futuras, agrupadas por prioridade:
 
 ### Média prioridade
-
-#### Histórico operacional da credencial
-
-- Registrar data de criação da credencial.
-- Registrar data da última edição.
-- Registrar data da última cópia de senha.
-- Registrar data da última cópia de usuário.
-- Registrar data da última cópia de TOTP.
-- Exibir essas informações na tela de edição ou detalhes.
-- Manter os registros locais e protegidos no cofre.
-- Permitir que o usuário desative esse histórico, caso prefira menos
-  rastreamento local.
 
 #### Aviso de nova versão
 
@@ -409,14 +412,13 @@ criptografia anterior) e de uma camada inteira de métodos de busca/contagem em
 ## Ordem sugerida de execução
 
 1. Conclusão da extensão de navegador (em andamento).
-2. Histórico operacional da credencial.
-3. Aviso de nova versão.
-4. Anexos criptografados.
-5. Organização avançada com etiquetas.
-6. Templates de credenciais.
-7. Sincronização criptografada de ponta a ponta.
-8. macOS.
-9. Aplicativo móvel.
+2. Aviso de nova versão.
+3. Anexos criptografados.
+4. Organização avançada com etiquetas.
+5. Templates de credenciais.
+6. Sincronização criptografada de ponta a ponta.
+7. macOS.
+8. Aplicativo móvel.
 
 ## Como sugerir
 

@@ -123,6 +123,7 @@ namespace CofreDeSenhas.Janelas
                 ConfigurarAcessibilidadeLeitorTela();
                 AtualizarMenuBiometria();
                 MenuIconesOnline.IsChecked = Preferencias.IconesOnline;
+                MenuHistoricoUso.IsChecked = Preferencias.RegistrarHistoricoUso;
             };
             Idioma.Alterado += IdiomaGlobal_Alterado;
             Acessibilidade.Alterado += Acessibilidade_Alterado;
@@ -579,6 +580,15 @@ namespace CofreDeSenhas.Janelas
             FiltrarSenhas();
         }
 
+        private void HistoricoUso_Alterado(object? sender, RoutedEventArgs e)
+        {
+            if (sender is not MenuItem item)
+                return;
+
+            Preferencias.RegistrarHistoricoUso = item.IsChecked;
+            Preferencias.Salvar();
+        }
+
         private void LeitorTela_Alterado(object? sender, RoutedEventArgs e) => Acessibilidade.TratarClickLeitorTela(this, sender);
 
         private void MarcarAcessibilidadeSelecionada() =>
@@ -592,6 +602,7 @@ namespace CofreDeSenhas.Janelas
             PintarFiltroFavoritos();
             AtualizarNavegacao();
             AtualizarDetalheVisual();
+            AtualizarHistoricoDetalhes();
             FiltrarSenhas();
         }
 
@@ -684,7 +695,7 @@ namespace CofreDeSenhas.Janelas
             foreach (var senha in lista)
             {
                 var linha = new LinhaSenha(senha, ObterSenhaPlain, ObterTotpPlain, FavoritarToggle, EditarSenha,
-                    ExcluirSenhaAsync, RenomearServicoAsync);
+                    ExcluirSenhaAsync, RenomearServicoAsync, RegistrarCopiaLinhaAsync);
                 linha.DefinirLargurasColunas(_larguraServico, _larguraUsuario, _larguraCategoria, _larguraData, _larguraAcoes);
                 linha.DefinirModoPrivacidade(_modoPrivacidade);
                 linha.SolicitouDetalhes += Linha_SolicitouDetalhes;
@@ -1403,10 +1414,30 @@ namespace CofreDeSenhas.Janelas
             CmbDetalheCategoria.SelectedIndex = (int)senha.Categoria;
 
             AtualizarDetalheVisual();
+            AtualizarHistoricoDetalhes();
             AtualizarSenhaDetalhe();
             AtualizarTotpDetalhes();
             ExibirPainel(PainelDetalhes);
         }
+
+        private void AtualizarHistoricoDetalhes()
+        {
+            if (_senhaDetalhe == null)
+                return;
+
+            LblDetalheCriada.Text = Idioma.Formatar("Entry.Usage.Created", FormatarDataDetalhe(_senhaDetalhe.DataCriacao));
+            LblDetalheAtualizada.Text = Idioma.Formatar("Entry.Usage.Updated", FormatarDataDetalhe(_senhaDetalhe.DataAtualizacao));
+            LblDetalheCopiaSenha.Text = Idioma.Formatar("Entry.Usage.CopyPasswordLabel", FormatarDataOuNunca(_senhaDetalhe.DataUltimaCopiaSenha));
+            LblDetalheCopiaUsuario.Text = Idioma.Formatar("Entry.Usage.CopyUserLabel", FormatarDataOuNunca(_senhaDetalhe.DataUltimaCopiaUsuario));
+            LblDetalheCopiaTotp.Text = Idioma.Formatar("Entry.Usage.CopyTotpLabel", FormatarDataOuNunca(_senhaDetalhe.DataUltimaCopiaTotp));
+            LblDetalheCopiaTotp.IsVisible = _senhaDetalhe.TotpSegredo != null;
+        }
+
+        private static string FormatarDataDetalhe(DateTime data) =>
+            data.ToLocalTime().ToString("dd MMM yyyy", Idioma.CulturaAtual);
+
+        private static string FormatarDataOuNunca(DateTime? data) =>
+            data.HasValue ? FormatarDataDetalhe(data.Value) : Idioma.Texto("Entry.Usage.Never");
 
         private void AtualizarDetalheVisual()
         {
@@ -1499,7 +1530,7 @@ namespace CofreDeSenhas.Janelas
             try { codigo = _totp.Gerar(segredo).Codigo; }
             catch { return; }
 
-            await CopiarDetalheAsync(codigo, Idioma.Texto("Row.CopyTotp"));
+            await CopiarDetalheAsync(codigo, Idioma.Texto("Row.CopyTotp"), campoRegistrado: TipoCampoCopiado.Totp);
         }
 
         private async void EdicaoCompletaDetalhes_Click(object? sender, RoutedEventArgs e)
@@ -1604,16 +1635,17 @@ namespace CofreDeSenhas.Janelas
         }
 
         private async void CopiarUsuarioDetalhes_Click(object? sender, RoutedEventArgs e) =>
-            await CopiarDetalheAsync(TxtDetalheUsuario.Text, Idioma.Texto("Row.CopyUser"));
+            await CopiarDetalheAsync(TxtDetalheUsuario.Text, Idioma.Texto("Row.CopyUser"), campoRegistrado: TipoCampoCopiado.Usuario);
 
         private async void CopiarSenhaDetalhes_Click(object? sender, RoutedEventArgs e) =>
             await CopiarDetalheAsync(_senhaDetalheVisivel ? TxtDetalheSenha.Text : _senhaDetalhePlain,
-                Idioma.Texto("Row.CopyPassword"), limparDepois: true);
+                Idioma.Texto("Row.CopyPassword"), limparDepois: true, campoRegistrado: TipoCampoCopiado.Senha);
 
         private async void CopiarUrlDetalhes_Click(object? sender, RoutedEventArgs e) =>
             await CopiarDetalheAsync(TxtDetalheUrl.Text, "URL");
 
-        private async Task CopiarDetalheAsync(string? texto, string rotulo, bool limparDepois = false)
+        private async Task CopiarDetalheAsync(string? texto, string rotulo, bool limparDepois = false,
+            TipoCampoCopiado? campoRegistrado = null)
         {
             if (string.IsNullOrWhiteSpace(texto))
                 return;
@@ -1635,6 +1667,13 @@ namespace CofreDeSenhas.Janelas
             {
                 Acessibilidade.Anunciar(this, Idioma.Formatar("A11y.Copied", rotulo));
             }
+
+            if (campoRegistrado.HasValue && Preferencias.RegistrarHistoricoUso && _senhaDetalhe != null)
+            {
+                await _servicoSenha.RegistrarCopiaAsync(_senhaDetalhe.Id, campoRegistrado.Value);
+                await _servicoSenha.PersistirAsync();
+                AtualizarHistoricoDetalhes();
+            }
         }
 
         private void AgendarFeedbackLimpezaSenhaDetalhes(int segundos)
@@ -1651,6 +1690,15 @@ namespace CofreDeSenhas.Janelas
                 t.Stop();
             };
             t.Start();
+        }
+
+        private async Task RegistrarCopiaLinhaAsync(Senha senha, TipoCampoCopiado campo)
+        {
+            await _servicoSenha.RegistrarCopiaAsync(senha.Id, campo);
+            await _servicoSenha.PersistirAsync();
+
+            if (_senhaDetalhe != null && _senhaDetalhe.Id == senha.Id)
+                AtualizarHistoricoDetalhes();
         }
 
         private async void FavoritarToggle(Senha s)

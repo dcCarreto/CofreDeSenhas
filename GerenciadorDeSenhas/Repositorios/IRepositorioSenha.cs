@@ -6,6 +6,7 @@ namespace GerenciadorDeSenhas.Repositorios
     {
         Task AdicionarAsync(Senha senha);
         Task AtualizarAsync(Senha senha);
+        Task RegistrarCopiaAsync(Guid id, TipoCampoCopiado campo);
         Task RemoverAsync(Guid id);
         Task<Senha?> ObterPorIdAsync(Guid id);
         Task<List<Senha>> ListarTodosAsync();

@@ -45,6 +45,54 @@ public class RepositorioSenhaBancoTests : IDisposable
     }
 
     [Fact]
+    public async Task Adicionar_PersisteDataCriacaoEDataAtualizacaoEntreInstancias()
+    {
+        var repo = new RepositorioSenhaBanco(_cfg);
+        var senha = NovaSenha("gmail.com", "user@gmail.com", "segredo");
+        await repo.AdicionarAsync(senha);
+
+        var outro = new RepositorioSenhaBanco(_cfg);
+        var carregada = (await outro.ListarTodosAsync()).Single();
+
+        Assert.True((DateTime.UtcNow - carregada.DataCriacao) < TimeSpan.FromMinutes(1));
+        Assert.True((DateTime.UtcNow - carregada.DataAtualizacao) < TimeSpan.FromMinutes(1));
+    }
+
+    [Fact]
+    public async Task Atualizar_AtualizaDataAtualizacaoSemMudarDataCriacao()
+    {
+        var repo = new RepositorioSenhaBanco(_cfg);
+        var senha = NovaSenha("gmail.com", "user@gmail.com", "segredo");
+        await repo.AdicionarAsync(senha);
+
+        var original = (await new RepositorioSenhaBanco(_cfg).ListarTodosAsync()).Single();
+
+        senha.DataAtualizacao = DateTime.UtcNow.AddDays(1);
+        await repo.AtualizarAsync(senha);
+
+        var atualizada = (await new RepositorioSenhaBanco(_cfg).ListarTodosAsync()).Single();
+
+        Assert.Equal(senha.DataAtualizacao, atualizada.DataAtualizacao, TimeSpan.FromSeconds(1));
+        Assert.Equal(original.DataCriacao, atualizada.DataCriacao, TimeSpan.FromSeconds(1));
+    }
+
+    [Fact]
+    public async Task RegistrarCopia_PersisteApenasACampoIndicadoEntreInstancias()
+    {
+        var repo = new RepositorioSenhaBanco(_cfg);
+        var senha = NovaSenha("gmail.com", "user@gmail.com", "segredo");
+        await repo.AdicionarAsync(senha);
+
+        await repo.RegistrarCopiaAsync(senha.Id, TipoCampoCopiado.Usuario);
+
+        var carregada = (await new RepositorioSenhaBanco(_cfg).ListarTodosAsync()).Single();
+
+        Assert.NotNull(carregada.DataUltimaCopiaUsuario);
+        Assert.Null(carregada.DataUltimaCopiaSenha);
+        Assert.Null(carregada.DataUltimaCopiaTotp);
+    }
+
+    [Fact]
     public async Task Adicionar_PersisteEntreInstancias_ComSenhaCifradaIntacta()
     {
         var repo = new RepositorioSenhaBanco(_cfg);

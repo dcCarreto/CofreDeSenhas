@@ -61,6 +61,23 @@ namespace GerenciadorDeSenhas.Repositorios
             existente.DataAtualizacao = DateTime.UtcNow;
         }
 
+        public async Task RegistrarCopiaAsync(Guid id, TipoCampoCopiado campo)
+        {
+            await CarregarSeNecessarioAsync();
+
+            var senha = _senhas.FirstOrDefault(s => s.Id == id);
+            if (senha == null)
+                throw new InvalidOperationException($"Senha com ID {id} não encontrada");
+
+            var agora = DateTime.UtcNow;
+            switch (campo)
+            {
+                case TipoCampoCopiado.Senha: senha.DataUltimaCopiaSenha = agora; break;
+                case TipoCampoCopiado.Usuario: senha.DataUltimaCopiaUsuario = agora; break;
+                case TipoCampoCopiado.Totp: senha.DataUltimaCopiaTotp = agora; break;
+            }
+        }
+
         public async Task RemoverAsync(Guid id)
         {
             await CarregarSeNecessarioAsync();

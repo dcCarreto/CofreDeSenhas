@@ -55,6 +55,12 @@ namespace GerenciadorDeSenhas.Repositorios
             await _banco.GravarPorChaveAsync(senha);
         }
 
+        public async Task RegistrarCopiaAsync(Guid id, TipoCampoCopiado campo)
+        {
+            await SincronizarAsync();
+            await _local.RegistrarCopiaAsync(id, campo);
+        }
+
         public async Task RemoverAsync(Guid id)
         {
             await SincronizarAsync();

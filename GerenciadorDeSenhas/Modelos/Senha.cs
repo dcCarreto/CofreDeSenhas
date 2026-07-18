@@ -28,5 +28,9 @@ namespace GerenciadorDeSenhas.Modelos
 
         public DateTime DataCriacao { get; set; } = DateTime.UtcNow;
         public DateTime DataAtualizacao { get; set; } = DateTime.UtcNow;
+
+        public DateTime? DataUltimaCopiaSenha { get; set; }
+        public DateTime? DataUltimaCopiaUsuario { get; set; }
+        public DateTime? DataUltimaCopiaTotp { get; set; }
     }
 }

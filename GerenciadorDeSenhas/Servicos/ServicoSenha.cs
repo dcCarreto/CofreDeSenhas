@@ -208,6 +208,11 @@ namespace GerenciadorDeSenhas.Servicos
             await _repositorio.AtualizarAsync(senha);
         }
 
+        public async Task RegistrarCopiaAsync(Guid id, TipoCampoCopiado campo)
+        {
+            await _repositorio.RegistrarCopiaAsync(id, campo);
+        }
+
         public async Task PersistirAsync()
         {
             await _repositorio.SalvarAsync();

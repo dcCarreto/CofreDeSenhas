@@ -7,8 +7,8 @@ namespace GerenciadorDeSenhas.Repositorios
 {
     public class RepositorioSenhaBanco : IRepositorioSenha
     {
-        private const string ColunasInsert = "usuario, senha, dominio, descricao, totp, etiquetas, codigos_recuperacao, excluido";
-        private const string ParametrosInsert = "@usuario, @senha, @dominio, @descricao, @totp, @etiquetas, @codigos_recuperacao, @excluido";
+        private const string ColunasInsert = "usuario, senha, dominio, descricao, totp, etiquetas, codigos_recuperacao, excluido, data_criacao, data_atualizacao";
+        private const string ParametrosInsert = "@usuario, @senha, @dominio, @descricao, @totp, @etiquetas, @codigos_recuperacao, @excluido, @data_criacao, @data_atualizacao";
 
         private readonly ConexaoBanco _cfg;
         private readonly ServicoBancoDados _bd = new();
@@ -40,7 +40,7 @@ namespace GerenciadorDeSenhas.Repositorios
             await using var con = await AbrirConexaoAsync();
 
             await using var cmd = con.CreateCommand();
-            cmd.CommandText = $"SELECT id, usuario, senha, dominio, descricao, totp, etiquetas, codigos_recuperacao, excluido, data_exclusao FROM {_tabela}";
+            cmd.CommandText = $"SELECT id, usuario, senha, dominio, descricao, totp, etiquetas, codigos_recuperacao, excluido, data_exclusao, data_criacao, data_atualizacao, data_ultima_copia_senha, data_ultima_copia_usuario, data_ultima_copia_totp FROM {_tabela}";
 
             await using var leitor = await cmd.ExecuteReaderAsync();
             while (await leitor.ReadAsync())
@@ -57,7 +57,12 @@ namespace GerenciadorDeSenhas.Repositorios
                     CodigosRecuperacao = DesserializarCodigosRecuperacao(leitor[ServicoBancoDados.ColunaCodigosRecuperacao]),
                     Categoria = Categoria.Other,
                     NaLixeira = Convert.ToBoolean(leitor["excluido"]),
-                    DataExclusao = DesserializarData(leitor[ServicoBancoDados.ColunaDataExclusao])
+                    DataExclusao = DesserializarData(leitor[ServicoBancoDados.ColunaDataExclusao]),
+                    DataCriacao = DesserializarData(leitor[ServicoBancoDados.ColunaDataCriacao]) ?? DateTime.UtcNow,
+                    DataAtualizacao = DesserializarData(leitor[ServicoBancoDados.ColunaDataAtualizacao]) ?? DateTime.UtcNow,
+                    DataUltimaCopiaSenha = DesserializarData(leitor[ServicoBancoDados.ColunaDataUltimaCopiaSenha]),
+                    DataUltimaCopiaUsuario = DesserializarData(leitor[ServicoBancoDados.ColunaDataUltimaCopiaUsuario]),
+                    DataUltimaCopiaTotp = DesserializarData(leitor[ServicoBancoDados.ColunaDataUltimaCopiaTotp])
                 };
                 _senhas.Add(senha);
                 _mapa[senha.Id] = Convert.ToInt64(leitor["id"]);
@@ -110,7 +115,7 @@ namespace GerenciadorDeSenhas.Repositorios
             await using var con = await AbrirConexaoAsync();
 
             await using var cmd = con.CreateCommand();
-            cmd.CommandText = $"UPDATE {_tabela} SET usuario = @usuario, senha = @senha, dominio = @dominio, descricao = @descricao, totp = @totp, etiquetas = @etiquetas, codigos_recuperacao = @codigos_recuperacao WHERE id = @id";
+            cmd.CommandText = $"UPDATE {_tabela} SET usuario = @usuario, senha = @senha, dominio = @dominio, descricao = @descricao, totp = @totp, etiquetas = @etiquetas, codigos_recuperacao = @codigos_recuperacao, data_atualizacao = @data_atualizacao WHERE id = @id";
             PreencherCampos(cmd, senha);
             Parametro(cmd, "@id", id);
             await cmd.ExecuteNonQueryAsync();
@@ -125,6 +130,43 @@ namespace GerenciadorDeSenhas.Repositorios
                 existente.TotpSegredo = senha.TotpSegredo;
                 existente.Etiquetas = senha.Etiquetas;
                 existente.CodigosRecuperacao = senha.CodigosRecuperacao;
+                existente.DataAtualizacao = senha.DataAtualizacao;
+            }
+        }
+
+        public async Task RegistrarCopiaAsync(Guid id, TipoCampoCopiado campo)
+        {
+            await CarregarSeNecessarioAsync();
+
+            if (!_mapa.TryGetValue(id, out var idBanco))
+                throw new InvalidOperationException($"Senha com ID {id} não encontrada");
+
+            var coluna = campo switch
+            {
+                TipoCampoCopiado.Senha => ServicoBancoDados.ColunaDataUltimaCopiaSenha,
+                TipoCampoCopiado.Usuario => ServicoBancoDados.ColunaDataUltimaCopiaUsuario,
+                TipoCampoCopiado.Totp => ServicoBancoDados.ColunaDataUltimaCopiaTotp,
+                _ => throw new ArgumentOutOfRangeException(nameof(campo))
+            };
+            var agora = DateTime.UtcNow;
+
+            await using var con = await AbrirConexaoAsync();
+
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = $"UPDATE {_tabela} SET {coluna} = @valor WHERE id = @id";
+            Parametro(cmd, "@valor", SerializarData(agora));
+            Parametro(cmd, "@id", idBanco);
+            await cmd.ExecuteNonQueryAsync();
+
+            var senha = _senhas.FirstOrDefault(s => s.Id == id);
+            if (senha != null)
+            {
+                switch (campo)
+                {
+                    case TipoCampoCopiado.Senha: senha.DataUltimaCopiaSenha = agora; break;
+                    case TipoCampoCopiado.Usuario: senha.DataUltimaCopiaUsuario = agora; break;
+                    case TipoCampoCopiado.Totp: senha.DataUltimaCopiaTotp = agora; break;
+                }
             }
         }
 
@@ -308,6 +350,8 @@ namespace GerenciadorDeSenhas.Repositorios
             Parametro(cmd, "@etiquetas", SerializarEtiquetas(senha.Etiquetas));
             Parametro(cmd, "@codigos_recuperacao", SerializarCodigosRecuperacao(senha.CodigosRecuperacao));
             Parametro(cmd, "@excluido", false);
+            Parametro(cmd, "@data_criacao", SerializarData(senha.DataCriacao));
+            Parametro(cmd, "@data_atualizacao", SerializarData(senha.DataAtualizacao));
         }
 
         private static string? SerializarEtiquetas(List<string> etiquetas) =>

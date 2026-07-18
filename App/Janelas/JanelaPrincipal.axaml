@@ -135,6 +135,9 @@
                     <MenuItem Name="MenuIconesOnline" Header="{DynamicResource Settings.OnlineIcons}"
                               ToggleType="CheckBox" Click="IconesOnline_Alterado"
                               ToolTip.Tip="{DynamicResource Settings.OnlineIconsTooltip}" />
+                    <MenuItem Name="MenuHistoricoUso" Header="{DynamicResource Settings.TrackUsageHistory}"
+                              ToggleType="CheckBox" Click="HistoricoUso_Alterado"
+                              ToolTip.Tip="{DynamicResource Settings.TrackUsageHistoryTooltip}" />
                     <MenuItem Header="{DynamicResource Settings.ImportCsv}" Click="ImportarCsv_Click">
                       <MenuItem.Icon>
                         <Path Classes="line-icon" Width="16" Height="16" Stroke="{DynamicResource TextSecondary}"
@@ -799,6 +802,14 @@
                                  TextWrapping="Wrap"
                                  VerticalContentAlignment="Top" />
                       </Grid>
+                    </StackPanel>
+
+                    <StackPanel Name="PainelHistoricoUso" Spacing="3" Margin="0,4,0,0">
+                      <TextBlock Name="LblDetalheCriada" FontSize="11" Foreground="{DynamicResource TextTertiary}" TextWrapping="Wrap" />
+                      <TextBlock Name="LblDetalheAtualizada" FontSize="11" Foreground="{DynamicResource TextTertiary}" TextWrapping="Wrap" />
+                      <TextBlock Name="LblDetalheCopiaSenha" FontSize="11" Foreground="{DynamicResource TextTertiary}" TextWrapping="Wrap" />
+                      <TextBlock Name="LblDetalheCopiaUsuario" FontSize="11" Foreground="{DynamicResource TextTertiary}" TextWrapping="Wrap" />
+                      <TextBlock Name="LblDetalheCopiaTotp" FontSize="11" Foreground="{DynamicResource TextTertiary}" TextWrapping="Wrap" />
                     </StackPanel>
                   </StackPanel>
                 </ScrollViewer>

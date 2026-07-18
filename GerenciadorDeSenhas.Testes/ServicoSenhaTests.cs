@@ -166,6 +166,19 @@ public class ServicoSenhaTests : IDisposable
     }
 
     [Fact]
+    public async Task RegistrarCopiaAsync_GravaDataDoCampoSemAlterarDataAtualizacao()
+    {
+        var senha = await _servico.CriarSenhaAsync("Gmail", "user@gmail.com", "Senha@123456", Categoria.Personal);
+        var dataAtualizacaoOriginal = senha.DataAtualizacao;
+
+        await _servico.RegistrarCopiaAsync(senha.Id, TipoCampoCopiado.Senha);
+        var apos = await ObterAsync(senha.Id);
+
+        Assert.NotNull(apos?.DataUltimaCopiaSenha);
+        Assert.Equal(dataAtualizacaoOriginal, apos!.DataAtualizacao);
+    }
+
+    [Fact]
     public async Task PersistirAsync_SalvaSenhasEmArquivoEncriptado()
     {
         await _servico.CriarSenhaAsync("Gmail", "user@gmail.com", "Senha@123456", Categoria.Personal);

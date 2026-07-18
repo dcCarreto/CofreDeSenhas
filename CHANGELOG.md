@@ -98,6 +98,14 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
   fecha o painel de detalhes, desabilita o botão de revelar senha da linha
   e bloqueia a renomeação inline do serviço. É um modo de sessão, sem
   preferência persistida: começa sempre desativado ao abrir o cofre.
+- Histórico operacional da credencial: o painel de detalhes mostra data de
+  criação, data da última edição e data da última cópia de senha, usuário
+  e código TOTP (ou "nunca"), atualizadas na hora a cada cópia. Novo item
+  "Registrar histórico de uso" no menu de configurações (ativado por
+  padrão) desliga só o registro de novas datas de cópia, sem apagar as já
+  salvas. Datas de criação e edição, que já existiam no cofre local,
+  passam a ser migradas e persistidas também para bancos de dados
+  conectados (SQLite, PostgreSQL, MySQL/MariaDB e SQL Server).
 
 ### Corrigido
 - O painel de detalhes agora flutua sobre a lista de senhas em vez de
