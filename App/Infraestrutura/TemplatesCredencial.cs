@@ -16,8 +16,7 @@ namespace CofreDeSenhas
             TipoCredencial.ChaveLicenca,
             TipoCredencial.WiFi,
             TipoCredencial.Servidor,
-            TipoCredencial.BancoDados,
-            TipoCredencial.DocumentoSeguro
+            TipoCredencial.BancoDados
         };
 
         public static string[] Rotulos => Tipos.Select(Idioma.RotuloTipoCredencial).ToArray();
@@ -36,7 +35,6 @@ namespace CofreDeSenhas
             TipoCredencial.Cartao => Idioma.Texto("CredField.CardHolder"),
             TipoCredencial.ChaveLicenca => Idioma.Texto("CredField.Product"),
             TipoCredencial.WiFi => Idioma.Texto("CredField.Ssid"),
-            TipoCredencial.DocumentoSeguro => Idioma.Texto("CredField.DocTitle"),
             _ => Idioma.Texto("Entry.UserEmail")
         };
 
@@ -45,7 +43,6 @@ namespace CofreDeSenhas
             TipoCredencial.Cartao => Idioma.Texto("CredField.CardNumber"),
             TipoCredencial.ChaveLicenca => Idioma.Texto("CredField.LicenseKey"),
             TipoCredencial.WiFi => Idioma.Texto("CredField.WifiPassword"),
-            TipoCredencial.DocumentoSeguro => Idioma.Texto("CredField.DocContent"),
             _ => Idioma.Texto("Entry.Password")
         };
 

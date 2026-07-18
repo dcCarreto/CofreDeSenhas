@@ -7,7 +7,6 @@ namespace GerenciadorDeSenhas.Modelos
         ChaveLicenca,
         WiFi,
         Servidor,
-        BancoDados,
-        DocumentoSeguro
+        BancoDados
     }
 }

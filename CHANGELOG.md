@@ -129,8 +129,8 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
   ativos. Novo botão "Fixar no topo" em cada linha mantém credenciais
   importantes sempre nas primeiras posições, independente da ordenação.
 - Templates de credenciais: novo campo "Tipo de credencial" na criação e na
-  edição, com sete modelos (Login, Cartão, Chave de licença, Wi-Fi,
-  Servidor, Banco de dados, Documento seguro). Cada tipo renomeia os campos
+  edição, com seis modelos (Login, Cartão, Chave de licença, Wi-Fi,
+  Servidor, Banco de dados). Cada tipo renomeia os campos
   de usuário/senha para o vocabulário certo e, quando aplicável, mostra
   campos extras próprios (Cartão: validade, CVV, bandeira; Wi-Fi: segurança,
   banda; Servidor/Banco de dados: host, porta e mais alguns) — todos

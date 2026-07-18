@@ -122,7 +122,6 @@ namespace CofreDeSenhas
             TipoCredencial.WiFi => Texto("CredType.WiFi"),
             TipoCredencial.Servidor => Texto("CredType.Servidor"),
             TipoCredencial.BancoDados => Texto("CredType.BancoDados"),
-            TipoCredencial.DocumentoSeguro => Texto("CredType.DocumentoSeguro"),
             _ => Texto("CredType.Login")
         };
 

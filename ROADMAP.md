@@ -309,17 +309,16 @@ Repaginação completa da interface, preservando todas as funcionalidades:
   por dispositivo, como os favoritos, sem sincronizar para bancos de dados
   conectados.
 - Templates de credenciais: a criação e a edição ganharam um campo "Tipo de
-  credencial" com sete modelos — Login, Cartão, Chave de licença, Wi-Fi,
-  Servidor, Banco de dados e Documento seguro. Escolher um tipo diferente de
-  Login renomeia os campos principais para o vocabulário certo (em Cartão,
-  "Usuário"/"Senha" viram "Titular do cartão"/"Número do cartão"; em Wi-Fi,
-  "Nome da rede (SSID)"/"Senha da rede"; em Chave de licença,
-  "Produto/Software"/"Chave de licença"; em Documento seguro,
-  "Título"/"Conteúdo sensível") e mostra campos extras específicos do tipo
-  (Cartão: validade, CVV, bandeira; Wi-Fi: segurança, banda; Servidor: host,
-  porta, protocolo; Banco de dados: host, porta, nome do banco, motor) — sem
-  extras, Login/Chave de licença/Documento seguro usam só os campos
-  renomeados. Cada campo extra é cifrado individualmente com a mesma chave
+  credencial" com seis modelos — Login, Cartão, Chave de licença, Wi-Fi,
+  Servidor e Banco de dados. Escolher um tipo diferente de Login renomeia os
+  campos principais para o vocabulário certo (em Cartão, "Usuário"/"Senha"
+  viram "Titular do cartão"/"Número do cartão"; em Wi-Fi, "Nome da rede
+  (SSID)"/"Senha da rede"; em Chave de licença, "Produto/Software"/"Chave de
+  licença") e mostra campos extras específicos do tipo (Cartão: validade,
+  CVV, bandeira; Wi-Fi: segurança, banda; Servidor: host, porta, protocolo;
+  Banco de dados: host, porta, nome do banco, motor) — sem extras,
+  Login/Chave de licença usam só os campos renomeados. Cada campo extra é
+  cifrado individualmente com a mesma chave
   mestra, como o TOTP. O painel de detalhes também usa os rótulos do tipo
   escolhido; a edição completa dos campos extras continua exclusiva das
   telas de criação/edição. Exportação e importação (`.gsenhas`) carregam
@@ -371,6 +370,45 @@ Em desenvolvimento no branch `feature/chromiumExt`:
 ## Planejado
 
 Ideias e melhorias consideradas para versões futuras, agrupadas por prioridade:
+
+### Segurança e sincronização
+
+#### Consolidação da sincronização
+
+- Unificar as duas vias de sincronização (banco de dados externo e pasta
+  cifrada) em uma só, pensada para uso pessoal multi-dispositivo. A
+  sincronização por pasta cifrada segue como principal, por não depender de
+  infraestrutura externa; a conexão a banco de dados externo é reposicionada
+  como recurso separado, voltado a uso self-hosted/compartilhado, não mais
+  como "sincronização pessoal".
+- Reduzir os campos hoje "só locais, não sincronizam" (etiquetas, fixar no
+  topo, tipo de credencial, datas de cópia, anexos), unificando o esquema de
+  dados salvo entre cofre local, pasta de sincronização e banco de dados,
+  para evitar divergência de informação entre dispositivos à medida que a
+  sincronização avança.
+
+#### Reforço de segurança
+
+- Migrar a derivação de chave de PBKDF2-SHA256 para Argon2id, padrão atual
+  recomendado por resistir melhor a ataques por GPU/ASIC.
+- Suporte a chave de hardware (FIDO2/YubiKey) como alternativa de
+  desbloqueio, cobrindo também o Linux — hoje sem nenhuma opção além da
+  senha mestra, diferente do Windows (Windows Hello).
+- Criar um `SECURITY.md` com a política de divulgação responsável de
+  vulnerabilidades.
+- Documentar o modelo de ameaça do cofre: o que é protegido e contra qual
+  tipo de atacante, para dar mais transparência a usuários e
+  contribuidores.
+
+### Novas funcionalidades a avaliar
+
+- Compartilhamento seguro de credenciais (ex.: acesso de emergência,
+  compartilhamento familiar), recurso comum em gerenciadores de senha e hoje
+  ausente do roadmap.
+- Suporte a passkeys/WebAuthn como tipo de credencial, à medida que mais
+  serviços passam a exigir isso.
+- CLI ou API local para automação por usuários avançados (buscar/copiar
+  credenciais via script, sem abrir a interface).
 
 ### Baixa prioridade
 
