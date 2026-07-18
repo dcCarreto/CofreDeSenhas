@@ -38,6 +38,8 @@ namespace CofreDeSenhas
             public string FrequenciaBackup { get; set; } = FrequenciaBackupPadrao;
             public int MaximoBackups { get; set; } = MaximoBackupsPadrao;
             public bool RegistrarHistoricoUso { get; set; } = true;
+            public bool VerificarAtualizacoes { get; set; }
+            public string? VersaoDispensada { get; set; }
         }
 
         private static readonly string _caminho = Path.Combine(
@@ -58,6 +60,8 @@ namespace CofreDeSenhas
         public static string FrequenciaBackup { get; set; } = FrequenciaBackupPadrao;
         public static int MaximoBackups { get; set; } = MaximoBackupsPadrao;
         public static bool RegistrarHistoricoUso { get; set; } = true;
+        public static bool VerificarAtualizacoes { get; set; }
+        public static string? VersaoDispensada { get; set; }
 
         public static GerenciadorDeSenhas.Servicos.FrequenciaBackup FrequenciaBackupAtual =>
             Enum.TryParse<GerenciadorDeSenhas.Servicos.FrequenciaBackup>(FrequenciaBackup, out var frequencia)
@@ -87,6 +91,8 @@ namespace CofreDeSenhas
                         FrequenciaBackup = string.IsNullOrEmpty(d.FrequenciaBackup) ? FrequenciaBackupPadrao : d.FrequenciaBackup;
                         MaximoBackups = d.MaximoBackups <= 0 ? MaximoBackupsPadrao : d.MaximoBackups;
                         RegistrarHistoricoUso = d.RegistrarHistoricoUso;
+                        VerificarAtualizacoes = d.VerificarAtualizacoes;
+                        VersaoDispensada = d.VersaoDispensada;
                     }
                 }
             }
@@ -99,7 +105,7 @@ namespace CofreDeSenhas
             {
                 var dir = Path.GetDirectoryName(_caminho)!;
                 if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
-                File.WriteAllText(_caminho, JsonSerializer.Serialize(new Dados { ModoEscuro = ModoEscuro, UltimoBanco = UltimoBanco, MinutosBloqueio = MinutosBloqueio, Idioma = Idioma, Daltonismo = Daltonismo, AltoContraste = AltoContraste, EscalaInterface = EscalaInterface, ReduzirAnimacoes = ReduzirAnimacoes, LeitorTela = LeitorTela, IconesOnline = IconesOnline, SegundosLimpezaClipboard = SegundosLimpezaClipboard, FrequenciaBackup = FrequenciaBackup, MaximoBackups = MaximoBackups, RegistrarHistoricoUso = RegistrarHistoricoUso }));
+                File.WriteAllText(_caminho, JsonSerializer.Serialize(new Dados { ModoEscuro = ModoEscuro, UltimoBanco = UltimoBanco, MinutosBloqueio = MinutosBloqueio, Idioma = Idioma, Daltonismo = Daltonismo, AltoContraste = AltoContraste, EscalaInterface = EscalaInterface, ReduzirAnimacoes = ReduzirAnimacoes, LeitorTela = LeitorTela, IconesOnline = IconesOnline, SegundosLimpezaClipboard = SegundosLimpezaClipboard, FrequenciaBackup = FrequenciaBackup, MaximoBackups = MaximoBackups, RegistrarHistoricoUso = RegistrarHistoricoUso, VerificarAtualizacoes = VerificarAtualizacoes, VersaoDispensada = VersaoDispensada }));
             }
             catch { }
         }

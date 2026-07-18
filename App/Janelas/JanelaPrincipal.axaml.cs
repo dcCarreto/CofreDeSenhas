@@ -57,6 +57,7 @@ namespace CofreDeSenhas.Janelas
         private bool _navColapsada;
         private bool _naLixeira;
         private bool _modoPrivacidade;
+        private string? _versaoDisponivel;
         private List<Senha> _itensLixeira = new();
         private Senha? _senhaDetalhe;
         private string _senhaDetalhePlain = "";
@@ -124,6 +125,7 @@ namespace CofreDeSenhas.Janelas
                 AtualizarMenuBiometria();
                 MenuIconesOnline.IsChecked = Preferencias.IconesOnline;
                 MenuHistoricoUso.IsChecked = Preferencias.RegistrarHistoricoUso;
+                MenuVerificarAtualizacoes.IsChecked = Preferencias.VerificarAtualizacoes;
             };
             Idioma.Alterado += IdiomaGlobal_Alterado;
             Acessibilidade.Alterado += Acessibilidade_Alterado;
@@ -144,6 +146,7 @@ namespace CofreDeSenhas.Janelas
             {
                 AjustarLargurasIniciais();
                 await IniciarAsync();
+                _ = VerificarAtualizacaoAsync();
             };
         }
 
@@ -587,6 +590,54 @@ namespace CofreDeSenhas.Janelas
 
             Preferencias.RegistrarHistoricoUso = item.IsChecked;
             Preferencias.Salvar();
+        }
+
+        private void VerificarAtualizacoes_Alterado(object? sender, RoutedEventArgs e)
+        {
+            if (sender is not MenuItem item)
+                return;
+
+            Preferencias.VerificarAtualizacoes = item.IsChecked;
+            Preferencias.Salvar();
+
+            if (item.IsChecked)
+                _ = VerificarAtualizacaoAsync();
+            else
+                OcultarAvisoAtualizacao();
+        }
+
+        private async Task VerificarAtualizacaoAsync()
+        {
+            if (!Preferencias.VerificarAtualizacoes)
+                return;
+
+            var versao = await ServicoAtualizacao.VerificarNovaVersaoAsync();
+            if (string.IsNullOrEmpty(versao) || string.Equals(versao, Preferencias.VersaoDispensada, StringComparison.OrdinalIgnoreCase))
+                return;
+
+            _versaoDisponivel = versao;
+            LblAtualizacaoDisponivel.Text = Idioma.Formatar("Update.Available", versao);
+            AutomationProperties.SetName(LblAtualizacaoDisponivel, Idioma.Formatar("Update.Available", versao));
+            PainelAtualizacaoDisponivel.IsVisible = true;
+        }
+
+        private void AbrirNovaVersao_PointerReleased(object? sender, PointerReleasedEventArgs e)
+        {
+            try { Process.Start(new ProcessStartInfo(ServicoAtualizacao.UrlPaginaReleases) { UseShellExecute = true }); }
+            catch { }
+        }
+
+        private void DispensarAtualizacao_Click(object? sender, RoutedEventArgs e)
+        {
+            Preferencias.VersaoDispensada = _versaoDisponivel;
+            Preferencias.Salvar();
+            OcultarAvisoAtualizacao();
+        }
+
+        private void OcultarAvisoAtualizacao()
+        {
+            PainelAtualizacaoDisponivel.IsVisible = false;
+            _versaoDisponivel = null;
         }
 
         private void LeitorTela_Alterado(object? sender, RoutedEventArgs e) => Acessibilidade.TratarClickLeitorTela(this, sender);

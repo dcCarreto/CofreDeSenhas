@@ -138,6 +138,9 @@
                     <MenuItem Name="MenuHistoricoUso" Header="{DynamicResource Settings.TrackUsageHistory}"
                               ToggleType="CheckBox" Click="HistoricoUso_Alterado"
                               ToolTip.Tip="{DynamicResource Settings.TrackUsageHistoryTooltip}" />
+                    <MenuItem Name="MenuVerificarAtualizacoes" Header="{DynamicResource Settings.CheckUpdates}"
+                              ToggleType="CheckBox" Click="VerificarAtualizacoes_Alterado"
+                              ToolTip.Tip="{DynamicResource Settings.CheckUpdatesTooltip}" />
                     <MenuItem Header="{DynamicResource Settings.ImportCsv}" Click="ImportarCsv_Click">
                       <MenuItem.Icon>
                         <Path Classes="line-icon" Width="16" Height="16" Stroke="{DynamicResource TextSecondary}"
@@ -368,6 +371,20 @@
                                  AutomationProperties.Name="{DynamicResource A11y.VaultStatus}"
                                  AutomationProperties.LiveSetting="Polite"
                                  VerticalAlignment="Center" />
+                    </StackPanel>
+                    <StackPanel Name="PainelAtualizacaoDisponivel" Grid.Column="1" Orientation="Horizontal" Spacing="6"
+                                HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="False">
+                      <TextBlock Name="LblAtualizacaoDisponivel" FontSize="12"
+                                 Foreground="{DynamicResource AccentText}"
+                                 Cursor="Hand" TextDecorations="Underline"
+                                 PointerReleased="AbrirNovaVersao_PointerReleased" />
+                      <Button Name="BtnDispensarAtualizacao" Classes="icone" Width="20" Height="20" Padding="0"
+                              ToolTip.Tip="{DynamicResource Update.Dismiss}"
+                              AutomationProperties.Name="{DynamicResource Update.Dismiss}"
+                              Click="DispensarAtualizacao_Click">
+                        <Path Classes="line-icon" Width="9" Height="9" Stroke="{DynamicResource TextSecondary}"
+                              Data="{StaticResource IconeFechar}" />
+                      </Button>
                     </StackPanel>
                     <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8"
                                 HorizontalAlignment="Right" VerticalAlignment="Center">

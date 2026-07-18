@@ -261,6 +261,16 @@ Repaginação completa da interface, preservando todas as funcionalidades:
   logo após conectar) ficou de fora: sincroniza a credencial em si, mas as
   datas de cópia permanecem uma informação só local, específica do
   dispositivo, sem tentar reconciliar entre local e banco a cada cópia.
+- Aviso de nova versão: novo item "Verificar atualizações" no menu de
+  configurações (desligado por padrão) consulta a release mais recente do
+  GitHub e, se houver uma versão mais nova que a instalada, mostra um aviso
+  discreto e dispensável na barra inferior do cofre, com link direto para a
+  página de releases — sem baixar nada automaticamente. A consulta é uma
+  simples leitura pública da API do GitHub, sem enviar nenhum dado além
+  dela mesma, e falhas de rede são ignoradas silenciosamente, sem nunca
+  interromper o uso do cofre. Dispensar o aviso lembra a versão dispensada
+  (guardada nas preferências) para não repetir o mesmo aviso a cada
+  abertura do cofre.
 
 ## Em andamento
 
@@ -279,15 +289,6 @@ Em desenvolvimento no branch `feature/chromiumExt`:
 ## Planejado
 
 Ideias e melhorias consideradas para versões futuras, agrupadas por prioridade:
-
-### Média prioridade
-
-#### Aviso de nova versão
-
-- Checagem opcional de novas versões contra as releases do GitHub.
-- Desligada por padrão e sem envio de qualquer dado além da própria consulta.
-- Aviso discreto na interface, sem download automático.
-- Nunca interromper o uso do cofre por causa de atualização.
 
 ### Baixa prioridade
 
@@ -412,13 +413,12 @@ criptografia anterior) e de uma camada inteira de métodos de busca/contagem em
 ## Ordem sugerida de execução
 
 1. Conclusão da extensão de navegador (em andamento).
-2. Aviso de nova versão.
-3. Anexos criptografados.
-4. Organização avançada com etiquetas.
-5. Templates de credenciais.
-6. Sincronização criptografada de ponta a ponta.
-7. macOS.
-8. Aplicativo móvel.
+2. Anexos criptografados.
+3. Organização avançada com etiquetas.
+4. Templates de credenciais.
+5. Sincronização criptografada de ponta a ponta.
+6. macOS.
+7. Aplicativo móvel.
 
 ## Como sugerir
 

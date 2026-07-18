@@ -106,6 +106,11 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
   salvas. Datas de criação e edição, que já existiam no cofre local,
   passam a ser migradas e persistidas também para bancos de dados
   conectados (SQLite, PostgreSQL, MySQL/MariaDB e SQL Server).
+- Aviso de nova versão: item "Verificar atualizações" no menu de
+  configurações (desligado por padrão) consulta a release mais recente do
+  GitHub e mostra um aviso discreto e dispensável na barra inferior quando
+  há uma versão mais nova, com link para a página de releases — sem
+  download automático e sem enviar nada além da própria consulta.
 
 ### Corrigido
 - O painel de detalhes agora flutua sobre a lista de senhas em vez de
