@@ -160,8 +160,21 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
   incluindo, sem rodeios, que a chave mestra fica em memória comum do
   processo enquanto o cofre está aberto, sem proteção contra dump de
   memória ou swap/hibernação.
+- Banco de dados externo ganhou colunas para URL, categoria, tipo de
+  credencial e campos extras, histórico de senhas anteriores, favorito e
+  fixado — campos que já sincronizavam pela pasta cifrada, mas ficavam de
+  fora do banco. A conexão a banco de dados externo passa a ser apresentada
+  como recurso self-hosted/compartilhado, não mais como sincronização
+  pessoal.
 
 ### Corrigido
+- Três bugs na escrita espelhada com banco de dados externo: a exclusão
+  lógica de uma credencial era revertida para "não excluída" a cada nova
+  gravação espelhada; as datas de atualização e de exclusão não eram
+  gravadas no banco por esse caminho; e o `INSERT` desse caminho usava uma
+  lista de colunas mais estreita do que os parâmetros realmente vinculados,
+  então itens criados enquanto espelhados ficavam com data de criação e
+  atualização nulas no banco.
 - O painel de detalhes agora flutua sobre a lista de senhas em vez de
   espremê-la: antes, abrir os detalhes de uma credencial podia esconder por
   completo as colunas de força e de ações de todas as linhas, sem rolagem e

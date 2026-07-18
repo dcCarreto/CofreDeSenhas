@@ -307,6 +307,104 @@ public class RepositorioSenhaBancoTests : IDisposable
         Assert.Empty(await new RepositorioSenhaBanco(_cfg).ListarTodosAsync());
     }
 
+    [Fact]
+    public async Task Adicionar_PersisteUrlCategoriaTipoFavoritoEFixadoEntreInstancias()
+    {
+        var repo = new RepositorioSenhaBanco(_cfg);
+        var senha = NovaSenha("banco.com", "u", "s");
+        senha.Url = "https://banco.com/login";
+        senha.Categoria = Categoria.Finance;
+        senha.Tipo = TipoCredencial.Cartao;
+        senha.Favorito = true;
+        senha.Fixado = true;
+        await repo.AdicionarAsync(senha);
+
+        var todas = await new RepositorioSenhaBanco(_cfg).ListarTodosAsync();
+
+        Assert.Single(todas);
+        Assert.Equal("https://banco.com/login", todas[0].Url);
+        Assert.Equal(Categoria.Finance, todas[0].Categoria);
+        Assert.Equal(TipoCredencial.Cartao, todas[0].Tipo);
+        Assert.True(todas[0].Favorito);
+        Assert.True(todas[0].Fixado);
+    }
+
+    [Fact]
+    public async Task Adicionar_PersisteCamposExtrasCifradosEntreInstancias()
+    {
+        var repo = new RepositorioSenhaBanco(_cfg);
+        var senha = NovaSenha("banco.com", "u", "s");
+        senha.CamposExtras["cvv"] = _criptografia.Criptografar("123");
+        await repo.AdicionarAsync(senha);
+
+        var todas = await new RepositorioSenhaBanco(_cfg).ListarTodosAsync();
+
+        Assert.Single(todas);
+        Assert.Equal("123", _criptografia.Descriptografar(todas[0].CamposExtras["cvv"]));
+    }
+
+    [Fact]
+    public async Task Adicionar_PersisteHistoricoEntreInstancias()
+    {
+        var repo = new RepositorioSenhaBanco(_cfg);
+        var senha = NovaSenha("banco.com", "u", "s");
+        senha.Historico.Add(new HistoricoSenha { SenhaHash = _criptografia.Criptografar("antiga"), DataAlteracao = DateTime.UtcNow });
+        await repo.AdicionarAsync(senha);
+
+        var todas = await new RepositorioSenhaBanco(_cfg).ListarTodosAsync();
+
+        Assert.Single(todas);
+        var anterior = Assert.Single(todas[0].Historico);
+        Assert.Equal("antiga", _criptografia.Descriptografar(anterior.SenhaHash));
+    }
+
+    [Fact]
+    public async Task GravarPorChave_InsereComUrlCategoriaTipoFavoritoEFixado()
+    {
+        var repo = new RepositorioSenhaBanco(_cfg);
+        var senha = NovaSenha("wifi.com", "u", "s");
+        senha.Url = "https://wifi.com";
+        senha.Categoria = Categoria.Work;
+        senha.Tipo = TipoCredencial.WiFi;
+        senha.Favorito = true;
+        senha.Fixado = true;
+        await repo.GravarPorChaveAsync(senha);
+
+        var todas = await new RepositorioSenhaBanco(_cfg).ListarTodosAsync();
+
+        Assert.Single(todas);
+        Assert.Equal("https://wifi.com", todas[0].Url);
+        Assert.Equal(Categoria.Work, todas[0].Categoria);
+        Assert.Equal(TipoCredencial.WiFi, todas[0].Tipo);
+        Assert.True(todas[0].Favorito);
+        Assert.True(todas[0].Fixado);
+    }
+
+    [Fact]
+    public async Task GravarPorChave_AtualizarPreservaDataAtualizacaoEExcluidoENovosCampos()
+    {
+        var repo = new RepositorioSenhaBanco(_cfg);
+        var senha = NovaSenha("site.com", "u", "v1");
+        await repo.GravarPorChaveAsync(senha);
+
+        var atualizada = NovaSenha("site.com", "u", "v2");
+        atualizada.NaLixeira = true;
+        atualizada.DataExclusao = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        atualizada.DataAtualizacao = new DateTime(2026, 1, 2, 0, 0, 0, DateTimeKind.Utc);
+        atualizada.Favorito = true;
+        atualizada.Fixado = true;
+        await repo.GravarPorChaveAsync(atualizada);
+
+        var todas = await new RepositorioSenhaBanco(_cfg).ListarLixeiraAsync();
+
+        Assert.Single(todas);
+        Assert.True(todas[0].NaLixeira);
+        Assert.Equal(atualizada.DataExclusao, todas[0].DataExclusao);
+        Assert.Equal(atualizada.DataAtualizacao, todas[0].DataAtualizacao);
+        Assert.True(todas[0].Favorito);
+        Assert.True(todas[0].Fixado);
+    }
+
     private async Task<long> ContarLinhas(string sql)
     {
         await using var con = _bd.CriarConexao(_cfg);

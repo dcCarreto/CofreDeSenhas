@@ -7,8 +7,8 @@ namespace GerenciadorDeSenhas.Repositorios
 {
     public class RepositorioSenhaBanco : IRepositorioSenha
     {
-        private const string ColunasInsert = "usuario, senha, dominio, descricao, totp, etiquetas, codigos_recuperacao, excluido, data_criacao, data_atualizacao";
-        private const string ParametrosInsert = "@usuario, @senha, @dominio, @descricao, @totp, @etiquetas, @codigos_recuperacao, @excluido, @data_criacao, @data_atualizacao";
+        private const string ColunasInsert = "usuario, senha, dominio, descricao, totp, etiquetas, codigos_recuperacao, excluido, data_criacao, data_atualizacao, url, categoria, tipo, campos_extras, historico, favorito, fixado";
+        private const string ParametrosInsert = "@usuario, @senha, @dominio, @descricao, @totp, @etiquetas, @codigos_recuperacao, @excluido, @data_criacao, @data_atualizacao, @url, @categoria, @tipo, @campos_extras, @historico, @favorito, @fixado";
 
         private readonly ConexaoBanco _cfg;
         private readonly ServicoBancoDados _bd = new();
@@ -34,13 +34,15 @@ namespace GerenciadorDeSenhas.Repositorios
         {
             if (_carregado) return;
 
+            await _bd.GarantirColunasAsync(_cfg);
+
             _senhas = new List<Senha>();
             _mapa.Clear();
 
             await using var con = await AbrirConexaoAsync();
 
             await using var cmd = con.CreateCommand();
-            cmd.CommandText = $"SELECT id, usuario, senha, dominio, descricao, totp, etiquetas, codigos_recuperacao, excluido, data_exclusao, data_criacao, data_atualizacao, data_ultima_copia_senha, data_ultima_copia_usuario, data_ultima_copia_totp FROM {_tabela}";
+            cmd.CommandText = $"SELECT id, usuario, senha, dominio, descricao, totp, etiquetas, codigos_recuperacao, excluido, data_exclusao, data_criacao, data_atualizacao, data_ultima_copia_senha, data_ultima_copia_usuario, data_ultima_copia_totp, url, categoria, tipo, campos_extras, historico, favorito, fixado FROM {_tabela}";
 
             await using var leitor = await cmd.ExecuteReaderAsync();
             while (await leitor.ReadAsync())
@@ -51,11 +53,17 @@ namespace GerenciadorDeSenhas.Repositorios
                     NomeServico = leitor["dominio"] is string dominio ? dominio : "",
                     Usuario = (string)leitor["usuario"],
                     SenhaHash = (string)leitor["senha"],
+                    Url = leitor[ServicoBancoDados.ColunaUrl] is string url ? url : null,
                     Notas = leitor[ServicoBancoDados.ColunaDescricao] is string descricao ? descricao : null,
                     TotpSegredo = leitor[ServicoBancoDados.ColunaTotp] is string totp ? totp : null,
                     Etiquetas = DesserializarEtiquetas(leitor[ServicoBancoDados.ColunaEtiquetas]),
                     CodigosRecuperacao = DesserializarCodigosRecuperacao(leitor[ServicoBancoDados.ColunaCodigosRecuperacao]),
-                    Categoria = Categoria.Other,
+                    Categoria = DesserializarCategoria(leitor[ServicoBancoDados.ColunaCategoria]),
+                    Tipo = DesserializarTipo(leitor[ServicoBancoDados.ColunaTipo]),
+                    CamposExtras = DesserializarCamposExtras(leitor[ServicoBancoDados.ColunaCamposExtras]),
+                    Historico = DesserializarHistorico(leitor[ServicoBancoDados.ColunaHistorico]),
+                    Favorito = DesserializarBool(leitor[ServicoBancoDados.ColunaFavorito]),
+                    Fixado = DesserializarBool(leitor[ServicoBancoDados.ColunaFixado]),
                     NaLixeira = Convert.ToBoolean(leitor["excluido"]),
                     DataExclusao = DesserializarData(leitor[ServicoBancoDados.ColunaDataExclusao]),
                     DataCriacao = DesserializarData(leitor[ServicoBancoDados.ColunaDataCriacao]) ?? DateTime.UtcNow,
@@ -115,7 +123,7 @@ namespace GerenciadorDeSenhas.Repositorios
             await using var con = await AbrirConexaoAsync();
 
             await using var cmd = con.CreateCommand();
-            cmd.CommandText = $"UPDATE {_tabela} SET usuario = @usuario, senha = @senha, dominio = @dominio, descricao = @descricao, totp = @totp, etiquetas = @etiquetas, codigos_recuperacao = @codigos_recuperacao, data_atualizacao = @data_atualizacao WHERE id = @id";
+            cmd.CommandText = $"UPDATE {_tabela} SET usuario = @usuario, senha = @senha, dominio = @dominio, descricao = @descricao, totp = @totp, etiquetas = @etiquetas, codigos_recuperacao = @codigos_recuperacao, data_atualizacao = @data_atualizacao, url = @url, categoria = @categoria, tipo = @tipo, campos_extras = @campos_extras, historico = @historico, favorito = @favorito, fixado = @fixado WHERE id = @id";
             PreencherCampos(cmd, senha);
             Parametro(cmd, "@id", id);
             await cmd.ExecuteNonQueryAsync();
@@ -126,10 +134,17 @@ namespace GerenciadorDeSenhas.Repositorios
                 existente.NomeServico = senha.NomeServico;
                 existente.Usuario = senha.Usuario;
                 existente.SenhaHash = senha.SenhaHash;
+                existente.Url = senha.Url;
                 existente.Notas = senha.Notas;
                 existente.TotpSegredo = senha.TotpSegredo;
                 existente.Etiquetas = senha.Etiquetas;
                 existente.CodigosRecuperacao = senha.CodigosRecuperacao;
+                existente.Categoria = senha.Categoria;
+                existente.Tipo = senha.Tipo;
+                existente.CamposExtras = senha.CamposExtras;
+                existente.Historico = senha.Historico;
+                existente.Favorito = senha.Favorito;
+                existente.Fixado = senha.Fixado;
                 existente.DataAtualizacao = senha.DataAtualizacao;
             }
         }
@@ -322,19 +337,27 @@ namespace GerenciadorDeSenhas.Repositorios
             cmd.Transaction = tx;
             if (id.HasValue)
             {
-                cmd.CommandText = $"UPDATE {_tabela} SET senha = @senha, descricao = @descricao, totp = @totp, etiquetas = @etiquetas, codigos_recuperacao = @codigos_recuperacao, excluido = @excluido WHERE id = @id";
+                cmd.CommandText = $"UPDATE {_tabela} SET senha = @senha, descricao = @descricao, totp = @totp, etiquetas = @etiquetas, codigos_recuperacao = @codigos_recuperacao, excluido = @excluido, data_atualizacao = @data_atualizacao, data_exclusao = @data_exclusao, url = @url, categoria = @categoria, tipo = @tipo, campos_extras = @campos_extras, historico = @historico, favorito = @favorito, fixado = @fixado WHERE id = @id";
                 Parametro(cmd, "@senha", senha.SenhaHash);
                 Parametro(cmd, "@descricao", senha.Notas);
                 Parametro(cmd, "@totp", senha.TotpSegredo);
                 Parametro(cmd, "@etiquetas", SerializarEtiquetas(senha.Etiquetas));
                 Parametro(cmd, "@codigos_recuperacao", SerializarCodigosRecuperacao(senha.CodigosRecuperacao));
-                Parametro(cmd, "@excluido", false);
+                Parametro(cmd, "@excluido", senha.NaLixeira);
+                Parametro(cmd, "@data_atualizacao", SerializarData(senha.DataAtualizacao));
+                Parametro(cmd, "@data_exclusao", SerializarData(senha.DataExclusao));
+                Parametro(cmd, "@url", senha.Url);
+                Parametro(cmd, "@categoria", SerializarInt((int)senha.Categoria));
+                Parametro(cmd, "@tipo", SerializarInt((int)senha.Tipo));
+                Parametro(cmd, "@campos_extras", SerializarCamposExtras(senha.CamposExtras));
+                Parametro(cmd, "@historico", SerializarHistorico(senha.Historico));
+                Parametro(cmd, "@favorito", SerializarBool(senha.Favorito));
+                Parametro(cmd, "@fixado", SerializarBool(senha.Fixado));
                 Parametro(cmd, "@id", id.Value);
             }
             else
             {
-                cmd.CommandText = $"INSERT INTO {_tabela} (usuario, senha, dominio, descricao, totp, etiquetas, codigos_recuperacao, excluido) " +
-                                  "VALUES (@usuario, @senha, @dominio, @descricao, @totp, @etiquetas, @codigos_recuperacao, @excluido)";
+                cmd.CommandText = $"INSERT INTO {_tabela} ({ColunasInsert}) VALUES ({ParametrosInsert})";
                 PreencherCampos(cmd, senha);
             }
             await cmd.ExecuteNonQueryAsync();
@@ -349,9 +372,16 @@ namespace GerenciadorDeSenhas.Repositorios
             Parametro(cmd, "@totp", senha.TotpSegredo);
             Parametro(cmd, "@etiquetas", SerializarEtiquetas(senha.Etiquetas));
             Parametro(cmd, "@codigos_recuperacao", SerializarCodigosRecuperacao(senha.CodigosRecuperacao));
-            Parametro(cmd, "@excluido", false);
+            Parametro(cmd, "@excluido", senha.NaLixeira);
             Parametro(cmd, "@data_criacao", SerializarData(senha.DataCriacao));
             Parametro(cmd, "@data_atualizacao", SerializarData(senha.DataAtualizacao));
+            Parametro(cmd, "@url", senha.Url);
+            Parametro(cmd, "@categoria", SerializarInt((int)senha.Categoria));
+            Parametro(cmd, "@tipo", SerializarInt((int)senha.Tipo));
+            Parametro(cmd, "@campos_extras", SerializarCamposExtras(senha.CamposExtras));
+            Parametro(cmd, "@historico", SerializarHistorico(senha.Historico));
+            Parametro(cmd, "@favorito", SerializarBool(senha.Favorito));
+            Parametro(cmd, "@fixado", SerializarBool(senha.Fixado));
         }
 
         private static string? SerializarEtiquetas(List<string> etiquetas) =>
@@ -374,6 +404,58 @@ namespace GerenciadorDeSenhas.Repositorios
                 return new List<CodigoRecuperacao>();
             }
         }
+
+        private static string? SerializarCamposExtras(Dictionary<string, string> campos) =>
+            campos.Count == 0 ? null : JsonSerializer.Serialize(campos);
+
+        private static Dictionary<string, string> DesserializarCamposExtras(object? valor)
+        {
+            if (valor is not string texto || string.IsNullOrWhiteSpace(texto))
+                return new Dictionary<string, string>();
+
+            try
+            {
+                return JsonSerializer.Deserialize<Dictionary<string, string>>(texto) ?? new Dictionary<string, string>();
+            }
+            catch
+            {
+                return new Dictionary<string, string>();
+            }
+        }
+
+        private static string? SerializarHistorico(List<HistoricoSenha> historico) =>
+            historico.Count == 0 ? null : JsonSerializer.Serialize(historico);
+
+        private static List<HistoricoSenha> DesserializarHistorico(object? valor)
+        {
+            if (valor is not string texto || string.IsNullOrWhiteSpace(texto))
+                return new List<HistoricoSenha>();
+
+            try
+            {
+                return JsonSerializer.Deserialize<List<HistoricoSenha>>(texto) ?? new List<HistoricoSenha>();
+            }
+            catch
+            {
+                return new List<HistoricoSenha>();
+            }
+        }
+
+        private static string SerializarInt(int valor) => valor.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+        private static string SerializarBool(bool valor) => valor ? "1" : "0";
+
+        private static bool DesserializarBool(object? valor) => valor is string texto && texto == "1";
+
+        private static Categoria DesserializarCategoria(object? valor) =>
+            valor is string texto && int.TryParse(texto, out var numero) && Enum.IsDefined(typeof(Categoria), numero)
+                ? (Categoria)numero
+                : Categoria.Other;
+
+        private static TipoCredencial DesserializarTipo(object? valor) =>
+            valor is string texto && int.TryParse(texto, out var numero) && Enum.IsDefined(typeof(TipoCredencial), numero)
+                ? (TipoCredencial)numero
+                : TipoCredencial.Login;
 
         private static string? SerializarData(DateTime? data) =>
             data?.ToString("O", System.Globalization.CultureInfo.InvariantCulture);

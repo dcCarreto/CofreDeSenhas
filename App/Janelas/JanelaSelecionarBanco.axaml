@@ -40,6 +40,10 @@
       </Border>
 
       <StackPanel Margin="24,18,24,10" Spacing="14">
+        <TextBlock Text="{DynamicResource Db.SelectExplanation}"
+                   FontSize="12"
+                   Foreground="{DynamicResource TextSecondary}"
+                   TextWrapping="Wrap" />
         <TextBlock Text="{DynamicResource Db.ChooseType}"
                    FontSize="12"
                    Foreground="{DynamicResource TextSecondary}" />

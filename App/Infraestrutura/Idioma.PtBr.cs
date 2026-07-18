@@ -45,6 +45,7 @@ namespace CofreDeSenhas
             ("Settings.SectionData", "DADOS"),
             ("Settings.ImportCsv", "Importar de CSV / outro gerenciador..."),
             ("Settings.ConnectDatabase", "Conectar banco de dados..."),
+            ("Settings.ConnectDatabaseTooltip", "Recurso self-hosted/compartilhado — para sincronizar só os seus próprios dispositivos, use a Sincronização por pasta."),
             ("Settings.DisconnectDatabase", "Desconectar do banco"),
             ("Settings.EnableWindowsHello", "Ativar Windows Hello..."),
             ("Settings.DisableWindowsHello", "Desativar Windows Hello"),
@@ -343,6 +344,7 @@ namespace CofreDeSenhas
             ("Qr.SheetWarning2", "Guarde em local seguro e offline."),
 
             ("Db.SelectTitle", "Conectar banco de dados"),
+            ("Db.SelectExplanation", "Recurso para uso self-hosted ou compartilhado: conecta o cofre a um banco de dados próprio, útil para um servidor pessoal ou para compartilhar acesso com outras pessoas de confiança. Para sincronizar só os seus próprios dispositivos, sem manter um banco de dados, use a Sincronização por pasta compartilhada no menu de configurações."),
             ("Db.ChooseType", "Escolha o tipo de banco de dados para conectar."),
             ("Db.ConnectionTitle", "Conexão"),
             ("Db.ConnectProviderTitle", "Conectar - {0}"),
@@ -365,7 +367,7 @@ namespace CofreDeSenhas
             ("Db.ConnectionFailed", "Falha na conexão: {0}"),
             ("Db.CannotConnect", "Não foi possível conectar: {0}"),
             ("Db.FeatureUnavailable", "Recurso indisponível nesta sessão."),
-            ("Db.ConnectedMessage", "Conectado ao banco de dados e sincronizado com o cofre local.\n\n{0}"),
+            ("Db.ConnectedMessage", "Conectado ao banco de dados — os dados passam a ser espelhados com este banco compartilhado.\n\n{0}"),
             ("Db.ConnectError", "Erro ao conectar: {0}"),
 
             ("Message.LoadError", "Erro ao carregar: {0}"),

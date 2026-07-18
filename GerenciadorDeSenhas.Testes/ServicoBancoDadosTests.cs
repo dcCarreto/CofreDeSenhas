@@ -95,6 +95,43 @@ public class ServicoBancoDadosTests : IDisposable
         Assert.True(await ColunaExiste("totp"));
     }
 
+    [Theory]
+    [InlineData("url")]
+    [InlineData("categoria")]
+    [InlineData("tipo")]
+    [InlineData("campos_extras")]
+    [InlineData("historico")]
+    [InlineData("favorito")]
+    [InlineData("fixado")]
+    public async Task GarantirColunas_AdicionaCamposDoFechamentoDeLacunaEmTabelaAntiga(string coluna)
+    {
+        await using (var con = _bd.CriarConexao(_sqlite))
+        {
+            await con.OpenAsync();
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = "CREATE TABLE CofreDeSenhas (id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                              "usuario TEXT NOT NULL, senha TEXT NOT NULL, dominio TEXT, " +
+                              "excluido INTEGER NOT NULL DEFAULT 0)";
+            await cmd.ExecuteNonQueryAsync();
+        }
+        Assert.False(await ColunaExiste(coluna));
+
+        await _bd.GarantirColunasAsync(_sqlite);
+
+        Assert.True(await ColunaExiste(coluna));
+    }
+
+    [Fact]
+    public async Task GarantirColunas_ChamadaDuasVezesNaoFalha()
+    {
+        await _bd.CriarTabelaAsync(_sqlite);
+
+        await _bd.GarantirColunasAsync(_sqlite);
+        await _bd.GarantirColunasAsync(_sqlite);
+
+        Assert.True(await ColunaExiste("url"));
+    }
+
     private async Task<bool> ColunaExiste(string coluna)
     {
         await using var con = _bd.CriarConexao(_sqlite);

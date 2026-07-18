@@ -371,6 +371,17 @@ Repaginação completa da interface, preservando todas as funcionalidades:
   de rede, pasta de sincronização ou banco de dados comprometidos) e o que
   fica deliberadamente fora de escopo (SO comprometido, perda da senha
   mestra sem recuperação possível, engenharia social).
+- Fechada a lacuna de campos entre cofre local, pasta de sincronização e
+  banco de dados externo: o banco ganhou colunas para URL, categoria, tipo
+  de credencial e campos extras, histórico de senhas anteriores, favorito e
+  fixado — os mesmos campos que já sincronizavam pela pasta cifrada, mas
+  ficavam de fora do banco. De quebra, corrigidos três bugs existentes na
+  escrita espelhada: exclusão lógica sendo revertida para "não excluído" a
+  cada gravação espelhada, e as datas de atualização/exclusão não sendo
+  gravadas no banco por esse mesmo caminho. A conexão a banco de dados
+  externo passa a ser apresentada como recurso self-hosted/compartilhado,
+  não mais como sincronização pessoal — esse papel é da sincronização por
+  pasta cifrada.
 
 ## Em andamento
 
@@ -394,17 +405,12 @@ Ideias e melhorias consideradas para versões futuras, agrupadas por prioridade:
 
 #### Consolidação da sincronização
 
-- Unificar as duas vias de sincronização (banco de dados externo e pasta
-  cifrada) em uma só, pensada para uso pessoal multi-dispositivo. A
-  sincronização por pasta cifrada segue como principal, por não depender de
-  infraestrutura externa; a conexão a banco de dados externo é reposicionada
-  como recurso separado, voltado a uso self-hosted/compartilhado, não mais
-  como "sincronização pessoal".
-- Reduzir os campos hoje "só locais, não sincronizam" (etiquetas, fixar no
-  topo, tipo de credencial, datas de cópia, anexos), unificando o esquema de
-  dados salvo entre cofre local, pasta de sincronização e banco de dados,
-  para evitar divergência de informação entre dispositivos à medida que a
-  sincronização avança.
+- Unificar o modelo de conflito das duas vias de sincronização: substituir a
+  mesclagem "local sempre vence" usada hoje na conexão a banco de dados pelo
+  mesmo motor de "edição mais recente" já usado pela pasta cifrada, dando ao
+  banco uma identidade estável por credencial (hoje inexistente — o
+  pareamento é só por nome de serviço + usuário, e o banco nem tem uma
+  coluna própria de identificador).
 
 #### Reforço de segurança
 
