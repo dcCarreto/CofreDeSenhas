@@ -1,4 +1,7 @@
+using System.Runtime.CompilerServices;
 using Avalonia;
+
+[assembly: InternalsVisibleTo("App.Testes")]
 
 namespace CofreDeSenhas
 {

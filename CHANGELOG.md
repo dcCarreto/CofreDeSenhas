@@ -86,6 +86,11 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
   sem foco em nenhuma). O menu de configurações ganhou os itens
   "Bloquear agora" e, numa nova seção "Ajuda", "Atalhos de teclado...",
   que abre uma folha consultável com todas as combinações.
+- Suíte de testes automatizados de interface (`App.Testes`, com
+  Avalonia.Headless), cobrindo desbloqueio do cofre, criação e edição de
+  credencial, cópia de senha/usuário com aviso de limpeza automática e o
+  atalho `Ctrl+L` de bloqueio imediato. Roda junto com o restante da suíte
+  no CI, em Windows e Linux.
 
 ### Corrigido
 - O painel de detalhes agora flutua sobre a lista de senhas em vez de

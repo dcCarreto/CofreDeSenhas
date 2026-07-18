@@ -222,6 +222,18 @@ Repaginação completa da interface, preservando todas as funcionalidades:
   consultável (menu de configurações → "Atalhos de teclado...") lista todas
   as combinações. Nenhum atalho usa Insert/Caps Lock (modificadores padrão de
   leitores de tela como NVDA e JAWS) nem combinações reservadas pelo sistema.
+- Testes automatizados de interface: novo projeto `App.Testes`, com
+  Avalonia.Headless, cobrindo os fluxos críticos da UI sem precisar de tela —
+  desbloqueio do cofre com senha certa e errada, criação e edição de
+  credencial, cópia de senha e de usuário pela lista (com aviso de limpeza
+  automática) e o atalho `Ctrl+L` de bloqueio imediato. Passou a rodar junto
+  com o `dotnet test` da solução, então já está coberto pelo CI existente em
+  Windows e Linux a cada push, sem passo extra no workflow. Bloqueio
+  automático por tempo (`MonitorInatividade`) ficou fora desta rodada por
+  depender do relógio real, sem um relógio injetável para simular a espera
+  em teste; troca de idioma foi coberta diretamente pelo evento global de
+  `Idioma`, sem passar pelo menu (evita gravar preferência de idioma no
+  perfil real durante o teste).
 
 ## Em andamento
 
@@ -242,14 +254,6 @@ Em desenvolvimento no branch `feature/chromiumExt`:
 Ideias e melhorias consideradas para versões futuras, agrupadas por prioridade:
 
 ### Média prioridade
-
-#### Testes automatizados de interface
-
-- Adotar Avalonia.Headless para testar os fluxos críticos da interface:
-  desbloqueio, criação e edição de credencial, cópia, bloqueio automático e
-  troca de tema/idioma.
-- Integrar ao CI existente (Windows e Linux).
-- Reduzir a dependência de verificação manual a cada mudança visual.
 
 #### Modo privacidade
 
@@ -407,16 +411,15 @@ criptografia anterior) e de uma camada inteira de métodos de busca/contagem em
 ## Ordem sugerida de execução
 
 1. Conclusão da extensão de navegador (em andamento).
-2. Testes automatizados de interface.
-3. Modo privacidade.
-4. Histórico operacional da credencial.
-5. Aviso de nova versão.
-6. Anexos criptografados.
-7. Organização avançada com etiquetas.
-8. Templates de credenciais.
-9. Sincronização criptografada de ponta a ponta.
-10. macOS.
-11. Aplicativo móvel.
+2. Modo privacidade.
+3. Histórico operacional da credencial.
+4. Aviso de nova versão.
+5. Anexos criptografados.
+6. Organização avançada com etiquetas.
+7. Templates de credenciais.
+8. Sincronização criptografada de ponta a ponta.
+9. macOS.
+10. Aplicativo móvel.
 
 ## Como sugerir
 
