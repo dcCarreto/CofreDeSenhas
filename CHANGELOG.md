@@ -119,6 +119,15 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
   credencial em definitivo limpa os anexos junto. Exportar/importar o
   cofre (`.gsenhas`) inclui os anexos. Ficam sempre só no dispositivo
   local, sem sincronizar para bancos de dados conectados.
+- Organização avançada com etiquetas: etiquetas passam a valer para
+  qualquer categoria (não só "Outro"), com múltiplas por credencial, via
+  um novo campo "Etiquetas" sempre visível nas telas de criação, edição e
+  detalhes. Novo filtro de etiquetas na barra de ferramentas combina com o
+  filtro de categoria e com os já existentes (favoritos, auditoria).
+  Cabeçalhos da lista (Serviço, Usuário, Categoria, Força) ficam clicáveis
+  para ordenar por qualquer um deles, com seta indicando coluna e sentido
+  ativos. Novo botão "Fixar no topo" em cada linha mantém credenciais
+  importantes sempre nas primeiras posições, independente da ordenação.
 
 ### Corrigido
 - O painel de detalhes agora flutua sobre a lista de senhas em vez de

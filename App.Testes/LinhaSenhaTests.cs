@@ -20,6 +20,7 @@ namespace App.Testes
                 s => null,
                 s => { },
                 s => { },
+                s => { },
                 s => Task.CompletedTask,
                 (s, nome) => Task.CompletedTask,
                 onRegistrarCopia);

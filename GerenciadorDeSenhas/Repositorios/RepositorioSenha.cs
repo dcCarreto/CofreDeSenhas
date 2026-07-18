@@ -58,6 +58,7 @@ namespace GerenciadorDeSenhas.Repositorios
             existente.Notas = senha.Notas;
             existente.TotpSegredo = senha.TotpSegredo;
             existente.Favorito = senha.Favorito;
+            existente.Fixado = senha.Fixado;
             existente.DataAtualizacao = DateTime.UtcNow;
         }
 

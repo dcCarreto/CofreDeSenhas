@@ -166,6 +166,29 @@ public class ServicoSenhaTests : IDisposable
     }
 
     [Fact]
+    public async Task MarcarComoFixadoAsync_FixaSenhaNoTopo()
+    {
+        var senha = await _servico.CriarSenhaAsync("Gmail", "user@gmail.com", "Senha@123456", Categoria.Personal);
+
+        await _servico.MarcarComoFixadoAsync(senha.Id);
+        var atualizada = await ObterAsync(senha.Id);
+
+        Assert.True(atualizada?.Fixado);
+    }
+
+    [Fact]
+    public async Task RemoverFixacaoAsync_RemoveFixacao()
+    {
+        var senha = await _servico.CriarSenhaAsync("Gmail", "user@gmail.com", "Senha@123456", Categoria.Personal);
+        await _servico.MarcarComoFixadoAsync(senha.Id);
+
+        await _servico.RemoverFixacaoAsync(senha.Id);
+        var atualizada = await ObterAsync(senha.Id);
+
+        Assert.False(atualizada?.Fixado);
+    }
+
+    [Fact]
     public async Task RegistrarCopiaAsync_GravaDataDoCampoSemAlterarDataAtualizacao()
     {
         var senha = await _servico.CriarSenhaAsync("Gmail", "user@gmail.com", "Senha@123456", Categoria.Personal);

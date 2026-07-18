@@ -98,11 +98,11 @@
                   AutomationProperties.Name="{DynamicResource Entry.Category}"
                   AutomationProperties.IsRequiredForForm="True" />
 
-        <TextBlock Name="LblCategoriaPersonalizada" Text="{DynamicResource Entry.CustomCategory}" IsVisible="False"
-                   FontSize="12" Foreground="{DynamicResource TextSecondary}" />
-        <TextBox Name="TxtCategoriaPersonalizada" Classes="campo" IsVisible="False"
-                 AutomationProperties.Name="{DynamicResource Entry.CustomCategory}"
-                 Watermark="{DynamicResource Entry.CustomCategoryWatermark}" Margin="0,0,0,14" />
+        <TextBlock Text="{DynamicResource Entry.TagsOptional}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
+        <TextBox Name="TxtEtiquetas" Classes="campo"
+                 AutomationProperties.Name="{DynamicResource Entry.TagsOptional}"
+                 AutomationProperties.HelpText="{DynamicResource A11y.OptionalField}"
+                 Watermark="{DynamicResource Entry.TagsWatermark}" Margin="0,0,0,14" />
 
         <TextBlock Text="{DynamicResource Entry.UrlOptional}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
         <TextBox Name="TxtUrl" Classes="campo" Margin="0,0,0,14"

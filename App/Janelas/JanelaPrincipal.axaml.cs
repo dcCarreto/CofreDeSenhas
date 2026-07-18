@@ -25,6 +25,7 @@ namespace CofreDeSenhas.Janelas
     public partial class JanelaPrincipal : Window
     {
         private enum ColunaTabela { Servico, Usuario, Categoria, Data, Acoes }
+        private enum ColunaOrdenacao { Servico, Usuario, Categoria, Forca }
 
         private IServicoSenha _servicoSenha;
         private IServicoSenha _servicoSenhaLocal;
@@ -55,6 +56,7 @@ namespace CofreDeSenhas.Janelas
         private bool _somenteFavoritos;
         private bool _somenteRecentes;
         private bool _ordenacaoDescendente;
+        private ColunaOrdenacao _colunaOrdenacao = ColunaOrdenacao.Servico;
         private bool _navColapsada;
         private bool _naLixeira;
         private bool _modoPrivacidade;
@@ -69,7 +71,7 @@ namespace CofreDeSenhas.Janelas
         private double _larguraUsuario = 240;
         private double _larguraCategoria = 108;
         private double _larguraData = 92;
-        private double _larguraAcoes = 170;
+        private double _larguraAcoes = 200;
         private ColunaTabela? _colunaEmRedimensionamento;
         private ColunaTabela? _colunaDireitaEmRedimensionamento;
         private double _inicioRedimensionamentoX;
@@ -81,7 +83,7 @@ namespace CofreDeSenhas.Janelas
         private const double LarguraMinimaUsuario = 160;
         private const double LarguraMinimaCategoria = 86;
         private const double LarguraMinimaData = 78;
-        private const double LarguraMinimaAcoes = 170;
+        private const double LarguraMinimaAcoes = 200;
 
         public JanelaPrincipal(IServicoSenha servicoSenha, byte[] chaveMestra, IServicoCriptografia? criptografia = null,
             IRepositorioSenha? repositorioLocal = null, Action? aoBloquear = null)
@@ -100,8 +102,10 @@ namespace CofreDeSenhas.Janelas
             Acessibilidade.RegistrarAnunciador(this, LblAnuncioLeitorTela);
             ConfigurarAcessibilidadeLeitorTela();
 
-            CmbCategoria.ItemsSource = ConstruirFiltrosOrganizacao(Array.Empty<Senha>());
+            CmbCategoria.ItemsSource = ConstruirFiltrosCategoria();
             CmbCategoria.SelectedIndex = 0;
+            CmbEtiqueta.ItemsSource = ConstruirFiltrosEtiqueta(Array.Empty<Senha>());
+            CmbEtiqueta.SelectedIndex = 0;
 
             Gerador.SolicitouSalvar += Gerador_SolicitouSalvar;
             Gerador.ShowHeader = false;
@@ -380,7 +384,7 @@ namespace CofreDeSenhas.Janelas
             double larguraDisponivel = GridCabecalhoTabela.Bounds.Width;
             double fixo = 42 + 24 + 6 + 6 + 6 + 6;
 
-            _larguraAcoes = Math.Clamp(larguraDisponivel * 0.17, LarguraMinimaAcoes, 190);
+            _larguraAcoes = Math.Clamp(larguraDisponivel * 0.17, LarguraMinimaAcoes, 220);
             _larguraCategoria = Math.Clamp(larguraDisponivel * 0.13, LarguraMinimaCategoria, 132);
             _larguraData = Math.Clamp(larguraDisponivel * 0.11, LarguraMinimaData, 118);
 
@@ -747,7 +751,7 @@ namespace CofreDeSenhas.Janelas
 
             foreach (var senha in lista)
             {
-                var linha = new LinhaSenha(senha, ObterSenhaPlain, ObterTotpPlain, FavoritarToggle, EditarSenha,
+                var linha = new LinhaSenha(senha, ObterSenhaPlain, ObterTotpPlain, FavoritarToggle, FixarToggle, EditarSenha,
                     ExcluirSenhaAsync, RenomearServicoAsync, RegistrarCopiaLinhaAsync);
                 linha.DefinirLargurasColunas(_larguraServico, _larguraUsuario, _larguraCategoria, _larguraData, _larguraAcoes);
                 linha.DefinirModoPrivacidade(_modoPrivacidade);
@@ -1068,9 +1072,8 @@ namespace CofreDeSenhas.Janelas
             if (PainelLista == null) return;
 
             var termo = (TxtBusca.Text ?? "").Trim();
-            var filtro = CmbCategoria.SelectedItem as FiltroOrganizacao;
-            var categoriaFiltro = filtro?.Categoria;
-            var etiquetaFiltro = filtro?.Etiqueta;
+            var categoriaFiltro = (CmbCategoria.SelectedItem as FiltroOrganizacao)?.Categoria;
+            var etiquetaFiltro = (CmbEtiqueta.SelectedItem as FiltroOrganizacao)?.Etiqueta;
 
             var filtradas = _senhasAtuais
                 .Where(s => string.IsNullOrEmpty(termo) ||
@@ -1089,11 +1092,38 @@ namespace CofreDeSenhas.Janelas
                     .OrderByDescending(s => s.DataAtualizacao)
                     .ThenByDescending(s => s.DataCriacao)
                     .ToList()
-                : (_ordenacaoDescendente
-                    ? filtradas.OrderByDescending(s => s.NomeServico, StringComparer.CurrentCultureIgnoreCase).ToList()
-                    : filtradas.OrderBy(s => s.NomeServico, StringComparer.CurrentCultureIgnoreCase).ToList());
+                : OrdenarPorColuna(filtradas);
+
+            filtradas = filtradas.OrderByDescending(s => s.Fixado).ToList();
 
             AtualizarLista(filtradas);
+        }
+
+        private List<Senha> OrdenarPorColuna(List<Senha> lista) => _colunaOrdenacao switch
+        {
+            ColunaOrdenacao.Usuario => _ordenacaoDescendente
+                ? lista.OrderByDescending(s => s.Usuario, StringComparer.CurrentCultureIgnoreCase).ToList()
+                : lista.OrderBy(s => s.Usuario, StringComparer.CurrentCultureIgnoreCase).ToList(),
+            ColunaOrdenacao.Categoria => _ordenacaoDescendente
+                ? lista.OrderByDescending(RotuloOrdenacaoCategoria, StringComparer.CurrentCultureIgnoreCase).ToList()
+                : lista.OrderBy(RotuloOrdenacaoCategoria, StringComparer.CurrentCultureIgnoreCase).ToList(),
+            ColunaOrdenacao.Forca => _ordenacaoDescendente
+                ? lista.OrderByDescending(NivelForcaDe).ToList()
+                : lista.OrderBy(NivelForcaDe).ToList(),
+            _ => _ordenacaoDescendente
+                ? lista.OrderByDescending(s => s.NomeServico, StringComparer.CurrentCultureIgnoreCase).ToList()
+                : lista.OrderBy(s => s.NomeServico, StringComparer.CurrentCultureIgnoreCase).ToList()
+        };
+
+        private static string RotuloOrdenacaoCategoria(Senha s) =>
+            s.Categoria == Categoria.Other && s.Etiquetas.Count > 0
+                ? s.Etiquetas[0]
+                : CategoriasUI.Rotulo(s.Categoria);
+
+        private int NivelForcaDe(Senha s)
+        {
+            var plain = ObterSenhaPlain(s);
+            return string.IsNullOrEmpty(plain) ? -1 : ForcaSenha.Calcular(plain);
         }
 
         private bool SenhaTemProblema(Senha senha, CategoriaRelatorioSeguranca categoria) => categoria switch
@@ -1141,38 +1171,46 @@ namespace CofreDeSenhas.Janelas
 
         private void AtualizarFiltroOrganizacao()
         {
-            if (CmbCategoria == null)
+            if (CmbCategoria == null || CmbEtiqueta == null)
                 return;
 
-            var selecionado = CmbCategoria.SelectedItem as FiltroOrganizacao;
-            var filtros = ConstruirFiltrosOrganizacao(_senhasAtuais);
-            CmbCategoria.ItemsSource = filtros;
+            AtualizarComboFiltro(CmbCategoria, ConstruirFiltrosCategoria());
+            AtualizarComboFiltro(CmbEtiqueta, ConstruirFiltrosEtiqueta(_senhasAtuais));
+        }
+
+        private static void AtualizarComboFiltro(ComboBox combo, List<FiltroOrganizacao> filtros)
+        {
+            var selecionado = combo.SelectedItem as FiltroOrganizacao;
+            combo.ItemsSource = filtros;
 
             if (selecionado != null)
             {
                 var indice = filtros.FindIndex(f => f.MesmaSelecao(selecionado));
                 if (indice >= 0)
                 {
-                    CmbCategoria.SelectedIndex = indice;
+                    combo.SelectedIndex = indice;
                     return;
                 }
             }
 
-            CmbCategoria.SelectedIndex = 0;
+            combo.SelectedIndex = 0;
         }
 
-        private static List<FiltroOrganizacao> ConstruirFiltrosOrganizacao(IEnumerable<Senha> senhas)
+        private static List<FiltroOrganizacao> ConstruirFiltrosCategoria()
         {
             var filtros = new List<FiltroOrganizacao> { FiltroOrganizacao.Todas() };
             var rotulos = CategoriasUI.Rotulos;
             for (int i = 0; i < rotulos.Length; i++)
                 filtros.Add(FiltroOrganizacao.ParaCategoria(rotulos[i], (Categoria)i));
 
-            var rotulosCategorias = new HashSet<string>(rotulos, StringComparer.OrdinalIgnoreCase);
-            var categoriasPersonalizadas = senhas.Where(s => s.Categoria == Categoria.Other);
-            foreach (var etiqueta in Etiquetas.Distintas(categoriasPersonalizadas))
-                if (!rotulosCategorias.Contains(etiqueta))
-                    filtros.Add(FiltroOrganizacao.ParaEtiqueta(etiqueta));
+            return filtros;
+        }
+
+        private static List<FiltroOrganizacao> ConstruirFiltrosEtiqueta(IEnumerable<Senha> senhas)
+        {
+            var filtros = new List<FiltroOrganizacao> { FiltroOrganizacao.Todas() };
+            foreach (var etiqueta in Etiquetas.Distintas(senhas))
+                filtros.Add(FiltroOrganizacao.ParaEtiqueta(etiqueta));
 
             return filtros;
         }
@@ -1461,12 +1499,51 @@ namespace CofreDeSenhas.Janelas
             FiltrarSenhas();
         }
 
+        private void OrdenarColuna_PointerPressed(object? sender, PointerPressedEventArgs e)
+        {
+            if (_naLixeira || sender is not Control { Tag: string tag } ||
+                !Enum.TryParse<ColunaOrdenacao>(tag, out var coluna))
+                return;
+
+            if (_colunaOrdenacao == coluna)
+            {
+                _ordenacaoDescendente = !_ordenacaoDescendente;
+            }
+            else
+            {
+                _colunaOrdenacao = coluna;
+                _ordenacaoDescendente = false;
+            }
+            _somenteRecentes = false;
+
+            AtualizarNavegacao();
+            FiltrarSenhas();
+            e.Handled = true;
+        }
+
         private void AtualizarNavegacao()
         {
             DefinirNavAtivo(BtnNavCofre, !_naLixeira && !_somenteFavoritos && !_somenteRecentes);
             DefinirNavAtivo(BtnNavFavoritas, !_naLixeira && _somenteFavoritos);
             DefinirNavAtivo(BtnNavRecentes, !_naLixeira && _somenteRecentes);
             DefinirNavAtivo(BtnNavLixeira, _naLixeira);
+            AtualizarSetasOrdenacao();
+        }
+
+        private void AtualizarSetasOrdenacao()
+        {
+            var seta = _ordenacaoDescendente ? "▼" : "▲";
+            AtualizarSetaColuna(SetaOrdenacaoServico, ColunaOrdenacao.Servico, seta);
+            AtualizarSetaColuna(SetaOrdenacaoUsuario, ColunaOrdenacao.Usuario, seta);
+            AtualizarSetaColuna(SetaOrdenacaoCategoria, ColunaOrdenacao.Categoria, seta);
+            AtualizarSetaColuna(SetaOrdenacaoForca, ColunaOrdenacao.Forca, seta);
+        }
+
+        private void AtualizarSetaColuna(TextBlock rotulo, ColunaOrdenacao coluna, string seta)
+        {
+            bool ativa = !_somenteRecentes && !_naLixeira && _colunaOrdenacao == coluna;
+            rotulo.IsVisible = ativa;
+            rotulo.Text = ativa ? seta : "";
         }
 
         private static void DefinirNavAtivo(Button botao, bool ativo)
@@ -1490,9 +1567,7 @@ namespace CofreDeSenhas.Janelas
             TxtDetalheUrl.Text = senha.Url ?? "";
             TxtDetalheNotas.Text = senha.Notas ?? "";
 
-            TxtDetalheCategoriaPersonalizada.Text = senha.Categoria == Categoria.Other && senha.Etiquetas.Count > 0
-                ? senha.Etiquetas[0]
-                : "";
+            TxtDetalheEtiquetas.Text = Etiquetas.Formatar(senha.Etiquetas);
             CmbDetalheCategoria.ItemsSource = CategoriasUI.Rotulos;
             CmbDetalheCategoria.SelectedIndex = (int)senha.Categoria;
 
@@ -1551,28 +1626,22 @@ namespace CofreDeSenhas.Janelas
             ToolTip.SetTip(BtnDetalheRevelar, Idioma.Texto(_senhaDetalheVisivel ? "Row.HidePassword" : "Row.RevealPassword"));
         }
 
-        private void CategoriaDetalhes_Alterada(object? sender, SelectionChangedEventArgs e) =>
-            AtualizarCampoCategoriaPersonalizadaDetalhes();
-
-        private void AtualizarCampoCategoriaPersonalizadaDetalhes()
-        {
-            bool visivel = (Categoria)Math.Max(0, CmbDetalheCategoria.SelectedIndex) == Categoria.Other;
-            PainelDetalheCategoriaPersonalizada.IsVisible = visivel;
-            if (!visivel)
-                TxtDetalheCategoriaPersonalizada.Text = "";
-        }
-
-        private (Categoria categoria, List<string> categoriasPersonalizadas) LerCategoriaDetalhes()
+        private (Categoria categoria, List<string> etiquetas) LerCategoriaDetalhes()
         {
             var categoria = (Categoria)Math.Max(0, CmbDetalheCategoria.SelectedIndex);
-            if (categoria != Categoria.Other)
-                return (categoria, new List<string>());
+            var etiquetas = Etiquetas.Analisar(TxtDetalheEtiquetas.Text);
 
-            var texto = TxtDetalheCategoriaPersonalizada.Text;
-            if (CategoriasUI.TentarObterCategoria(texto, out var existente))
-                return (existente, new List<string>());
+            if (categoria == Categoria.Other)
+            {
+                var indice = etiquetas.FindIndex(e => CategoriasUI.TentarObterCategoria(e, out _));
+                if (indice >= 0)
+                {
+                    CategoriasUI.TentarObterCategoria(etiquetas[indice], out categoria);
+                    etiquetas.RemoveAt(indice);
+                }
+            }
 
-            return (Categoria.Other, Etiquetas.Normalizar(new[] { texto ?? "" }));
+            return (categoria, etiquetas);
         }
 
         private void AtualizarTotpDetalhes()
@@ -1683,7 +1752,7 @@ namespace CofreDeSenhas.Janelas
             try
             {
                 var id = _senhaDetalhe.Id;
-                var (categoria, categoriasPersonalizadas) = LerCategoriaDetalhes();
+                var (categoria, etiquetas) = LerCategoriaDetalhes();
                 await _servicoSenha.AtualizarSenhaAsync(
                     id,
                     servico,
@@ -1692,7 +1761,7 @@ namespace CofreDeSenhas.Janelas
                     categoria,
                     string.IsNullOrWhiteSpace(TxtDetalheUrl.Text) ? null : TxtDetalheUrl.Text,
                     string.IsNullOrWhiteSpace(TxtDetalheNotas.Text) ? null : TxtDetalheNotas.Text,
-                    categoriasPersonalizadas);
+                    etiquetas);
 
                 await _servicoSenha.PersistirAsync();
                 await CarregarSenhasAsync();
@@ -1797,6 +1866,23 @@ namespace CofreDeSenhas.Janelas
             {
                 await CaixaMensagem.MostrarAsync(this,
                     Idioma.Formatar("Message.FavoriteError", ex.Message),
+                    Idioma.Texto("Common.Error"), TipoMensagem.Erro);
+            }
+        }
+
+        private async void FixarToggle(Senha s)
+        {
+            try
+            {
+                if (s.Fixado) await _servicoSenha.RemoverFixacaoAsync(s.Id);
+                else await _servicoSenha.MarcarComoFixadoAsync(s.Id);
+                await _servicoSenha.PersistirAsync();
+                await CarregarSenhasAsync();
+            }
+            catch (Exception ex)
+            {
+                await CaixaMensagem.MostrarAsync(this,
+                    Idioma.Formatar("Message.PinError", ex.Message),
                     Idioma.Texto("Common.Error"), TipoMensagem.Erro);
             }
         }

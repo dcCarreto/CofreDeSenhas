@@ -22,6 +22,7 @@ namespace CofreDeSenhas.Controles
         private readonly Func<Senha, string?> _obterSenhaPlain;
         private readonly Func<Senha, string?> _obterTotpPlain;
         private readonly Action<Senha> _onFavoritar;
+        private readonly Action<Senha> _onFixar;
         private readonly Action<Senha> _onEditar;
         private readonly Func<Senha, Task> _onExcluir;
         private readonly Func<Senha, string, Task> _onRenomearServico;
@@ -55,6 +56,7 @@ namespace CofreDeSenhas.Controles
         private Border[] _segmentosForca = Array.Empty<Border>();
         private Button _btnOlho = null!;
         private Button _btnCopiar = null!;
+        private Button _btnFixar = null!;
         private Button? _btnTotp;
         private DispatcherTimer? _timerFeedbackUsuario;
 
@@ -100,7 +102,7 @@ namespace CofreDeSenhas.Controles
         }
 
         public LinhaSenha(Senha senha, Func<Senha, string?> obterSenhaPlain,
-            Func<Senha, string?> obterTotpPlain, Action<Senha> onFavoritar, Action<Senha> onEditar,
+            Func<Senha, string?> obterTotpPlain, Action<Senha> onFavoritar, Action<Senha> onFixar, Action<Senha> onEditar,
             Func<Senha, Task> onExcluir, Func<Senha, string, Task> onRenomearServico,
             Func<Senha, TipoCampoCopiado, Task>? onRegistrarCopia = null)
         {
@@ -108,6 +110,7 @@ namespace CofreDeSenhas.Controles
             _obterSenhaPlain = obterSenhaPlain;
             _obterTotpPlain = obterTotpPlain;
             _onFavoritar = onFavoritar;
+            _onFixar = onFixar;
             _onEditar = onEditar;
             _onExcluir = onExcluir;
             _onRenomearServico = onRenomearServico;
@@ -154,7 +157,7 @@ namespace CofreDeSenhas.Controles
         {
             _grid = new Grid
             {
-                ColumnDefinitions = new ColumnDefinitions("42,140,6,240,6,108,6,92,6,170"),
+                ColumnDefinitions = new ColumnDefinitions("42,140,6,240,6,108,6,92,6,200"),
                 Margin = new Thickness(4, 0, 8, 0)
             };
 
@@ -227,6 +230,13 @@ namespace CofreDeSenhas.Controles
             _btnCopiar = CriarBotaoAcao(Icone("IconeCopiar"), Idioma.Texto("Row.CopyPassword"));
             _btnCopiar.Click += async (s, e) => await CopiarAsync();
 
+            _btnFixar = new Button { Content = CriarIconePin(_senha.Fixado) };
+            _btnFixar.Classes.Add("icone-linha");
+            var dicaFixar = Idioma.Texto(_senha.Fixado ? "Row.UnpinEntry" : "Row.PinEntry");
+            ToolTip.SetTip(_btnFixar, dicaFixar);
+            AutomationProperties.SetName(_btnFixar, dicaFixar);
+            _btnFixar.Click += (s, e) => _onFixar(_senha);
+
             var btnEditar = CriarBotaoAcao(Icone("IconeEditar"), Idioma.Texto("Row.EditEntry"));
             btnEditar.Click += (s, e) => _onEditar(_senha);
 
@@ -256,6 +266,7 @@ namespace CofreDeSenhas.Controles
                 _acoes.Children.Add(_btnTotp);
             }
 
+            _acoes.Children.Add(_btnFixar);
             _acoes.Children.Add(btnEditar);
             _acoes.Children.Add(btnExcluir);
             Grid.SetColumn(_acoes, 9);
@@ -454,7 +465,7 @@ namespace CofreDeSenhas.Controles
             var temEtiquetas = _senha.Categoria == Categoria.Other && _senha.Etiquetas.Count > 0;
             var textoChip = temEtiquetas ? TextoResumoEtiquetas(_senha.Etiquetas) : textoCategoria;
             _textoCategoriaReal = textoChip;
-            var dica = temEtiquetas
+            var dica = _senha.Etiquetas.Count > 0
                 ? Idioma.Formatar("Row.TagsTooltip", Etiquetas.Formatar(_senha.Etiquetas), textoCategoria)
                 : Idioma.Formatar("Row.CategoryTooltip", textoCategoria);
 
@@ -710,6 +721,19 @@ namespace CofreDeSenhas.Controles
             StrokeLineCap = PenLineCap.Round,
             StrokeJoin = PenLineJoin.Round,
             Fill = favorito ? Tema.Pincel(Tema.FavoriteColor) : Brushes.Transparent
+        };
+
+        private static AvaloniaPath CriarIconePin(bool fixado) => new()
+        {
+            Data = Icone("IconeFixar"),
+            Width = 14,
+            Height = 14,
+            Stretch = Stretch.Uniform,
+            Stroke = Tema.Pincel(fixado ? Tema.AccentPrimary : Tema.TextSecondary),
+            StrokeThickness = 1.6,
+            StrokeLineCap = PenLineCap.Round,
+            StrokeJoin = PenLineJoin.Round,
+            Fill = fixado ? Tema.Pincel(Tema.AccentPrimary) : Brushes.Transparent
         };
 
         private static void DefinirIcone(Button botao, Geometry data)

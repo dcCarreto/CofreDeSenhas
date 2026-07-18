@@ -24,6 +24,7 @@ namespace GerenciadorDeSenhas.Modelos
         public List<AnexoSenha> Anexos { get; set; } = new();
 
         public bool Favorito { get; set; }
+        public bool Fixado { get; set; }
 
         public bool NaLixeira { get; set; }
         public DateTime? DataExclusao { get; set; }

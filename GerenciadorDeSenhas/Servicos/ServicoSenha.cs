@@ -208,6 +208,24 @@ namespace GerenciadorDeSenhas.Servicos
             await _repositorio.AtualizarAsync(senha);
         }
 
+        public async Task MarcarComoFixadoAsync(Guid id)
+        {
+            var senha = await ObterOuFalharAsync(id);
+
+            senha.Fixado = true;
+            senha.DataAtualizacao = DateTime.UtcNow;
+            await _repositorio.AtualizarAsync(senha);
+        }
+
+        public async Task RemoverFixacaoAsync(Guid id)
+        {
+            var senha = await ObterOuFalharAsync(id);
+
+            senha.Fixado = false;
+            senha.DataAtualizacao = DateTime.UtcNow;
+            await _repositorio.AtualizarAsync(senha);
+        }
+
         public async Task RegistrarCopiaAsync(Guid id, TipoCampoCopiado campo)
         {
             await _repositorio.RegistrarCopiaAsync(id, campo);

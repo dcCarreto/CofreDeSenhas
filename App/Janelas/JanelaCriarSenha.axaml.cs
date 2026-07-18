@@ -27,8 +27,6 @@ namespace CofreDeSenhas.Janelas
 
             AtualizarCategorias();
             CmbCategoria.SelectedIndex = (int)Categoria.Personal;
-            CmbCategoria.SelectionChanged += Categoria_Alterada;
-            AtualizarCampoCategoriaPersonalizada();
 
             if (!string.IsNullOrEmpty(senhaGerada))
                 TxtSenha.Text = senhaGerada;
@@ -84,7 +82,7 @@ namespace CofreDeSenhas.Janelas
                     return;
                 }
 
-                var (categoria, categoriasPersonalizadas) = LerCategoria();
+                var (categoria, etiquetas) = LerCategoriaEEtiquetas();
                 await _servicoSenha.CriarSenhaAsync(
                     TxtNomeServico.Text!,
                     TxtUsuario.Text!,
@@ -93,7 +91,7 @@ namespace CofreDeSenhas.Janelas
                     string.IsNullOrWhiteSpace(TxtUrl.Text) ? null : TxtUrl.Text,
                     string.IsNullOrWhiteSpace(TxtNotas.Text) ? null : TxtNotas.Text,
                     string.IsNullOrWhiteSpace(totp) ? null : totp,
-                    categoriasPersonalizadas);
+                    etiquetas);
 
                 await _servicoSenha.PersistirAsync();
                 Close(true);
@@ -133,29 +131,22 @@ namespace CofreDeSenhas.Janelas
             }
         }
 
-        private void Categoria_Alterada(object? sender, SelectionChangedEventArgs e) =>
-            AtualizarCampoCategoriaPersonalizada();
-
-        private void AtualizarCampoCategoriaPersonalizada()
-        {
-            bool visivel = (Categoria)Math.Max(0, CmbCategoria.SelectedIndex) == Categoria.Other;
-            LblCategoriaPersonalizada.IsVisible = visivel;
-            TxtCategoriaPersonalizada.IsVisible = visivel;
-            if (!visivel)
-                TxtCategoriaPersonalizada.Text = "";
-        }
-
-        private (Categoria categoria, List<string> categoriasPersonalizadas) LerCategoria()
+        private (Categoria categoria, List<string> etiquetas) LerCategoriaEEtiquetas()
         {
             var categoria = (Categoria)Math.Max(0, CmbCategoria.SelectedIndex);
-            if (categoria != Categoria.Other)
-                return (categoria, new List<string>());
+            var etiquetas = Etiquetas.Analisar(TxtEtiquetas.Text);
 
-            var texto = TxtCategoriaPersonalizada.Text;
-            if (CategoriasUI.TentarObterCategoria(texto, out var existente))
-                return (existente, new List<string>());
+            if (categoria == Categoria.Other)
+            {
+                var indice = etiquetas.FindIndex(e => CategoriasUI.TentarObterCategoria(e, out _));
+                if (indice >= 0)
+                {
+                    CategoriasUI.TentarObterCategoria(etiquetas[indice], out categoria);
+                    etiquetas.RemoveAt(indice);
+                }
+            }
 
-            return (Categoria.Other, Etiquetas.Normalizar(new[] { texto ?? "" }));
+            return (categoria, etiquetas);
         }
     }
 }

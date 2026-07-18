@@ -36,6 +36,10 @@ namespace GerenciadorDeSenhas.Servicos
 
         Task RemoverDeFavoritoAsync(Guid id);
 
+        Task MarcarComoFixadoAsync(Guid id);
+
+        Task RemoverFixacaoAsync(Guid id);
+
         Task RegistrarCopiaAsync(Guid id, TipoCampoCopiado campo);
 
         Task PersistirAsync();

@@ -291,6 +291,23 @@ Repaginação completa da interface, preservando todas as funcionalidades:
   já que não existe hoje uma coluna dedicada no banco para essa lista —
   os arquivos cifrados em si não são apagados, só a referência pode ficar
   órfã nesse cenário específico.
+- Organização avançada com etiquetas: etiquetas deixam de ser exclusivas da
+  categoria "Outro" — qualquer credencial, em qualquer categoria, pode
+  levar uma ou mais etiquetas, digitadas separadas por vírgula no campo
+  "Etiquetas" que agora aparece sempre nas telas de criação, edição e no
+  painel de detalhes. A barra de ferramentas ganhou um segundo filtro,
+  dedicado a etiquetas, ao lado do filtro de categoria — os dois combinam
+  entre si e com os filtros de favoritos e de auditoria já existentes
+  (ex.: categoria "Trabalho" + etiqueta "urgente" ao mesmo tempo). Os
+  cabeçalhos da lista (Serviço, Usuário, Categoria, Força) ficaram
+  clicáveis para ordenar por qualquer um deles, com uma seta indicando a
+  coluna e o sentido atual; um novo botão "Fixar no topo" em cada linha
+  mantém credenciais importantes sempre nas primeiras posições,
+  independente da ordenação escolhida. Em "Outro", o comportamento
+  existente foi preservado: a primeira etiqueta digitada continua servindo
+  como nome da categoria personalizada exibido na lista. Fixação é local
+  por dispositivo, como os favoritos, sem sincronizar para bancos de dados
+  conectados.
 
 ## Em andamento
 
@@ -322,20 +339,6 @@ visível). Continuam planejados:
 - Melhorar tela de primeiro uso.
 - Melhorar experiência de importação.
 - Melhorar responsividade em telas menores.
-
-#### Organização avançada
-
-Parte já foi entregue: favoritos e navegação por categoria têm seções próprias
-na barra lateral, e o serviço `Etiquetas` já existe — mas só é usado para
-guardar o nome da categoria personalizada em `Outro` (uma etiqueta por item,
-só nessa categoria), não como sistema de múltiplas etiquetas por item em
-qualquer categoria. Continuam planejados:
-
-- Estender etiquetas a credenciais de qualquer categoria, com múltiplas
-  etiquetas por item.
-- Permitir filtros combinados (categoria + etiqueta + estado da auditoria).
-- Permitir ordenação por qualquer coluna da lista.
-- Permitir fixar itens importantes no topo.
 
 #### Manutenção interna
 
@@ -418,11 +421,10 @@ criptografia anterior) e de uma camada inteira de métodos de busca/contagem em
 ## Ordem sugerida de execução
 
 1. Conclusão da extensão de navegador (em andamento).
-2. Organização avançada com etiquetas.
-3. Templates de credenciais.
-4. Sincronização criptografada de ponta a ponta.
-5. macOS.
-6. Aplicativo móvel.
+2. Templates de credenciais.
+3. Sincronização criptografada de ponta a ponta.
+4. macOS.
+5. Aplicativo móvel.
 
 ## Como sugerir
 

@@ -22,6 +22,8 @@
 
   <StreamGeometry x:Key="IconeBuscar">M4 10 A6 6 0 0 0 16 10 A6 6 0 0 0 4 10 Z M14.5 14.5 L20 20</StreamGeometry>
   <StreamGeometry x:Key="IconeFiltro">M4 5 H20 L14 12.5 V18 L10 20 V12.5 Z</StreamGeometry>
+  <StreamGeometry x:Key="IconeEtiqueta">M4 4 H12 L20 12 L12 20 L4 12 Z M7.5 7.5 A1 1 0 0 0 9.5 7.5 A1 1 0 0 0 7.5 7.5 Z</StreamGeometry>
+  <StreamGeometry x:Key="IconeFixar">M9 4 H15 L14.3 9.5 L18 13 H13 V21 L12 22 L11 21 V13 H6 L9.7 9.5 Z</StreamGeometry>
   <StreamGeometry x:Key="IconeOrdenar">M8 16 V4 M4.5 8 L8 4 L11.5 8 M16 8 V20 M12.5 16 L16 20 L19.5 16</StreamGeometry>
   <StreamGeometry x:Key="IconeAuditoria">M12 3 L19 6 V11.5 C19 16.5 16 19.8 12 21 C8 19.8 5 16.5 5 11.5 V6 Z M9 12 L11 14.5 L15.5 9.5</StreamGeometry>
   <StreamGeometry x:Key="IconeNovaSenha">M12 5 V19 M5 12 H19</StreamGeometry>
