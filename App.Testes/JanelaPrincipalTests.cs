@@ -1,8 +1,10 @@
 using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
+using Avalonia.VisualTree;
 using CofreDeSenhas;
 using CofreDeSenhas.Janelas;
+using GerenciadorDeSenhas.Modelos;
 using GerenciadorDeSenhas.Repositorios;
 using GerenciadorDeSenhas.Servicos;
 
@@ -56,6 +58,29 @@ namespace App.Testes
             {
                 Idioma.Definir("pt-BR");
             }
+        }
+
+        [AvaloniaFact]
+        public async Task AtalhoModoPrivacidade_MascaraListaDeCredenciais()
+        {
+            var (servico, chave) = CriarServico();
+            await servico.CriarSenhaAsync("Servico Sensivel", "usuario.sensivel", "SenhaForte123!", Categoria.Personal);
+
+            var janela = new JanelaPrincipal(servico, chave);
+            janela.Show();
+            await TesteUtil.AguardarAsync(() =>
+                janela.GetVisualDescendants().OfType<TextBlock>().Any(t => t.Text == "Servico Sensivel"));
+
+            janela.RaiseEvent(new KeyEventArgs
+            {
+                RoutedEvent = InputElement.KeyDownEvent,
+                Key = Key.H,
+                KeyModifiers = KeyModifiers.Control
+            });
+            await TesteUtil.AguardarAsync(() =>
+                janela.GetVisualDescendants().OfType<TextBlock>().Any(t => t.Text == "••••••••"));
+
+            Assert.DoesNotContain(janela.GetVisualDescendants().OfType<TextBlock>(), t => t.Text == "Servico Sensivel");
         }
     }
 }

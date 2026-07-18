@@ -4,7 +4,7 @@ namespace CofreDeSenhas
 {
     internal static class AtalhosTeclado
     {
-        public enum Acao { Buscar, NovaSenha, AbrirGerador, BloquearAgora, CopiarUsuario, CopiarSenha }
+        public enum Acao { Buscar, NovaSenha, AbrirGerador, BloquearAgora, CopiarUsuario, CopiarSenha, ModoPrivacidade }
 
         public sealed record Atalho(Acao Acao, string ChaveTextoAcao, Key Tecla, bool RequerShift, string[] TeclasExibicao);
 
@@ -16,6 +16,7 @@ namespace CofreDeSenhas
             new Atalho(Acao.BloquearAgora, "Shortcuts.LockNow", Key.L, false, new[] { "Ctrl", "L" }),
             new Atalho(Acao.CopiarUsuario, "Shortcuts.CopyUser", Key.U, true, new[] { "Ctrl", "Shift", "U" }),
             new Atalho(Acao.CopiarSenha, "Shortcuts.CopyPassword", Key.P, true, new[] { "Ctrl", "Shift", "P" }),
+            new Atalho(Acao.ModoPrivacidade, "Shortcuts.PrivacyMode", Key.H, false, new[] { "Ctrl", "H" }),
         };
 
         public static Atalho? Encontrar(Key tecla, KeyModifiers modificadores)

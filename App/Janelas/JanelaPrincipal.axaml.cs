@@ -56,6 +56,7 @@ namespace CofreDeSenhas.Janelas
         private bool _ordenacaoDescendente;
         private bool _navColapsada;
         private bool _naLixeira;
+        private bool _modoPrivacidade;
         private List<Senha> _itensLixeira = new();
         private Senha? _senhaDetalhe;
         private string _senhaDetalhePlain = "";
@@ -103,6 +104,7 @@ namespace CofreDeSenhas.Janelas
             Gerador.ShowHeader = false;
 
             AtualizarBotaoTema();
+            AtualizarBotaoPrivacidade();
             PintarFiltroFavoritos();
             AtualizarNavegacao();
             AtualizarContador();
@@ -171,11 +173,52 @@ namespace CofreDeSenhas.Janelas
                 case AtalhosTeclado.Acao.CopiarSenha:
                     _ = CopiarSenhaLinhaFocadaAsync();
                     break;
+                case AtalhosTeclado.Acao.ModoPrivacidade:
+                    Privacidade_Click(this, new RoutedEventArgs());
+                    break;
             }
             e.Handled = true;
         }
 
         private void BloquearAgora_Click(object? sender, RoutedEventArgs e) => _aoBloquear?.Invoke();
+
+        private void Privacidade_Click(object? sender, RoutedEventArgs e)
+        {
+            _modoPrivacidade = !_modoPrivacidade;
+
+            if (_modoPrivacidade)
+                FecharDetalhes();
+
+            foreach (var linha in _linhasSenha)
+                linha.DefinirModoPrivacidade(_modoPrivacidade);
+
+            AtualizarBotaoPrivacidade();
+            Acessibilidade.Anunciar(this, Idioma.Texto(_modoPrivacidade ? "A11y.PrivacyModeOn" : "A11y.PrivacyModeOff"));
+        }
+
+        private void AtualizarBotaoPrivacidade()
+        {
+            BtnPrivacidade.Content = IconeOlhoPrivacidade(_modoPrivacidade);
+            var dica = Idioma.Texto(_modoPrivacidade ? "Privacy.Disable" : "Privacy.Enable");
+            ToolTip.SetTip(BtnPrivacidade, dica);
+            AutomationProperties.SetName(BtnPrivacidade, dica);
+        }
+
+        private static AvaloniaPath IconeOlhoPrivacidade(bool ativo)
+        {
+            var geo = (Geometry)Application.Current!.FindResource(ativo ? "IconeRevelar" : "IconeOcultar")!;
+            return new AvaloniaPath
+            {
+                Data = geo,
+                Width = 18,
+                Height = 18,
+                Stretch = Stretch.Uniform,
+                Stroke = Tema.Pincel(Tema.TextPrimary),
+                StrokeThickness = 2,
+                StrokeLineCap = PenLineCap.Round,
+                Fill = Brushes.Transparent
+            };
+        }
 
         private async Task CopiarUsuarioLinhaFocadaAsync()
         {
@@ -479,6 +522,7 @@ namespace CofreDeSenhas.Janelas
         private void IdiomaGlobal_Alterado(object? sender, EventArgs e)
         {
             AtualizarBotaoTema();
+            AtualizarBotaoPrivacidade();
             MarcarIdiomaSelecionado();
             AtualizarMenuBiometria();
             AtualizarFiltroOrganizacao();
@@ -642,6 +686,7 @@ namespace CofreDeSenhas.Janelas
                 var linha = new LinhaSenha(senha, ObterSenhaPlain, ObterTotpPlain, FavoritarToggle, EditarSenha,
                     ExcluirSenhaAsync, RenomearServicoAsync);
                 linha.DefinirLargurasColunas(_larguraServico, _larguraUsuario, _larguraCategoria, _larguraData, _larguraAcoes);
+                linha.DefinirModoPrivacidade(_modoPrivacidade);
                 linha.SolicitouDetalhes += Linha_SolicitouDetalhes;
                 linha.GotFocus += (s, e) => _linhaFocada = linha;
 

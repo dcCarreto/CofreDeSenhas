@@ -234,6 +234,18 @@ Repaginação completa da interface, preservando todas as funcionalidades:
   em teste; troca de idioma foi coberta diretamente pelo evento global de
   `Idioma`, sem passar pelo menu (evita gravar preferência de idioma no
   perfil real durante o teste).
+- Modo privacidade: novo botão na barra de título (ao lado do de tema) e
+  atalho `Ctrl+H` que, com um clique, ocultam nome do serviço, usuário,
+  categoria/etiquetas e o avatar de cada credencial na lista, trocando tudo
+  por marcadores neutros — pensado para reduzir o que aparece na tela em
+  ambientes compartilhados. Enquanto ativo, o painel de detalhes é fechado
+  automaticamente, o botão de revelar senha de cada linha fica desabilitado
+  e renomear o serviço direto na lista fica bloqueado, para não vazar dado
+  nenhum por um desses caminhos. É um modo de sessão: começa sempre
+  desativado a cada abertura do cofre, sem gravar preferência em disco. Ao
+  bloquear o cofre — pelo atalho, pelo menu ou por inatividade — a área de
+  transferência agora é sempre limpa no mesmo instante, não só depois do
+  temporizador de limpeza automática.
 
 ## Em andamento
 
@@ -254,20 +266,6 @@ Em desenvolvimento no branch `feature/chromiumExt`:
 Ideias e melhorias consideradas para versões futuras, agrupadas por prioridade:
 
 ### Média prioridade
-
-#### Modo privacidade
-
-- Adicionar botão para ocultar rapidamente informações sensíveis.
-- Permitir ocultar:
-  - lista de credenciais;
-  - usuários;
-  - serviços;
-  - categorias;
-  - URLs.
-- Permitir bloquear o cofre rapidamente.
-- Adicionar atalho de teclado para ativar o modo privacidade.
-- Limpar a área de transferência ao bloquear.
-- Reduzir exposição visual em ambientes compartilhados.
 
 #### Histórico operacional da credencial
 
@@ -411,15 +409,14 @@ criptografia anterior) e de uma camada inteira de métodos de busca/contagem em
 ## Ordem sugerida de execução
 
 1. Conclusão da extensão de navegador (em andamento).
-2. Modo privacidade.
-3. Histórico operacional da credencial.
-4. Aviso de nova versão.
-5. Anexos criptografados.
-6. Organização avançada com etiquetas.
-7. Templates de credenciais.
-8. Sincronização criptografada de ponta a ponta.
-9. macOS.
-10. Aplicativo móvel.
+2. Histórico operacional da credencial.
+3. Aviso de nova versão.
+4. Anexos criptografados.
+5. Organização avançada com etiquetas.
+6. Templates de credenciais.
+7. Sincronização criptografada de ponta a ponta.
+8. macOS.
+9. Aplicativo móvel.
 
 ## Como sugerir
 

@@ -91,6 +91,13 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
   credencial, cópia de senha/usuário com aviso de limpeza automática e o
   atalho `Ctrl+L` de bloqueio imediato. Roda junto com o restante da suíte
   no CI, em Windows e Linux.
+- Modo privacidade: botão na barra de título e atalho `Ctrl+H` ocultam de
+  uma vez o nome do serviço, o usuário, a categoria/etiquetas e o avatar de
+  cada credencial na lista, substituindo tudo por marcadores neutros — para
+  reduzir o que fica visível em ambientes compartilhados. Enquanto ativo,
+  fecha o painel de detalhes, desabilita o botão de revelar senha da linha
+  e bloqueia a renomeação inline do serviço. É um modo de sessão, sem
+  preferência persistida: começa sempre desativado ao abrir o cofre.
 
 ### Corrigido
 - O painel de detalhes agora flutua sobre a lista de senhas em vez de
@@ -120,6 +127,9 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 - O painel de detalhes e as linhas reveladas da lista deixam de reter a senha
   em texto claro além do tempo necessário: fechar o painel ou bloquear o cofre
   limpa qualquer senha exibida.
+- Bloquear o cofre — pelo atalho, pelo menu ou por inatividade — agora
+  limpa a área de transferência na hora, em vez de depender apenas do
+  temporizador de limpeza automática.
 
 ### Alterado
 - Ícones baixados passam a ser guardados em cache no disco (por domínio), evitando

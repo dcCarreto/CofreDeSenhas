@@ -30,6 +30,8 @@ namespace CofreDeSenhas.Controles
         private bool _revelada;
         private bool _editandoServico;
         private bool _salvandoServico;
+        private bool _modoPrivacidade;
+        private string _textoCategoriaReal = "";
         private int _versaoAvatar;
         private int _nivelForca = -1;
         private int _vazamentos = -1;
@@ -40,6 +42,7 @@ namespace CofreDeSenhas.Controles
 
         private TextBlock _lblUsuario = null!;
         private TextBlock _lblServico = null!;
+        private TextBlock _lblCategoria = null!;
         private TextBox _txtServico = null!;
         private Border _avatar = null!;
         private Image _avatarImagem = null!;
@@ -55,6 +58,7 @@ namespace CofreDeSenhas.Controles
         private DispatcherTimer? _timerFeedbackUsuario;
 
         private static readonly Geometry IconeCheck = StreamGeometry.Parse("M5 12 L10 17 L19 7");
+        private const string MascaraPrivacidade = "••••••••";
 
         public Senha Senha => _senha;
 
@@ -78,6 +82,20 @@ namespace CofreDeSenhas.Controles
             _diasSemAtualizacao = item?.DiasSemAtualizacao ?? 0;
             _ocorrenciasSenhaRepetida = item?.OcorrenciasSenhaRepetida ?? 0;
             AtualizarIndicador();
+        }
+
+        public void DefinirModoPrivacidade(bool ativo)
+        {
+            if (_modoPrivacidade == ativo)
+                return;
+
+            _modoPrivacidade = ativo;
+            _revelada = false;
+            _btnOlho.IsEnabled = !ativo;
+
+            RestaurarUsuarioOculto();
+            AtualizarTextoServico();
+            AtualizarTextoCategoria();
         }
 
         public LinhaSenha(Senha senha, Func<Senha, string?> obterSenhaPlain,
@@ -432,6 +450,7 @@ namespace CofreDeSenhas.Controles
             var (chipBg, chipFg, textoCategoria) = InfoCategoria(_senha.Categoria);
             var temEtiquetas = _senha.Categoria == Categoria.Other && _senha.Etiquetas.Count > 0;
             var textoChip = temEtiquetas ? TextoResumoEtiquetas(_senha.Etiquetas) : textoCategoria;
+            _textoCategoriaReal = textoChip;
             var dica = temEtiquetas
                 ? Idioma.Formatar("Row.TagsTooltip", Etiquetas.Formatar(_senha.Etiquetas), textoCategoria)
                 : Idioma.Formatar("Row.CategoryTooltip", textoCategoria);
@@ -444,6 +463,17 @@ namespace CofreDeSenhas.Controles
                 Margin = new Thickness(0, 0, 6, 0)
             };
 
+            _lblCategoria = new TextBlock
+            {
+                Text = textoChip,
+                FontSize = 10,
+                FontWeight = FontWeight.Bold,
+                Foreground = new SolidColorBrush(chipFg),
+                TextTrimming = TextTrimming.CharacterEllipsis,
+                MaxWidth = 86,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+
             var chip = new Border
             {
                 Height = 20,
@@ -452,16 +482,7 @@ namespace CofreDeSenhas.Controles
                 Padding = new Thickness(9, 0),
                 HorizontalAlignment = HorizontalAlignment.Left,
                 MaxWidth = 104,
-                Child = new TextBlock
-                {
-                    Text = textoChip,
-                    FontSize = 10,
-                    FontWeight = FontWeight.Bold,
-                    Foreground = new SolidColorBrush(chipFg),
-                    TextTrimming = TextTrimming.CharacterEllipsis,
-                    MaxWidth = 86,
-                    VerticalAlignment = VerticalAlignment.Center
-                }
+                Child = _lblCategoria
             };
             ToolTip.SetTip(chip, dica);
             AutomationProperties.SetName(chip, dica.Replace('\n', ' '));
@@ -477,6 +498,21 @@ namespace CofreDeSenhas.Controles
             if (_avatar == null || _avatarTexto == null || _avatarImagem == null)
                 return;
 
+            if (_modoPrivacidade)
+            {
+                _versaoAvatar++;
+                _avatar.Background = Tema.Pincel(Tema.TrailInactive);
+                _avatar.BorderThickness = new Thickness(0);
+                _avatarTexto.Text = "•";
+                _avatarTexto.FontSize = TamanhoTextoIcone("•");
+                _avatarTexto.Foreground = Tema.Pincel(Tema.TextSecondary);
+                _avatarTexto.IsVisible = true;
+                _avatarImagem.Source = null;
+                _avatarImagem.IsVisible = false;
+                ToolTip.SetTip(_avatar, MascaraPrivacidade);
+                return;
+            }
+
             var icone = IconesServico.Obter(_senha.NomeServico, _senha.Url);
             _avatar.Background = new SolidColorBrush(icone.Fundo);
             _avatar.BorderThickness = new Thickness(0);
@@ -491,6 +527,15 @@ namespace CofreDeSenhas.Controles
             int versao = ++_versaoAvatar;
             _ = CarregarAvatarServicoAsync(icone, versao);
         }
+
+        private void AtualizarTextoServico()
+        {
+            _lblServico.Text = _modoPrivacidade ? MascaraPrivacidade : _senha.NomeServico;
+            AtualizarAvatarServico();
+        }
+
+        private void AtualizarTextoCategoria() =>
+            _lblCategoria.Text = _modoPrivacidade ? MascaraPrivacidade : _textoCategoriaReal;
 
         private async Task CarregarAvatarServicoAsync(IconeServico icone, int versao)
         {
@@ -521,7 +566,7 @@ namespace CofreDeSenhas.Controles
 
         private void IniciarEdicaoServico()
         {
-            if (_editandoServico || _salvandoServico)
+            if (_editandoServico || _salvandoServico || _modoPrivacidade)
                 return;
 
             _editandoServico = true;
@@ -828,7 +873,7 @@ namespace CofreDeSenhas.Controles
 
         private void RestaurarUsuarioOculto()
         {
-            _lblUsuario.Text = _senha.Usuario;
+            _lblUsuario.Text = _modoPrivacidade ? MascaraPrivacidade : _senha.Usuario;
             _lblUsuario.ClearValue(TextBlock.FontFamilyProperty);
             _lblUsuario.FontWeight = FontWeight.Normal;
             _lblUsuario.Foreground = Tema.Pincel(Tema.TextSecondary);

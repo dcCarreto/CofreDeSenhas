@@ -66,10 +66,16 @@ namespace CofreDeSenhas
             ConfigurarBandeja(desktop);
         }
 
-        private void Bloquear(IClassicDesktopStyleApplicationLifetime desktop)
+        private async void Bloquear(IClassicDesktopStyleApplicationLifetime desktop)
         {
             if (desktop.MainWindow is not JanelaPrincipal cofre)
                 return;
+
+            var clipboard = TopLevel.GetTopLevel(cofre)?.Clipboard;
+            if (clipboard != null)
+            {
+                try { await clipboard.SetTextAsync(string.Empty); } catch { }
+            }
 
             foreach (var janela in desktop.Windows.ToArray())
                 if (janela != cofre)

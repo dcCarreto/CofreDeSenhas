@@ -3,6 +3,7 @@ using Avalonia.Headless.XUnit;
 using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
+using Avalonia.VisualTree;
 using CofreDeSenhas;
 using CofreDeSenhas.Controles;
 using GerenciadorDeSenhas.Modelos;
@@ -62,6 +63,27 @@ namespace App.Testes
             });
 
             Assert.Equal("usuario.linha", texto);
+        }
+
+        [AvaloniaFact]
+        public void DefinirModoPrivacidade_MascaraServicoEUsuarioNaLista()
+        {
+            var senha = new Senha { Id = Guid.NewGuid(), NomeServico = "Servico Privado", Usuario = "usuario.privado", SenhaHash = "irrelevante-para-o-teste" };
+            var (janela, linha) = CriarLinhaEmJanela(senha, "SenhaSecreta123!");
+
+            Assert.NotNull(janela.TextoPorConteudo("Servico Privado"));
+            Assert.NotNull(janela.TextoPorConteudo("usuario.privado"));
+
+            linha.DefinirModoPrivacidade(true);
+
+            Assert.DoesNotContain(janela.GetVisualDescendants().OfType<TextBlock>(), t => t.Text == "Servico Privado");
+            Assert.DoesNotContain(janela.GetVisualDescendants().OfType<TextBlock>(), t => t.Text == "usuario.privado");
+            Assert.True(janela.GetVisualDescendants().OfType<TextBlock>().Count(t => t.Text == "••••••••") >= 2);
+
+            linha.DefinirModoPrivacidade(false);
+
+            Assert.NotNull(janela.TextoPorConteudo("Servico Privado"));
+            Assert.NotNull(janela.TextoPorConteudo("usuario.privado"));
         }
     }
 }

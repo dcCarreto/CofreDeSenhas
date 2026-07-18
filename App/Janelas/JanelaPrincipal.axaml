@@ -165,6 +165,13 @@
                   </MenuFlyout>
                 </Button.Flyout>
               </Button>
+              <Button Name="BtnPrivacidade" Classes="janela"
+                      AutomationProperties.Name="{DynamicResource Privacy.Enable}"
+                      Click="Privacidade_Click">
+                <Path Classes="line-icon" Width="18" Height="18"
+                      Stroke="{DynamicResource TextPrimary}"
+                      Data="{StaticResource IconeOcultar}" />
+              </Button>
               <Button Name="BtnTema" Classes="janela"
                       AutomationProperties.Name="{DynamicResource Theme.Dark}"
                       Click="Tema_Click">
