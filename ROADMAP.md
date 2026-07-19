@@ -408,6 +408,16 @@ Repaginação completa da interface, preservando todas as funcionalidades:
   de chave (Argon2id) desativa o vínculo automaticamente, do mesmo jeito
   que já acontecia com o Windows Hello. Suporte ao Linux fica para depois
   (ver "Planejado"), sem binding .NET pronto para `libfido2` hoje.
+  **Limitação conhecida, ainda sob investigação:** em teste sem nenhuma
+  chave física conectada, a cerimônia do WebAuthn às vezes trava
+  indefinidamente mesmo com um timeout explícito de 60 segundos nas
+  chamadas nativas — sem travar a interface (a correção que trocou as
+  chamadas síncronas da API por suas variantes assíncronas resolveu o
+  travamento da janela), mas sem nunca retornar erro nem sucesso. Não foi
+  possível isolar a causa exata sem um depurador anexado, e o caminho com
+  uma chave física de verdade presente nunca foi exercitado de ponta a
+  ponta nesta rodada — precisa de validação com hardware real antes de
+  considerar o recurso maduro para uso sério.
 
 ## Em andamento
 
