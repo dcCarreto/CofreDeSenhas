@@ -39,6 +39,7 @@ namespace CofreDeSenhas
         private const int TamanhoSalt = 32;
         private const int TamanhoNonce = 12;
         private const int TamanhoTag = 16;
+        private const uint TimeoutCerimoniaMs = 60_000;
 
         private readonly string _caminhoRegistro;
 
@@ -95,12 +96,13 @@ namespace CofreDeSenhas
                     DisplayName = RelyingPartyNome
                 };
 
-                var criacao = api.AuthenticatorMakeCredential(
+                var criacao = await api.AuthenticatorMakeCredentialAsync(
                     rp, usuario, RandomNumberGenerator.GetBytes(TamanhoDesafio),
                     UserVerificationRequirement.Required,
                     AuthenticatorAttachment.CrossPlatform,
                     ResidentKeyRequirement.Discouraged,
                     attestationConveyancePreference: AttestationConveyancePreference.None,
+                    timeoutMilliseconds: TimeoutCerimoniaMs,
                     extensions: new AuthenticationExtensionsClientAttestationInputs
                     {
                         Prf = new PRFAttestationInputs { Eval = new PRFValues { First = salt } }
@@ -113,10 +115,11 @@ namespace CofreDeSenhas
                 var segredo = criacao.ClientExtensionResults.Prf.Results?.First;
                 if (segredo == null)
                 {
-                    var confirmacao = api.AuthenticatorGetAssertion(
+                    var confirmacao = await api.AuthenticatorGetAssertionAsync(
                         RelyingPartyId, RandomNumberGenerator.GetBytes(TamanhoDesafio),
                         UserVerificationRequirement.Required,
                         AuthenticatorAttachment.CrossPlatform,
+                        timeoutMilliseconds: TimeoutCerimoniaMs,
                         allowCredentials: new[] { new PublicKeyCredentialDescriptor(criacao.Id) },
                         extensions: new AuthenticationExtensionsClientAssertionInputs
                         {
@@ -188,10 +191,11 @@ namespace CofreDeSenhas
                 var credencialId = Convert.FromBase64String(registro!.CredentialId!);
                 var salt = Convert.FromBase64String(registro.Salt!);
 
-                var assercao = api.AuthenticatorGetAssertion(
+                var assercao = await api.AuthenticatorGetAssertionAsync(
                     RelyingPartyId, RandomNumberGenerator.GetBytes(TamanhoDesafio),
                     UserVerificationRequirement.Required,
                     AuthenticatorAttachment.CrossPlatform,
+                    timeoutMilliseconds: TimeoutCerimoniaMs,
                     allowCredentials: new[] { new PublicKeyCredentialDescriptor(credencialId) },
                     extensions: new AuthenticationExtensionsClientAssertionInputs
                     {
