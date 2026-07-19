@@ -173,12 +173,6 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
   Uma reconciliação de identidade legada, feita uma única vez por
   dispositivo, evita duplicar credenciais que já estavam pareadas pelo
   modelo antigo de nome de serviço + usuário.
-- Desbloqueio por chave de segurança FIDO2/YubiKey no Windows: novo item
-  "Ativar chave de segurança..." no menu de configurações e na tela de
-  senha mestra, independente do Windows Hello (inalterado). A senha mestra
-  continua sempre disponível como alternativa; trocar a senha mestra ou
-  passar pela migração de derivação de chave desativa o vínculo
-  automaticamente.
 
 ### Corrigido
 - Três bugs na escrita espelhada com banco de dados externo: a exclusão
@@ -225,16 +219,6 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 - Bloquear o cofre — pelo atalho, pelo menu ou por inatividade — agora
   limpa a área de transferência na hora, em vez de depender apenas do
   temporizador de limpeza automática.
-- O desbloqueio por chave de segurança FIDO2/YubiKey deriva a chave do
-  envelope pela extensão PRF do WebAuthn (`HMAC-SHA256(CredRandom, salt)`,
-  determinística por definição), não por hash de uma assinatura — chaves
-  externas tipicamente usam nonce ECDSA aleatório, então uma assinatura
-  hash não daria uma chave estável entre um desbloqueio e outro. Exige
-  verificação de usuário (PIN da chave) obrigatória em todas as cerimônias:
-  a extensão `hmac-secret` do CTAP2 mantém dois segredos distintos por
-  credencial — um para quando há verificação, outro para quando não há —
-  então deixar a exigência inconsistente faria a chave derivada mudar
-  silenciosamente entre o registro e um desbloqueio futuro.
 
 ### Alterado
 - Ícones baixados passam a ser guardados em cache no disco (por domínio), evitando

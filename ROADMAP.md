@@ -392,32 +392,6 @@ Repaginação completa da interface, preservando todas as funcionalidades:
   na primeira sincronização após esta atualização, evita duplicar
   credenciais que já estavam pareadas pelo modelo antigo (nome de serviço +
   usuário).
-- Desbloqueio por chave de segurança FIDO2/YubiKey, no Windows — novo item
-  "Ativar chave de segurança..." no menu de configurações, independente do
-  Windows Hello (que continua exatamente como estava, sem nenhuma
-  alteração). Usa a extensão PRF do WebAuthn (construída sobre a extensão
-  CTAP2 `hmac-secret`) para derivar uma chave simétrica determinística a
-  partir da chave física — o mesmo princípio usado pelo desbloqueio FIDO2
-  do BitLocker e do `systemd-cryptenroll`, e mais robusto do que derivar de
-  uma assinatura, que só é determinística de forma confiável em chaves
-  TPM-backed como o Windows Hello. Exige o PIN da chave física a cada
-  desbloqueio, não só o toque — autenticação de dois fatores de verdade
-  (posse da chave + PIN), fricção deliberada dado o nível de segurança de
-  um desbloqueio de cofre. A senha mestra continua sempre disponível como
-  alternativa; trocar a senha mestra ou passar pela migração de derivação
-  de chave (Argon2id) desativa o vínculo automaticamente, do mesmo jeito
-  que já acontecia com o Windows Hello. Suporte ao Linux fica para depois
-  (ver "Planejado"), sem binding .NET pronto para `libfido2` hoje.
-  **Limitação conhecida, ainda sob investigação:** em teste sem nenhuma
-  chave física conectada, a cerimônia do WebAuthn às vezes trava
-  indefinidamente mesmo com um timeout explícito de 60 segundos nas
-  chamadas nativas — sem travar a interface (a correção que trocou as
-  chamadas síncronas da API por suas variantes assíncronas resolveu o
-  travamento da janela), mas sem nunca retornar erro nem sucesso. Não foi
-  possível isolar a causa exata sem um depurador anexado, e o caminho com
-  uma chave física de verdade presente nunca foi exercitado de ponta a
-  ponta nesta rodada — precisa de validação com hardware real antes de
-  considerar o recurso maduro para uso sério.
 
 ## Em andamento
 
@@ -441,10 +415,13 @@ Ideias e melhorias consideradas para versões futuras, agrupadas por prioridade:
 
 #### Reforço de segurança
 
-- Suporte a chave de hardware (FIDO2/YubiKey) no Linux — o Windows já ganhou
-  esse suporte (ver "Não lançado"). Adiado por enquanto: exigiria bindings
-  próprios para `libfido2`, sem binding .NET pronto hoje, e não há hardware
-  físico disponível para validar o fluxo de ponta a ponta.
+- Suporte a chave de hardware (FIDO2/YubiKey) como alternativa de
+  desbloqueio, cobrindo também o Linux — hoje sem nenhuma opção além da
+  senha mestra, diferente do Windows (Windows Hello). Avaliado e adiado por
+  enquanto: exigiria interop nativo em duas plataformas (`webauthn.dll` no
+  Windows, bindings para `libfido2` no Linux, sem binding .NET pronto hoje)
+  e não há hardware físico disponível para validar o fluxo de ponta a
+  ponta.
 
 ### Novas funcionalidades a avaliar
 
