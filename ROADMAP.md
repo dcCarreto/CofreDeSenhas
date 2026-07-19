@@ -417,11 +417,17 @@ Ideias e melhorias consideradas para versões futuras, agrupadas por prioridade:
 
 - Suporte a chave de hardware (FIDO2/YubiKey) como alternativa de
   desbloqueio, cobrindo também o Linux — hoje sem nenhuma opção além da
-  senha mestra, diferente do Windows (Windows Hello). Avaliado e adiado por
-  enquanto: exigiria interop nativo em duas plataformas (`webauthn.dll` no
-  Windows, bindings para `libfido2` no Linux, sem binding .NET pronto hoje)
-  e não há hardware físico disponível para validar o fluxo de ponta a
-  ponta.
+  senha mestra, diferente do Windows (Windows Hello). Já houve uma
+  tentativa de implementação no Windows (extensão PRF do WebAuthn via
+  `DSInternals.Win32.WebAuthn`/`webauthn.dll`), revertida por instabilidade:
+  a cerimônia de registro/desbloqueio podia ficar pendurada indefinidamente
+  sem lançar erro nem concluir, mesmo depois de corrigir um travamento de UI
+  causado por chamadas síncronas e de adicionar um timeout explícito. Sem
+  hardware físico disponível para diagnosticar a causa raiz ou validar o
+  fluxo de ponta a ponta, o recurso não é seguro o bastante para expor na
+  UI. Precisa de um authenticator físico à mão antes de tentar de novo, além
+  de interop equivalente no Linux (bindings para `libfido2`, sem opção .NET
+  pronta hoje).
 
 ### Novas funcionalidades a avaliar
 
