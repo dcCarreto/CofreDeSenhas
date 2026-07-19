@@ -171,6 +171,9 @@ há muito tempo, tudo localmente e sem enviar nada para fora:
   mestra.
 - Desbloqueio por Windows Hello/biometria no Windows, com ativação por
   dispositivo e senha mestra como fallback.
+- Desbloqueio por chave de segurança FIDO2/YubiKey no Windows, independente
+  do Windows Hello, também por dispositivo e com senha mestra como
+  fallback — exige o PIN da chave a cada desbloqueio.
 - Alteração da senha mestra pelo menu de configurações, com re-criptografia
   automática de todo o cofre e backup com rollback em caso de falha.
 
@@ -255,6 +258,7 @@ Windows Hello:
 | Histórico de senhas | Cada senha anterior é guardada cifrada (AES-256-GCM) como a senha atual e re-cifrada ao alterar a senha mestra; permanece somente no cofre e na exportação |
 | Cofre em banco de dados | Quando conectado a um banco externo, a coluna de senha guarda apenas o texto cifrado (AES-256-GCM); a senha do servidor de banco não é gravada em disco |
 | Windows Hello | Opcional no Windows. A chave do cofre é cifrada (AES-256-GCM) com uma chave derivada da assinatura de uma credencial do Windows Hello (chave privada no TPM); o envelope em `biometria.dat` só pode ser aberto após a autenticação biométrica |
+| Chave de segurança (FIDO2/YubiKey) | Opcional no Windows, independente do Windows Hello. A chave do cofre é cifrada (AES-256-GCM) com uma chave derivada pela extensão PRF do WebAuthn (`HMAC-SHA256(CredRandom, salt)`, construída sobre `hmac-secret` do CTAP2); o envelope em `fido2.dat` exige a chave física e o PIN dela (verificação de usuário obrigatória em toda cerimônia) para ser aberto |
 | Higiene de memória | A chave mestra e sua cópia interna são apagadas da memória (`CryptographicOperations.ZeroMemory`) ao bloquear ou fechar o cofre; o painel de detalhes e as linhas reveladas da lista não retêm a senha em texto claro além do necessário |
 | Local dos dados | Pasta do usuário (`%APPDATA%\GerenciadorSenhas\` no Windows, `~/.config/GerenciadorSenhas/` no Linux), fora do repositório |
 
@@ -512,6 +516,8 @@ em `~/.config/GerenciadorSenhas/` no Linux:
 - `senhas.json.enc`: cofre criptografado com as credenciais.
 - `biometria.dat`: chave do cofre cifrada e vinculada a uma credencial do
   Windows Hello, para desbloqueio biométrico quando ativado neste dispositivo.
+- `fido2.dat`: chave do cofre cifrada e vinculada a uma chave de segurança
+  FIDO2/YubiKey, quando ativado neste dispositivo.
 - `config.json`: preferências da interface (como o tema e o idioma) e o último
   perfil de conexão a banco, sem a senha do servidor.
 - `backups/`: cópias de segurança do cofre.

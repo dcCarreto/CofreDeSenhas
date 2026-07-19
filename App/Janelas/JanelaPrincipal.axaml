@@ -62,6 +62,12 @@
                               Data="{StaticResource IconeWindowsHello}" />
                       </MenuItem.Icon>
                     </MenuItem>
+                    <MenuItem Name="MenuFido2" Header="{DynamicResource Settings.EnableSecurityKey}" Click="Fido2_Click">
+                      <MenuItem.Icon>
+                        <Path Classes="line-icon" Width="16" Height="16" Stroke="{DynamicResource TextSecondary}"
+                              Data="{StaticResource IconeChave}" />
+                      </MenuItem.Icon>
+                    </MenuItem>
                     <MenuItem Name="MenuBloqueio" Header="{DynamicResource Settings.AutoLock}">
                       <MenuItem.Icon>
                         <Path Classes="line-icon" Width="16" Height="16" Stroke="{DynamicResource TextSecondary}"

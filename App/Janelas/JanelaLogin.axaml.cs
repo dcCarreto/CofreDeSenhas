@@ -16,8 +16,10 @@ namespace CofreDeSenhas.Janelas
         private readonly Action<byte[], string?> _aoAutenticar;
         private readonly bool _primeiroAcesso;
         private readonly ServicoDesbloqueioBiometrico _biometria = new();
+        private readonly ServicoDesbloqueioFido2 _fido2 = new();
 
         private BiometriaModo _modoBiometria = BiometriaModo.Desbloquear;
+        private Fido2Modo _modoFido2 = Fido2Modo.Desbloquear;
         private int _tentativas;
 
         public JanelaLogin(AutenticacaoMestra auth, Action<byte[], string?> aoAutenticar)
@@ -63,6 +65,7 @@ namespace CofreDeSenhas.Janelas
             {
                 TxtSenha.Focus();
                 await ConfigurarBotaoBiometriaAsync();
+                await ConfigurarBotaoFido2Async();
             };
         }
 
@@ -111,6 +114,14 @@ namespace CofreDeSenhas.Janelas
                 await AtivarComBiometriaAsync();
             else
                 await DesbloquearComBiometriaAsync();
+        }
+
+        private async void Fido2_Click(object? sender, RoutedEventArgs e)
+        {
+            if (_modoFido2 == Fido2Modo.Ativar)
+                await AtivarComFido2Async();
+            else
+                await DesbloquearComFido2Async();
         }
 
         private void Idioma_Alterado(object? sender, SelectionChangedEventArgs e)
@@ -186,6 +197,7 @@ namespace CofreDeSenhas.Janelas
 
                 await QrBackup.OferecerSalvarAsync(this, senha);
                 await OferecerBiometriaAsync(chave);
+                await OferecerFido2Async(chave);
                 _aoAutenticar(chave, senha);
             }
             else
@@ -247,6 +259,15 @@ namespace CofreDeSenhas.Janelas
                         TipoMensagem.Info);
                 }
 
+                if (_fido2.EstaHabilitado)
+                {
+                    await _fido2.DesabilitarAsync();
+                    await CaixaMensagem.MostrarAsync(this,
+                        Idioma.Texto("Fido2.DisabledAfterKdfUpgrade"),
+                        Idioma.Texto("Fido2.Title"),
+                        TipoMensagem.Info);
+                }
+
                 return novaChave;
             }
             catch
@@ -276,6 +297,125 @@ namespace CofreDeSenhas.Janelas
                 MostrarErro(resultado.Mensagem ?? Idioma.Texto("Biometric.Unavailable"));
 
             TxtSenha.Focus();
+        }
+
+        private async Task DesbloquearComFido2Async()
+        {
+            LblErro.Text = "";
+            BtnFido2.IsEnabled = false;
+            BtnPrincipal.IsEnabled = false;
+
+            var resultado = await _fido2.DesbloquearAsync(this, _auth);
+            if (resultado.Sucesso && resultado.Chave != null)
+            {
+                _aoAutenticar(resultado.Chave, null);
+                return;
+            }
+
+            BtnFido2.IsEnabled = true;
+            BtnPrincipal.IsEnabled = true;
+            await ConfigurarBotaoFido2Async();
+
+            if (!resultado.Cancelado)
+                MostrarErro(resultado.Mensagem ?? Idioma.Texto("Fido2.Unavailable"));
+
+            TxtSenha.Focus();
+        }
+
+        private async Task AtivarComFido2Async()
+        {
+            LblErro.Text = "";
+            var senha = TxtSenha.Text ?? "";
+            if (string.IsNullOrEmpty(senha))
+            {
+                MostrarErro(Idioma.Texto("Login.Error.MasterPasswordRequired"));
+                TxtSenha.Focus();
+                return;
+            }
+
+            var chave = _auth.Autenticar(senha);
+            if (chave == null)
+            {
+                MostrarErro(Idioma.Texto("Qr.ErrorMasterIncorrect"));
+                TxtSenha.SelectAll();
+                TxtSenha.Focus();
+                return;
+            }
+
+            BtnFido2.IsEnabled = false;
+            BtnPrincipal.IsEnabled = false;
+
+            var resultado = await _fido2.HabilitarAsync(this, chave);
+
+            BtnFido2.IsEnabled = true;
+            BtnPrincipal.IsEnabled = true;
+
+            if (resultado.Sucesso)
+            {
+                _aoAutenticar(chave, senha);
+                return;
+            }
+
+            if (!resultado.Cancelado)
+                MostrarErro(resultado.Mensagem ?? Idioma.Texto("Fido2.Unavailable"));
+
+            TxtSenha.Focus();
+        }
+
+        private async Task ConfigurarBotaoFido2Async()
+        {
+            if (_primeiroAcesso || !_fido2.SistemaSuportado)
+            {
+                BtnFido2.IsVisible = false;
+                LblFido2Hint.IsVisible = false;
+                return;
+            }
+
+            if (_fido2.EstaHabilitado)
+                _modoFido2 = Fido2Modo.Desbloquear;
+            else if (await _fido2.PodeConfigurarAsync())
+                _modoFido2 = Fido2Modo.Ativar;
+            else
+            {
+                BtnFido2.IsVisible = false;
+                LblFido2Hint.IsVisible = false;
+                return;
+            }
+
+            BtnFido2.IsVisible = true;
+            AtualizarTextoFido2();
+        }
+
+        private void AtualizarTextoFido2()
+        {
+            bool ativar = _modoFido2 == Fido2Modo.Ativar;
+            LblFido2.Text = Idioma.Texto(ativar ? "Login.EnableSecurityKey" : "Login.SecurityKey");
+            LblFido2Hint.Text = Idioma.Texto("Login.SecurityKeyHint");
+            LblFido2Hint.IsVisible = ativar && BtnFido2.IsVisible;
+            AutomationProperties.SetName(BtnFido2, LblFido2.Text ?? "");
+            AutomationProperties.SetHelpText(BtnFido2, LblFido2Hint.Text ?? "");
+        }
+
+        private async Task OferecerFido2Async(byte[] chave)
+        {
+            if (_fido2.EstaHabilitado || !await _fido2.PodeConfigurarAsync())
+                return;
+
+            var confirmar = await CaixaMensagem.ConfirmarAsync(this,
+                Idioma.Texto("Fido2.EnableOffer"),
+                Idioma.Texto("Fido2.Title"),
+                TipoMensagem.Info);
+            if (!confirmar)
+                return;
+
+            var resultado = await _fido2.HabilitarAsync(this, chave);
+            if (!resultado.Sucesso && !resultado.Cancelado)
+            {
+                await CaixaMensagem.MostrarAsync(this,
+                    resultado.Mensagem ?? Idioma.Texto("Fido2.Unavailable"),
+                    Idioma.Texto("Fido2.Title"),
+                    TipoMensagem.Aviso);
+            }
         }
 
         private async Task AtivarComBiometriaAsync()
@@ -382,6 +522,12 @@ namespace CofreDeSenhas.Janelas
         }
 
         private enum BiometriaModo
+        {
+            Desbloquear,
+            Ativar
+        }
+
+        private enum Fido2Modo
         {
             Desbloquear,
             Ativar

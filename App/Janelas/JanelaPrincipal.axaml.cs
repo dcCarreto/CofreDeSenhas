@@ -35,6 +35,7 @@ namespace CofreDeSenhas.Janelas
         private IRepositorioSenha? _repositorioLocal;
         private ServicoSincronizacao? _servicoSincronizacao;
         private readonly ServicoDesbloqueioBiometrico _biometria = new();
+        private readonly ServicoDesbloqueioFido2 _fido2 = new();
         private readonly ServicoAuditoriaSenha _servicoAuditoria = new();
         private readonly ServicoVazamento _servicoVazamento = new();
         private readonly ServicoExportacao _servicoExportacao = new();
@@ -123,6 +124,7 @@ namespace CofreDeSenhas.Janelas
             AtualizarEstadoConexao(null);
             MarcarIdiomaSelecionado();
             AtualizarMenuBiometria();
+            AtualizarMenuFido2();
 
             _monitor = new MonitorInatividade(this, () => _aoBloquear?.Invoke());
             _monitor.Ajustar(Preferencias.MinutosBloqueio);
@@ -134,6 +136,7 @@ namespace CofreDeSenhas.Janelas
                 MarcarAcessibilidadeSelecionada();
                 ConfigurarAcessibilidadeLeitorTela();
                 AtualizarMenuBiometria();
+                AtualizarMenuFido2();
                 MenuIconesOnline.IsChecked = Preferencias.IconesOnline;
                 MenuHistoricoUso.IsChecked = Preferencias.RegistrarHistoricoUso;
                 MenuVerificarAtualizacoes.IsChecked = Preferencias.VerificarAtualizacoes;
@@ -547,6 +550,7 @@ namespace CofreDeSenhas.Janelas
             AtualizarBotaoPrivacidade();
             MarcarIdiomaSelecionado();
             AtualizarMenuBiometria();
+            AtualizarMenuFido2();
             AtualizarFiltroOrganizacao();
             AtualizarContador();
             AtualizarEstadoConexao(_descricaoConexaoAtual, _falhaReconexaoAtual);
@@ -2557,11 +2561,15 @@ namespace CofreDeSenhas.Janelas
 
             var biometriaEstavaHabilitada = _biometria.EstaHabilitado;
             await _biometria.DesabilitarAsync();
+            var fido2EstavaHabilitado = _fido2.EstaHabilitado;
+            await _fido2.DesabilitarAsync();
             await QrBackup.OferecerSalvarAsync(this, dlg.NovaSenha);
 
             var mensagem = Idioma.Texto("Master.ChangedRestart");
             if (biometriaEstavaHabilitada)
                 mensagem += "\n\n" + Idioma.Texto("Biometric.DisabledAfterMasterChange");
+            if (fido2EstavaHabilitado)
+                mensagem += "\n\n" + Idioma.Texto("Fido2.DisabledAfterMasterChange");
 
             await CaixaMensagem.MostrarAsync(this,
                 mensagem,
@@ -2675,6 +2683,61 @@ namespace CofreDeSenhas.Janelas
             MenuBiometria.Header = Idioma.Texto(_biometria.EstaHabilitado
                 ? "Settings.DisableWindowsHello"
                 : "Settings.EnableWindowsHello");
+        }
+
+        private async void Fido2_Click(object? sender, RoutedEventArgs e)
+        {
+            if (!_fido2.SistemaSuportado)
+            {
+                await CaixaMensagem.MostrarAsync(this,
+                    Idioma.Texto("Fido2.UnsupportedPlatform"),
+                    Idioma.Texto("Fido2.Title"),
+                    TipoMensagem.Aviso);
+                return;
+            }
+
+            if (_fido2.EstaHabilitado)
+            {
+                var confirmar = await CaixaMensagem.ConfirmarAsync(this,
+                    Idioma.Texto("Fido2.DisableConfirm"),
+                    Idioma.Texto("Fido2.Title"));
+                if (!confirmar)
+                    return;
+
+                await _fido2.DesabilitarAsync();
+                AtualizarMenuFido2();
+                await CaixaMensagem.MostrarAsync(this,
+                    Idioma.Texto("Fido2.Disabled"),
+                    Idioma.Texto("Fido2.Title"));
+                return;
+            }
+
+            var resultado = await _fido2.HabilitarAsync(this, _chaveMestra);
+            AtualizarMenuFido2();
+            if (resultado.Sucesso)
+            {
+                await CaixaMensagem.MostrarAsync(this,
+                    Idioma.Texto("Fido2.Enabled"),
+                    Idioma.Texto("Fido2.Title"));
+            }
+            else if (!resultado.Cancelado)
+            {
+                await CaixaMensagem.MostrarAsync(this,
+                    resultado.Mensagem ?? Idioma.Texto("Fido2.Unavailable"),
+                    Idioma.Texto("Fido2.Title"),
+                    TipoMensagem.Aviso);
+            }
+        }
+
+        private void AtualizarMenuFido2()
+        {
+            if (MenuFido2 == null)
+                return;
+
+            MenuFido2.IsVisible = _fido2.SistemaSuportado;
+            MenuFido2.Header = Idioma.Texto(_fido2.EstaHabilitado
+                ? "Settings.DisableSecurityKey"
+                : "Settings.EnableSecurityKey");
         }
 
         private void Bloqueio_Alterado(object? sender, RoutedEventArgs e)

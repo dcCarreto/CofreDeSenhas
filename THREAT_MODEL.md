@@ -89,6 +89,23 @@ substitui, só complementa. Se a chave do cofre muda (troca de senha mestra ou m
 algoritmo de derivação), o vínculo antigo se autodesabilita em vez de continuar concedendo
 acesso com uma chave desatualizada.
 
+### Desbloqueio por chave de segurança (FIDO2/YubiKey)
+
+Também opcional e por dispositivo (`fido2.dat`, nada sincroniza), disponível no Windows e
+independente do Windows Hello — os dois convivem sem se substituir. A chave do cofre fica
+cifrada com uma chave derivada pela extensão PRF do WebAuthn (`HMAC-SHA256(CredRandom,
+salt)`, construída sobre a extensão `hmac-secret` do CTAP2), não por hash de uma
+assinatura: assinaturas de chaves FIDO2 externas tipicamente usam nonce aleatório, então
+não dariam uma chave estável entre um desbloqueio e outro, diferente da assinatura
+TPM-backed do Windows Hello. Toda cerimônia (registro e cada desbloqueio) exige
+verificação de usuário — o PIN da própria chave física, não só o toque — porque a extensão
+`hmac-secret` mantém dois segredos distintos por credencial (um para quando há verificação,
+outro para quando não há); exigir sempre a mesma verificação é o que garante que a chave
+derivada nunca mude de um desbloqueio para o outro. A senha mestra continua sempre
+disponível como alternativa. Perder a chave física cadastrada significa perder esse método
+de desbloqueio (mesma limitação já aceita para o Windows Hello) — não há registro de mais
+de uma chave por vez nesta primeira versão. Suporte a Linux ainda não existe (ver roadmap).
+
 ## Fora de escopo, deliberadamente
 
 - **Sistema operacional comprometido.** Um keylogger, malware com acesso de tela, ou
@@ -115,6 +132,6 @@ acesso com uma chave desatualizada.
 ## Como isso evolui
 
 Este documento reflete o desenho atual, não uma promessa estática. À medida que o roadmap
-avança — chave de hardware (FIDO2/YubiKey), por exemplo — as seções acima devem ser
-revisadas para refletir o que muda. Encontrou algo que deveria estar aqui e não está? Veja
-como reportar em [SECURITY.md](SECURITY.md).
+avança — suporte a chave de segurança FIDO2/YubiKey no Linux, por exemplo — as seções
+acima devem ser revisadas para refletir o que muda. Encontrou algo que deveria estar aqui
+e não está? Veja como reportar em [SECURITY.md](SECURITY.md).
