@@ -2,15 +2,48 @@ name: Release
 
 on:
   push:
-    tags:
-      - 'v*.*.*'
+    branches:
+      - prod
 
 permissions:
   contents: write
 
 jobs:
+  verificar-versao:
+    name: Verificar se há uma versão nova para lançar
+    runs-on: ubuntu-latest
+    outputs:
+      versao: ${{ steps.versao.outputs.versao }}
+      deve_lancar: ${{ steps.check.outputs.deve_lancar }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Determinar versão
+        id: versao
+        run: |
+          versao=$(grep -oP '(?<=<Version>)[^<]+' App/App.csproj)
+          if [ -z "$versao" ]; then
+            echo "Não foi possível determinar a versão em App/App.csproj." >&2
+            exit 1
+          fi
+          echo "versao=$versao" >> "$GITHUB_OUTPUT"
+
+      - name: Verificar se essa versão já foi lançada
+        id: check
+        run: |
+          if git ls-remote --exit-code --tags origin "refs/tags/v${{ steps.versao.outputs.versao }}" > /dev/null 2>&1; then
+            echo "Versão v${{ steps.versao.outputs.versao }} já foi lançada antes, nada a fazer."
+            echo "deve_lancar=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Versão v${{ steps.versao.outputs.versao }} é nova, vou lançar."
+            echo "deve_lancar=true" >> "$GITHUB_OUTPUT"
+          fi
+
   build-windows:
     name: Gerar artefatos do Windows
+    needs: verificar-versao
+    if: needs.verificar-versao.outputs.deve_lancar == 'true'
     runs-on: windows-latest
     steps:
       - name: Checkout
@@ -20,16 +53,6 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
-
-      - name: Determinar versão
-        id: versao
-        shell: pwsh
-        run: |
-          $csproj = Get-Content App\App.csproj -Raw
-          if ($csproj -notmatch "<Version>([^<]+)</Version>") {
-            throw "Não foi possível determinar a versão em App\App.csproj."
-          }
-          "versao=$($Matches[1])" >> $env:GITHUB_OUTPUT
 
       - name: Garantir Inno Setup instalado
         shell: pwsh
@@ -47,13 +70,13 @@ jobs:
 
       - name: Publicar executável e gerar instalador
         shell: pwsh
-        run: .\App\distribuicao\gerar-instalador.ps1 -Versao "${{ steps.versao.outputs.versao }}"
+        run: .\App\distribuicao\gerar-instalador.ps1 -Versao "${{ needs.verificar-versao.outputs.versao }}"
 
       - name: Empacotar o executável portátil
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path dist | Out-Null
-          Copy-Item "publish\CofreDeSenhas.exe" "dist\CofreDeSenhas-${{ steps.versao.outputs.versao }}-win-x64-portatil.exe"
+          Copy-Item "publish\CofreDeSenhas.exe" "dist\CofreDeSenhas-${{ needs.verificar-versao.outputs.versao }}-win-x64-portatil.exe"
 
       - name: Enviar artefatos do Windows
         uses: actions/upload-artifact@v4
@@ -64,6 +87,8 @@ jobs:
 
   build-linux:
     name: Gerar artefato do Linux
+    needs: verificar-versao
+    if: needs.verificar-versao.outputs.deve_lancar == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -74,16 +99,6 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      - name: Determinar versão
-        id: versao
-        run: |
-          versao=$(grep -oP '(?<=<Version>)[^<]+' App/App.csproj)
-          if [ -z "$versao" ]; then
-            echo "Não foi possível determinar a versão em App/App.csproj." >&2
-            exit 1
-          fi
-          echo "versao=$versao" >> "$GITHUB_OUTPUT"
-
       - name: Publicar (linux-x64, autocontido)
         run: |
           dotnet publish App/App.csproj -f net10.0 -c Release -r linux-x64 \
@@ -92,12 +107,12 @@ jobs:
       - name: Empacotar em tar.gz
         run: |
           mkdir -p dist
-          tar -czf "dist/CofreDeSenhas-${{ steps.versao.outputs.versao }}-linux-x64.tar.gz" -C publish-linux .
+          tar -czf "dist/CofreDeSenhas-${{ needs.verificar-versao.outputs.versao }}-linux-x64.tar.gz" -C publish-linux .
 
       - name: Gerar AppImage
         run: |
           chmod +x App/distribuicao/gerar-appimage.sh
-          ./App/distribuicao/gerar-appimage.sh "${{ steps.versao.outputs.versao }}"
+          ./App/distribuicao/gerar-appimage.sh "${{ needs.verificar-versao.outputs.versao }}"
 
       - name: Enviar artefato do Linux
         uses: actions/upload-artifact@v4
@@ -107,8 +122,12 @@ jobs:
           if-no-files-found: error
 
   publicar-release:
-    name: Publicar release (rascunho)
-    needs: [ build-windows, build-linux ]
+    name: Publicar release
+    needs: [ verificar-versao, build-windows, build-linux ]
+    if: |
+      needs.verificar-versao.outputs.deve_lancar == 'true' &&
+      needs.build-windows.result == 'success' &&
+      needs.build-linux.result == 'success'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -128,10 +147,12 @@ jobs:
           sha256sum * > CHECKSUMS.txt
           cat CHECKSUMS.txt
 
-      - name: Criar release em rascunho
+      - name: Criar e publicar release
         uses: softprops/action-gh-release@v2
         with:
-          draft: true
+          tag_name: v${{ needs.verificar-versao.outputs.versao }}
+          target_commitish: ${{ github.sha }}
+          draft: false
           generate_release_notes: true
           body_path: .github/RELEASE_TEMPLATE.md
           files: dist/*

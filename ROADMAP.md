@@ -365,16 +365,21 @@ Repaginação completa da interface, preservando todas as funcionalidades:
   preservado por padrão; apagá-lo exige confirmação explícita, com "manter"
   como opção padrão.
 
-- Releases confiáveis e bem documentados: novo workflow de CI
-  (`.github/workflows/release.yml`) que, ao receber uma tag `vX.Y.Z`, gera o
+- Releases confiáveis e bem documentados: workflow de CI
+  (`.github/workflows/release.yml`) disparado por push na branch `prod`. Ele lê
+  a versão direto de `App/App.csproj`, confere se aquela versão já foi lançada
+  (procura a tag `vX.Y.Z` correspondente) e, se for realmente nova, gera o
   instalador e o executável portátil do Windows e o pacote do Linux, calcula
-  o hash SHA256 de cada arquivo (`CHECKSUMS.txt`) e cria a release no GitHub
-  como rascunho, com um modelo padronizado
-  (`.github/RELEASE_TEMPLATE.md`) cobrindo destaques, changelog, capturas de
-  tela, downloads por sistema operacional, instruções de instalação e
-  atualização (com aviso de backup antes de atualizar) e verificação dos
-  hashes. Fica como rascunho de propósito: a publicação continua sendo uma
-  decisão manual. O README ganhou instruções de verificação de integridade.
+  o hash SHA256 de cada arquivo (`CHECKSUMS.txt`) e publica a release no
+  GitHub automaticamente (a tag é criada pelo próprio workflow), com um
+  modelo padronizado (`.github/RELEASE_TEMPLATE.md`) cobrindo destaques,
+  changelog, capturas de tela, downloads por sistema operacional, instruções
+  de instalação e atualização (com aviso de backup antes de atualizar) e
+  verificação dos hashes. Não sobrou passo manual nenhum: subir a versão em
+  `App.csproj` e dar push/merge na `prod` já é suficiente pra ficar
+  disponível para todo mundo, inclusive para quem usa o botão "Atualizar
+  agora" (abaixo); push na `prod` sem mudar a versão não gera release
+  duplicada. O README ganhou instruções de verificação de integridade.
   Assinatura de código no Windows foi avaliada e documentada como item
   futuro, condicionada à obtenção de um certificado.
 
@@ -390,16 +395,22 @@ Repaginação completa da interface, preservando todas as funcionalidades:
   repositório próprio ou publicação no Flathub, esforço que não se justifica
   agora com o AppImage já cobrindo o uso sem gerenciador de pacotes.
 
-- Aviso de nova versão: novo item "Verificar atualizações" no menu de
-  configurações (desligado por padrão) consulta a release mais recente do
-  GitHub e, se houver uma versão mais nova que a instalada, mostra um aviso
-  discreto e dispensável na barra inferior do cofre, com link direto para a
-  página de releases — sem baixar nada automaticamente. A consulta é uma
-  simples leitura pública da API do GitHub, sem enviar nenhum dado além
-  dela mesma, e falhas de rede são ignoradas silenciosamente, sem nunca
-  interromper o uso do cofre. Dispensar o aviso lembra a versão dispensada
-  (guardada nas preferências) para não repetir o mesmo aviso a cada
-  abertura do cofre.
+- Atualização em um clique: o item "Verificar atualizações" no menu de
+  configurações vem ligado por padrão e consulta a release mais recente do
+  GitHub a cada abertura do cofre. Havendo versão mais nova, a barra inferior
+  mostra um aviso com o botão "Atualizar agora" (além do dispensar, que
+  lembra a versão dispensada nas preferências para não repetir o aviso). No
+  Windows, o botão baixa o instalador (ou o executável portátil, conforme
+  como o cofre está rodando) da release, confere o hash contra o
+  `CHECKSUMS.txt` da própria release e, só se bater, aplica a atualização
+  sozinho: roda o instalador em modo silencioso (sem elevar privilégio,
+  já que o instalador nunca exigiu admin) ou troca o executável portátil no
+  lugar, fecha o cofre e reabre a versão nova automaticamente — nenhum
+  clique extra, nenhum instalador pra rodar na mão. Em qualquer falha
+  (checksum não bate, arquivo não encontrado, sem internet) ou fora do
+  Windows, cai de volta no comportamento antigo: abre a página de releases
+  no navegador para baixar manualmente. A consulta e o download são leitura
+  pública da API do GitHub, sem enviar nenhum dado além disso.
 
 #### Produtividade e qualidade
 

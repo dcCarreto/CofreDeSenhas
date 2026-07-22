@@ -13,6 +13,7 @@
 #define MyAppURL "https://github.com/dcCarreto/CofreDeSenhas"
 #define MyAppExeName "CofreDeSenhas.exe"
 #define MyAppId "{{B4E1F5A0-6C3D-4E8A-9F2B-7D3C1A5E8B90}"
+#define MyAppMutex "CofreDeSenhasApp"
 
 [Setup]
 AppId={#MyAppId}
@@ -22,6 +23,9 @@ AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}/releases
+AppMutex={#MyAppMutex}
+CloseApplications=yes
+RestartApplications=no
 DefaultDirName={autopf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
@@ -55,6 +59,7 @@ Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: de
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "Executar {#MyAppName}"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\{#MyAppExeName}"; Flags: nowait; Check: WizardSilent
 
 [Code]
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);

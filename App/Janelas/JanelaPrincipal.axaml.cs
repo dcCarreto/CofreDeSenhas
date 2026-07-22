@@ -64,6 +64,7 @@ namespace CofreDeSenhas.Janelas
         private bool _naLixeira;
         private bool _modoPrivacidade;
         private string? _versaoDisponivel;
+        private bool _atualizando;
         private List<Senha> _itensLixeira = new();
         private Senha? _senhaDetalhe;
         private string _senhaDetalhePlain = "";
@@ -522,6 +523,11 @@ namespace CofreDeSenhas.Janelas
             AtualizarEstadoConexao(_descricaoConexaoAtual, _falhaReconexaoAtual);
             ConfigurarAcessibilidadeLeitorTela();
             FiltrarSenhas();
+
+            if (!_atualizando)
+                LblBtnAtualizarAgora.Text = Idioma.Texto("Update.Now");
+            if (_versaoDisponivel != null)
+                LblAtualizacaoDisponivel.Text = Idioma.Formatar("Update.Available", _versaoDisponivel);
         }
 
         private void MarcarIdiomaSelecionado()
@@ -710,7 +716,40 @@ namespace CofreDeSenhas.Janelas
             }
         }
 
-        private void AbrirNovaVersao_PointerReleased(object? sender, PointerReleasedEventArgs e)
+        private async void AtualizarAgora_Click(object? sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrEmpty(_versaoDisponivel) || _atualizando)
+                return;
+
+            _atualizando = true;
+            BtnAtualizarAgora.IsEnabled = false;
+            LblBtnAtualizarAgora.Text = Idioma.Texto("Update.Downloading");
+            try
+            {
+                var resultado = await ServicoAtualizacao.AtualizarAgoraAsync(_versaoDisponivel);
+                switch (resultado.Tipo)
+                {
+                    case ResultadoAtualizacaoTipo.Sucesso:
+                        (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.Shutdown();
+                        return;
+                    case ResultadoAtualizacaoTipo.Falha:
+                        await CaixaMensagem.MostrarAsync(this, Idioma.Texto("Update.Failed"), Idioma.Texto("Common.Error"), TipoMensagem.Erro);
+                        AbrirPaginaReleases();
+                        break;
+                    case ResultadoAtualizacaoTipo.NaoSuportado:
+                        AbrirPaginaReleases();
+                        break;
+                }
+            }
+            finally
+            {
+                _atualizando = false;
+                BtnAtualizarAgora.IsEnabled = true;
+                LblBtnAtualizarAgora.Text = Idioma.Texto("Update.Now");
+            }
+        }
+
+        private static void AbrirPaginaReleases()
         {
             try { Process.Start(new ProcessStartInfo(ServicoAtualizacao.UrlPaginaReleases) { UseShellExecute = true }); }
             catch { }

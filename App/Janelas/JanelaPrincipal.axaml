@@ -377,12 +377,21 @@
                                  AutomationProperties.LiveSetting="Polite"
                                  VerticalAlignment="Center" />
                     </StackPanel>
-                    <StackPanel Name="PainelAtualizacaoDisponivel" Grid.Column="1" Orientation="Horizontal" Spacing="6"
+                    <StackPanel Name="PainelAtualizacaoDisponivel" Grid.Column="1" Orientation="Horizontal" Spacing="8"
                                 HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="False">
                       <TextBlock Name="LblAtualizacaoDisponivel" FontSize="12"
-                                 Foreground="{DynamicResource AccentText}"
-                                 Cursor="Hand" TextDecorations="Underline"
-                                 PointerReleased="AbrirNovaVersao_PointerReleased" />
+                                 Foreground="{DynamicResource TextSecondary}"
+                                 VerticalAlignment="Center" />
+                      <Button Name="BtnAtualizarAgora" Classes="plano" Padding="9,3" FontSize="11" FontWeight="Bold"
+                              Foreground="{DynamicResource AccentPrimary}"
+                              ToolTip.Tip="{DynamicResource Update.Now}"
+                              Click="AtualizarAgora_Click">
+                        <StackPanel Orientation="Horizontal" Spacing="5">
+                          <c:Icone Width="{StaticResource TamIconeRodape}" Height="{StaticResource TamIconeRodape}"
+                                 Chave="IconeImportar" />
+                          <TextBlock Name="LblBtnAtualizarAgora" Text="{DynamicResource Update.Now}" VerticalAlignment="Center" />
+                        </StackPanel>
+                      </Button>
                       <Button Name="BtnDispensarAtualizacao" Classes="icone" Width="20" Height="20" Padding="0"
                               ToolTip.Tip="{DynamicResource Update.Dismiss}"
                               AutomationProperties.Name="{DynamicResource Update.Dismiss}"

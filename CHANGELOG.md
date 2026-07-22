@@ -63,13 +63,15 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
   remover. Ficam ocultos por padrão, como as senhas, com opção de revelar.
   Todos os códigos são cifrados individualmente e acompanham a exportação
   protegida e a importação/exportação com banco de dados conectado.
-- Releases confiáveis e bem documentados: workflow de CI que, ao receber uma
-  tag `vX.Y.Z`, publica o instalador e o executável portátil do Windows e o
-  pacote do Linux, gera `CHECKSUMS.txt` com o hash SHA256 de cada arquivo e
-  cria a release no GitHub como rascunho, seguindo um modelo padronizado
-  (destaques, changelog, capturas de tela, downloads por sistema
-  operacional, instalação/atualização com aviso de backup e verificação dos
-  hashes). A publicação continua manual. README documenta como conferir os
+- Releases confiáveis e bem documentados: workflow de CI disparado por push
+  na branch `prod`, que lê a versão direto de `App.csproj`, ignora pushes que
+  não mudaram a versão (sem gerar release duplicada) e, para uma versão
+  nova, publica o instalador e o executável portátil do Windows e o pacote
+  do Linux, gera `CHECKSUMS.txt` com o hash SHA256 de cada arquivo e cria e
+  publica a release no GitHub automaticamente — sem nenhum passo manual no
+  GitHub — seguindo um modelo padronizado (destaques, changelog, capturas de
+  tela, downloads por sistema operacional, instalação/atualização com aviso
+  de backup e verificação dos hashes). README documenta como conferir os
   hashes; assinatura de código no Windows foi avaliada e fica registrada
   como item futuro do roadmap.
 - Empacotamento para Linux: cada release agora inclui um AppImage
@@ -106,11 +108,20 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
   salvas. Datas de criação e edição, que já existiam no cofre local,
   passam a ser migradas e persistidas também para bancos de dados
   conectados (SQLite, PostgreSQL, MySQL/MariaDB e SQL Server).
-- Aviso de nova versão: item "Verificar atualizações" no menu de
-  configurações (desligado por padrão) consulta a release mais recente do
-  GitHub e mostra um aviso discreto e dispensável na barra inferior quando
-  há uma versão mais nova, com link para a página de releases — sem
-  download automático e sem enviar nada além da própria consulta.
+- Atualização em um clique: o item "Verificar atualizações" no menu de
+  configurações vem ligado por padrão e consulta a release mais recente do
+  GitHub a cada abertura do cofre. Havendo versão nova, a barra inferior
+  mostra um botão "Atualizar agora" que baixa o instalador (ou o executável
+  portátil, conforme como o cofre está rodando), confere o hash SHA256
+  contra o `CHECKSUMS.txt` da própria release e, só se bater, aplica a
+  atualização sozinho: instala em modo silencioso ou troca o executável
+  portátil no lugar, fecha o cofre e reabre a versão nova automaticamente —
+  sem instalador pra rodar na mão. Qualquer falha (sem internet, checksum
+  não bate, arquivo não encontrado) ou fora do Windows cai de volta no
+  comportamento antigo, abrindo a página de releases no navegador. A
+  consulta e o download são leitura pública da API do GitHub, sem enviar
+  nenhum dado além disso; dispensar o aviso lembra a versão dispensada para
+  não repetir o mesmo aviso a cada abertura.
 - Anexos criptografados: a tela de edição completa ganhou uma seção para
   prender pequenos arquivos a uma credencial (até 5 por credencial, 5 MB
   cada, 100 MB no total do cofre) — cada um cifrado com AES-256-GCM e
@@ -173,6 +184,22 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
   Uma reconciliação de identidade legada, feita uma única vez por
   dispositivo, evita duplicar credenciais que já estavam pareadas pelo
   modelo antigo de nome de serviço + usuário.
+- Zona de risco no menu de configurações: "Limpar cofre" move todas as
+  credenciais para a lixeira (reversível) e "Excluir cofre" apaga em
+  definitivo o cofre local, os anexos, a senha mestra e a credencial
+  biométrica associada — sempre com reautenticação pela senha mestra antes
+  de confirmar, e reinício automático do aplicativo ao final.
+- Mensagens de erro amigáveis: os erros que apareciam com texto técnico fixo
+  em português (senha, geração, exportação, importação CSV, troca de senha
+  mestra, anexos, persistência local) agora são traduzidos para o idioma
+  ativo antes de chegar à tela. O erro original continua registrado num log
+  de diagnóstico rotativo em disco (limitado a 1 MB) para investigação, mas
+  sem expor detalhes técnicos a quem usa o cofre. A falha ao descriptografar
+  um campo extra agora avisa em vez de simplesmente desaparecer.
+- Importação (JSON e CSV) passa a distinguir itens inválidos de duplicados,
+  com contadores separados, e mostra uma barra de progresso visível em vez
+  de travar a janela sem feedback. A importação de CSV também mostra uma
+  lista prévia dos itens detectados antes de pedir confirmação.
 
 ### Corrigido
 - Três bugs na escrita espelhada com banco de dados externo: a exclusão
@@ -188,13 +215,15 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
   sem aviso, em janelas no tamanho padrão.
 - O botão "Salvar alterações" do painel de detalhes não corta mais o próprio
   texto.
-- Contraste de cores revisado em quatro pontos que ficavam abaixo do mínimo
+- Contraste de cores revisado em pontos que ficavam abaixo do mínimo
   recomendado (WCAG AA): a estrela de favorito preenchida, a cor de força
-  "média", a cor de força "fraca" quando usada como texto pequeno (inclusive
-  em mensagens de erro) e o roxo de destaque quando usado como texto no tema
-  escuro.
+  "média" e a cor de força "fraca" quando usada como texto pequeno
+  (inclusive em mensagens de erro).
 - O botão "Nova senha" abre a tela de cadastro de uma credencial, como
   esperado — antes abria por engano o gerador de senha avulso.
+- O ícone de confirmação que aparece ao copiar uma senha (na lista e no
+  gerador) agora realmente fica verde — a cor certa era calculada, mas
+  nunca chegava a ser aplicada ao ícone.
 
 ### Segurança
 - As iterações do PBKDF2-SHA256 usadas para derivar a chave a partir da senha
@@ -223,18 +252,21 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 ### Alterado
 - Ícones baixados passam a ser guardados em cache no disco (por domínio), evitando
   novas consultas a cada sessão. Ao desativar a busca online, o cache é apagado.
-- Nova identidade visual em toda a aplicação, preservando as funcionalidades:
-  paleta e tokens de cor revisados nos temas claro e escuro, tipografia Plus
-  Jakarta Sans (com Inter de reserva), escala tipográfica e raios/sombras
-  padronizados.
-- Catálogo unificado de ícones de traço e componentes (botões, campos,
-  seletores, alternadores, controle deslizante e dicas) com estados consistentes
-  de interação.
+- Identidade visual "cofre, latão escovado": o aplicativo deixou de ter tema
+  claro (era selecionável, agora é escuro único) em favor de uma paleta de
+  carvão quente com latão escovado como único destaque, tipografia serifada
+  nos títulos, cantos mais quadrados e um pequeno rebite de latão decorativo
+  no item de navegação ativo e no medidor de força.
+- Catálogo de ícones unificado: todos os ícones da interface (barra lateral,
+  barra de ferramentas, menu de configurações, campos, alternadores, rodapé,
+  estado vazio e tela de desbloqueio) vêm de uma única biblioteca vetorial
+  (traço, sem preenchimento salvo os estados ativos), com espessura de traço,
+  tamanho e cor padronizados por seção em vez de valores soltos por tela.
 - Telas repaginadas: tela de senha mestra unificada com o gerador embutido,
   diálogos com medidor de força, anel de progresso do TOTP e estados vazios
   ilustrados. Novo ícone do aplicativo em múltiplas resoluções.
-- Contrastes de texto e distintivos de categoria revisados para atender ao nível
-  AA nos dois temas, com realce de foco de teclado visível em todos os controles.
+- Contrastes de texto e distintivos de categoria revisados para atender ao
+  nível AA, com realce de foco de teclado visível em todos os controles.
 - Diálogos e caixas de mensagem agora escurecem a janela por trás ao abrir,
   reforçando que o restante do aplicativo está temporariamente bloqueado.
 - O nome do serviço no painel de detalhes deixou de parecer um campo de
@@ -245,6 +277,12 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
   sutil, deixando clara a ação principal da tela.
 - Menu de configurações reorganizado em seções rotuladas (Segurança,
   Aparência e Dados) em vez de uma lista única com mais de dez itens.
+- Colunas da tabela do cofre redistribuem a largura proporcionalmente ao
+  redimensionar a janela, em vez de manter larguras fixas.
+- O zoom de acessibilidade (escala de fonte maior) trava o crescimento da
+  janela no tamanho útil da tela, em vez de deixá-la crescer para fora dos
+  limites visíveis.
+- Diálogos ganharam botão de fechar com ícone, corpo rolável e largura maior.
 
 ## [2.0.0] - 2026-07-03
 
