@@ -6,6 +6,14 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+## [2.1.0] - 2026-07-22
+
+Terceira geração do projeto: zona de risco pra apagar o cofre por completo,
+mensagens de erro traduzidas em vez de texto técnico cru, nova identidade
+visual "cofre, latão escovado" com tema escuro único e catálogo de ícones
+unificado, e atualização em um clique — o cofre agora se atualiza sozinho a
+partir de uma release publicada automaticamente a cada push na `prod`.
+
 ### Adicionado
 - Busca de ícones reais dos serviços (favicons) agora é opcional e desligada por
   padrão. Ao ativá-la no menu de configurações, o aplicativo pede consentimento
@@ -415,6 +423,7 @@ gerenciador de senhas seguro e completo.
 - PBKDF2-SHA256 (100k iterações) para a senha mestra; verificador one-way em `auth.dat`.
 - Comparações em tempo constante; arquivos sensíveis isolados em `%APPDATA%`.
 
-[Não lançado]: https://github.com/dcCarreto/CofreDeSenhas/compare/v2.0.0...HEAD
+[Não lançado]: https://github.com/dcCarreto/CofreDeSenhas/compare/v2.1.0...HEAD
+[2.1.0]: https://github.com/dcCarreto/CofreDeSenhas/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/dcCarreto/CofreDeSenhas/compare/v1.0.0...v2.0.0
 [1.0.0]: https://github.com/dcCarreto/CofreDeSenhas/releases/tag/v1.0.0
