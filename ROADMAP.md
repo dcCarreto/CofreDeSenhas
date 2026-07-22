@@ -382,6 +382,14 @@ Repaginação completa da interface, preservando todas as funcionalidades:
   duplicada. O README ganhou instruções de verificação de integridade.
   Assinatura de código no Windows foi avaliada e documentada como item
   futuro, condicionada à obtenção de um certificado.
+- Portão de qualidade antes de lançar: o workflow de release ganhou um job
+  "testar" (compila a solução inteira e roda toda a suíte de testes) que
+  precisa passar antes de qualquer artefato do Windows ou Linux ser gerado
+  — e, por consequência, antes de qualquer release ser publicada. Como o
+  workflow só dispara com um push real na `prod`, isso significa que uma
+  versão só vira release se o código já estiver na `prod` e a suíte de
+  testes daquele exato commit passar; nenhuma release sai de um build ou
+  teste quebrado.
 
 - Empacotamento para Linux: novo `App/distribuicao/gerar-appimage.sh` gera um
   AppImage autocontido (`CofreDeSenhas-X.Y.Z-x86_64.AppImage`), que roda em

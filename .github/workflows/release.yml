@@ -40,10 +40,33 @@ jobs:
             echo "deve_lancar=true" >> "$GITHUB_OUTPUT"
           fi
 
-  build-windows:
-    name: Gerar artefatos do Windows
+  testar:
+    name: Compilar e testar antes de lançar
     needs: verificar-versao
     if: needs.verificar-versao.outputs.deve_lancar == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restaurar dependências
+        run: dotnet restore CofreDeSenhas.sln
+
+      - name: Compilar
+        run: dotnet build CofreDeSenhas.sln -c Release --no-restore
+
+      - name: Executar testes
+        run: dotnet test CofreDeSenhas.sln -c Release --no-build --verbosity normal
+
+  build-windows:
+    name: Gerar artefatos do Windows
+    needs: [ verificar-versao, testar ]
+    if: needs.verificar-versao.outputs.deve_lancar == 'true' && needs.testar.result == 'success'
     runs-on: windows-latest
     steps:
       - name: Checkout
@@ -87,8 +110,8 @@ jobs:
 
   build-linux:
     name: Gerar artefato do Linux
-    needs: verificar-versao
-    if: needs.verificar-versao.outputs.deve_lancar == 'true'
+    needs: [ verificar-versao, testar ]
+    if: needs.verificar-versao.outputs.deve_lancar == 'true' && needs.testar.result == 'success'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
