@@ -137,7 +137,7 @@ namespace CofreDeSenhas.Janelas
             var btnVerificar = new Button
             {
                 Content = Idioma.Texto("SecurityReport.CheckBreaches"),
-                Height = 30,
+                Height = 34,
                 FontSize = 12,
                 VerticalAlignment = VerticalAlignment.Center
             };
@@ -185,7 +185,7 @@ namespace CofreDeSenhas.Janelas
             catch (Exception ex)
             {
                 await CaixaMensagem.MostrarAsync(this,
-                    Idioma.Formatar("SecurityReport.BreachCheckError", ex.Message),
+                    Idioma.Formatar("SecurityReport.BreachCheckError", ErrosUi.MensagemAmigavel(ex)),
                     Idioma.Texto("Message.NetworkErrorTitle"), TipoMensagem.Erro);
                 botao.Content = conteudoOriginal;
                 botao.IsEnabled = true;

@@ -1,3 +1,4 @@
+using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Input;
 
@@ -5,6 +6,21 @@ namespace CofreDeSenhas
 {
     internal static class JanelaExtensoes
     {
+        public static void MostrarErroInline(this Window janela, TextBlock rotulo, string mensagem, TextBox? focoAposErro = null)
+        {
+            rotulo.Text = mensagem;
+            AutomationProperties.SetName(rotulo, mensagem);
+
+            if (!string.IsNullOrWhiteSpace(mensagem))
+                Acessibilidade.Anunciar(janela, mensagem, assertivo: true);
+
+            if (focoAposErro != null)
+            {
+                focoAposErro.Focus();
+                focoAposErro.SelectAll();
+            }
+        }
+
         public static void FecharComEsc(this Window janela) =>
             janela.KeyDown += (s, e) =>
             {

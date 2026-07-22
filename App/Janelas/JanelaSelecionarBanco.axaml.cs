@@ -76,7 +76,11 @@ namespace CofreDeSenhas.Janelas
                 FontWeight = FontWeight.SemiBold,
                 Foreground = Tema.Pincel(Tema.TextPrimary),
                 VerticalAlignment = VerticalAlignment.Center,
-                Margin = new Avalonia.Thickness(14, 0, 0, 0)
+                Margin = new Avalonia.Thickness(14, 0, 0, 0),
+                MaxWidth = 150,
+                TextWrapping = TextWrapping.Wrap,
+                TextTrimming = TextTrimming.CharacterEllipsis,
+                MaxLines = 2
             };
 
             var conteudo = new StackPanel

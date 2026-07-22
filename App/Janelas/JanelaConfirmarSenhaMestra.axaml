@@ -8,7 +8,8 @@
         SystemDecorations="None"
         Background="Transparent"
         TransparencyLevelHint="Transparent"
-        WindowStartupLocation="CenterOwner">
+        WindowStartupLocation="CenterOwner"
+        RenderOptions.BitmapInterpolationMode="HighQuality">
 
   <Border CornerRadius="{StaticResource RadiusDialogo}"
           ClipToBounds="True"
@@ -29,13 +30,14 @@
                      Foreground="{DynamicResource TextPrimary}"
                      VerticalAlignment="Center"
                      AutomationProperties.HeadingLevel="1"
-                     Margin="24,0,0,0" />
+                     Margin="24,0,60,0"
+                     TextTrimming="CharacterEllipsis" />
           <Button Classes="fechar-dialogo"
                   AutomationProperties.Name="{DynamicResource Access.Close}"
                   HorizontalAlignment="Right" VerticalAlignment="Center"
                   Margin="0,0,14,0"
                   Click="Cancelar_Click">
-            <Path Classes="line-icon" Width="14" Height="14" Data="{StaticResource IconeFechar}" />
+            <Image Width="22" Height="22" Stretch="Uniform" Source="avares://CofreDeSenhas/Ativos/Icones/IconeFechar.png" />
           </Button>
         </Grid>
       </Border>
@@ -44,19 +46,16 @@
               Height="72"
               BorderBrush="{DynamicResource CardBorder}"
               BorderThickness="0,1,0,0">
-        <Grid Margin="24,0">
+        <StackPanel Orientation="Horizontal" Spacing="10"
+                    HorizontalAlignment="Right" VerticalAlignment="Center" Margin="24,0">
           <Button Name="BtnConfirmar" Classes="primario" Content="{DynamicResource Qr.GenerateButton}"
-                  Width="200" Height="40"
-                  HorizontalAlignment="Left" VerticalAlignment="Center"
-                  Click="Gerar_Click" />
+                  MinWidth="140" Height="40" Click="Gerar_Click" />
           <Button Classes="secundario" Content="{DynamicResource Common.Cancel}"
-                  Width="150" Height="40"
-                  HorizontalAlignment="Right" VerticalAlignment="Center"
-                  Click="Cancelar_Click" />
-        </Grid>
+                  MinWidth="120" Height="40" Click="Cancelar_Click" />
+        </StackPanel>
       </Border>
 
-      <StackPanel Margin="24,16,24,10" Spacing="4">
+      <StackPanel Margin="24,18,24,16" Spacing="4">
         <TextBlock Name="LblInstrucao"
                    Text="{DynamicResource Qr.RegenerateInstruction}"
                    FontSize="12"
@@ -64,7 +63,7 @@
                    TextWrapping="Wrap"
                    Margin="0,0,0,12" />
 
-        <TextBlock Text="{DynamicResource Login.MasterPassword}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
+        <TextBlock Text="{DynamicResource Login.MasterPassword}" Classes="legenda" />
         <TextBox Name="TxtSenha" Classes="campo revealPasswordButton" PasswordChar="●" Margin="0,0,0,8"
                  AutomationProperties.Name="{DynamicResource Login.MasterPassword}"
                  AutomationProperties.HelpText="{DynamicResource A11y.PasswordFieldHelp}"
@@ -75,7 +74,7 @@
                    Foreground="{DynamicResource StrengthWeak}"
                    TextWrapping="Wrap"
                    AutomationProperties.LiveSetting="Assertive"
-                   MinHeight="20" />
+                   MinHeight="34" />
       </StackPanel>
     </DockPanel>
   </Border>

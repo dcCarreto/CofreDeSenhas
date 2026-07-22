@@ -8,6 +8,7 @@ namespace GerenciadorDeSenhas.Repositorios
         Task AtualizarAsync(Senha senha);
         Task RegistrarCopiaAsync(Guid id, TipoCampoCopiado campo);
         Task RemoverAsync(Guid id);
+        Task MoverTudoParaLixeiraAsync();
         Task<Senha?> ObterPorIdAsync(Guid id);
         Task<List<Senha>> ListarTodosAsync();
         Task<List<Senha>> ListarLixeiraAsync();

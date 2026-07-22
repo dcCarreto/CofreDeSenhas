@@ -24,6 +24,8 @@ namespace GerenciadorDeSenhas.Servicos
 
         Task RemoverSenhaAsync(Guid id);
 
+        Task LimparCofreAsync();
+
         Task<List<Senha>> ListarTodosAsync();
 
         Task<List<Senha>> ListarLixeiraAsync();

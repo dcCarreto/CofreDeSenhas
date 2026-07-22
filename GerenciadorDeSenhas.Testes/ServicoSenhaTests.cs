@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using GerenciadorDeSenhas.Excecoes;
 using GerenciadorDeSenhas.Modelos;
 using GerenciadorDeSenhas.Repositorios;
 using GerenciadorDeSenhas.Servicos;
@@ -382,21 +383,21 @@ public class ServicoSenhaTests : IDisposable
     [Fact]
     public async Task CriarSenhaAsync_ComNomeServicoVazio_LancaExcecao()
     {
-        await Assert.ThrowsAsync<ArgumentException>(() =>
+        await Assert.ThrowsAsync<ErroLocalizavel>(() =>
             _servico.CriarSenhaAsync("", "user@example.com", "Senha@123456", Categoria.Personal));
     }
 
     [Fact]
     public async Task CriarSenhaAsync_ComUsuarioVazio_LancaExcecao()
     {
-        await Assert.ThrowsAsync<ArgumentException>(() =>
+        await Assert.ThrowsAsync<ErroLocalizavel>(() =>
             _servico.CriarSenhaAsync("Gmail", "", "Senha@123456", Categoria.Personal));
     }
 
     [Fact]
     public async Task CriarSenhaAsync_ComSenhaVazia_LancaExcecao()
     {
-        await Assert.ThrowsAsync<ArgumentException>(() =>
+        await Assert.ThrowsAsync<ErroLocalizavel>(() =>
             _servico.CriarSenhaAsync("Gmail", "user@example.com", "", Categoria.Personal));
     }
 
@@ -467,6 +468,40 @@ public class ServicoSenhaTests : IDisposable
         await _servico.EsvaziarLixeiraAsync();
 
         Assert.Empty(await _servico.ListarLixeiraAsync());
+    }
+
+    [Fact]
+    public async Task LimparCofreAsync_MoveTodasAsSenhasAtivasParaALixeira()
+    {
+        var senha1 = await _servico.CriarSenhaAsync(
+            "Gmail", "user@gmail.com", "Senha@123456", Categoria.Personal);
+        var senha2 = await _servico.CriarSenhaAsync(
+            "GitHub", "dev@github.com", "Senha@654321", Categoria.Work);
+
+        await _servico.LimparCofreAsync();
+
+        Assert.Empty(await _servico.ListarTodosAsync());
+        var lixeira = await _servico.ListarLixeiraAsync();
+        Assert.Equal(2, lixeira.Count);
+        Assert.Contains(lixeira, s => s.Id == senha1.Id && s.DataExclusao != null);
+        Assert.Contains(lixeira, s => s.Id == senha2.Id && s.DataExclusao != null);
+    }
+
+    [Fact]
+    public async Task LimparCofreAsync_NaoDuplicaNemAlteraItensJaNaLixeira()
+    {
+        var senha1 = await _servico.CriarSenhaAsync(
+            "Gmail", "user@gmail.com", "Senha@123456", Categoria.Personal);
+        var senha2 = await _servico.CriarSenhaAsync(
+            "GitHub", "dev@github.com", "Senha@654321", Categoria.Work);
+        await _servico.RemoverSenhaAsync(senha1.Id);
+        var dataExclusaoOriginal = (await _servico.ListarLixeiraAsync()).Single().DataExclusao;
+
+        await _servico.LimparCofreAsync();
+
+        var lixeira = await _servico.ListarLixeiraAsync();
+        Assert.Equal(2, lixeira.Count);
+        Assert.Equal(dataExclusaoOriginal, lixeira.Single(s => s.Id == senha1.Id).DataExclusao);
     }
 
     [Fact]

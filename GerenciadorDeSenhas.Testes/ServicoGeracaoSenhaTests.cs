@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using GerenciadorDeSenhas.Excecoes;
 using GerenciadorDeSenhas.Servicos;
 using Xunit;
 
@@ -40,7 +41,7 @@ public class ServicoGeracaoSenhaTests
     [Fact]
     public void GerarSenha_SemTiposSelecionados_LancaExcecao()
     {
-        Assert.Throws<ArgumentException>(() => _servico.GerarSenha(
+        Assert.Throws<ErroLocalizavel>(() => _servico.GerarSenha(
             tamanho: 12,
             incluirMaiusculas: false,
             incluirMinusculas: false,
@@ -100,14 +101,14 @@ public class ServicoGeracaoSenhaTests
     [Fact]
     public void GerarFraseSenha_ComQuantidadePalavrasInvalida_LancaExcecao()
     {
-        Assert.Throws<ArgumentException>(() => _servico.GerarFraseSenha(quantidadePalavras: 2));
-        Assert.Throws<ArgumentException>(() => _servico.GerarFraseSenha(quantidadePalavras: 13));
+        Assert.Throws<ErroLocalizavel>(() => _servico.GerarFraseSenha(quantidadePalavras: 2));
+        Assert.Throws<ErroLocalizavel>(() => _servico.GerarFraseSenha(quantidadePalavras: 13));
     }
 
     [Fact]
     public void GerarFraseSenha_ComListaInsuficiente_LancaExcecao()
     {
-        Assert.Throws<ArgumentException>(() => _servico.GerarFraseSenha(
+        Assert.Throws<ErroLocalizavel>(() => _servico.GerarFraseSenha(
             new[] { "casa", "" },
             quantidadePalavras: 3));
     }

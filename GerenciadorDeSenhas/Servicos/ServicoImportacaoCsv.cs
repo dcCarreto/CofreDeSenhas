@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using GerenciadorDeSenhas.Excecoes;
 using GerenciadorDeSenhas.Modelos;
 
 namespace GerenciadorDeSenhas.Servicos
@@ -16,7 +17,7 @@ namespace GerenciadorDeSenhas.Servicos
         public ResultadoImportacaoCsv ImportarArquivo(string caminhoArquivo)
         {
             if (string.IsNullOrWhiteSpace(caminhoArquivo) || !File.Exists(caminhoArquivo))
-                throw new InvalidOperationException("Arquivo de importação não encontrado.");
+                throw new ErroLocalizavel("Import.Error.FileNotFound");
 
             string conteudo;
             try
@@ -25,7 +26,7 @@ namespace GerenciadorDeSenhas.Servicos
             }
             catch
             {
-                throw new InvalidOperationException("Não foi possível ler o arquivo de importação.");
+                throw new ErroLocalizavel("Import.Error.CannotRead");
             }
 
             return Importar(conteudo);
@@ -34,21 +35,20 @@ namespace GerenciadorDeSenhas.Servicos
         public ResultadoImportacaoCsv Importar(string conteudo)
         {
             if (string.IsNullOrWhiteSpace(conteudo))
-                throw new InvalidOperationException("O arquivo está vazio.");
+                throw new ErroLocalizavel("Import.Error.EmptyFile");
 
             var delimitador = DetectarDelimitador(conteudo);
             var linhas = AnalisarCsv(conteudo, delimitador);
             linhas.RemoveAll(l => l.All(string.IsNullOrWhiteSpace));
 
             if (linhas.Count < 2)
-                throw new InvalidOperationException("O arquivo não contém credenciais para importar.");
+                throw new ErroLocalizavel("Import.Error.NoCredentials");
 
             var cabecalho = linhas[0];
             var colunas = MapearColunas(cabecalho);
 
             if (!colunas.ContainsKey(Campo.Senha))
-                throw new InvalidOperationException(
-                    "Não foi possível identificar a coluna de senha. Verifique se o arquivo tem uma linha de cabeçalho com os nomes das colunas.");
+                throw new ErroLocalizavel("Import.Error.NoPasswordColumn");
 
             var resultado = new ResultadoImportacaoCsv { FormatoDetectado = DetectarFormato(cabecalho) };
 

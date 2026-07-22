@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using GerenciadorDeSenhas.Excecoes;
 using GerenciadorDeSenhas.Servicos;
 using Xunit;
 
@@ -37,18 +38,36 @@ public class AutenticacaoMestraTests : IDisposable
         Assert.True(_auth.ExisteSenhaMestra());
     }
 
+    [Fact]
+    public void ExcluirSenhaMestra_ComSenhaCriada_RemoveArquivoEDeixaDeExistir()
+    {
+        _auth.CriarSenhaMestra("SenhaMestra@123");
+
+        _auth.ExcluirSenhaMestra();
+
+        Assert.False(_auth.ExisteSenhaMestra());
+    }
+
+    [Fact]
+    public void ExcluirSenhaMestra_SemSenhaCriada_NaoLancaExcecao()
+    {
+        _auth.ExcluirSenhaMestra();
+
+        Assert.False(_auth.ExisteSenhaMestra());
+    }
+
     [Theory]
     [InlineData("")]
     [InlineData("   ")]
     public void CriarSenhaMestra_ComSenhaVazia_LancaExcecao(string senha)
     {
-        Assert.Throws<ArgumentException>(() => _auth.CriarSenhaMestra(senha));
+        Assert.Throws<ErroLocalizavel>(() => _auth.CriarSenhaMestra(senha));
     }
 
     [Fact]
     public void CriarSenhaMestra_ComMenosDe8Caracteres_LancaExcecao()
     {
-        Assert.Throws<ArgumentException>(() => _auth.CriarSenhaMestra("Abc@123"));
+        Assert.Throws<ErroLocalizavel>(() => _auth.CriarSenhaMestra("Abc@123"));
     }
 
     [Fact]

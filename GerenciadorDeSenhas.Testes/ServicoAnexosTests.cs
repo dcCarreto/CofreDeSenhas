@@ -45,6 +45,25 @@ public class ServicoAnexosTests : IDisposable
     }
 
     [Fact]
+    public async Task ApagarTudo_ComAnexosExistentes_RemovePastaDeAnexos()
+    {
+        var senha = NovaSenha();
+        await _servico.AdicionarAsync(senha, "recibo.pdf", new byte[] { 1, 2, 3 });
+        var pastaAnexos = Path.Combine(_pastaTemp, "anexos");
+        Assert.True(Directory.Exists(pastaAnexos));
+
+        _servico.ApagarTudo();
+
+        Assert.False(Directory.Exists(pastaAnexos));
+    }
+
+    [Fact]
+    public void ApagarTudo_SemAnexos_NaoLancaExcecao()
+    {
+        _servico.ApagarTudo();
+    }
+
+    [Fact]
     public async Task AdicionarAsync_DepoisLerAsync_RetornaConteudoOriginalIntacto()
     {
         var senha = NovaSenha();

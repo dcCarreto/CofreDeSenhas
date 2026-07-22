@@ -9,7 +9,8 @@
         SystemDecorations="None"
         Background="Transparent"
         TransparencyLevelHint="Transparent"
-        WindowStartupLocation="CenterOwner">
+        WindowStartupLocation="CenterOwner"
+        RenderOptions.BitmapInterpolationMode="HighQuality">
 
   <Border CornerRadius="{StaticResource RadiusDialogo}"
           ClipToBounds="True"
@@ -29,13 +30,14 @@
                      Foreground="{DynamicResource TextPrimary}"
                      VerticalAlignment="Center"
                      AutomationProperties.HeadingLevel="1"
-                     Margin="24,0,0,0" />
+                     Margin="24,0,60,0"
+                     TextTrimming="CharacterEllipsis" />
           <Button Classes="fechar-dialogo"
                   AutomationProperties.Name="{DynamicResource Access.Close}"
                   HorizontalAlignment="Right" VerticalAlignment="Center"
                   Margin="0,0,14,0"
                   Click="Cancelar_Click">
-            <Path Classes="line-icon" Width="14" Height="14" Data="{StaticResource IconeFechar}" />
+            <Image Width="22" Height="22" Stretch="Uniform" Source="avares://CofreDeSenhas/Ativos/Icones/IconeFechar.png" />
           </Button>
         </Grid>
       </Border>
@@ -44,33 +46,30 @@
               Height="72"
               BorderBrush="{DynamicResource CardBorder}"
               BorderThickness="0,1,0,0">
-        <Grid Margin="24,0">
+        <StackPanel Orientation="Horizontal" Spacing="10"
+                    HorizontalAlignment="Right" VerticalAlignment="Center" Margin="24,0">
           <Button Name="BtnAlterar" Classes="primario" Content="{DynamicResource Common.Change}"
-                  Width="200" Height="40"
-                  HorizontalAlignment="Left" VerticalAlignment="Center"
-                  Click="Alterar_Click" />
+                  MinWidth="140" Height="40" Click="Alterar_Click" />
           <Button Classes="secundario" Content="{DynamicResource Common.Cancel}"
-                  Width="150" Height="40"
-                  HorizontalAlignment="Right" VerticalAlignment="Center"
-                  Click="Cancelar_Click" />
-        </Grid>
+                  MinWidth="120" Height="40" Click="Cancelar_Click" />
+        </StackPanel>
       </Border>
 
-      <StackPanel Margin="24,14,24,10" Spacing="4">
-        <TextBlock Text="{DynamicResource Master.CurrentPassword}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
+      <StackPanel Margin="24,18,24,16" Spacing="4">
+        <TextBlock Text="{DynamicResource Master.CurrentPassword}" Classes="legenda" />
         <TextBox Name="TxtAtual" Classes="campo revealPasswordButton" PasswordChar="●" Margin="0,0,0,10"
                  AutomationProperties.Name="{DynamicResource Master.CurrentPassword}"
                  AutomationProperties.HelpText="{DynamicResource A11y.PasswordFieldHelp}"
                  AutomationProperties.IsRequiredForForm="True" />
 
-        <TextBlock Text="{DynamicResource Master.NewPassword}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
+        <TextBlock Text="{DynamicResource Master.NewPassword}" Classes="legenda" />
         <TextBox Name="TxtNova" Classes="campo revealPasswordButton" PasswordChar="●" Margin="0,0,0,10"
                  AutomationProperties.Name="{DynamicResource Master.NewPassword}"
                  AutomationProperties.HelpText="{DynamicResource A11y.PasswordFieldHelp}"
                  AutomationProperties.IsRequiredForForm="True" />
 
-        <TextBlock Text="{DynamicResource Master.ConfirmNewPassword}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
-        <TextBox Name="TxtConfirmar" Classes="campo revealPasswordButton" PasswordChar="●" Margin="0,0,0,8"
+        <TextBlock Text="{DynamicResource Master.ConfirmNewPassword}" Classes="legenda" />
+        <TextBox Name="TxtConfirmar" Classes="campo revealPasswordButton" PasswordChar="●" Margin="0,0,0,10"
                  AutomationProperties.Name="{DynamicResource Master.ConfirmNewPassword}"
                  AutomationProperties.HelpText="{DynamicResource A11y.PasswordFieldHelp}"
                  AutomationProperties.IsRequiredForForm="True" />
@@ -82,7 +81,7 @@
                    Foreground="{DynamicResource StrengthWeak}"
                    TextWrapping="Wrap"
                    AutomationProperties.LiveSetting="Assertive"
-                   MinHeight="20" />
+                   MinHeight="34" />
       </StackPanel>
     </DockPanel>
   </Border>

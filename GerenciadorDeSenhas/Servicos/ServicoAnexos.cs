@@ -1,10 +1,18 @@
+using GerenciadorDeSenhas.Excecoes;
 using GerenciadorDeSenhas.Modelos;
 
 namespace GerenciadorDeSenhas.Servicos
 {
-    public class LimiteAnexoExcedidoException : Exception
+    public class LimiteAnexoExcedidoException : Exception, ILocalizavel
     {
-        public LimiteAnexoExcedidoException(string mensagem) : base(mensagem) { }
+        public string Chave { get; }
+        public object?[] Argumentos { get; }
+
+        public LimiteAnexoExcedidoException(string chave, params object?[] argumentos) : base(chave)
+        {
+            Chave = chave;
+            Argumentos = argumentos;
+        }
     }
 
     public class ServicoAnexos
@@ -27,6 +35,12 @@ namespace GerenciadorDeSenhas.Servicos
             _pastaAnexos = Path.Combine(pasta, "anexos");
         }
 
+        public void ApagarTudo()
+        {
+            if (Directory.Exists(_pastaAnexos))
+                Directory.Delete(_pastaAnexos, recursive: true);
+        }
+
         public long TamanhoTotalAtual() =>
             Directory.Exists(_pastaAnexos)
                 ? new DirectoryInfo(_pastaAnexos).GetFiles().Sum(f => f.Length)
@@ -35,20 +49,17 @@ namespace GerenciadorDeSenhas.Servicos
         public async Task<AnexoSenha> AdicionarAsync(Senha senha, string nomeArquivo, byte[] conteudo)
         {
             if (senha == null) throw new ArgumentNullException(nameof(senha));
-            if (string.IsNullOrWhiteSpace(nomeArquivo)) throw new ArgumentException("Nome do arquivo não pode ser vazio");
-            if (conteudo == null || conteudo.Length == 0) throw new ArgumentException("Arquivo vazio");
+            if (string.IsNullOrWhiteSpace(nomeArquivo)) throw new ErroLocalizavel("Attachment.Error.NameRequired");
+            if (conteudo == null || conteudo.Length == 0) throw new ErroLocalizavel("Attachment.Error.EmptyFile");
 
             if (conteudo.Length > TamanhoMaximoPorAnexo)
-                throw new LimiteAnexoExcedidoException(
-                    $"Arquivo maior que o limite de {TamanhoMaximoPorAnexo / 1024 / 1024} MB por anexo");
+                throw new LimiteAnexoExcedidoException("Attachment.Error.FileTooLarge", TamanhoMaximoPorAnexo / 1024 / 1024);
 
             if (senha.Anexos.Count >= QuantidadeMaximaPorCredencial)
-                throw new LimiteAnexoExcedidoException(
-                    $"Esta credencial já tem o máximo de {QuantidadeMaximaPorCredencial} anexos");
+                throw new LimiteAnexoExcedidoException("Attachment.Error.MaxPerCredential", QuantidadeMaximaPorCredencial);
 
             if (TamanhoTotalAtual() + conteudo.Length > TamanhoMaximoTotalCofre)
-                throw new LimiteAnexoExcedidoException(
-                    $"O cofre atingiria o limite de {TamanhoMaximoTotalCofre / 1024 / 1024} MB em anexos");
+                throw new LimiteAnexoExcedidoException("Attachment.Error.VaultLimit", TamanhoMaximoTotalCofre / 1024 / 1024);
 
             if (!Directory.Exists(_pastaAnexos))
                 Directory.CreateDirectory(_pastaAnexos);

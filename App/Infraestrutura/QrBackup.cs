@@ -40,7 +40,7 @@ namespace CofreDeSenhas
             catch (Exception ex)
             {
                 await CaixaMensagem.MostrarAsync(dono,
-                    Idioma.Formatar("Qr.SaveError", ex.Message),
+                    Idioma.Formatar("Qr.SaveError", ErrosUi.MensagemAmigavel(ex)),
                     Idioma.Texto("Common.Error"), TipoMensagem.Erro);
             }
         }

@@ -86,12 +86,6 @@ namespace CofreDeSenhas.Janelas
             Close(true);
         }
 
-        private void MostrarErro(string mensagem)
-        {
-            LblErro.Text = mensagem;
-            AutomationProperties.SetName(LblErro, mensagem);
-            TxtSenha.Focus();
-            TxtSenha.SelectAll();
-        }
+        private void MostrarErro(string mensagem) => this.MostrarErroInline(LblErro, mensagem, TxtSenha);
     }
 }

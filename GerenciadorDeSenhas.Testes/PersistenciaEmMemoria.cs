@@ -22,4 +22,10 @@ internal sealed class PersistenciaEmMemoria : IPersistenciaLocal
     public Task<List<Senha>> CarregarBackupAsync(string caminhoArquivo) => Task.FromResult(new List<Senha>());
 
     public bool ValidarIntegridade() => true;
+
+    public Task ApagarTudoAsync()
+    {
+        _dados = new List<Senha>();
+        return Task.CompletedTask;
+    }
 }

@@ -42,6 +42,12 @@ namespace CofreDeSenhas.Janelas
             AtualizarTextos();
             ConfigurarAcessibilidadeLeitorTela();
             PainelConfirmar.IsVisible = _primeiroAcesso;
+            Medidor.IsVisible = _primeiroAcesso;
+            LblPrimeiroAcessoAviso.IsVisible = _primeiroAcesso;
+            TxtSenha.TextChanged += (s, e) =>
+            {
+                if (_primeiroAcesso) Medidor.Avaliar(TxtSenha.Text);
+            };
 
             BtnAcessibilidade.Flyout!.Opened += (s, e) =>
                 Acessibilidade.MarcarMenus(MenuDaltonismoLogin, MenuEscalaLogin, MenuAltoContrasteLogin,
@@ -180,7 +186,7 @@ namespace CofreDeSenhas.Janelas
                 }
                 catch (Exception ex)
                 {
-                    MostrarErro(ex.Message);
+                    MostrarErro(ErrosUi.MensagemAmigavel(ex));
                     return;
                 }
 
@@ -374,12 +380,7 @@ namespace CofreDeSenhas.Janelas
             }
         }
 
-        private void MostrarErro(string msg)
-        {
-            LblErro.Text = msg;
-            AutomationProperties.SetName(LblErro, msg);
-            Acessibilidade.Anunciar(this, msg, assertivo: true);
-        }
+        private void MostrarErro(string msg) => this.MostrarErroInline(LblErro, msg);
 
         private enum BiometriaModo
         {

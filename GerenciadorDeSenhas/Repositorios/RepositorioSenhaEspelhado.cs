@@ -111,6 +111,16 @@ namespace GerenciadorDeSenhas.Repositorios
                 await _banco.ExcluirPorChaveAsync(senha.NomeServico, senha.Usuario);
         }
 
+        public async Task MoverTudoParaLixeiraAsync()
+        {
+            await SincronizarAsync();
+
+            var ativos = await _local.ListarTodosAsync();
+            await _local.MoverTudoParaLixeiraAsync();
+            foreach (var senha in ativos)
+                await _banco.ExcluirPorChaveAsync(senha.NomeServico, senha.Usuario);
+        }
+
         public async Task<Senha?> ObterPorIdAsync(Guid id)
         {
             await SincronizarAsync();

@@ -5,10 +5,12 @@
         Width="480"
         SizeToContent="Height"
         MinWidth="420"
+        CanResize="False"
         SystemDecorations="None"
         Background="Transparent"
         TransparencyLevelHint="Transparent"
-        WindowStartupLocation="CenterOwner">
+        WindowStartupLocation="CenterOwner"
+        RenderOptions.BitmapInterpolationMode="HighQuality">
 
   <Border CornerRadius="{StaticResource RadiusDialogo}"
           ClipToBounds="True"
@@ -28,13 +30,14 @@
                      Foreground="{DynamicResource TextPrimary}"
                      VerticalAlignment="Center"
                      AutomationProperties.HeadingLevel="1"
-                     Margin="24,0,0,0" />
+                     Margin="24,0,60,0"
+                     TextTrimming="CharacterEllipsis" />
           <Button Classes="fechar-dialogo"
                   AutomationProperties.Name="{DynamicResource Access.Close}"
                   HorizontalAlignment="Right" VerticalAlignment="Center"
                   Margin="0,0,14,0"
                   Click="Fechar_Click">
-            <Path Classes="line-icon" Width="14" Height="14" Data="{StaticResource IconeFechar}" />
+            <Image Width="22" Height="22" Stretch="Uniform" Source="avares://CofreDeSenhas/Ativos/Icones/IconeFechar.png" />
           </Button>
         </Grid>
       </Border>
@@ -61,13 +64,13 @@
         </StackPanel>
 
         <StackPanel Name="PainelAtivo" Spacing="14" IsVisible="False">
-          <StackPanel Spacing="6">
+          <StackPanel Spacing="4">
             <TextBlock Text="{DynamicResource Sync.Folder}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
             <TextBlock Name="LblPasta" FontSize="13" Foreground="{DynamicResource TextPrimary}"
                        TextWrapping="Wrap" TextTrimming="CharacterEllipsis" />
           </StackPanel>
 
-          <StackPanel Spacing="6">
+          <StackPanel Spacing="4">
             <TextBlock Text="{DynamicResource Sync.Frequency}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
             <ComboBox Name="CmbFrequencia" Classes="campo" HorizontalAlignment="Stretch"
                       AutomationProperties.Name="{DynamicResource Sync.Frequency}"
@@ -81,13 +84,13 @@
               <TextBlock Name="LblUltimaSincronizacao" FontSize="13" Foreground="{DynamicResource TextPrimary}"
                          VerticalAlignment="Center" TextWrapping="Wrap" />
               <Button Grid.Column="1" Classes="secundario" Content="{DynamicResource Sync.Now}"
-                      Height="34" Margin="10,0,0,0" Click="SincronizarAgora_Click"
+                      MinHeight="34" Margin="10,0,0,0" Click="SincronizarAgora_Click"
                       AutomationProperties.Name="{DynamicResource Sync.Now}" />
             </Grid>
           </Border>
 
           <Button Name="BtnDesativar" Classes="secundario" Content="{DynamicResource Sync.Disable}"
-                  Height="34" HorizontalAlignment="Left" Click="Desativar_Click"
+                  MinHeight="34" HorizontalAlignment="Left" Click="Desativar_Click"
                   AutomationProperties.Name="{DynamicResource Sync.Disable}" />
         </StackPanel>
       </StackPanel>

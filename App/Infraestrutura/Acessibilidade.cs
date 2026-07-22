@@ -803,14 +803,39 @@ namespace CofreDeSenhas
             }
 
             double razao = alvo / anterior;
+
+            var escala = janela.RenderScaling > 0 ? janela.RenderScaling : 1.0;
+            var areaDisponivel = janela.Screens.ScreenFromWindow(janela)?.WorkingArea;
+
             if (!double.IsNaN(janela.Width) && janela.Width > 0)
-                janela.Width *= razao;
+            {
+                var larguraAlvo = janela.Width * razao;
+                if (areaDisponivel is { } areaW)
+                    larguraAlvo = Math.Min(larguraAlvo, areaW.Width / escala * 0.9);
+                janela.Width = larguraAlvo;
+            }
             if (!double.IsNaN(janela.Height) && janela.Height > 0)
-                janela.Height *= razao;
+            {
+                var alturaAlvo = janela.Height * razao;
+                if (areaDisponivel is { } areaH)
+                    alturaAlvo = Math.Min(alturaAlvo, areaH.Height / escala * 0.9);
+                janela.Height = alturaAlvo;
+            }
+
             if (janela.MinWidth > 0)
-                janela.MinWidth *= razao;
+            {
+                var minWidthAlvo = janela.MinWidth * razao;
+                if (areaDisponivel is { } area)
+                    minWidthAlvo = Math.Min(minWidthAlvo, area.Width / escala * 0.9);
+                janela.MinWidth = minWidthAlvo;
+            }
             if (janela.MinHeight > 0)
-                janela.MinHeight *= razao;
+            {
+                var minHeightAlvo = janela.MinHeight * razao;
+                if (areaDisponivel is { } area)
+                    minHeightAlvo = Math.Min(minHeightAlvo, area.Height / escala * 0.9);
+                janela.MinHeight = minHeightAlvo;
+            }
 
             estado.Valor = alvo;
         }

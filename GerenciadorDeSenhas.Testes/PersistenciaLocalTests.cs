@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using GerenciadorDeSenhas.Excecoes;
 using GerenciadorDeSenhas.Modelos;
 using GerenciadorDeSenhas.Servicos;
 using Xunit;
@@ -194,6 +195,39 @@ public class PersistenciaLocalTests : IDisposable
     }
 
     [Fact]
+    public async Task ApagarTudoAsync_ApagaArquivoDeSenhasEPastaDeBackup()
+    {
+        var senhas = new List<Senha>
+        {
+            new()
+            {
+                Id = Guid.NewGuid(),
+                NomeServico = "Test",
+                Usuario = "test@test.com",
+                SenhaHash = _criptografia.Criptografar("test123"),
+                Categoria = Categoria.Other
+            }
+        };
+        await _persistencia.SalvarSenhasAsync(senhas, _chave);
+        await _persistencia.BackupAutomaticoAsync(senhas, _chave);
+        Assert.True(File.Exists(_caminhoSenhas));
+        Assert.True(Directory.Exists(_pastaBackup));
+
+        await _persistencia.ApagarTudoAsync();
+
+        Assert.False(File.Exists(_caminhoSenhas));
+        Assert.False(Directory.Exists(_pastaBackup));
+    }
+
+    [Fact]
+    public async Task ApagarTudoAsync_SemNadaParaApagar_NaoLancaExcecao()
+    {
+        await _persistencia.ApagarTudoAsync();
+
+        Assert.False(File.Exists(_caminhoSenhas));
+    }
+
+    [Fact]
     public async Task SalvarSenhasAsync_ComChaveNula_LancaExcecao()
     {
         var senhas = new List<Senha>();
@@ -233,10 +267,10 @@ public class PersistenciaLocalTests : IDisposable
         var servicoIncorreto = new ServicoCriptografia(chaveIncorreta);
         var persistenciaIncorreta = new PersistenciaLocal(servicoIncorreto, _pastaTemp);
 
-        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+        var ex = await Assert.ThrowsAsync<ErroLocalizavel>(() =>
             persistenciaIncorreta.CarregarSenhasAsync(chaveIncorreta));
 
-        Assert.Contains("Erro ao carregar senhas", ex.Message);
+        Assert.Equal("Vault.Error.WrongKeyOrCorrupt", ex.Chave);
     }
 
     public void Dispose()

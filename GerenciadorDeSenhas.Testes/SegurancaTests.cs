@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using GerenciadorDeSenhas.Excecoes;
 using GerenciadorDeSenhas.Modelos;
 using GerenciadorDeSenhas.Repositorios;
 using GerenciadorDeSenhas.Servicos;
@@ -87,7 +88,7 @@ public class SegurancaTests
             bytes[bytes.Length / 2] ^= 0xFF;
             await File.WriteAllTextAsync(caminho, Convert.ToBase64String(bytes));
 
-            await Assert.ThrowsAsync<InvalidOperationException>(() => persist.CarregarSenhasAsync(chave));
+            await Assert.ThrowsAsync<ErroLocalizavel>(() => persist.CarregarSenhasAsync(chave));
         }
         finally
         {
@@ -105,7 +106,7 @@ public class SegurancaTests
     {
         var servico = MontarServicoEmMemoria();
 
-        await Assert.ThrowsAsync<ArgumentException>(() =>
+        await Assert.ThrowsAsync<ErroLocalizavel>(() =>
             servico.CriarSenhaAsync(nome!, usuario!, senha!, Categoria.Personal));
     }
 
@@ -114,11 +115,11 @@ public class SegurancaTests
     {
         var servico = MontarServicoEmMemoria();
 
-        await Assert.ThrowsAsync<ArgumentException>(() =>
+        await Assert.ThrowsAsync<ErroLocalizavel>(() =>
             servico.CriarSenhaAsync(new string('a', 101), "user", "Senha@123", Categoria.Personal));
-        await Assert.ThrowsAsync<ArgumentException>(() =>
+        await Assert.ThrowsAsync<ErroLocalizavel>(() =>
             servico.CriarSenhaAsync("Servico", new string('a', 256), "Senha@123", Categoria.Personal));
-        await Assert.ThrowsAsync<ArgumentException>(() =>
+        await Assert.ThrowsAsync<ErroLocalizavel>(() =>
             servico.CriarSenhaAsync("Servico", "user", new string('a', 1001), Categoria.Personal));
     }
 

@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using GerenciadorDeSenhas.Excecoes;
 using GerenciadorDeSenhas.Modelos;
 using GerenciadorDeSenhas.Repositorios;
 using GerenciadorDeSenhas.Servicos;
@@ -72,7 +73,7 @@ public class IntegracaoCofreTests : IDisposable
 
         var (servico2, _) = MontarCofre(NovaChave());
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() => servico2.ListarTodosAsync());
+        await Assert.ThrowsAsync<ErroLocalizavel>(() => servico2.ListarTodosAsync());
     }
 
     [Fact]

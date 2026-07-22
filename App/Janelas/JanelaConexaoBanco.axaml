@@ -8,7 +8,8 @@
         SystemDecorations="None"
         Background="Transparent"
         TransparencyLevelHint="Transparent"
-        WindowStartupLocation="CenterOwner">
+        WindowStartupLocation="CenterOwner"
+        RenderOptions.BitmapInterpolationMode="HighQuality">
 
   <Border CornerRadius="{StaticResource RadiusDialogo}"
           ClipToBounds="True"
@@ -28,13 +29,14 @@
                      Foreground="{DynamicResource TextPrimary}"
                      VerticalAlignment="Center"
                      AutomationProperties.HeadingLevel="1"
-                     Margin="24,0,0,0" />
+                     Margin="24,0,60,0"
+                     TextTrimming="CharacterEllipsis" />
           <Button Classes="fechar-dialogo"
                   AutomationProperties.Name="{DynamicResource Access.Close}"
                   HorizontalAlignment="Right" VerticalAlignment="Center"
                   Margin="0,0,14,0"
                   Click="Cancelar_Click">
-            <Path Classes="line-icon" Width="14" Height="14" Data="{StaticResource IconeFechar}" />
+            <Image Width="22" Height="22" Stretch="Uniform" Source="avares://CofreDeSenhas/Ativos/Icones/IconeFechar.png" />
           </Button>
         </Grid>
       </Border>
@@ -43,29 +45,29 @@
               Height="72"
               BorderBrush="{DynamicResource CardBorder}"
               BorderThickness="0,1,0,0">
-        <Grid Margin="24,0">
-          <Button Name="BtnTestar" Classes="secundario" Content="{DynamicResource Db.TestConnection}"
+        <Grid Margin="24,0" ColumnDefinitions="Auto,*,Auto">
+          <Button Name="BtnTestar" Grid.Column="0" Classes="secundario" Content="{DynamicResource Db.TestConnection}"
                   Width="150" Height="40"
                   HorizontalAlignment="Left" VerticalAlignment="Center"
                   Click="Testar_Click" />
-          <StackPanel Orientation="Horizontal" Spacing="10"
+          <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10"
                       HorizontalAlignment="Right" VerticalAlignment="Center">
-            <Button Classes="secundario" Content="{DynamicResource Common.Cancel}"
-                    Width="100" Height="40" Click="Cancelar_Click" />
             <Button Name="BtnConectar" Classes="primario" Content="{DynamicResource Common.Connect}"
-                    Width="120" Height="40" Click="Conectar_Click" />
+                    MinWidth="140" Height="40" Click="Conectar_Click" />
+            <Button Classes="secundario" Content="{DynamicResource Common.Cancel}"
+                    MinWidth="120" Height="40" Click="Cancelar_Click" />
           </StackPanel>
         </Grid>
       </Border>
 
-      <StackPanel Margin="24,14,24,8">
+      <StackPanel Margin="24,18,24,16">
         <StackPanel Name="Campos" />
         <TextBlock Name="LblErro"
                    FontSize="12"
                    Foreground="{DynamicResource StrengthWeak}"
                    TextWrapping="Wrap"
                    AutomationProperties.LiveSetting="Assertive"
-                   MinHeight="20"
+                   MinHeight="34"
                    Margin="0,10,0,0" />
       </StackPanel>
     </DockPanel>

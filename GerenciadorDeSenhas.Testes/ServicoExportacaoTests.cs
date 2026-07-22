@@ -1,3 +1,4 @@
+using GerenciadorDeSenhas.Excecoes;
 using GerenciadorDeSenhas.Modelos;
 using GerenciadorDeSenhas.Servicos;
 using Xunit;
@@ -51,9 +52,9 @@ public class ServicoExportacaoTests : IDisposable
     {
         await _servico.ExportarAsync(Caminho(), Amostra(), "SenhaCerta@123");
 
-        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+        var ex = await Assert.ThrowsAsync<ErroLocalizavel>(() =>
             _servico.ImportarAsync(Caminho(), "SenhaErrada@999"));
-        Assert.Contains("incorreta", ex.Message);
+        Assert.Equal("Export.Error.WrongPassword", ex.Chave);
     }
 
     [Fact]
@@ -80,7 +81,7 @@ public class ServicoExportacaoTests : IDisposable
         texto = texto.Substring(0, alvo) + novo + texto.Substring(alvo + 1);
         await File.WriteAllTextAsync(Caminho(), texto);
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+        await Assert.ThrowsAsync<ErroLocalizavel>(() =>
             _servico.ImportarAsync(Caminho(), "SenhaExport@123"));
     }
 
@@ -89,7 +90,7 @@ public class ServicoExportacaoTests : IDisposable
     [InlineData("curta")]
     public async Task Exportar_ComSenhaInvalida_LancaArgumentException(string senha)
     {
-        await Assert.ThrowsAsync<ArgumentException>(() =>
+        await Assert.ThrowsAsync<ErroLocalizavel>(() =>
             _servico.ExportarAsync(Caminho(), Amostra(), senha));
     }
 }

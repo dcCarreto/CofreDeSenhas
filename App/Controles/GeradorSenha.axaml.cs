@@ -7,6 +7,7 @@ using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Threading;
 using CofreDeSenhas.Janelas;
+using GerenciadorDeSenhas.Excecoes;
 using GerenciadorDeSenhas.Servicos;
 using AvaloniaPath = Avalonia.Controls.Shapes.Path;
 
@@ -101,6 +102,21 @@ namespace CofreDeSenhas.Controles
             }
         };
 
+        private static StackPanel CriarConteudoBotaoImagem(string icone, string texto, double tamanhoIcone) => new()
+        {
+            Orientation = Orientation.Horizontal,
+            Spacing = 8,
+            Children =
+            {
+                Recursos.ImagemIcone(icone, tamanhoIcone),
+                new TextBlock
+                {
+                    Text = texto,
+                    VerticalAlignment = VerticalAlignment.Center
+                }
+            }
+        };
+
         private Window? JanelaDona => TopLevel.GetTopLevel(this) as Window;
 
         private IClipboard? AreaTransferencia => TopLevel.GetTopLevel(this)?.Clipboard;
@@ -145,7 +161,6 @@ namespace CofreDeSenhas.Controles
             AutomationProperties.SetName(TxtSenhaGerada, Idioma.Texto("A11y.GeneratedPassword"));
             AutomationProperties.SetHelpText(TxtSenhaGerada, Idioma.Texto("A11y.GeneratedPasswordHelp"));
             AutomationProperties.SetName(PainelGeradas, Idioma.Texto("A11y.GeneratedList"));
-            AutomationProperties.SetLiveSetting(LblForca, AutomationLiveSetting.Polite);
             AutomationProperties.SetName(BtnGerar, Idioma.Texto(ModoFraseSenha
                 ? "Generator.GeneratePassphrase"
                 : "Generator.GeneratePassword"));
@@ -206,10 +221,10 @@ namespace CofreDeSenhas.Controles
                         ToggleEspeciais.Checked));
                 }
             }
-            catch (ArgumentException ex)
+            catch (ErroLocalizavel ex)
             {
                 if (JanelaDona is { } janela)
-                    await CaixaMensagem.MostrarAsync(janela, ex.Message, Idioma.Texto("Common.Warning"), TipoMensagem.Aviso);
+                    await CaixaMensagem.MostrarAsync(janela, ErrosUi.MensagemAmigavel(ex), Idioma.Texto("Common.Warning"), TipoMensagem.Aviso);
                 return;
             }
 
@@ -255,7 +270,7 @@ namespace CofreDeSenhas.Controles
 
             var btnCopiarTodas = new Button
             {
-                Content = CriarConteudoBotao("IconeCopiar", Idioma.Texto("Generator.CopyAll"), 13, Tema.Pincel(Tema.AccentText)),
+                Content = CriarConteudoBotaoImagem("IconeCopiar", Idioma.Texto("Generator.CopyAll"), 20),
                 Height = 26,
                 FontSize = 12,
                 Foreground = Tema.Pincel(Tema.AccentText),
@@ -291,7 +306,7 @@ namespace CofreDeSenhas.Controles
                 Margin = new Thickness(12, 9, 8, 9)
             };
 
-            var btnCopiar = new Button { Content = CriarIcone("IconeCopiar", 13), Width = 28, Height = 28 };
+            var btnCopiar = new Button { Content = Recursos.ImagemIcone("IconeCopiar", 20), Width = 28, Height = 28 };
             btnCopiar.Classes.Add("icone-linha");
             btnCopiar.VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center;
             btnCopiar.Margin = new Thickness(0, 0, 5, 0);
@@ -306,7 +321,7 @@ namespace CofreDeSenhas.Controles
                 var t = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
                 t.Tick += (ss, ee) =>
                 {
-                    btnCopiar.Content = CriarIcone("IconeCopiar", 13);
+                    btnCopiar.Content = Recursos.ImagemIcone("IconeCopiar", 20);
                     btnCopiar.ClearValue(ForegroundProperty);
                     t.Stop();
                 };
@@ -333,15 +348,7 @@ namespace CofreDeSenhas.Controles
         private void AtualizarBarraForca()
         {
             _nivelForca = ForcaSenha.Calcular(_senhaGerada);
-            var (texto, cor) = ForcaSenha.Descrever(_nivelForca);
-
-            LblForca.Text = texto;
-            LblForca.Foreground = Tema.Pincel(cor);
-            AutomationProperties.SetName(LblForca, $"{Idioma.Texto("Generator.Strength")}: {texto}");
-
-            var segmentos = new[] { SegForca1, SegForca2, SegForca3, SegForca4 };
-            for (int i = 0; i < segmentos.Length; i++)
-                segmentos[i].Background = Tema.Pincel(i < _nivelForca ? cor : Tema.TrailInactive);
+            Medidor.Avaliar(_senhaGerada);
         }
 
         private void OlhoGerada_Click(object? sender, RoutedEventArgs e)

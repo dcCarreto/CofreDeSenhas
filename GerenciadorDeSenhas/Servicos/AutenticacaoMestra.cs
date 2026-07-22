@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
+using GerenciadorDeSenhas.Excecoes;
 using Konscious.Security.Cryptography;
 
 namespace GerenciadorDeSenhas.Servicos
@@ -44,9 +45,9 @@ namespace GerenciadorDeSenhas.Servicos
         public byte[] CriarSenhaMestra(string senha)
         {
             if (string.IsNullOrWhiteSpace(senha))
-                throw new ArgumentException("A senha mestra não pode ser vazia.");
+                throw new ErroLocalizavel("Auth.Error.PasswordRequired");
             if (senha.Length < TamanhoMinimoSenha)
-                throw new ArgumentException($"A senha mestra deve ter pelo menos {TamanhoMinimoSenha} caracteres.");
+                throw new ErroLocalizavel("Auth.Error.PasswordTooShort", TamanhoMinimoSenha);
 
             var salt = RandomNumberGenerator.GetBytes(SaltSize);
             var chave = DerivarChaveArgon2id(senha, salt, TempoCustoAtual, MemoriaKbAtual, ParalelismoAtual);
@@ -68,6 +69,12 @@ namespace GerenciadorDeSenhas.Servicos
 
             File.WriteAllText(_caminhoAuth, Convert.ToBase64String(dados));
             return chave;
+        }
+
+        public void ExcluirSenhaMestra()
+        {
+            if (File.Exists(_caminhoAuth))
+                File.Delete(_caminhoAuth);
         }
 
         public byte[]? Autenticar(string senha)

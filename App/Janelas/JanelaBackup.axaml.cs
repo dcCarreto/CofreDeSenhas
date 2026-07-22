@@ -133,7 +133,7 @@ namespace CofreDeSenhas.Janelas
                 var btnRestaurar = new Button
                 {
                     Content = Idioma.Texto("Backup.Restore"),
-                    Height = 30,
+                    Height = 34,
                     FontSize = 12
                 };
                 btnRestaurar.Classes.Add("plano");
@@ -168,7 +168,7 @@ namespace CofreDeSenhas.Janelas
             catch (Exception ex)
             {
                 await CaixaMensagem.MostrarAsync(this,
-                    Idioma.Formatar("Backup.Error", ex.Message), Idioma.Texto("Common.Error"), TipoMensagem.Erro);
+                    Idioma.Formatar("Backup.Error", ErrosUi.MensagemAmigavel(ex)), Idioma.Texto("Common.Error"), TipoMensagem.Erro);
             }
         }
 

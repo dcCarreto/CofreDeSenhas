@@ -153,7 +153,11 @@ namespace CofreDeSenhas.Janelas
             foreach (var (chave, valorCifrado) in _senhaAtual.CamposExtras)
             {
                 try { resultado[chave] = _criptografia.Descriptografar(valorCifrado); }
-                catch { }
+                catch (Exception ex)
+                {
+                    Diagnostico.Registrar(ex, "CamposExtras");
+                    resultado[chave] = Idioma.Texto("Entry.FieldDecryptError");
+                }
             }
 
             return resultado;
@@ -220,7 +224,7 @@ namespace CofreDeSenhas.Janelas
             catch (Exception ex)
             {
                 await CaixaMensagem.MostrarAsync(this,
-                    Idioma.Formatar("Entry.UpdateError", ex.Message), Idioma.Texto("Common.Error"), TipoMensagem.Erro);
+                    Idioma.Formatar("Entry.UpdateError", ErrosUi.MensagemAmigavel(ex)), Idioma.Texto("Common.Error"), TipoMensagem.Erro);
             }
         }
 
@@ -443,7 +447,7 @@ namespace CofreDeSenhas.Janelas
             catch (Exception ex)
             {
                 await CaixaMensagem.MostrarAsync(this,
-                    Idioma.Formatar("Entry.RecoveryCodesAddError", ex.Message), Idioma.Texto("Common.Error"), TipoMensagem.Erro);
+                    Idioma.Formatar("Entry.RecoveryCodesAddError", ErrosUi.MensagemAmigavel(ex)), Idioma.Texto("Common.Error"), TipoMensagem.Erro);
             }
         }
 
@@ -458,7 +462,7 @@ namespace CofreDeSenhas.Janelas
             catch (Exception ex)
             {
                 await CaixaMensagem.MostrarAsync(this,
-                    Idioma.Formatar("Entry.RecoveryCodeMarkError", ex.Message), Idioma.Texto("Common.Error"), TipoMensagem.Erro);
+                    Idioma.Formatar("Entry.RecoveryCodeMarkError", ErrosUi.MensagemAmigavel(ex)), Idioma.Texto("Common.Error"), TipoMensagem.Erro);
             }
         }
 
@@ -478,7 +482,7 @@ namespace CofreDeSenhas.Janelas
             catch (Exception ex)
             {
                 await CaixaMensagem.MostrarAsync(this,
-                    Idioma.Formatar("Entry.RecoveryCodeRemoveError", ex.Message), Idioma.Texto("Common.Error"), TipoMensagem.Erro);
+                    Idioma.Formatar("Entry.RecoveryCodeRemoveError", ErrosUi.MensagemAmigavel(ex)), Idioma.Texto("Common.Error"), TipoMensagem.Erro);
             }
         }
 
@@ -554,12 +558,12 @@ namespace CofreDeSenhas.Janelas
             }
             catch (LimiteAnexoExcedidoException ex)
             {
-                await CaixaMensagem.MostrarAsync(this, ex.Message, Idioma.Texto("Entry.AttachmentsAdd"), TipoMensagem.Aviso);
+                await CaixaMensagem.MostrarAsync(this, ErrosUi.MensagemAmigavel(ex), Idioma.Texto("Entry.AttachmentsAdd"), TipoMensagem.Aviso);
             }
             catch (Exception ex)
             {
                 await CaixaMensagem.MostrarAsync(this,
-                    Idioma.Formatar("Entry.AttachmentAddError", ex.Message), Idioma.Texto("Common.Error"), TipoMensagem.Erro);
+                    Idioma.Formatar("Entry.AttachmentAddError", ErrosUi.MensagemAmigavel(ex)), Idioma.Texto("Common.Error"), TipoMensagem.Erro);
             }
         }
 
@@ -585,7 +589,7 @@ namespace CofreDeSenhas.Janelas
             catch (Exception ex)
             {
                 await CaixaMensagem.MostrarAsync(this,
-                    Idioma.Formatar("Entry.AttachmentDownloadError", ex.Message), Idioma.Texto("Common.Error"), TipoMensagem.Erro);
+                    Idioma.Formatar("Entry.AttachmentDownloadError", ErrosUi.MensagemAmigavel(ex)), Idioma.Texto("Common.Error"), TipoMensagem.Erro);
             }
         }
 

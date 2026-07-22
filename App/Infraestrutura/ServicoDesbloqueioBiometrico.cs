@@ -121,7 +121,7 @@ namespace CofreDeSenhas
             catch (Exception ex)
             {
                 await ExcluirCredencialAsync();
-                return ResultadoBiometria.Falha(Idioma.Formatar("Biometric.EnableError", ex.Message));
+                return ResultadoBiometria.Falha(Idioma.Formatar("Biometric.EnableError", ErrosUi.MensagemAmigavel(ex)));
             }
 #else
             _ = janela;
@@ -147,7 +147,7 @@ namespace CofreDeSenhas
             }
             catch (Exception ex)
             {
-                return ResultadoBiometria.Falha(Idioma.Formatar("Biometric.UnlockError", ex.Message));
+                return ResultadoBiometria.Falha(Idioma.Formatar("Biometric.UnlockError", ErrosUi.MensagemAmigavel(ex)));
             }
 
             if (!RegistroValido(registro))
@@ -188,7 +188,7 @@ namespace CofreDeSenhas
             }
             catch (Exception ex)
             {
-                return ResultadoBiometria.Falha(Idioma.Formatar("Biometric.UnlockError", ex.Message));
+                return ResultadoBiometria.Falha(Idioma.Formatar("Biometric.UnlockError", ErrosUi.MensagemAmigavel(ex)));
             }
 #else
             _ = janela;
@@ -212,7 +212,7 @@ namespace CofreDeSenhas
             }
             catch (Exception ex)
             {
-                return ResultadoBiometria.Falha(Idioma.Formatar("Biometric.AvailabilityError", ex.Message));
+                return ResultadoBiometria.Falha(Idioma.Formatar("Biometric.AvailabilityError", ErrosUi.MensagemAmigavel(ex)));
             }
 #else
             await Task.CompletedTask;

@@ -151,15 +151,8 @@ Repaginação completa da interface, preservando todas as funcionalidades:
 
 ### Não lançado
 
-- Limpeza automática da área de transferência: ao copiar a senha de uma
-  credencial (pela lista, pelo painel de detalhes, pelo histórico de senhas
-  anteriores ou pelo gerador), a área de transferência é apagada
-  automaticamente depois de um tempo configurável (15, 30 ou 60 segundos, ou
-  desativado — 30 segundos por padrão) no menu de configurações. Um aviso
-  discreto (dica do botão, leitor de tela e, no gerador, a própria mensagem de
-  sucesso) informa quando a senha copiada será removida. Se o usuário copiar
-  outro conteúdo antes do tempo configurado, a limpeza automática não
-  sobrescreve o que foi copiado por último.
+#### Backup e recuperação de dados
+
 - Backup automático local: pela tela "Backup e restauração..." no menu de
   configurações, é possível escolher a frequência do backup automático
   (manual apenas, diário ou semanal — semanal por padrão) e a quantidade
@@ -172,6 +165,7 @@ Repaginação completa da interface, preservando todas as funcionalidades:
   conectado a um banco de dados externo, para não gerar conflito com a
   sincronização. Os backups continuam sempre cifrados, do mesmo jeito que o
   cofre local.
+
 - Lixeira criptografada: excluir uma credencial agora move para uma lixeira
   interna em vez de apagar na hora, com a data da exclusão exibida. Da
   lixeira dá para restaurar a credencial, excluí-la definitivamente ou
@@ -179,12 +173,27 @@ Repaginação completa da interface, preservando todas as funcionalidades:
   qualquer exclusão definitiva. Os itens da lixeira continuam cifrados junto
   com o resto do cofre, e o mesmo comportamento vale tanto para o cofre local
   quanto para um banco de dados conectado.
-- Instalador para Windows: instalador `CofreDeSenhas-Setup-X.Y.Z.exe` (via
-  Inno Setup), sem exigir privilégios de administrador, com atalho no menu
-  iniciar, ícone correto e entrada em "Aplicativos e recursos" para
-  desinstalar. Ao desinstalar, o cofre em `%APPDATA%\GerenciadorSenhas` é
-  preservado por padrão; apagá-lo exige confirmação explícita, com "manter"
-  como opção padrão.
+
+- Códigos de recuperação por credencial: campo próprio na tela de edição
+  para colar um ou mais códigos de backup (um por linha), guardados
+  individualmente cifrados. Cada código pode ser copiado, marcado como
+  usado (fica esmaecido na lista, sem ser apagado) ou removido, com
+  confirmação antes da remoção. Ficam ocultos por padrão, com opção de
+  revelar. Acompanham a exportação protegida e a importação/exportação do
+  banco de dados, sempre cifrados.
+
+#### Segurança e privacidade
+
+- Limpeza automática da área de transferência: ao copiar a senha de uma
+  credencial (pela lista, pelo painel de detalhes, pelo histórico de senhas
+  anteriores ou pelo gerador), a área de transferência é apagada
+  automaticamente depois de um tempo configurável (15, 30 ou 60 segundos, ou
+  desativado — 30 segundos por padrão) no menu de configurações. Um aviso
+  discreto (dica do botão, leitor de tela e, no gerador, a própria mensagem de
+  sucesso) informa quando a senha copiada será removida. Se o usuário copiar
+  outro conteúdo antes do tempo configurado, a limpeza automática não
+  sobrescreve o que foi copiado por último.
+
 - Relatório de segurança do cofre: nova tela, acessível pela barra de
   ferramentas do cofre, com uma pontuação geral (0 a 100) calculada a partir
   de senhas fracas, repetidas, antigas e comprometidas, além de contas sem
@@ -194,56 +203,7 @@ Repaginação completa da interface, preservando todas as funcionalidades:
   e a opção de limpá-lo. A verificação de vazamentos (Have I Been Pwned)
   continua opcional e é disparada pela própria tela; todo o resto do
   relatório é calculado localmente, sem enviar dados para fora.
-- Códigos de recuperação por credencial: campo próprio na tela de edição
-  para colar um ou mais códigos de backup (um por linha), guardados
-  individualmente cifrados. Cada código pode ser copiado, marcado como
-  usado (fica esmaecido na lista, sem ser apagado) ou removido, com
-  confirmação antes da remoção. Ficam ocultos por padrão, com opção de
-  revelar. Acompanham a exportação protegida e a importação/exportação do
-  banco de dados, sempre cifrados.
-- Releases confiáveis e bem documentados: novo workflow de CI
-  (`.github/workflows/release.yml`) que, ao receber uma tag `vX.Y.Z`, gera o
-  instalador e o executável portátil do Windows e o pacote do Linux, calcula
-  o hash SHA256 de cada arquivo (`CHECKSUMS.txt`) e cria a release no GitHub
-  como rascunho, com um modelo padronizado
-  (`.github/RELEASE_TEMPLATE.md`) cobrindo destaques, changelog, capturas de
-  tela, downloads por sistema operacional, instruções de instalação e
-  atualização (com aviso de backup antes de atualizar) e verificação dos
-  hashes. Fica como rascunho de propósito: a publicação continua sendo uma
-  decisão manual. O README ganhou instruções de verificação de integridade.
-  Assinatura de código no Windows foi avaliada e documentada como item
-  futuro, condicionada à obtenção de um certificado.
-- Empacotamento para Linux: novo `App/distribuicao/gerar-appimage.sh` gera um
-  AppImage autocontido (`CofreDeSenhas-X.Y.Z-x86_64.AppImage`), que roda em
-  qualquer distribuição x86_64 sem exigir o SDK do .NET nem instalação —
-  passou a ser publicado a cada release junto com o pacote `.tar.gz` e o
-  instalador do Windows, com checksum no `CHECKSUMS.txt`. O script de
-  instalação (`instalar.sh`/`desinstalar.sh`) foi mantido como alternativa
-  para quem prefere compilar do código-fonte; ambos preservam o cofre em
-  `~/.config/GerenciadorSenhas` na remoção e funcionam em X11 e Wayland.
-  Pacote `.deb` e Flatpak foram avaliados e adiados: exigiriam manter um
-  repositório próprio ou publicação no Flathub, esforço que não se justifica
-  agora com o AppImage já cobrindo o uso sem gerenciador de pacotes.
-- Atalhos de teclado: `Ctrl+F` foca a busca, `Ctrl+N` abre nova senha,
-  `Ctrl+G` abre/fecha o gerador, `Ctrl+L` bloqueia o cofre na hora (novo item
-  "Bloquear agora" no menu de configurações) e `Ctrl+Shift+U`/`Ctrl+Shift+P`
-  copiam o usuário/a senha da linha selecionada — a com foco de teclado, ou a
-  primeira da lista se nenhuma estiver focada. Uma folha de atalhos
-  consultável (menu de configurações → "Atalhos de teclado...") lista todas
-  as combinações. Nenhum atalho usa Insert/Caps Lock (modificadores padrão de
-  leitores de tela como NVDA e JAWS) nem combinações reservadas pelo sistema.
-- Testes automatizados de interface: novo projeto `App.Testes`, com
-  Avalonia.Headless, cobrindo os fluxos críticos da UI sem precisar de tela —
-  desbloqueio do cofre com senha certa e errada, criação e edição de
-  credencial, cópia de senha e de usuário pela lista (com aviso de limpeza
-  automática) e o atalho `Ctrl+L` de bloqueio imediato. Passou a rodar junto
-  com o `dotnet test` da solução, então já está coberto pelo CI existente em
-  Windows e Linux a cada push, sem passo extra no workflow. Bloqueio
-  automático por tempo (`MonitorInatividade`) ficou fora desta rodada por
-  depender do relógio real, sem um relógio injetável para simular a espera
-  em teste; troca de idioma foi coberta diretamente pelo evento global de
-  `Idioma`, sem passar pelo menu (evita gravar preferência de idioma no
-  perfil real durante o teste).
+
 - Modo privacidade: novo botão na barra de título (ao lado do de tema) e
   atalho `Ctrl+H` que, com um clique, ocultam nome do serviço, usuário,
   categoria/etiquetas e o avatar de cada credencial na lista, trocando tudo
@@ -256,6 +216,20 @@ Repaginação completa da interface, preservando todas as funcionalidades:
   bloquear o cofre — pelo atalho, pelo menu ou por inatividade — a área de
   transferência agora é sempre limpa no mesmo instante, não só depois do
   temporizador de limpeza automática.
+
+- `SECURITY.md` com a política de divulgação responsável de
+  vulnerabilidades: como reportar (aviso de segurança privado do GitHub,
+  nunca issue pública), o que esperar de resposta e o escopo do projeto.
+
+- `THREAT_MODEL.md` documentando o modelo de ameaça do cofre: o que é
+  protegido, os perfis de atacante considerados (acesso ao arquivo sem a
+  senha mestra, acesso à memória do processo com o cofre aberto, atacante
+  de rede, pasta de sincronização ou banco de dados comprometidos) e o que
+  fica deliberadamente fora de escopo (SO comprometido, perda da senha
+  mestra sem recuperação possível, engenharia social).
+
+#### Organização do cofre
+
 - Histórico operacional da credencial: o painel de detalhes passa a mostrar
   quando cada credencial foi criada e editada pela última vez, e quando a
   senha, o usuário e o código TOTP foram copiados pela última vez (ou
@@ -271,16 +245,7 @@ Repaginação completa da interface, preservando todas as funcionalidades:
   logo após conectar) ficou de fora: sincroniza a credencial em si, mas as
   datas de cópia permanecem uma informação só local, específica do
   dispositivo, sem tentar reconciliar entre local e banco a cada cópia.
-- Aviso de nova versão: novo item "Verificar atualizações" no menu de
-  configurações (desligado por padrão) consulta a release mais recente do
-  GitHub e, se houver uma versão mais nova que a instalada, mostra um aviso
-  discreto e dispensável na barra inferior do cofre, com link direto para a
-  página de releases — sem baixar nada automaticamente. A consulta é uma
-  simples leitura pública da API do GitHub, sem enviar nenhum dado além
-  dela mesma, e falhas de rede são ignoradas silenciosamente, sem nunca
-  interromper o uso do cofre. Dispensar o aviso lembra a versão dispensada
-  (guardada nas preferências) para não repetir o mesmo aviso a cada
-  abertura do cofre.
+
 - Anexos criptografados: a tela de edição completa ganhou uma seção
   "Anexos" para prender pequenos arquivos a uma credencial (até 5 por
   credencial, 5 MB cada, 100 MB no total do cofre) — pensada para QR code
@@ -301,6 +266,7 @@ Repaginação completa da interface, preservando todas as funcionalidades:
   já que não existe hoje uma coluna dedicada no banco para essa lista —
   os arquivos cifrados em si não são apagados, só a referência pode ficar
   órfã nesse cenário específico.
+
 - Organização avançada com etiquetas: etiquetas deixam de ser exclusivas da
   categoria "Outro" — qualquer credencial, em qualquer categoria, pode
   levar uma ou mais etiquetas, digitadas separadas por vírgula no campo
@@ -318,6 +284,7 @@ Repaginação completa da interface, preservando todas as funcionalidades:
   como nome da categoria personalizada exibido na lista. Fixação é local
   por dispositivo, como os favoritos, sem sincronizar para bancos de dados
   conectados.
+
 - Templates de credenciais: a criação e a edição ganharam um campo "Tipo de
   credencial" com seis modelos — Login, Cartão, Chave de licença, Wi-Fi,
   Servidor e Banco de dados. Escolher um tipo diferente de Login renomeia os
@@ -336,6 +303,9 @@ Repaginação completa da interface, preservando todas as funcionalidades:
   coluna própria no banco, desde a v2.0.0) e os itens fixados, tipo e
   campos extras são hoje só locais: não sincronizam para bancos de dados
   conectados.
+
+#### Sincronização e banco de dados
+
 - Sincronização criptografada de ponta a ponta: novo item "Sincronização..."
   no menu de configurações permite ligar o cofre a outros dispositivos
   através de uma pasta compartilhada — normalmente a pasta local de um
@@ -362,15 +332,7 @@ Repaginação completa da interface, preservando todas as funcionalidades:
   anexos (ficam só no dispositivo que os criou, mesma decisão já tomada
   para a lista de anexos em si) e sincronização em tempo real (é sempre
   por verificação periódica ou manual, nunca imediata).
-- `SECURITY.md` com a política de divulgação responsável de
-  vulnerabilidades: como reportar (aviso de segurança privado do GitHub,
-  nunca issue pública), o que esperar de resposta e o escopo do projeto.
-- `THREAT_MODEL.md` documentando o modelo de ameaça do cofre: o que é
-  protegido, os perfis de atacante considerados (acesso ao arquivo sem a
-  senha mestra, acesso à memória do processo com o cofre aberto, atacante
-  de rede, pasta de sincronização ou banco de dados comprometidos) e o que
-  fica deliberadamente fora de escopo (SO comprometido, perda da senha
-  mestra sem recuperação possível, engenharia social).
+
 - Fechada a lacuna de campos entre cofre local, pasta de sincronização e
   banco de dados externo: o banco ganhou colunas para URL, categoria, tipo
   de credencial e campos extras, histórico de senhas anteriores, favorito e
@@ -382,6 +344,7 @@ Repaginação completa da interface, preservando todas as funcionalidades:
   externo passa a ser apresentada como recurso self-hosted/compartilhado,
   não mais como sincronização pessoal — esse papel é da sincronização por
   pasta cifrada.
+
 - Consolidação da sincronização: o banco de dados externo ganha identidade
   estável por credencial (coluna `guid_id`, preenchida automaticamente em
   tabelas antigas que não a tinham) e passa a usar o mesmo motor de
@@ -392,6 +355,75 @@ Repaginação completa da interface, preservando todas as funcionalidades:
   na primeira sincronização após esta atualização, evita duplicar
   credenciais que já estavam pareadas pelo modelo antigo (nome de serviço +
   usuário).
+
+#### Distribuição e atualizações
+
+- Instalador para Windows: instalador `CofreDeSenhas-Setup-X.Y.Z.exe` (via
+  Inno Setup), sem exigir privilégios de administrador, com atalho no menu
+  iniciar, ícone correto e entrada em "Aplicativos e recursos" para
+  desinstalar. Ao desinstalar, o cofre em `%APPDATA%\GerenciadorSenhas` é
+  preservado por padrão; apagá-lo exige confirmação explícita, com "manter"
+  como opção padrão.
+
+- Releases confiáveis e bem documentados: novo workflow de CI
+  (`.github/workflows/release.yml`) que, ao receber uma tag `vX.Y.Z`, gera o
+  instalador e o executável portátil do Windows e o pacote do Linux, calcula
+  o hash SHA256 de cada arquivo (`CHECKSUMS.txt`) e cria a release no GitHub
+  como rascunho, com um modelo padronizado
+  (`.github/RELEASE_TEMPLATE.md`) cobrindo destaques, changelog, capturas de
+  tela, downloads por sistema operacional, instruções de instalação e
+  atualização (com aviso de backup antes de atualizar) e verificação dos
+  hashes. Fica como rascunho de propósito: a publicação continua sendo uma
+  decisão manual. O README ganhou instruções de verificação de integridade.
+  Assinatura de código no Windows foi avaliada e documentada como item
+  futuro, condicionada à obtenção de um certificado.
+
+- Empacotamento para Linux: novo `App/distribuicao/gerar-appimage.sh` gera um
+  AppImage autocontido (`CofreDeSenhas-X.Y.Z-x86_64.AppImage`), que roda em
+  qualquer distribuição x86_64 sem exigir o SDK do .NET nem instalação —
+  passou a ser publicado a cada release junto com o pacote `.tar.gz` e o
+  instalador do Windows, com checksum no `CHECKSUMS.txt`. O script de
+  instalação (`instalar.sh`/`desinstalar.sh`) foi mantido como alternativa
+  para quem prefere compilar do código-fonte; ambos preservam o cofre em
+  `~/.config/GerenciadorSenhas` na remoção e funcionam em X11 e Wayland.
+  Pacote `.deb` e Flatpak foram avaliados e adiados: exigiriam manter um
+  repositório próprio ou publicação no Flathub, esforço que não se justifica
+  agora com o AppImage já cobrindo o uso sem gerenciador de pacotes.
+
+- Aviso de nova versão: novo item "Verificar atualizações" no menu de
+  configurações (desligado por padrão) consulta a release mais recente do
+  GitHub e, se houver uma versão mais nova que a instalada, mostra um aviso
+  discreto e dispensável na barra inferior do cofre, com link direto para a
+  página de releases — sem baixar nada automaticamente. A consulta é uma
+  simples leitura pública da API do GitHub, sem enviar nenhum dado além
+  dela mesma, e falhas de rede são ignoradas silenciosamente, sem nunca
+  interromper o uso do cofre. Dispensar o aviso lembra a versão dispensada
+  (guardada nas preferências) para não repetir o mesmo aviso a cada
+  abertura do cofre.
+
+#### Produtividade e qualidade
+
+- Atalhos de teclado: `Ctrl+F` foca a busca, `Ctrl+N` abre nova senha,
+  `Ctrl+G` abre/fecha o gerador, `Ctrl+L` bloqueia o cofre na hora (novo item
+  "Bloquear agora" no menu de configurações) e `Ctrl+Shift+U`/`Ctrl+Shift+P`
+  copiam o usuário/a senha da linha selecionada — a com foco de teclado, ou a
+  primeira da lista se nenhuma estiver focada. Uma folha de atalhos
+  consultável (menu de configurações → "Atalhos de teclado...") lista todas
+  as combinações. Nenhum atalho usa Insert/Caps Lock (modificadores padrão de
+  leitores de tela como NVDA e JAWS) nem combinações reservadas pelo sistema.
+
+- Testes automatizados de interface: novo projeto `App.Testes`, com
+  Avalonia.Headless, cobrindo os fluxos críticos da UI sem precisar de tela —
+  desbloqueio do cofre com senha certa e errada, criação e edição de
+  credencial, cópia de senha e de usuário pela lista (com aviso de limpeza
+  automática) e o atalho `Ctrl+L` de bloqueio imediato. Passou a rodar junto
+  com o `dotnet test` da solução, então já está coberto pelo CI existente em
+  Windows e Linux a cada push, sem passo extra no workflow. Bloqueio
+  automático por tempo (`MonitorInatividade`) ficou fora desta rodada por
+  depender do relógio real, sem um relógio injetável para simular a espera
+  em teste; troca de idioma foi coberta diretamente pelo evento global de
+  `Idioma`, sem passar pelo menu (evita gravar preferência de idioma no
+  perfil real durante o teste).
 
 ## Em andamento
 

@@ -1,6 +1,8 @@
 using System;
+using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using GerenciadorDeSenhas.Excecoes;
 using GerenciadorDeSenhas.Modelos;
 
 namespace GerenciadorDeSenhas.Servicos
@@ -92,9 +94,17 @@ namespace GerenciadorDeSenhas.Servicos
 
                 return senhas;
             }
+            catch (CryptographicException ex)
+            {
+                throw new ErroLocalizavel("Vault.Error.WrongKeyOrCorrupt", ex);
+            }
+            catch (JsonException ex)
+            {
+                throw new ErroLocalizavel("Vault.Error.CorruptData", ex);
+            }
             catch (Exception ex)
             {
-                throw new InvalidOperationException($"Erro ao carregar senhas: {ex.Message}", ex);
+                throw new ErroLocalizavel("Vault.Error.IOFailure", ex);
             }
         }
 
@@ -122,7 +132,7 @@ namespace GerenciadorDeSenhas.Servicos
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException($"Erro ao fazer backup: {ex.Message}", ex);
+                throw new ErroLocalizavel("Vault.Error.BackupFailed", ex);
             }
         }
 
@@ -148,9 +158,17 @@ namespace GerenciadorDeSenhas.Servicos
                 var json = _criptografia.Descriptografar(criptografado);
                 return JsonSerializer.Deserialize<List<Senha>>(json) ?? new List<Senha>();
             }
+            catch (CryptographicException ex)
+            {
+                throw new ErroLocalizavel("Vault.Error.WrongKeyOrCorrupt", ex);
+            }
+            catch (JsonException ex)
+            {
+                throw new ErroLocalizavel("Vault.Error.CorruptData", ex);
+            }
             catch (Exception ex)
             {
-                throw new InvalidOperationException($"Erro ao carregar backup: {ex.Message}", ex);
+                throw new ErroLocalizavel("Vault.Error.IOFailure", ex);
             }
         }
 
@@ -173,6 +191,17 @@ namespace GerenciadorDeSenhas.Servicos
             catch
             {
             }
+        }
+
+        public Task ApagarTudoAsync()
+        {
+            if (File.Exists(_caminhoSenhas))
+                File.Delete(_caminhoSenhas);
+
+            if (Directory.Exists(_pastaBackup))
+                Directory.Delete(_pastaBackup, recursive: true);
+
+            return Task.CompletedTask;
         }
 
         public bool ValidarIntegridade()

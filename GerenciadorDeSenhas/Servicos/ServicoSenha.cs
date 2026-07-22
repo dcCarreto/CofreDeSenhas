@@ -1,3 +1,4 @@
+using GerenciadorDeSenhas.Excecoes;
 using GerenciadorDeSenhas.Modelos;
 using GerenciadorDeSenhas.Repositorios;
 
@@ -186,6 +187,11 @@ namespace GerenciadorDeSenhas.Servicos
             await _repositorio.RemoverAsync(id);
         }
 
+        public async Task LimparCofreAsync()
+        {
+            await _repositorio.MoverTudoParaLixeiraAsync();
+        }
+
         public async Task<List<Senha>> ListarTodosAsync()
         {
             return await _repositorio.ListarTodosAsync();
@@ -333,22 +339,22 @@ namespace GerenciadorDeSenhas.Servicos
         private static void ValidarEntrada(string nomeServico, string usuario, string senhaPlaintext)
         {
             if (string.IsNullOrWhiteSpace(nomeServico))
-                throw new ArgumentException("Nome do serviço não pode ser vazio");
+                throw new ErroLocalizavel("Entry.Error.ServiceRequired");
 
             if (string.IsNullOrWhiteSpace(usuario))
-                throw new ArgumentException("Usuário não pode ser vazio");
+                throw new ErroLocalizavel("Entry.Error.UserRequired");
 
             if (string.IsNullOrWhiteSpace(senhaPlaintext))
-                throw new ArgumentException("Senha não pode ser vazia");
+                throw new ErroLocalizavel("Entry.Error.PasswordRequired");
 
             if (nomeServico.Length > 100)
-                throw new ArgumentException("Nome do serviço não pode exceder 100 caracteres");
+                throw new ErroLocalizavel("Entry.Error.ServiceTooLong", 100);
 
             if (usuario.Length > 255)
-                throw new ArgumentException("Usuário não pode exceder 255 caracteres");
+                throw new ErroLocalizavel("Entry.Error.UserTooLong", 255);
 
             if (senhaPlaintext.Length > 1000)
-                throw new ArgumentException("Senha não pode exceder 1000 caracteres");
+                throw new ErroLocalizavel("Entry.Error.PasswordTooLong", 1000);
         }
     }
 }

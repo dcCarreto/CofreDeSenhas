@@ -211,6 +211,15 @@ namespace GerenciadorDeSenhas.Repositorios
             }
         }
 
+        public async Task MoverTudoParaLixeiraAsync()
+        {
+            await CarregarSeNecessarioAsync();
+
+            var idsAtivos = _senhas.Where(s => !s.NaLixeira).Select(s => s.Id).ToList();
+            foreach (var id in idsAtivos)
+                await RemoverAsync(id);
+        }
+
         public async Task<Senha?> ObterPorIdAsync(Guid id)
         {
             await CarregarSeNecessarioAsync();

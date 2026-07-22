@@ -12,5 +12,6 @@ namespace GerenciadorDeSenhas.Servicos
         List<InfoBackup> ListarBackups();
         Task<List<Senha>> CarregarBackupAsync(string caminhoArquivo);
         bool ValidarIntegridade();
+        Task ApagarTudoAsync();
     }
 }

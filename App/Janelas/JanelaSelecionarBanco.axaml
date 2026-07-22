@@ -8,7 +8,8 @@
         SystemDecorations="None"
         Background="Transparent"
         TransparencyLevelHint="Transparent"
-        WindowStartupLocation="CenterOwner">
+        WindowStartupLocation="CenterOwner"
+        RenderOptions.BitmapInterpolationMode="HighQuality">
 
   <Border CornerRadius="{StaticResource RadiusDialogo}"
           ClipToBounds="True"
@@ -28,18 +29,19 @@
                      Foreground="{DynamicResource TextPrimary}"
                      VerticalAlignment="Center"
                      AutomationProperties.HeadingLevel="1"
-                     Margin="24,0,0,0" />
+                     Margin="24,0,60,0"
+                     TextTrimming="CharacterEllipsis" />
           <Button Classes="fechar-dialogo"
                   AutomationProperties.Name="{DynamicResource Access.Close}"
                   HorizontalAlignment="Right" VerticalAlignment="Center"
                   Margin="0,0,14,0"
                   Click="Cancelar_Click">
-            <Path Classes="line-icon" Width="14" Height="14" Data="{StaticResource IconeFechar}" />
+            <Image Width="22" Height="22" Stretch="Uniform" Source="avares://CofreDeSenhas/Ativos/Icones/IconeFechar.png" />
           </Button>
         </Grid>
       </Border>
 
-      <StackPanel Margin="24,18,24,10" Spacing="14">
+      <StackPanel Margin="24,18,24,16" Spacing="14">
         <TextBlock Text="{DynamicResource Db.SelectExplanation}"
                    FontSize="12"
                    Foreground="{DynamicResource TextSecondary}"

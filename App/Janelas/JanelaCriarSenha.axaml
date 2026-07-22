@@ -3,12 +3,14 @@
         x:Class="CofreDeSenhas.Janelas.JanelaCriarSenha"
         Title="{DynamicResource Entry.NewTitle}"
         Width="460"
-        SizeToContent="Height"
-        CanResize="False"
+        Height="680"
+        MinWidth="460"
+        MinHeight="480"
         SystemDecorations="None"
         Background="Transparent"
         TransparencyLevelHint="Transparent"
-        WindowStartupLocation="CenterOwner">
+        WindowStartupLocation="CenterOwner"
+        RenderOptions.BitmapInterpolationMode="HighQuality">
 
   <Border CornerRadius="{StaticResource RadiusDialogo}"
           ClipToBounds="True"
@@ -28,13 +30,14 @@
                      Foreground="{DynamicResource TextPrimary}"
                      VerticalAlignment="Center"
                      AutomationProperties.HeadingLevel="1"
-                     Margin="24,0,0,0" />
+                     Margin="24,0,60,0"
+                     TextTrimming="CharacterEllipsis" />
           <Button Classes="fechar-dialogo"
                   AutomationProperties.Name="{DynamicResource Access.Close}"
                   HorizontalAlignment="Right" VerticalAlignment="Center"
                   Margin="0,0,14,0"
                   Click="Cancelar_Click">
-            <Path Classes="line-icon" Width="14" Height="14" Data="{StaticResource IconeFechar}" />
+            <Image Width="22" Height="22" Stretch="Uniform" Source="avares://CofreDeSenhas/Ativos/Icones/IconeFechar.png" />
           </Button>
         </Grid>
       </Border>
@@ -52,22 +55,23 @@
         </StackPanel>
       </Border>
 
+      <ScrollViewer>
       <StackPanel Margin="24,18,24,16" Spacing="4">
-        <TextBlock Text="{DynamicResource Entry.ServiceName}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
+        <TextBlock Text="{DynamicResource Entry.ServiceName}" Classes="legenda" />
         <TextBox Name="TxtNomeServico" Classes="campo" Margin="0,0,0,14"
                  AutomationProperties.Name="{DynamicResource Entry.ServiceName}"
                  AutomationProperties.IsRequiredForForm="True" />
 
-        <TextBlock Text="{DynamicResource Entry.Type}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
+        <TextBlock Text="{DynamicResource Entry.Type}" Classes="legenda" />
         <ComboBox Name="CmbTipo" Classes="campo" HorizontalAlignment="Stretch" Margin="0,0,0,14"
                   AutomationProperties.Name="{DynamicResource Entry.Type}" />
 
-        <TextBlock Name="LblUsuario" Text="{DynamicResource Entry.UserEmail}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
+        <TextBlock Name="LblUsuario" Text="{DynamicResource Entry.UserEmail}" Classes="legenda" />
         <TextBox Name="TxtUsuario" Classes="campo" Margin="0,0,0,14"
                  AutomationProperties.Name="{DynamicResource Entry.UserEmail}"
                  AutomationProperties.IsRequiredForForm="True" />
 
-        <TextBlock Name="LblSenha" Text="{DynamicResource Entry.Password}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
+        <TextBlock Name="LblSenha" Text="{DynamicResource Entry.Password}" Classes="legenda" />
         <TextBox Name="TxtSenha" Classes="campo revealPasswordButton" PasswordChar="●" Margin="0,0,0,14"
                  AutomationProperties.Name="{DynamicResource Entry.Password}"
                  AutomationProperties.HelpText="{DynamicResource A11y.PasswordFieldHelp}"
@@ -75,11 +79,11 @@
 
         <StackPanel Name="PainelCamposExtras" Spacing="4" />
 
-        <TextBlock Text="{DynamicResource Entry.TotpOptional}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
+        <TextBlock Text="{DynamicResource Entry.TotpOptional}" Classes="legenda" />
         <TextBox Name="TxtTotp" Classes="campo"
                  AutomationProperties.Name="{DynamicResource Entry.TotpOptional}"
                  AutomationProperties.HelpText="{DynamicResource A11y.OptionalField}"
-                 Watermark="{DynamicResource Entry.TotpWatermark}" Margin="0,0,0,8" />
+                 Watermark="{DynamicResource Entry.TotpWatermark}" Margin="0,0,0,14" />
         <Border Name="PainelTotp" IsVisible="False"
                 Background="{DynamicResource InputBackground}"
                 BorderBrush="{DynamicResource InputBorder}" BorderThickness="1"
@@ -99,27 +103,28 @@
           </Grid>
         </Border>
 
-        <TextBlock Text="{DynamicResource Entry.Category}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
+        <TextBlock Text="{DynamicResource Entry.Category}" Classes="legenda" />
         <ComboBox Name="CmbCategoria" Classes="campo" HorizontalAlignment="Stretch" Margin="0,0,0,14"
                   AutomationProperties.Name="{DynamicResource Entry.Category}"
                   AutomationProperties.IsRequiredForForm="True" />
 
-        <TextBlock Text="{DynamicResource Entry.TagsOptional}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
+        <TextBlock Text="{DynamicResource Entry.TagsOptional}" Classes="legenda" />
         <TextBox Name="TxtEtiquetas" Classes="campo"
                  AutomationProperties.Name="{DynamicResource Entry.TagsOptional}"
                  AutomationProperties.HelpText="{DynamicResource A11y.OptionalField}"
                  Watermark="{DynamicResource Entry.TagsWatermark}" Margin="0,0,0,14" />
 
-        <TextBlock Text="{DynamicResource Entry.UrlOptional}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
+        <TextBlock Text="{DynamicResource Entry.UrlOptional}" Classes="legenda" />
         <TextBox Name="TxtUrl" Classes="campo" Margin="0,0,0,14"
                  AutomationProperties.Name="{DynamicResource Entry.UrlOptional}"
                  AutomationProperties.HelpText="{DynamicResource A11y.OptionalField}" />
 
-        <TextBlock Text="{DynamicResource Entry.NotesOptional}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
+        <TextBlock Text="{DynamicResource Entry.NotesOptional}" Classes="legenda" />
         <TextBox Name="TxtNotas" Classes="campo" AcceptsReturn="True" Height="64"
                  AutomationProperties.Name="{DynamicResource Entry.NotesOptional}"
                  AutomationProperties.HelpText="{DynamicResource A11y.OptionalField}" />
       </StackPanel>
+      </ScrollViewer>
     </DockPanel>
   </Border>
 </Window>

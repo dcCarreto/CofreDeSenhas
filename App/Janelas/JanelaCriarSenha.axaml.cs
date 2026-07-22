@@ -156,7 +156,7 @@ namespace CofreDeSenhas.Janelas
             catch (Exception ex)
             {
                 await CaixaMensagem.MostrarAsync(this,
-                    Idioma.Formatar("Entry.CreateError", ex.Message), Idioma.Texto("Common.Error"), TipoMensagem.Erro);
+                    Idioma.Formatar("Entry.CreateError", ErrosUi.MensagemAmigavel(ex)), Idioma.Texto("Common.Error"), TipoMensagem.Erro);
             }
         }
 

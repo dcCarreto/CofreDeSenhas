@@ -15,6 +15,7 @@ using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using CofreDeSenhas.Controles;
+using GerenciadorDeSenhas.Excecoes;
 using GerenciadorDeSenhas.Modelos;
 using GerenciadorDeSenhas.Repositorios;
 using GerenciadorDeSenhas.Servicos;
@@ -81,6 +82,7 @@ namespace CofreDeSenhas.Janelas
         private double _larguraInicialRedimensionamento;
         private double _larguraDireitaInicialRedimensionamento;
         private bool _largurasIniciaisAplicadas;
+        private double _larguraTabelaAnterior;
 
         private const double LarguraMinimaServico = 88;
         private const double LarguraMinimaUsuario = 160;
@@ -166,6 +168,8 @@ namespace CofreDeSenhas.Janelas
                 _ = VerificarAtualizacaoAsync();
                 _ = SincronizarAsync(silencioso: true);
             };
+
+            GridCabecalhoTabela.SizeChanged += GridCabecalhoTabela_SizeChanged;
         }
 
         private void Atalho_KeyDown(object? sender, KeyEventArgs e)
@@ -226,21 +230,8 @@ namespace CofreDeSenhas.Janelas
             AutomationProperties.SetName(BtnPrivacidade, dica);
         }
 
-        private static AvaloniaPath IconeOlhoPrivacidade(bool ativo)
-        {
-            var geo = (Geometry)Application.Current!.FindResource(ativo ? "IconeRevelar" : "IconeOcultar")!;
-            return new AvaloniaPath
-            {
-                Data = geo,
-                Width = 18,
-                Height = 18,
-                Stretch = Stretch.Uniform,
-                Stroke = Tema.Pincel(Tema.TextPrimary),
-                StrokeThickness = 2,
-                StrokeLineCap = PenLineCap.Round,
-                Fill = Brushes.Transparent
-            };
-        }
+        private static Image IconeOlhoPrivacidade(bool ativo) =>
+            Recursos.ImagemIcone(ativo ? "IconeRevelar" : "IconeOcultar", 28);
 
         private async Task CopiarUsuarioLinhaFocadaAsync()
         {
@@ -407,6 +398,35 @@ namespace CofreDeSenhas.Janelas
             _larguraServico = Math.Clamp(flexivel * 0.44, LarguraMinimaServico, 260);
             _larguraUsuario = Math.Max(LarguraMinimaUsuario, flexivel - _larguraServico);
 
+            _larguraTabelaAnterior = larguraDisponivel;
+            AplicarLargurasColunas();
+        }
+
+        private void GridCabecalhoTabela_SizeChanged(object? sender, SizeChangedEventArgs e)
+        {
+            if (!_largurasIniciaisAplicadas)
+            {
+                AjustarLargurasIniciais();
+                return;
+            }
+
+            if (_larguraTabelaAnterior <= 0)
+                return;
+
+            var larguraAtual = GridCabecalhoTabela.Bounds.Width;
+            var delta = larguraAtual - _larguraTabelaAnterior;
+            _larguraTabelaAnterior = larguraAtual;
+            if (delta == 0)
+                return;
+
+            var larguraServicoAlvo = _larguraServico + delta;
+            var larguraServicoAplicada = Math.Max(LarguraMinimaServico, larguraServicoAlvo);
+            var sobra = larguraServicoAlvo - larguraServicoAplicada;
+
+            DefinirLarguraColuna(ColunaTabela.Servico, larguraServicoAplicada);
+            if (sobra != 0)
+                DefinirLarguraColuna(ColunaTabela.Usuario, _larguraUsuario + sobra);
+
             AplicarLargurasColunas();
         }
 
@@ -504,31 +524,8 @@ namespace CofreDeSenhas.Janelas
             Avalonia.Automation.AutomationProperties.SetName(BtnTema, dica);
         }
 
-        private static AvaloniaPath IconeSolLua(bool mostrarSol)
-        {
-            var geo = (Geometry)Application.Current!.FindResource(mostrarSol ? "IconeSol" : "IconeLua")!;
-            var icone = new AvaloniaPath
-            {
-                Data = geo,
-                Width = 18,
-                Height = 18,
-                Stretch = Stretch.Uniform
-            };
-
-            if (mostrarSol)
-            {
-                icone.Stroke = Tema.Pincel(Tema.TextPrimary);
-                icone.StrokeThickness = 2;
-                icone.StrokeLineCap = PenLineCap.Round;
-                icone.Fill = Brushes.Transparent;
-            }
-            else
-            {
-                icone.Fill = Tema.Pincel(Tema.TextPrimary);
-            }
-
-            return icone;
-        }
+        private static Image IconeSolLua(bool mostrarSol) =>
+            Recursos.ImagemIcone(mostrarSol ? "IconeSol" : "IconeLua", 28);
 
         private void Idioma_Alterado(object? sender, RoutedEventArgs e)
         {
@@ -841,7 +838,7 @@ namespace CofreDeSenhas.Janelas
             catch (Exception ex)
             {
                 await CaixaMensagem.MostrarAsync(this,
-                    Idioma.Formatar("Message.LoadError", ex.Message),
+                    Idioma.Formatar("Message.LoadError", ErrosUi.MensagemAmigavel(ex)),
                     Idioma.Texto("Common.Error"), TipoMensagem.Erro);
             }
         }
@@ -894,7 +891,7 @@ namespace CofreDeSenhas.Janelas
             catch (Exception ex)
             {
                 await CaixaMensagem.MostrarAsync(this,
-                    Idioma.Formatar("Message.LoadError", ex.Message),
+                    Idioma.Formatar("Message.LoadError", ErrosUi.MensagemAmigavel(ex)),
                     Idioma.Texto("Common.Error"), TipoMensagem.Erro);
             }
         }
@@ -973,7 +970,7 @@ namespace CofreDeSenhas.Janelas
             var btnRestaurar = new Button
             {
                 Content = Idioma.Texto("Trash.Restore"),
-                Height = 34,
+                MinHeight = 34,
                 FontSize = 12,
                 VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
                 Margin = new Thickness(8, 0, 0, 0)
@@ -991,7 +988,7 @@ namespace CofreDeSenhas.Janelas
                 Margin = new Thickness(8, 0, 0, 0)
             };
             btnExcluir.Classes.Add("icone");
-            btnExcluir.Content = CriarIcone("IconeExcluir", 14);
+            btnExcluir.Content = Recursos.ImagemIcone("IconeExcluir", 22);
             ToolTip.SetTip(btnExcluir, Idioma.Texto("Trash.DeleteForever"));
             AutomationProperties.SetName(btnExcluir, Idioma.Formatar("Trash.DeleteForeverConfirm", senha.NomeServico));
             btnExcluir.Click += async (s, e) => await ExcluirDefinitivamenteAsync(senha);
@@ -1033,7 +1030,7 @@ namespace CofreDeSenhas.Janelas
             catch (Exception ex)
             {
                 await CaixaMensagem.MostrarAsync(this,
-                    Idioma.Formatar("Trash.RestoreError", ex.Message), Idioma.Texto("Common.Error"), TipoMensagem.Erro);
+                    Idioma.Formatar("Trash.RestoreError", ErrosUi.MensagemAmigavel(ex)), Idioma.Texto("Common.Error"), TipoMensagem.Erro);
             }
         }
 
@@ -1056,7 +1053,7 @@ namespace CofreDeSenhas.Janelas
             catch (Exception ex)
             {
                 await CaixaMensagem.MostrarAsync(this,
-                    Idioma.Formatar("Trash.DeleteForeverError", ex.Message), Idioma.Texto("Common.Error"), TipoMensagem.Erro);
+                    Idioma.Formatar("Trash.DeleteForeverError", ErrosUi.MensagemAmigavel(ex)), Idioma.Texto("Common.Error"), TipoMensagem.Erro);
             }
         }
 
@@ -1085,8 +1082,82 @@ namespace CofreDeSenhas.Janelas
             catch (Exception ex)
             {
                 await CaixaMensagem.MostrarAsync(this,
-                    Idioma.Formatar("Trash.EmptyError", ex.Message), Idioma.Texto("Common.Error"), TipoMensagem.Erro);
+                    Idioma.Formatar("Trash.EmptyError", ErrosUi.MensagemAmigavel(ex)), Idioma.Texto("Common.Error"), TipoMensagem.Erro);
             }
+        }
+
+        private async void LimparCofre_Click(object? sender, RoutedEventArgs e)
+        {
+            if (_senhasAtuais.Count == 0)
+                return;
+
+            var confirmar = await CaixaMensagem.ConfirmarAsync(this,
+                Idioma.Texto("Vault.ClearConfirm"),
+                Idioma.Texto("Vault.ClearTitle"), TipoMensagem.Aviso);
+
+            if (!confirmar)
+                return;
+
+            try
+            {
+                await _servicoSenha.LimparCofreAsync();
+                await _servicoSenha.PersistirAsync();
+                await CarregarSenhasAsync();
+            }
+            catch (Exception ex)
+            {
+                await CaixaMensagem.MostrarAsync(this,
+                    Idioma.Formatar("Vault.ClearError", ErrosUi.MensagemAmigavel(ex)), Idioma.Texto("Common.Error"), TipoMensagem.Erro);
+            }
+        }
+
+        private async void ExcluirCofre_Click(object? sender, RoutedEventArgs e)
+        {
+            if (_criptografia == null)
+            {
+                await CaixaMensagem.MostrarAsync(this,
+                    Idioma.Texto("Db.FeatureUnavailable"), Idioma.Texto("Vault.DeleteTitle"), TipoMensagem.Aviso);
+                return;
+            }
+
+            var dlg = new JanelaConfirmarSenhaMestra(
+                Idioma.Texto("Vault.DeleteTitle"),
+                Idioma.Texto("Vault.DeleteReauthInstruction"),
+                Idioma.Texto("Vault.DeleteReauthButton"));
+            if (!await AbrirDialogoAsync<bool>(dlg))
+                return;
+
+            var confirmar = await CaixaMensagem.ConfirmarAsync(this,
+                Idioma.Texto("Vault.DeleteConfirm"),
+                Idioma.Texto("Vault.DeleteTitle"), TipoMensagem.Aviso);
+            if (!confirmar)
+                return;
+
+            try
+            {
+                await _biometria.DesabilitarAsync();
+                _servicoAnexos?.ApagarTudo();
+
+                var persistencia = new PersistenciaLocal(_criptografia);
+                await persistencia.ApagarTudoAsync();
+
+                new AutenticacaoMestra().ExcluirSenhaMestra();
+
+                Preferencias.UltimoBanco = null;
+                Preferencias.Sincronizacao = null;
+                Preferencias.Salvar();
+            }
+            catch (Exception ex)
+            {
+                await CaixaMensagem.MostrarAsync(this,
+                    Idioma.Formatar("Vault.DeleteError", ErrosUi.MensagemAmigavel(ex)), Idioma.Texto("Common.Error"), TipoMensagem.Erro);
+                return;
+            }
+
+            await CaixaMensagem.MostrarAsync(this,
+                Idioma.Texto("Vault.DeletedRestart"),
+                Idioma.Texto("Vault.DeleteTitle"));
+            Reiniciar();
         }
 
         private string? ObterSenhaPlain(Senha s)
@@ -1112,7 +1183,11 @@ namespace CofreDeSenhas.Janelas
             foreach (var (chave, valorCifrado) in s.CamposExtras)
             {
                 try { resultado[chave] = _criptografia.Descriptografar(valorCifrado); }
-                catch { }
+                catch (Exception ex)
+                {
+                    Diagnostico.Registrar(ex, "CamposExtras");
+                    resultado[chave] = Idioma.Texto("Entry.FieldDecryptError");
+                }
             }
 
             return resultado;
@@ -1393,31 +1468,7 @@ namespace CofreDeSenhas.Janelas
             AutomationProperties.SetName(LblContadorHeader, LblContadorHeader.Text ?? "");
         }
 
-        private static AvaloniaPath CriarIcone(string chave, double tamanho, IBrush? stroke = null) => new()
-        {
-            Data = (Geometry)Application.Current!.FindResource(chave)!,
-            Width = tamanho,
-            Height = tamanho,
-            Stretch = Stretch.Uniform,
-            Stroke = stroke ?? Tema.Pincel(Tema.TextSecondary),
-            StrokeThickness = 2,
-            StrokeLineCap = PenLineCap.Round,
-            Fill = Brushes.Transparent
-        };
-
-        private static Canvas IconeJanela(string chave)
-        {
-            var icone = new AvaloniaPath
-            {
-                Data = (Geometry)Application.Current!.FindResource(chave)!,
-                Stretch = Stretch.None
-            };
-            icone.Classes.Add("line-icon");
-
-            var moldura = new Canvas { Width = 24, Height = 24 };
-            moldura.Children.Add(icone);
-            return moldura;
-        }
+        private static Image IconeJanela(string chave) => Recursos.ImagemIcone(chave, 28);
 
         private static string TextoBloqueioAutomatico()
         {
@@ -1506,9 +1557,19 @@ namespace CofreDeSenhas.Janelas
                     }
                 };
             NavRail.Width = _navColapsada ? 64 : 224;
+            BtnFabGerador.Width = _navColapsada ? 40 : 60;
+            BtnFabGerador.Height = _navColapsada ? 40 : 60;
+            BtnFabGerador.CornerRadius = new CornerRadius(_navColapsada ? 20 : 30);
+            BtnFabGerador.Margin = new Thickness(0, 0, 0, 16);
+            IconeFabGerador.Width = _navColapsada ? 20 : 26;
+            IconeFabGerador.Height = _navColapsada ? 20 : 26;
 
             foreach (var texto in TextosNav())
                 texto.IsVisible = !_navColapsada;
+
+            var padding = _navColapsada ? new Thickness(0, 12) : new Thickness(16, 12);
+            foreach (var botao in BotoesNav())
+                botao.Padding = padding;
 
             LblCategoriasNav.IsVisible = !_navColapsada;
         }
@@ -1518,11 +1579,25 @@ namespace CofreDeSenhas.Janelas
             yield return LblNavCofre;
             yield return LblNavFavoritas;
             yield return LblNavRecentes;
+            yield return LblNavLixeira;
             yield return LblCatJogos;
             yield return LblCatRedes;
             yield return LblCatEmail;
             yield return LblCatFinanceiro;
             yield return LblCatOutro;
+        }
+
+        private IEnumerable<Button> BotoesNav()
+        {
+            yield return BtnNavCofre;
+            yield return BtnNavFavoritas;
+            yield return BtnNavRecentes;
+            yield return BtnNavLixeira;
+            yield return BtnCatPessoal;
+            yield return BtnCatSocial;
+            yield return BtnCatTrabalho;
+            yield return BtnCatFinancas;
+            yield return BtnCatOutro;
         }
 
         private void NavCofre_Click(object? sender, RoutedEventArgs e)
@@ -1753,7 +1828,7 @@ namespace CofreDeSenhas.Janelas
                 ? _senhaDetalhePlain
                 : new string('•', Math.Max(8, _senhaDetalhePlain.Length));
             TxtDetalheSenha.IsReadOnly = !_senhaDetalheVisivel;
-            BtnDetalheRevelar.Content = CriarIcone(_senhaDetalheVisivel ? "IconeOcultar" : "IconeRevelar", 14);
+            BtnDetalheRevelar.Content = Recursos.ImagemIcone(_senhaDetalheVisivel ? "IconeOcultar" : "IconeRevelar", 22);
             ToolTip.SetTip(BtnDetalheRevelar, Idioma.Texto(_senhaDetalheVisivel ? "Row.HidePassword" : "Row.RevealPassword"));
         }
 
@@ -1904,7 +1979,7 @@ namespace CofreDeSenhas.Janelas
             catch (Exception ex)
             {
                 await CaixaMensagem.MostrarAsync(this,
-                    Idioma.Formatar("Entry.UpdateError", ex.Message), Idioma.Texto("Common.Error"), TipoMensagem.Erro);
+                    Idioma.Formatar("Entry.UpdateError", ErrosUi.MensagemAmigavel(ex)), Idioma.Texto("Common.Error"), TipoMensagem.Erro);
             }
         }
 
@@ -1996,7 +2071,7 @@ namespace CofreDeSenhas.Janelas
             catch (Exception ex)
             {
                 await CaixaMensagem.MostrarAsync(this,
-                    Idioma.Formatar("Message.FavoriteError", ex.Message),
+                    Idioma.Formatar("Message.FavoriteError", ErrosUi.MensagemAmigavel(ex)),
                     Idioma.Texto("Common.Error"), TipoMensagem.Erro);
             }
         }
@@ -2013,7 +2088,7 @@ namespace CofreDeSenhas.Janelas
             catch (Exception ex)
             {
                 await CaixaMensagem.MostrarAsync(this,
-                    Idioma.Formatar("Message.PinError", ex.Message),
+                    Idioma.Formatar("Message.PinError", ErrosUi.MensagemAmigavel(ex)),
                     Idioma.Texto("Common.Error"), TipoMensagem.Erro);
             }
         }
@@ -2043,7 +2118,7 @@ namespace CofreDeSenhas.Janelas
             catch (Exception ex)
             {
                 await CaixaMensagem.MostrarAsync(this,
-                    Idioma.Formatar("Message.DeleteError", ex.Message),
+                    Idioma.Formatar("Message.DeleteError", ErrosUi.MensagemAmigavel(ex)),
                     Idioma.Texto("Common.Error"), TipoMensagem.Erro);
             }
         }
@@ -2080,7 +2155,7 @@ namespace CofreDeSenhas.Janelas
             catch (Exception ex)
             {
                 await CaixaMensagem.MostrarAsync(this,
-                    Idioma.Formatar("Message.RenameError", ex.Message),
+                    Idioma.Formatar("Message.RenameError", ErrosUi.MensagemAmigavel(ex)),
                     Idioma.Texto("Common.Error"), TipoMensagem.Erro);
                 throw;
             }
@@ -2112,7 +2187,7 @@ namespace CofreDeSenhas.Janelas
             catch (Exception ex)
             {
                 await CaixaMensagem.MostrarAsync(this,
-                    Idioma.Formatar("Message.AuditError", ex.Message),
+                    Idioma.Formatar("Message.AuditError", ErrosUi.MensagemAmigavel(ex)),
                     Idioma.Texto("Common.Error"), TipoMensagem.Erro);
             }
             finally
@@ -2210,7 +2285,7 @@ namespace CofreDeSenhas.Janelas
             catch (Exception ex)
             {
                 await CaixaMensagem.MostrarAsync(this,
-                    Idioma.Formatar("Message.BreachNetworkError", ex.Message),
+                    Idioma.Formatar("Message.BreachNetworkError", ErrosUi.MensagemAmigavel(ex)),
                     Idioma.Texto("Message.NetworkErrorTitle"), TipoMensagem.Erro);
             }
             finally
@@ -2340,7 +2415,7 @@ namespace CofreDeSenhas.Janelas
             catch (Exception ex)
             {
                 await CaixaMensagem.MostrarAsync(this,
-                    Idioma.Formatar("Message.ExportError", ex.Message),
+                    Idioma.Formatar("Message.ExportError", ErrosUi.MensagemAmigavel(ex)),
                     Idioma.Texto("Common.Error"), TipoMensagem.Erro);
             }
         }
@@ -2371,9 +2446,9 @@ namespace CofreDeSenhas.Janelas
                 {
                     itens = await _servicoExportacao.ImportarAsync(arquivos[0].Path.LocalPath, dlg.SenhaInformada);
                 }
-                catch (InvalidOperationException ex)
+                catch (ErroLocalizavel ex)
                 {
-                    await CaixaMensagem.MostrarAsync(this, ex.Message, Idioma.Texto("Common.Import"), TipoMensagem.Aviso);
+                    await CaixaMensagem.MostrarAsync(this, ErrosUi.MensagemAmigavel(ex), Idioma.Texto("Common.Import"), TipoMensagem.Aviso);
                     return;
                 }
 
@@ -2385,17 +2460,19 @@ namespace CofreDeSenhas.Janelas
                     return;
                 }
 
-                var (adicionadas, ignoradas) = await AplicarImportacaoAsync(itens);
+                var (adicionadas, invalidas, duplicadas) = await ImportarComProgressoAsync(itens);
 
                 var msg = Idioma.Formatar("Message.ImportSuccess", adicionadas);
-                if (ignoradas > 0)
-                    msg += "\n" + Idioma.Formatar("Message.ImportIgnored", ignoradas);
+                if (invalidas > 0)
+                    msg += "\n" + Idioma.Formatar("Message.ImportIgnored", invalidas);
+                if (duplicadas > 0)
+                    msg += "\n" + Idioma.Formatar("Message.ImportDuplicates", duplicadas);
                 await CaixaMensagem.MostrarAsync(this, msg, Idioma.Texto("Common.Import"));
             }
             catch (Exception ex)
             {
                 await CaixaMensagem.MostrarAsync(this,
-                    Idioma.Formatar("Message.ImportError", ex.Message),
+                    Idioma.Formatar("Message.ImportError", ErrosUi.MensagemAmigavel(ex)),
                     Idioma.Texto("Common.Error"), TipoMensagem.Erro);
             }
         }
@@ -2422,9 +2499,9 @@ namespace CofreDeSenhas.Janelas
                 {
                     resultado = _servicoImportacaoCsv.ImportarArquivo(arquivos[0].Path.LocalPath);
                 }
-                catch (InvalidOperationException ex)
+                catch (ErroLocalizavel ex)
                 {
-                    await CaixaMensagem.MostrarAsync(this, ex.Message, Idioma.Texto("Settings.ImportCsv"), TipoMensagem.Aviso);
+                    await CaixaMensagem.MostrarAsync(this, ErrosUi.MensagemAmigavel(ex), Idioma.Texto("Settings.ImportCsv"), TipoMensagem.Aviso);
                     return;
                 }
 
@@ -2436,66 +2513,112 @@ namespace CofreDeSenhas.Janelas
                     return;
                 }
 
-                var confirmar = await CaixaMensagem.ConfirmarAsync(this,
+                var itensPreview = resultado.Itens
+                    .Select(i => $"{i.NomeServico} — {i.Usuario}")
+                    .ToList();
+                var confirmar = await CaixaMensagem.ConfirmarComListaAsync(this,
                     Idioma.Formatar("Message.CsvConfirm", resultado.FormatoDetectado, resultado.Itens.Count),
-                    Idioma.Texto("Settings.ImportCsv"));
+                    Idioma.Texto("Settings.ImportCsv"), itensPreview);
                 if (!confirmar)
                     return;
 
-                var (adicionadas, ignoradas) = await AplicarImportacaoAsync(resultado.Itens);
-                ignoradas += resultado.LinhasIgnoradas;
+                var (adicionadas, invalidas, duplicadas) = await ImportarComProgressoAsync(resultado.Itens);
+                invalidas += resultado.LinhasIgnoradas;
 
                 var msg = Idioma.Formatar("Message.ImportSuccess", adicionadas);
-                if (ignoradas > 0)
-                    msg += "\n" + Idioma.Formatar("Message.CsvIgnored", ignoradas);
+                if (invalidas > 0)
+                    msg += "\n" + Idioma.Formatar("Message.CsvIgnored", invalidas);
+                if (duplicadas > 0)
+                    msg += "\n" + Idioma.Formatar("Message.CsvDuplicates", duplicadas);
                 msg += "\n\n" + Idioma.Texto("Message.CsvSecurity");
                 await CaixaMensagem.MostrarAsync(this, msg, Idioma.Texto("Settings.ImportCsv"));
             }
             catch (Exception ex)
             {
                 await CaixaMensagem.MostrarAsync(this,
-                    Idioma.Formatar("Message.ImportError", ex.Message),
+                    Idioma.Formatar("Message.ImportError", ErrosUi.MensagemAmigavel(ex)),
                     Idioma.Texto("Common.Error"), TipoMensagem.Erro);
             }
         }
 
-        private async Task<(int adicionadas, int ignoradas)> AplicarImportacaoAsync(List<SenhaExportada> itens)
+        private async Task<(int adicionadas, int invalidas, int duplicadas)> AplicarImportacaoAsync(
+            List<SenhaExportada> itens, Action<int, int>? aoProgredir = null)
         {
             var existentes = await _servicoSenha.ListarTodosAsync();
             var chaves = new HashSet<string>(
                 existentes.Select(s => s.NomeServico + " " + s.Usuario),
                 StringComparer.OrdinalIgnoreCase);
 
-            int adicionadas = 0, ignoradas = 0;
+            int adicionadas = 0, invalidas = 0, duplicadas = 0, processadas = 0;
             foreach (var item in itens)
             {
                 if (string.IsNullOrWhiteSpace(item.NomeServico) ||
                     string.IsNullOrWhiteSpace(item.Usuario) ||
-                    string.IsNullOrWhiteSpace(item.Senha) ||
-                    !chaves.Add(item.NomeServico + " " + item.Usuario))
+                    string.IsNullOrWhiteSpace(item.Senha))
                 {
-                    ignoradas++;
-                    continue;
+                    invalidas++;
+                }
+                else if (!chaves.Add(item.NomeServico + " " + item.Usuario))
+                {
+                    duplicadas++;
+                }
+                else
+                {
+                    var totp = _totp.SegredoValido(item.TotpSegredo) ? item.TotpSegredo : null;
+                    var nova = await _servicoSenha.CriarSenhaAsync(
+                        item.NomeServico, item.Usuario, item.Senha, item.Categoria, item.Url, item.Notas, totp, item.Etiquetas,
+                        item.Tipo, item.CamposExtras);
+                    if (item.Favorito)
+                        await _servicoSenha.MarcarComoFavoritoAsync(nova.Id);
+                    RestaurarHistorico(nova, item.Historico);
+                    if (item.CodigosRecuperacao is { Count: > 0 })
+                        await _servicoSenha.AdicionarCodigosRecuperacaoAsync(nova.Id,
+                            item.CodigosRecuperacao.Select(c => (c.Codigo, c.Usado)));
+                    await RestaurarAnexosAsync(nova, item.Anexos);
+                    adicionadas++;
                 }
 
-                var totp = _totp.SegredoValido(item.TotpSegredo) ? item.TotpSegredo : null;
-                var nova = await _servicoSenha.CriarSenhaAsync(
-                    item.NomeServico, item.Usuario, item.Senha, item.Categoria, item.Url, item.Notas, totp, item.Etiquetas,
-                    item.Tipo, item.CamposExtras);
-                if (item.Favorito)
-                    await _servicoSenha.MarcarComoFavoritoAsync(nova.Id);
-                RestaurarHistorico(nova, item.Historico);
-                if (item.CodigosRecuperacao is { Count: > 0 })
-                    await _servicoSenha.AdicionarCodigosRecuperacaoAsync(nova.Id,
-                        item.CodigosRecuperacao.Select(c => (c.Codigo, c.Usado)));
-                await RestaurarAnexosAsync(nova, item.Anexos);
-                adicionadas++;
+                processadas++;
+                aoProgredir?.Invoke(processadas, itens.Count);
             }
 
             await _servicoSenha.PersistirAsync();
             await CarregarSenhasAsync();
 
-            return (adicionadas, ignoradas);
+            return (adicionadas, invalidas, duplicadas);
+        }
+
+        private void MostrarProgressoImportacao()
+        {
+            BarraProgressoImportacao.Value = 0;
+            LblProgressoImportacao.Text = Idioma.Formatar("Import.Progress", 0, 0);
+            PainelProgressoImportacao.IsVisible = true;
+        }
+
+        private void AtualizarProgressoImportacao(int processadas, int total)
+        {
+            Dispatcher.UIThread.Post(() =>
+            {
+                BarraProgressoImportacao.Value = total == 0 ? 0 : processadas * 100.0 / total;
+                LblProgressoImportacao.Text = Idioma.Formatar("Import.Progress", processadas, total);
+            });
+        }
+
+        private void EsconderProgressoImportacao() => PainelProgressoImportacao.IsVisible = false;
+
+        private async Task<(int adicionadas, int invalidas, int duplicadas)> ImportarComProgressoAsync(List<SenhaExportada> itens)
+        {
+            Scrim.Mostrar(this);
+            MostrarProgressoImportacao();
+            try
+            {
+                return await AplicarImportacaoAsync(itens, AtualizarProgressoImportacao);
+            }
+            finally
+            {
+                EsconderProgressoImportacao();
+                Scrim.Ocultar(this);
+            }
         }
 
         private void RestaurarHistorico(Senha destino, List<HistoricoSenhaExportada>? historico)
@@ -2542,15 +2665,15 @@ namespace CofreDeSenhas.Janelas
                 var servico = new ServicoMudancaSenhaMestra();
                 await servico.AlterarAsync(dlg.SenhaAtual, dlg.NovaSenha);
             }
-            catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
+            catch (ErroLocalizavel ex)
             {
-                await CaixaMensagem.MostrarAsync(this, ex.Message, Idioma.Texto("Master.ChangeTitle"), TipoMensagem.Aviso);
+                await CaixaMensagem.MostrarAsync(this, ErrosUi.MensagemAmigavel(ex), Idioma.Texto("Master.ChangeTitle"), TipoMensagem.Aviso);
                 return;
             }
             catch (Exception ex)
             {
                 await CaixaMensagem.MostrarAsync(this,
-                    Idioma.Formatar("Master.ChangeError", ex.Message),
+                    Idioma.Formatar("Master.ChangeError", ErrosUi.MensagemAmigavel(ex)),
                     Idioma.Texto("Common.Error"), TipoMensagem.Erro);
                 return;
             }
@@ -2618,7 +2741,7 @@ namespace CofreDeSenhas.Janelas
             catch (Exception ex)
             {
                 await CaixaMensagem.MostrarAsync(this,
-                    Idioma.Formatar("Backup.Error", ex.Message), Idioma.Texto("Common.Error"), TipoMensagem.Erro);
+                    Idioma.Formatar("Backup.Error", ErrosUi.MensagemAmigavel(ex)), Idioma.Texto("Common.Error"), TipoMensagem.Erro);
             }
         }
 
@@ -2793,7 +2916,7 @@ namespace CofreDeSenhas.Janelas
 
                 if (!silencioso)
                     await CaixaMensagem.MostrarAsync(this,
-                        Idioma.Formatar("Db.ConnectError", ex.Message),
+                        Idioma.Formatar("Db.ConnectError", ErrosUi.MensagemAmigavel(ex)),
                         Idioma.Texto("Common.Error"), TipoMensagem.Erro);
             }
         }

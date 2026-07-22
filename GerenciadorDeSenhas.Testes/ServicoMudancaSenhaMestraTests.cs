@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using GerenciadorDeSenhas.Excecoes;
 using GerenciadorDeSenhas.Modelos;
 using GerenciadorDeSenhas.Repositorios;
 using GerenciadorDeSenhas.Servicos;
@@ -61,7 +62,7 @@ public class ServicoMudancaSenhaMestraTests : IDisposable
     {
         await PrepararCofre("SenhaAntiga@123", ("Svc", "u", "Senha@Forte1"));
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+        await Assert.ThrowsAsync<ErroLocalizavel>(() =>
             new ServicoMudancaSenhaMestra(_pasta).AlterarAsync("SenhaErrada@999", "SenhaNova@456"));
 
         Assert.NotNull(new AutenticacaoMestra(_pasta).Autenticar("SenhaAntiga@123"));
@@ -72,7 +73,7 @@ public class ServicoMudancaSenhaMestraTests : IDisposable
     {
         await PrepararCofre("SenhaAntiga@123", ("Svc", "u", "Senha@Forte1"));
 
-        await Assert.ThrowsAsync<ArgumentException>(() =>
+        await Assert.ThrowsAsync<ErroLocalizavel>(() =>
             new ServicoMudancaSenhaMestra(_pasta).AlterarAsync("SenhaAntiga@123", "curta"));
     }
 

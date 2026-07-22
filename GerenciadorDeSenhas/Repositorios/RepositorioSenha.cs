@@ -91,6 +91,18 @@ namespace GerenciadorDeSenhas.Repositorios
             senha.DataExclusao = DateTime.UtcNow;
         }
 
+        public async Task MoverTudoParaLixeiraAsync()
+        {
+            await CarregarSeNecessarioAsync();
+
+            var agora = DateTime.UtcNow;
+            foreach (var senha in _senhas.Where(s => !s.NaLixeira))
+            {
+                senha.NaLixeira = true;
+                senha.DataExclusao = agora;
+            }
+        }
+
         public async Task<Senha?> ObterPorIdAsync(Guid id)
         {
             await CarregarSeNecessarioAsync();
