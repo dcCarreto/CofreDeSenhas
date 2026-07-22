@@ -23,6 +23,7 @@ MIT. Você pode usá-lo, estudá-lo, modificá-lo e compartilhá-lo livremente.
 - [Capturas de tela](#capturas-de-tela)
 - [Funcionalidades](#funcionalidades)
 - [Modelo de segurança](#modelo-de-segurança)
+- [Política de segurança e divulgação de vulnerabilidades](SECURITY.md)
 - [Download e instalação](#download-e-instalação)
 - [Estrutura do projeto](#estrutura-do-projeto)
 - [Arquitetura](#arquitetura)
@@ -185,17 +186,28 @@ há muito tempo, tudo localmente e sem enviar nada para fora:
   do cofre e a cada alteração da senha mestra. O QR code mostra uma versão em
   senha-frase da senha mestra, e não a senha original caractere a caractere.
 
-### Banco de dados (opcional)
+### Banco de dados externo (self-hosted/compartilhado)
 
 - Conexão a um banco de dados externo pelo menu de configurações, com suporte a
-  SQLite, PostgreSQL, MySQL/MariaDB e SQL Server, e teste de conexão.
-- Sincronização automática ao conectar: as duas bases são mescladas e, em
-  conflito de serviço + usuário, a senha do cofre local prevalece.
+  SQLite, PostgreSQL, MySQL/MariaDB e SQL Server, e teste de conexão. Pensado
+  para uso self-hosted ou compartilhado com outras pessoas de confiança — para
+  sincronizar só os seus próprios dispositivos, sem manter um banco de dados,
+  use a sincronização por pasta compartilhada, no menu de configurações
+  ("Sincronização...").
+- Cada credencial tem uma identidade estável (`guid_id`), a mesma usada pela
+  sincronização por pasta. Ao conectar, as duas bases são mescladas por
+  credencial: em conflito, vale a edição mais recente — não mais "o cofre
+  local sempre prevalece".
 - A partir daí os dois ficam espelhados: cada criação, edição ou exclusão é
   gravada tanto no cofre local quanto no banco.
 - Detecção da tabela `CofreDeSenhas`, com a opção de criá-la caso não exista, e
-  migração leve que adiciona colunas novas a tabelas já existentes.
-- A senha é sempre gravada de forma cifrada, nunca em texto puro.
+  migração leve que adiciona colunas novas a tabelas já existentes — incluindo,
+  hoje, URL, categoria, tipo de credencial e campos extras, histórico de
+  senhas anteriores, favorito e fixado, os mesmos campos que já sincronizavam
+  pela pasta cifrada.
+- A senha é sempre gravada de forma cifrada, nunca em texto puro; nome de
+  serviço, usuário, notas e etiquetas ficam em texto puro nas colunas
+  correspondentes (ver [modelo de ameaça](THREAT_MODEL.md)).
 - O último perfil de conexão é lembrado para agilizar reconexões; a senha do
   servidor de banco nunca é gravada em disco.
 
@@ -212,8 +224,12 @@ há muito tempo, tudo localmente e sem enviar nada para fora:
   Brasil, inglês, espanhol, francês, alemão e italiano.
 - Layout do cofre com distribuição ajustada para priorizar a leitura do usuário,
   ícones de ação mais legíveis e distintivos de categoria compactos.
-- Banco visual de ícones por serviço, com favicons reais quando disponíveis e
-  fallback local por iniciais quando não há associação.
+- Banco visual de ícones por serviço, com fallback local por iniciais como
+  padrão. A busca de favicons reais na internet é opcional e desligada por
+  padrão: ao ativá-la no menu de configurações, o aplicativo pede consentimento
+  e envia apenas o domínio de cada serviço (nunca senhas, usuários ou outros
+  dados). Os ícones baixados ficam em cache no disco e o cache é apagado ao
+  desativar o recurso.
 - Ícone próprio no executável, na janela e na bandeja do sistema (onde o
   ambiente gráfico oferece suporte).
 - Mesma interface e comportamento no Windows e no Linux.
@@ -229,15 +245,17 @@ Windows Hello:
 | Item | Detalhe |
 |------|---------|
 | Criptografia do cofre | AES-256-GCM, garantindo confidencialidade e integridade/autenticidade |
-| Derivação de chave | PBKDF2-SHA256 com 100.000 iterações e salt aleatório de 128 bits |
+| Derivação de chave | Argon2id (64 MiB de memória, 3 iterações, paralelismo 1), o padrão atual recomendado por resistir melhor a ataques por GPU/ASIC, com salt aleatório de 128 bits. Cofres ainda em PBKDF2-SHA256 (de versões anteriores) são migrados de forma transparente no próximo desbloqueio por senha mestra, com backup e rollback seguro |
 | Senha mestra | Nunca é armazenada. O arquivo de autenticação guarda apenas o salt e um verificador (hash SHA-256 da chave derivada) |
 | Exportação | AES-256-GCM com chave derivada por PBKDF2-SHA256 (200.000 iterações) a partir de uma senha de exportação separada |
 | Comparações sensíveis | Realizadas em tempo constante, evitando ataques de temporização |
 | Verificação de vazamento | Have I Been Pwned por k-anonymity: apenas os 5 primeiros caracteres do hash SHA-1 da senha deixam a máquina |
+| Ícones dos serviços | Fallback local por iniciais por padrão; a busca de favicons na internet é opcional, desligada por padrão e exige consentimento. Quando ativada, apenas o domínio de cada serviço é enviado ao serviço de ícones do Google (nunca senha, usuário ou nota), e os ícones ficam em cache no disco |
 | Códigos TOTP | A chave 2FA é guardada cifrada (AES-256-GCM) como a senha; os códigos são calculados localmente (RFC 6238) e nada é enviado à rede |
 | Histórico de senhas | Cada senha anterior é guardada cifrada (AES-256-GCM) como a senha atual e re-cifrada ao alterar a senha mestra; permanece somente no cofre e na exportação |
 | Cofre em banco de dados | Quando conectado a um banco externo, a coluna de senha guarda apenas o texto cifrado (AES-256-GCM); a senha do servidor de banco não é gravada em disco |
 | Windows Hello | Opcional no Windows. A chave do cofre é cifrada (AES-256-GCM) com uma chave derivada da assinatura de uma credencial do Windows Hello (chave privada no TPM); o envelope em `biometria.dat` só pode ser aberto após a autenticação biométrica |
+| Higiene de memória | A chave mestra e sua cópia interna são apagadas da memória (`CryptographicOperations.ZeroMemory`) ao bloquear ou fechar o cofre; o painel de detalhes e as linhas reveladas da lista não retêm a senha em texto claro além do necessário |
 | Local dos dados | Pasta do usuário (`%APPDATA%\GerenciadorSenhas\` no Windows, `~/.config/GerenciadorSenhas/` no Linux), fora do repositório |
 
 Observações importantes:
@@ -254,6 +272,10 @@ Observações importantes:
   não de criptografia. Por isso ele é opcional e acompanhado de aviso: deve ser
   guardado em local seguro e off-line.
 
+Para saber como reportar uma vulnerabilidade encontrada no cofre, veja a
+[política de segurança](SECURITY.md). Para o que o desenho de segurança do cofre
+cobre e o que fica deliberadamente fora dele, veja o [modelo de ameaça](THREAT_MODEL.md).
+
 ## Download e instalação
 
 A forma mais simples de usar o programa é baixar o executável pronto na página de
@@ -263,11 +285,41 @@ A forma mais simples de usar o programa é baixar o executável pronto na págin
 No Windows:
 
 1. Acesse a [última versão](../../releases/latest).
-2. Baixe o arquivo `CofreDeSenhas.exe`.
-3. Execute.
+2. Baixe o instalador `CofreDeSenhas-Setup-X.Y.Z.exe`.
+3. Execute e siga o assistente. Não é preciso ser administrador: por padrão o
+   programa é instalado só para o usuário atual, com atalho no menu iniciar
+   (e, opcionalmente, na área de trabalho) e entrada em "Aplicativos e
+   recursos" para desinstalar depois.
+4. Se preferir não instalar nada, o executável autocontido `CofreDeSenhas.exe`
+   (sem instalador) também fica disponível na página da release — é só
+   baixar e executar.
 
-No Linux, com o .NET 10 SDK instalado, o script de instalação compila, publica e
-registra o aplicativo para o usuário atual (sem sudo):
+Para desinstalar, use "Aplicativos e recursos" do Windows (ou o atalho
+"Desinstalar Cofre de Senhas" no menu iniciar). O cofre em
+`%APPDATA%\GerenciadorSenhas` é preservado por padrão; o desinstalador
+pergunta explicitamente se você também quer apagar esses dados, com a opção
+padrão sendo manter.
+
+No Linux, a forma mais simples é o **AppImage**: baixe
+`CofreDeSenhas-X.Y.Z-x86_64.AppImage` na [última versão](../../releases/latest),
+dê permissão de execução e rode — não precisa instalar o .NET nem nada além
+disso:
+
+```
+chmod +x CofreDeSenhas-X.Y.Z-x86_64.AppImage
+./CofreDeSenhas-X.Y.Z-x86_64.AppImage
+```
+
+Funciona em qualquer distribuição x86_64 recente, com integração automática de
+ícone e atalho de menu se você usar um integrador de AppImage (AppImageLauncher,
+Gear Lever etc.); sem um, basta executar o arquivo diretamente. O AppImage
+também pode ser gerado localmente com `App/distribuicao/gerar-appimage.sh`
+(com o .NET 10 SDK e `appimagetool` disponíveis).
+
+Quem preferir compilar a partir do código-fonte, ou quer o atalho no menu de
+aplicativos sem depender de um integrador de AppImage, pode usar o script de
+instalação, que exige o .NET 10 SDK instalado e compila, publica e registra o
+aplicativo para o usuário atual (sem sudo):
 
 ```
 ./App/distribuicao/instalar.sh
@@ -276,12 +328,39 @@ registra o aplicativo para o usuário atual (sem sudo):
 O script publica o binário em `~/.local/opt/cofre-de-senhas`, registra o atalho
 "Cofre de Senhas" no menu de aplicativos e instala o ícone. Para remover,
 execute `./App/distribuicao/desinstalar.sh` (o cofre em
-`~/.config/GerenciadorSenhas` é preservado). Funciona em ambientes X11 e
-Wayland.
+`~/.config/GerenciadorSenhas` é preservado). Tanto o AppImage quanto o script
+funcionam em ambientes X11 e Wayland.
+
+Pacotes `.deb` e Flatpak foram avaliados e ficaram de fora por enquanto: exigem
+manter um repositório próprio (ou publicação no Flathub) para atualizações
+automáticas, o que não compensa o esforço com um único mantenedor e o AppImage
+já cobre o caso de uso de "baixar e rodar" sem depender de gerenciador de
+pacotes. Fica como possibilidade futura se houver demanda (veja o
+[roadmap](ROADMAP.md)).
 
 No primeiro uso, o programa pedirá a criação de uma senha mestra. Guarde-a com
 cuidado: ela é a única forma de abrir o cofre. Um cofre exportado (`.gsenhas`)
 em uma plataforma pode ser importado na outra.
+
+### Verificando a integridade dos arquivos
+
+Toda release publicada a partir desta versão inclui um `CHECKSUMS.txt` com o
+hash SHA256 de cada arquivo disponibilizado. Depois de baixar, é possível
+conferir que o arquivo não foi alterado no caminho:
+
+```
+# Windows (PowerShell)
+Get-FileHash .\arquivo-baixado -Algorithm SHA256
+
+# Linux / macOS (na pasta onde os arquivos foram baixados)
+sha256sum -c CHECKSUMS.txt
+```
+
+Compare o valor calculado com o que consta em `CHECKSUMS.txt`. Os arquivos
+ainda não são assinados digitalmente — assinatura de código no Windows exige
+um certificado pago e é um item avaliado para o futuro (veja o
+[roadmap](ROADMAP.md)) — então o hash SHA256 é, por enquanto, a forma de
+verificação disponível.
 
 ## Estrutura do projeto
 
@@ -292,7 +371,7 @@ CofreDeSenhas.sln
 │  ├─ Controles/                 Controles customizados de UI
 │  ├─ Infraestrutura/            Tema, preferências, recursos e utilitários
 │  ├─ Ativos/                    Ícone do aplicativo
-│  └─ distribuicao/              Atalho .desktop e scripts de instalação (Linux)
+│  └─ distribuicao/              Scripts e atalhos de instalação (Linux e Windows)
 ├─ GerenciadorDeSenhas/          Biblioteca de domínio
 │  ├─ Modelos/                   Entidades (Senha, Categoria, SenhaExportada,
 │  │                             TipoBanco, ConexaoBanco)
@@ -327,21 +406,28 @@ dados ou de serviços externos:
 
 Fluxo resumido da senha mestra:
 
-1. Na criação, é gerado um salt aleatório; a chave é derivada por PBKDF2-SHA256
-   (100.000 iterações) e dela se calcula um verificador SHA-256. Somente o salt e
-   o verificador são gravados em `auth.dat`. A chave nunca é persistida.
-2. Na abertura, a chave é derivada novamente a partir da senha informada e do
-   salt; o verificador é comparado em tempo constante. Se confere, a chave passa
-   a ser usada para descriptografar o cofre durante a sessão.
+1. Na criação, é gerado um salt aleatório; a chave é derivada por Argon2id
+   (64 MiB, 3 iterações, paralelismo 1) e dela se calcula um verificador
+   SHA-256. Somente o salt, o verificador e os parâmetros de derivação são
+   gravados em `auth.dat`. A chave nunca é persistida.
+2. Na abertura, a chave é derivada novamente a partir da senha informada, do
+   salt e dos parâmetros gravados; o verificador é comparado em tempo
+   constante. Se confere, a chave passa a ser usada para descriptografar o
+   cofre durante a sessão. Cofres ainda em PBKDF2-SHA256 (de versões
+   anteriores) são migrados nesse momento: a chave é re-derivada com Argon2id
+   e o cofre inteiro é re-criptografado, com backup e rollback automáticos.
 3. Ao alterar a senha mestra, o cofre inteiro é descriptografado com a chave
    antiga e re-criptografado com a nova, com backup e rollback automáticos.
+4. Ao bloquear ou fechar o cofre, a chave mestra e sua cópia interna são
+   apagadas da memória.
 
 ## Tecnologias
 
 - C# e .NET 10.
 - Avalonia e XAML para a interface, multiplataforma (Windows e Linux).
 - Criptografia da biblioteca padrão (`System.Security.Cryptography`):
-  AES-256-GCM e PBKDF2-SHA256.
+  AES-256-GCM e PBKDF2-SHA256 (exportação e migração de cofres antigos), mais
+  Argon2id (`Konscious.Security.Cryptography.Argon2`) para a chave do cofre.
 - Serialização com `System.Text.Json`.
 - Acesso a banco de dados por ADO.NET: Microsoft.Data.Sqlite, Npgsql,
   MySqlConnector e Microsoft.Data.SqlClient.
@@ -389,6 +475,30 @@ Para Linux x64:
 ```
 dotnet publish App/App.csproj -f net10.0 -c Release -r linux-x64 --self-contained -o publish-linux
 ```
+
+### Instalador do Windows
+
+O instalador (`CofreDeSenhas-Setup-X.Y.Z.exe`) é gerado com o
+[Inno Setup](https://jrsoftware.org/isinfo.php) a partir do executável já
+publicado. Com o Inno Setup instalado (`winget install JRSoftware.InnoSetup`),
+rode:
+
+```
+.\App\distribuicao\gerar-instalador.ps1
+```
+
+O script publica o aplicativo (mesmo comando acima) e compila
+`App/distribuicao/cofre-de-senhas.iss`, deixando o instalador em `dist/`. A
+versão é lida automaticamente de `App/App.csproj` (ou pode ser informada com
+`-Versao X.Y.Z`).
+
+O instalador não exige privilégios de administrador (instala só para o
+usuário atual, em `%LocalAppData%\Programs\Cofre de Senhas`, com opção de
+instalar para todos os usuários), cria o atalho no menu iniciar e registra a
+desinstalação em "Aplicativos e recursos". Ao desinstalar, os dados do cofre
+em `%APPDATA%\GerenciadorSenhas` são preservados por padrão — apagá-los exige
+confirmação explícita numa caixa de diálogo (com "Não" como opção padrão);
+desinstalações silenciosas (`/VERYSILENT`) nunca apagam o cofre.
 
 O script `App/distribuicao/instalar.sh` faz esse publish e ainda registra o
 atalho e o ícone no ambiente de trabalho.

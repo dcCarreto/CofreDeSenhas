@@ -14,14 +14,7 @@ namespace CofreDeSenhas.Controles
         public void Avaliar(string? senha)
         {
             int nivel = ForcaSenha.Calcular(senha ?? "");
-            var (texto, cor) = nivel switch
-            {
-                1 => (Idioma.Texto("Generator.StrengthWeak"), Tema.StrengthWeak),
-                2 => (Idioma.Texto("Generator.StrengthMedium"), Tema.StrengthMedium),
-                3 => (Idioma.Texto("Generator.StrengthStrong"), Tema.StrengthStrong),
-                4 => (Idioma.Texto("Generator.StrengthExcellent"), Tema.StrengthExcelent),
-                _ => ("—", Tema.TextSecondary)
-            };
+            var (texto, cor) = ForcaSenha.Descrever(nivel);
 
             LblForca.Text = texto;
             LblForca.Foreground = Tema.Pincel(cor);

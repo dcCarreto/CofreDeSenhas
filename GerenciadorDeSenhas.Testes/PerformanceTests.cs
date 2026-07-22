@@ -64,24 +64,4 @@ public class PerformanceTests : IDisposable
         Assert.True(swCriar.ElapsedMilliseconds < 15000, $"Criação/persistência demorou {swCriar.ElapsedMilliseconds} ms");
         Assert.True(swCarregar.ElapsedMilliseconds < 5000, $"Recarga demorou {swCarregar.ElapsedMilliseconds} ms");
     }
-
-    [Fact]
-    public async Task Busca_Em_1000Senhas_RetornaRapido()
-    {
-        const int total = 1000;
-        var chave = new byte[32];
-        RandomNumberGenerator.Fill(chave);
-        var (servico, _) = MontarCofre(chave);
-
-        for (int i = 0; i < total; i++)
-            await servico.CriarSenhaAsync($"Servico{i}", $"user{i}", $"Senha@Forte{i}", Categoria.Personal);
-
-        var sw = Stopwatch.StartNew();
-        var resultado = await servico.BuscarPorServicoAsync("Servico123");
-        sw.Stop();
-        _saida.WriteLine($"Busca em {total}: {sw.ElapsedMilliseconds} ms");
-
-        Assert.Contains(resultado, s => s.NomeServico == "Servico123");
-        Assert.True(sw.ElapsedMilliseconds < 2000, $"Busca demorou {sw.ElapsedMilliseconds} ms");
-    }
 }

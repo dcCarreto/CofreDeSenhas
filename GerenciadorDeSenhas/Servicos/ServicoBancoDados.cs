@@ -11,6 +11,25 @@ namespace GerenciadorDeSenhas.Servicos
     {
         public const string NomeTabela = "CofreDeSenhas";
 
+        public const string ColunaDescricao = "descricao";
+        public const string ColunaTotp = "totp";
+        public const string ColunaEtiquetas = "etiquetas";
+        public const string ColunaDataExclusao = "data_exclusao";
+        public const string ColunaCodigosRecuperacao = "codigos_recuperacao";
+        public const string ColunaDataCriacao = "data_criacao";
+        public const string ColunaDataAtualizacao = "data_atualizacao";
+        public const string ColunaDataUltimaCopiaSenha = "data_ultima_copia_senha";
+        public const string ColunaDataUltimaCopiaUsuario = "data_ultima_copia_usuario";
+        public const string ColunaDataUltimaCopiaTotp = "data_ultima_copia_totp";
+        public const string ColunaUrl = "url";
+        public const string ColunaCategoria = "categoria";
+        public const string ColunaTipo = "tipo";
+        public const string ColunaCamposExtras = "campos_extras";
+        public const string ColunaHistorico = "historico";
+        public const string ColunaFavorito = "favorito";
+        public const string ColunaFixado = "fixado";
+        public const string ColunaGuidId = "guid_id";
+
         public DbConnection CriarConexao(ConexaoBanco cfg) => cfg.Tipo switch
         {
             TipoBanco.SQLite => new SqliteConnection(MontarStringConexao(cfg)),
@@ -57,16 +76,21 @@ namespace GerenciadorDeSenhas.Servicos
             _ => throw new NotSupportedException($"Banco não suportado: {cfg.Tipo}")
         };
 
+        private async Task<DbConnection> AbrirConexaoAsync(ConexaoBanco cfg)
+        {
+            var con = CriarConexao(cfg);
+            await con.OpenAsync();
+            return con;
+        }
+
         public async Task TestarConexaoAsync(ConexaoBanco cfg)
         {
-            await using var con = CriarConexao(cfg);
-            await con.OpenAsync();
+            await using var con = await AbrirConexaoAsync(cfg);
         }
 
         public async Task<bool> TabelaExisteAsync(ConexaoBanco cfg)
         {
-            await using var con = CriarConexao(cfg);
-            await con.OpenAsync();
+            await using var con = await AbrirConexaoAsync(cfg);
 
             await using var cmd = con.CreateCommand();
             cmd.CommandText = ConsultaExistencia(cfg.Tipo);
@@ -77,25 +101,74 @@ namespace GerenciadorDeSenhas.Servicos
 
         public async Task CriarTabelaAsync(ConexaoBanco cfg)
         {
-            await using var con = CriarConexao(cfg);
-            await con.OpenAsync();
+            await using var con = await AbrirConexaoAsync(cfg);
 
             await using var cmd = con.CreateCommand();
             cmd.CommandText = Ddl(cfg.Tipo);
             await cmd.ExecuteNonQueryAsync();
         }
 
-        public async Task GarantirColunasAsync(ConexaoBanco cfg)
+        public async Task<IReadOnlySet<long>> GarantirColunasAsync(ConexaoBanco cfg)
         {
-            await GarantirColunaAsync(cfg, "descricao");
-            await GarantirColunaAsync(cfg, "totp");
-            await GarantirColunaAsync(cfg, "etiquetas");
+            await GarantirColunaAsync(cfg, ColunaDescricao);
+            await GarantirColunaAsync(cfg, ColunaTotp);
+            await GarantirColunaAsync(cfg, ColunaEtiquetas);
+            await GarantirColunaAsync(cfg, ColunaDataExclusao);
+            await GarantirColunaAsync(cfg, ColunaCodigosRecuperacao);
+            await GarantirColunaAsync(cfg, ColunaDataCriacao);
+            await GarantirColunaAsync(cfg, ColunaDataAtualizacao);
+            await GarantirColunaAsync(cfg, ColunaDataUltimaCopiaSenha);
+            await GarantirColunaAsync(cfg, ColunaDataUltimaCopiaUsuario);
+            await GarantirColunaAsync(cfg, ColunaDataUltimaCopiaTotp);
+            await GarantirColunaAsync(cfg, ColunaUrl);
+            await GarantirColunaAsync(cfg, ColunaCategoria);
+            await GarantirColunaAsync(cfg, ColunaTipo);
+            await GarantirColunaAsync(cfg, ColunaCamposExtras);
+            await GarantirColunaAsync(cfg, ColunaHistorico);
+            await GarantirColunaAsync(cfg, ColunaFavorito);
+            await GarantirColunaAsync(cfg, ColunaFixado);
+            await GarantirColunaAsync(cfg, ColunaGuidId);
+
+            return await PreencherGuidsFaltantesAsync(cfg);
+        }
+
+        private async Task<IReadOnlySet<long>> PreencherGuidsFaltantesAsync(ConexaoBanco cfg)
+        {
+            await using var con = await AbrirConexaoAsync(cfg);
+
+            var pendentes = new List<long>();
+            await using (var busca = con.CreateCommand())
+            {
+                busca.CommandText = $"SELECT id FROM {NomeTabela} WHERE {ColunaGuidId} IS NULL";
+                await using var leitor = await busca.ExecuteReaderAsync();
+                while (await leitor.ReadAsync())
+                    pendentes.Add(Convert.ToInt64(leitor[0]));
+            }
+
+            foreach (var id in pendentes)
+            {
+                await using var cmd = con.CreateCommand();
+                cmd.CommandText = $"UPDATE {NomeTabela} SET {ColunaGuidId} = @guid WHERE id = @id";
+
+                var guidParam = cmd.CreateParameter();
+                guidParam.ParameterName = "@guid";
+                guidParam.Value = Guid.NewGuid().ToString();
+                cmd.Parameters.Add(guidParam);
+
+                var idParam = cmd.CreateParameter();
+                idParam.ParameterName = "@id";
+                idParam.Value = id;
+                cmd.Parameters.Add(idParam);
+
+                await cmd.ExecuteNonQueryAsync();
+            }
+
+            return pendentes.ToHashSet();
         }
 
         private async Task GarantirColunaAsync(ConexaoBanco cfg, string coluna)
         {
-            await using var con = CriarConexao(cfg);
-            await con.OpenAsync();
+            await using var con = await AbrirConexaoAsync(cfg);
 
             await using (var verifica = con.CreateCommand())
             {
@@ -172,6 +245,7 @@ namespace GerenciadorDeSenhas.Servicos
                     descricao TEXT,
                     totp TEXT,
                     etiquetas TEXT,
+                    codigos_recuperacao TEXT,
                     excluido INTEGER NOT NULL DEFAULT 0
                 )",
 
@@ -184,6 +258,7 @@ namespace GerenciadorDeSenhas.Servicos
                     descricao TEXT,
                     totp TEXT,
                     etiquetas TEXT,
+                    codigos_recuperacao TEXT,
                     excluido BOOLEAN NOT NULL DEFAULT FALSE
                 )",
 
@@ -196,6 +271,7 @@ namespace GerenciadorDeSenhas.Servicos
                     descricao TEXT,
                     totp TEXT,
                     etiquetas TEXT,
+                    codigos_recuperacao TEXT,
                     excluido TINYINT(1) NOT NULL DEFAULT 0
                 )",
 
@@ -208,6 +284,7 @@ namespace GerenciadorDeSenhas.Servicos
                     descricao NVARCHAR(MAX),
                     totp NVARCHAR(MAX),
                     etiquetas NVARCHAR(MAX),
+                    codigos_recuperacao NVARCHAR(MAX),
                     excluido BIT NOT NULL DEFAULT 0
                 )",
 

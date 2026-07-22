@@ -1,14 +1,17 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:c="using:CofreDeSenhas.Controles"
         x:Class="CofreDeSenhas.Janelas.JanelaEditarSenha"
         Title="{DynamicResource Entry.EditTitle}"
         Width="460"
-        SizeToContent="Height"
-        CanResize="False"
+        Height="720"
+        MinWidth="460"
+        MinHeight="480"
         SystemDecorations="None"
         Background="Transparent"
         TransparencyLevelHint="Transparent"
-        WindowStartupLocation="CenterOwner">
+        WindowStartupLocation="CenterOwner"
+        RenderOptions.BitmapInterpolationMode="HighQuality">
 
   <Border CornerRadius="{StaticResource RadiusDialogo}"
           ClipToBounds="True"
@@ -30,11 +33,13 @@
                      AutomationProperties.HeadingLevel="1"
                      Margin="24,0,60,0"
                      TextTrimming="CharacterEllipsis" />
-          <Button Classes="fechar-dialogo" Content="✕"
+          <Button Classes="fechar-dialogo"
                   AutomationProperties.Name="{DynamicResource Access.Close}"
                   HorizontalAlignment="Right" VerticalAlignment="Center"
                   Margin="0,0,14,0"
-                  Click="Cancelar_Click" />
+                  Click="Cancelar_Click">
+            <c:Icone Width="{StaticResource TamIconeToolbar}" Height="{StaticResource TamIconeToolbar}" Chave="IconeFechar" />
+          </Button>
         </Grid>
       </Border>
 
@@ -51,32 +56,39 @@
         </StackPanel>
       </Border>
 
+      <ScrollViewer>
       <StackPanel Margin="24,18,24,16" Spacing="4">
-        <TextBlock Text="{DynamicResource Entry.ServiceName}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
+        <TextBlock Text="{DynamicResource Entry.ServiceName}" Classes="legenda" />
         <TextBox Name="TxtNomeServico" Classes="campo" Margin="0,0,0,14"
                  AutomationProperties.Name="{DynamicResource Entry.ServiceName}"
                  AutomationProperties.IsRequiredForForm="True" />
 
-        <TextBlock Text="{DynamicResource Entry.UserEmail}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
+        <TextBlock Text="{DynamicResource Entry.Type}" Classes="legenda" />
+        <ComboBox Name="CmbTipo" Classes="campo" HorizontalAlignment="Stretch" Margin="0,0,0,14"
+                  AutomationProperties.Name="{DynamicResource Entry.Type}" />
+
+        <TextBlock Name="LblUsuario" Text="{DynamicResource Entry.UserEmail}" Classes="legenda" />
         <TextBox Name="TxtUsuario" Classes="campo" Margin="0,0,0,14"
                  AutomationProperties.Name="{DynamicResource Entry.UserEmail}"
                  AutomationProperties.IsRequiredForForm="True" />
 
-        <TextBlock Text="{DynamicResource Entry.PasswordKeepCurrent}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
-        <TextBox Name="TxtSenha" Classes="campo revealPasswordButton" PasswordChar="●" Margin="0,0,0,8"
+        <TextBlock Name="LblSenha" Text="{DynamicResource Entry.PasswordKeepCurrent}" Classes="legenda" />
+        <TextBox Name="TxtSenha" Classes="campo revealPasswordButton" PasswordChar="●" Margin="0,0,0,14"
                  AutomationProperties.Name="{DynamicResource Entry.PasswordKeepCurrent}"
                  AutomationProperties.HelpText="{DynamicResource A11y.PasswordFieldHelp}" />
+
+        <StackPanel Name="PainelCamposExtras" Spacing="4" />
 
         <Expander Name="ExpHistorico" IsVisible="False" IsExpanded="False"
                   HorizontalAlignment="Stretch" Margin="0,0,0,14">
           <StackPanel Name="PainelHistorico" Spacing="10" />
         </Expander>
 
-        <TextBlock Text="{DynamicResource Entry.TotpRemove}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
+        <TextBlock Text="{DynamicResource Entry.TotpRemove}" Classes="legenda" />
         <TextBox Name="TxtTotp" Classes="campo"
                  AutomationProperties.Name="{DynamicResource Entry.TotpRemove}"
                  AutomationProperties.HelpText="{DynamicResource A11y.OptionalField}"
-                 Watermark="{DynamicResource Entry.TotpWatermark}" Margin="0,0,0,8" />
+                 Watermark="{DynamicResource Entry.TotpWatermark}" Margin="0,0,0,14" />
         <Border Name="PainelTotp" IsVisible="False"
                 Background="{DynamicResource InputBackground}"
                 BorderBrush="{DynamicResource InputBorder}" BorderThickness="1"
@@ -84,7 +96,7 @@
           <Grid ColumnDefinitions="Auto,*,Auto">
             <TextBlock Name="LblCodigoTotp" FontFamily="{DynamicResource FonteMono}"
                        FontSize="20" FontWeight="Bold" LetterSpacing="1"
-                       Foreground="{DynamicResource AccentPrimary}" VerticalAlignment="Center"
+                       Foreground="{DynamicResource AccentText}" VerticalAlignment="Center"
                        AutomationProperties.Name="{DynamicResource A11y.TotpPreview}"
                        AutomationProperties.LiveSetting="Polite" />
             <Grid Grid.Column="2" Width="26" Height="26" VerticalAlignment="Center">
@@ -96,27 +108,46 @@
           </Grid>
         </Border>
 
-        <TextBlock Text="{DynamicResource Entry.Category}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
+        <TextBlock Text="{DynamicResource Entry.RecoveryCodes}" Classes="legenda" />
+        <StackPanel Name="PainelCodigosRecuperacao" Spacing="8" Margin="0,0,0,8" />
+        <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,14">
+          <TextBox Name="TxtNovosCodigos" Classes="campo" AcceptsReturn="True" Height="60"
+                   Watermark="{DynamicResource Entry.RecoveryCodesWatermark}"
+                   AutomationProperties.Name="{DynamicResource Entry.RecoveryCodes}"
+                   AutomationProperties.HelpText="{DynamicResource A11y.OptionalField}" />
+          <Button Grid.Column="1" Classes="secundario" Content="{DynamicResource Entry.RecoveryCodesAdd}"
+                  MinHeight="34" Margin="8,0,0,0" VerticalAlignment="Bottom" Click="AdicionarCodigosRecuperacao_Click"
+                  AutomationProperties.Name="{DynamicResource Entry.RecoveryCodesAdd}" />
+        </Grid>
+
+        <TextBlock Text="{DynamicResource Entry.Attachments}" Classes="legenda" />
+        <StackPanel Name="PainelAnexos" Spacing="8" Margin="0,0,0,8" />
+        <Button Name="BtnAdicionarAnexo" Classes="secundario" Content="{DynamicResource Entry.AttachmentsAdd}"
+                MinHeight="34" Margin="0,0,0,14" HorizontalAlignment="Left" Click="AdicionarAnexo_Click"
+                AutomationProperties.Name="{DynamicResource Entry.AttachmentsAdd}" />
+
+        <TextBlock Text="{DynamicResource Entry.Category}" Classes="legenda" />
         <ComboBox Name="CmbCategoria" Classes="campo" HorizontalAlignment="Stretch" Margin="0,0,0,14"
                   AutomationProperties.Name="{DynamicResource Entry.Category}"
                   AutomationProperties.IsRequiredForForm="True" />
 
-        <TextBlock Name="LblCategoriaPersonalizada" Text="{DynamicResource Entry.CustomCategory}" IsVisible="False"
-                   FontSize="12" Foreground="{DynamicResource TextSecondary}" />
-        <TextBox Name="TxtCategoriaPersonalizada" Classes="campo" IsVisible="False"
-                 AutomationProperties.Name="{DynamicResource Entry.CustomCategory}"
-                 Watermark="{DynamicResource Entry.CustomCategoryWatermark}" Margin="0,0,0,14" />
+        <TextBlock Text="{DynamicResource Entry.TagsOptional}" Classes="legenda" />
+        <TextBox Name="TxtEtiquetas" Classes="campo"
+                 AutomationProperties.Name="{DynamicResource Entry.TagsOptional}"
+                 AutomationProperties.HelpText="{DynamicResource A11y.OptionalField}"
+                 Watermark="{DynamicResource Entry.TagsWatermark}" Margin="0,0,0,14" />
 
-        <TextBlock Text="{DynamicResource Entry.UrlOptional}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
+        <TextBlock Text="{DynamicResource Entry.UrlOptional}" Classes="legenda" />
         <TextBox Name="TxtUrl" Classes="campo" Margin="0,0,0,14"
                  AutomationProperties.Name="{DynamicResource Entry.UrlOptional}"
                  AutomationProperties.HelpText="{DynamicResource A11y.OptionalField}" />
 
-        <TextBlock Text="{DynamicResource Entry.NotesOptional}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
+        <TextBlock Text="{DynamicResource Entry.NotesOptional}" Classes="legenda" />
         <TextBox Name="TxtNotas" Classes="campo" AcceptsReturn="True" Height="64"
                  AutomationProperties.Name="{DynamicResource Entry.NotesOptional}"
                  AutomationProperties.HelpText="{DynamicResource A11y.OptionalField}" />
       </StackPanel>
+      </ScrollViewer>
     </DockPanel>
   </Border>
 </Window>

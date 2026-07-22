@@ -58,9 +58,25 @@ namespace GerenciadorDeSenhas.Repositorios
             existente.Notas = senha.Notas;
             existente.TotpSegredo = senha.TotpSegredo;
             existente.Favorito = senha.Favorito;
-            existente.IV = senha.IV;
-            existente.AuthTag = senha.AuthTag;
-            existente.DataAtualizacao = DateTime.UtcNow;
+            existente.Fixado = senha.Fixado;
+            existente.DataAtualizacao = senha.DataAtualizacao;
+        }
+
+        public async Task RegistrarCopiaAsync(Guid id, TipoCampoCopiado campo)
+        {
+            await CarregarSeNecessarioAsync();
+
+            var senha = _senhas.FirstOrDefault(s => s.Id == id);
+            if (senha == null)
+                throw new InvalidOperationException($"Senha com ID {id} não encontrada");
+
+            var agora = DateTime.UtcNow;
+            switch (campo)
+            {
+                case TipoCampoCopiado.Senha: senha.DataUltimaCopiaSenha = agora; break;
+                case TipoCampoCopiado.Usuario: senha.DataUltimaCopiaUsuario = agora; break;
+                case TipoCampoCopiado.Totp: senha.DataUltimaCopiaTotp = agora; break;
+            }
         }
 
         public async Task RemoverAsync(Guid id)
@@ -71,7 +87,20 @@ namespace GerenciadorDeSenhas.Repositorios
             if (senha == null)
                 throw new InvalidOperationException($"Senha com ID {id} não encontrada");
 
-            _senhas.Remove(senha);
+            senha.NaLixeira = true;
+            senha.DataExclusao = DateTime.UtcNow;
+        }
+
+        public async Task MoverTudoParaLixeiraAsync()
+        {
+            await CarregarSeNecessarioAsync();
+
+            var agora = DateTime.UtcNow;
+            foreach (var senha in _senhas.Where(s => !s.NaLixeira))
+            {
+                senha.NaLixeira = true;
+                senha.DataExclusao = agora;
+            }
         }
 
         public async Task<Senha?> ObterPorIdAsync(Guid id)
@@ -83,36 +112,37 @@ namespace GerenciadorDeSenhas.Repositorios
         public async Task<List<Senha>> ListarTodosAsync()
         {
             await CarregarSeNecessarioAsync();
-            return _senhas.ToList();
+            return _senhas.Where(s => !s.NaLixeira).ToList();
         }
 
-        public async Task<List<Senha>> BuscarPorCategoriaAsync(Categoria categoria)
+        public async Task<List<Senha>> ListarLixeiraAsync()
         {
             await CarregarSeNecessarioAsync();
-            return _senhas.Where(s => s.Categoria == categoria).ToList();
+            return _senhas.Where(s => s.NaLixeira).ToList();
         }
 
-        public async Task<List<Senha>> BuscarPorServicoAsync(string nomeServico)
+        public async Task RestaurarAsync(Guid id)
         {
-            if (string.IsNullOrWhiteSpace(nomeServico))
-                throw new ArgumentException("Nome do serviço não pode ser vazio");
-
             await CarregarSeNecessarioAsync();
-            return _senhas.Where(s =>
-                s.NomeServico.Contains(nomeServico, StringComparison.OrdinalIgnoreCase))
-                .ToList();
+
+            var senha = _senhas.FirstOrDefault(s => s.Id == id);
+            if (senha == null)
+                throw new InvalidOperationException($"Senha com ID {id} não encontrada");
+
+            senha.NaLixeira = false;
+            senha.DataExclusao = null;
         }
 
-        public async Task<List<Senha>> ListarFavoritosAsync()
+        public async Task RemoverDefinitivamenteAsync(Guid id)
         {
             await CarregarSeNecessarioAsync();
-            return _senhas.Where(s => s.Favorito).ToList();
+            _senhas.RemoveAll(s => s.Id == id);
         }
 
-        public async Task<int> ContarAsync()
+        public async Task EsvaziarLixeiraAsync()
         {
             await CarregarSeNecessarioAsync();
-            return _senhas.Count;
+            _senhas.RemoveAll(s => s.NaLixeira);
         }
 
         public async Task SalvarAsync()

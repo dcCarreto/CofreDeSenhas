@@ -179,6 +179,13 @@ DocProject/Help/html
 # Click-Once directory
 publish/
 
+# Instalador Windows gerado (Inno Setup)
+dist/
+
+# AppImage gerado e ferramenta baixada para gerá-lo
+publish-appimage/
+*.AppImage
+
 # Publish Web Output
 *.[Pp]ublish.xml
 *.azurePubxml

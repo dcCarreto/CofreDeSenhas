@@ -1,4 +1,5 @@
 using GerenciadorDeSenhas.Modelos;
+using GerenciadorDeSenhas.Servicos;
 
 namespace GerenciadorDeSenhas.Repositorios
 {
@@ -6,12 +7,16 @@ namespace GerenciadorDeSenhas.Repositorios
     {
         private readonly IRepositorioSenha _local;
         private readonly RepositorioSenhaBanco _banco;
+        private readonly bool _reconciliacaoJaRealizada;
         private Task? _sincronizacao;
 
-        public RepositorioSenhaEspelhado(IRepositorioSenha local, RepositorioSenhaBanco banco)
+        public bool ReconciliacaoRealizadaNestaSessao { get; private set; }
+
+        public RepositorioSenhaEspelhado(IRepositorioSenha local, RepositorioSenhaBanco banco, bool reconciliacaoJaRealizada = false)
         {
             _local = local ?? throw new ArgumentNullException(nameof(local));
             _banco = banco ?? throw new ArgumentNullException(nameof(banco));
+            _reconciliacaoJaRealizada = reconciliacaoJaRealizada;
         }
 
         private Task SincronizarAsync() => _sincronizacao ??= MesclarAsync();
@@ -21,15 +26,50 @@ namespace GerenciadorDeSenhas.Repositorios
             var locais = await _local.ListarTodosAsync();
             var doBanco = await _banco.ListarTodosAsync();
 
-            var chavesLocais = new HashSet<string>(locais.Select(Chave));
+            if (!_reconciliacaoJaRealizada)
+            {
+                await ReconciliarIdentidadeLegadaAsync(locais, doBanco);
+                ReconciliacaoRealizadaNestaSessao = true;
+            }
 
-            foreach (var senha in doBanco)
-                if (!chavesLocais.Contains(Chave(senha)))
-                    await _local.AdicionarAsync(senha);
+            var mesclados = MesclaSincronizacao.Mesclar(locais, doBanco, s => s.Id, s => s.DataAtualizacao);
+            var locaisPorId = locais.ToDictionary(s => s.Id);
+
+            foreach (var item in mesclados)
+            {
+                if (!locaisPorId.TryGetValue(item.Id, out var existenteLocal))
+                    await _local.AdicionarAsync(item);
+                else if (!ReferenceEquals(existenteLocal, item))
+                    await _local.AtualizarAsync(item);
+            }
 
             await _banco.GravarVariasPorChaveAsync(await _local.ListarTodosAsync());
 
             await _local.SalvarAsync();
+        }
+
+        private async Task ReconciliarIdentidadeLegadaAsync(List<Senha> locais, List<Senha> doBanco)
+        {
+            var locaisPorChave = new Dictionary<string, Senha>();
+            foreach (var item in locais)
+                locaisPorChave.TryAdd(Chave(item), item);
+
+            var idsLocais = new HashSet<Guid>(locais.Select(s => s.Id));
+            var jaReconciliados = new HashSet<Guid>();
+
+            foreach (var item in doBanco)
+            {
+                if (idsLocais.Contains(item.Id))
+                    continue;
+
+                if (!locaisPorChave.TryGetValue(Chave(item), out var correspondente))
+                    continue;
+
+                if (!jaReconciliados.Add(correspondente.Id))
+                    continue;
+
+                await _banco.SubstituirGuidAsync(item.Id, correspondente.Id);
+            }
         }
 
         private static string Chave(Senha s) =>
@@ -55,6 +95,12 @@ namespace GerenciadorDeSenhas.Repositorios
             await _banco.GravarPorChaveAsync(senha);
         }
 
+        public async Task RegistrarCopiaAsync(Guid id, TipoCampoCopiado campo)
+        {
+            await SincronizarAsync();
+            await _local.RegistrarCopiaAsync(id, campo);
+        }
+
         public async Task RemoverAsync(Guid id)
         {
             await SincronizarAsync();
@@ -62,6 +108,16 @@ namespace GerenciadorDeSenhas.Repositorios
             var senha = await _local.ObterPorIdAsync(id);
             await _local.RemoverAsync(id);
             if (senha != null)
+                await _banco.ExcluirPorChaveAsync(senha.NomeServico, senha.Usuario);
+        }
+
+        public async Task MoverTudoParaLixeiraAsync()
+        {
+            await SincronizarAsync();
+
+            var ativos = await _local.ListarTodosAsync();
+            await _local.MoverTudoParaLixeiraAsync();
+            foreach (var senha in ativos)
                 await _banco.ExcluirPorChaveAsync(senha.NomeServico, senha.Usuario);
         }
 
@@ -77,28 +133,41 @@ namespace GerenciadorDeSenhas.Repositorios
             return await _local.ListarTodosAsync();
         }
 
-        public async Task<List<Senha>> BuscarPorCategoriaAsync(Categoria categoria)
+        public async Task<List<Senha>> ListarLixeiraAsync()
         {
             await SincronizarAsync();
-            return await _local.BuscarPorCategoriaAsync(categoria);
+            return await _local.ListarLixeiraAsync();
         }
 
-        public async Task<List<Senha>> BuscarPorServicoAsync(string nomeServico)
+        public async Task RestaurarAsync(Guid id)
         {
             await SincronizarAsync();
-            return await _local.BuscarPorServicoAsync(nomeServico);
+
+            await _local.RestaurarAsync(id);
+
+            var senha = await _local.ObterPorIdAsync(id);
+            if (senha != null)
+                await _banco.GravarPorChaveAsync(senha);
         }
 
-        public async Task<List<Senha>> ListarFavoritosAsync()
+        public async Task RemoverDefinitivamenteAsync(Guid id)
         {
             await SincronizarAsync();
-            return await _local.ListarFavoritosAsync();
+
+            var senha = await _local.ObterPorIdAsync(id);
+            await _local.RemoverDefinitivamenteAsync(id);
+            if (senha != null)
+                await _banco.ExcluirDefinitivamentePorChaveAsync(senha.NomeServico, senha.Usuario);
         }
 
-        public async Task<int> ContarAsync()
+        public async Task EsvaziarLixeiraAsync()
         {
             await SincronizarAsync();
-            return await _local.ContarAsync();
+
+            var lixeira = await _local.ListarLixeiraAsync();
+            await _local.EsvaziarLixeiraAsync();
+            foreach (var senha in lixeira)
+                await _banco.ExcluirDefinitivamentePorChaveAsync(senha.NomeServico, senha.Usuario);
         }
 
         public async Task SalvarAsync()

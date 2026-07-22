@@ -8,7 +8,8 @@
         SystemDecorations="None"
         Background="Transparent"
         TransparencyLevelHint="Transparent"
-        WindowStartupLocation="CenterOwner">
+        WindowStartupLocation="CenterOwner"
+        RenderOptions.BitmapInterpolationMode="HighQuality">
 
   <Border CornerRadius="{StaticResource RadiusDialogo}"
           ClipToBounds="True"
@@ -28,12 +29,15 @@
                      Foreground="{DynamicResource TextPrimary}"
                      VerticalAlignment="Center"
                      AutomationProperties.HeadingLevel="1"
-                     Margin="24,0,0,0" />
-          <Button Classes="fechar-dialogo" Content="✕"
+                     Margin="24,0,60,0"
+                     TextTrimming="CharacterEllipsis" />
+          <Button Classes="fechar-dialogo"
                   AutomationProperties.Name="{DynamicResource Access.Close}"
                   HorizontalAlignment="Right" VerticalAlignment="Center"
                   Margin="0,0,14,0"
-                  Click="Cancelar_Click" />
+                  Click="Cancelar_Click">
+            <c:Icone Width="{StaticResource TamIconeToolbar}" Height="{StaticResource TamIconeToolbar}" Chave="IconeFechar" />
+          </Button>
         </Grid>
       </Border>
 
@@ -41,19 +45,16 @@
               Height="72"
               BorderBrush="{DynamicResource CardBorder}"
               BorderThickness="0,1,0,0">
-        <Grid Margin="24,0">
+        <StackPanel Orientation="Horizontal" Spacing="10"
+                    HorizontalAlignment="Right" VerticalAlignment="Center" Margin="24,0">
           <Button Name="BtnPrincipal" Classes="primario"
-                  Width="200" Height="40"
-                  HorizontalAlignment="Left" VerticalAlignment="Center"
-                  Click="Principal_Click" />
+                  MinWidth="140" Height="40" Click="Principal_Click" />
           <Button Classes="secundario" Content="{DynamicResource Common.Cancel}"
-                  Width="150" Height="40"
-                  HorizontalAlignment="Right" VerticalAlignment="Center"
-                  Click="Cancelar_Click" />
-        </Grid>
+                  MinWidth="120" Height="40" Click="Cancelar_Click" />
+        </StackPanel>
       </Border>
 
-      <StackPanel Margin="24,16,24,10" Spacing="4">
+      <StackPanel Margin="24,18,24,16" Spacing="4">
         <TextBlock Name="LblInfo"
                    FontSize="12"
                    Foreground="{DynamicResource TextSecondary}"
@@ -61,27 +62,27 @@
                    AutomationProperties.LiveSetting="Polite"
                    Margin="0,0,0,12" />
 
-        <TextBlock Name="LblSenha" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
+        <TextBlock Name="LblSenha" Classes="legenda" />
         <TextBox Name="TxtSenha" Classes="campo revealPasswordButton" PasswordChar="●" Margin="0,0,0,10"
                  AutomationProperties.HelpText="{DynamicResource A11y.PasswordFieldHelp}"
                  AutomationProperties.IsRequiredForForm="True" />
 
         <StackPanel Name="PainelConfirmar" Spacing="4">
-          <TextBlock Text="{DynamicResource Login.ConfirmPassword}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
+          <TextBlock Text="{DynamicResource Login.ConfirmPassword}" Classes="legenda" />
           <TextBox Name="TxtConfirmar" Classes="campo revealPasswordButton" PasswordChar="●" Margin="0,0,0,10"
                    AutomationProperties.Name="{DynamicResource Login.ConfirmPassword}"
                    AutomationProperties.HelpText="{DynamicResource A11y.PasswordFieldHelp}"
                    AutomationProperties.IsRequiredForForm="True" />
         </StackPanel>
 
-        <c:MedidorForca Name="Medidor" Margin="0,4,0,2" />
+        <c:MedidorForca Name="Medidor" Margin="0,6,0,2" />
 
         <TextBlock Name="LblErro"
                    FontSize="12"
                    Foreground="{DynamicResource StrengthWeak}"
                    TextWrapping="Wrap"
                    AutomationProperties.LiveSetting="Assertive"
-                   MinHeight="20" />
+                   MinHeight="34" />
       </StackPanel>
     </DockPanel>
   </Border>

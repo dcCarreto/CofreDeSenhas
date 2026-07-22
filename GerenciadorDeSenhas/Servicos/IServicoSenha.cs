@@ -6,38 +6,48 @@ namespace GerenciadorDeSenhas.Servicos
     {
         Task<Senha> CriarSenhaAsync(string nomeServico, string usuario, string senhaPlaintext,
             Categoria categoria, string? url = null, string? notas = null, string? totpSegredo = null,
-            IEnumerable<string>? etiquetas = null);
+            IEnumerable<string>? etiquetas = null, TipoCredencial tipo = TipoCredencial.Login,
+            IReadOnlyDictionary<string, string>? camposExtras = null);
 
         Task AtualizarSenhaAsync(Guid id, string nomeServico, string usuario, string senhaPlaintext,
             Categoria categoria, string? url = null, string? notas = null,
-            IEnumerable<string>? etiquetas = null);
+            IEnumerable<string>? etiquetas = null, TipoCredencial? tipo = null,
+            IReadOnlyDictionary<string, string>? camposExtras = null);
 
         Task DefinirTotpAsync(Guid id, string? segredoPlaintext);
 
+        Task AdicionarCodigosRecuperacaoAsync(Guid id, IEnumerable<(string Codigo, bool Usado)> codigos);
+
+        Task MarcarCodigoRecuperacaoAsync(Guid id, Guid codigoId, bool usado);
+
+        Task RemoverCodigoRecuperacaoAsync(Guid id, Guid codigoId);
+
         Task RemoverSenhaAsync(Guid id);
 
-        Task<Senha?> ObterSenhaAsync(Guid id);
+        Task LimparCofreAsync();
 
         Task<List<Senha>> ListarTodosAsync();
 
-        Task<List<Senha>> BuscarPorServicoAsync(string nomeServico);
+        Task<List<Senha>> ListarLixeiraAsync();
 
-        Task<List<Senha>> ListarPorCategoriaAsync(Categoria categoria);
+        Task RestaurarSenhaAsync(Guid id);
 
-        Task<List<Senha>> ListarPorEtiquetaAsync(string etiqueta);
+        Task RemoverDefinitivamenteAsync(Guid id);
 
-        Task<List<string>> ListarEtiquetasAsync();
-
-        Task<List<Senha>> ListarFavoritosAsync();
+        Task EsvaziarLixeiraAsync();
 
         Task MarcarComoFavoritoAsync(Guid id);
 
         Task RemoverDeFavoritoAsync(Guid id);
 
+        Task MarcarComoFixadoAsync(Guid id);
+
+        Task RemoverFixacaoAsync(Guid id);
+
+        Task RegistrarCopiaAsync(Guid id, TipoCampoCopiado campo);
+
+        Task AplicarSincronizadoAsync(SenhaExportada item);
+
         Task PersistirAsync();
-
-        bool ValidarForteSenha(string senha);
-
-        int ContarSenhas();
     }
 }

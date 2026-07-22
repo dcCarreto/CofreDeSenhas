@@ -2,7 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:controles="using:CofreDeSenhas.Controles"
              x:Class="CofreDeSenhas.App"
-             RequestedThemeVariant="Light">
+             RequestedThemeVariant="Dark">
 
   <Application.Resources>
     <ResourceDictionary>
@@ -10,63 +10,32 @@
         <ResourceInclude Source="avares://CofreDeSenhas/Icones.axaml" />
       </ResourceDictionary.MergedDictionaries>
       <ResourceDictionary.ThemeDictionaries>
-        <ResourceDictionary x:Key="Light">
-          <SolidColorBrush x:Key="WorkspaceBackground" Color="#F4F1F7" />
-          <SolidColorBrush x:Key="CardBackground" Color="#FFFFFF" />
-          <SolidColorBrush x:Key="CardBorder" Color="#EAE4F1" />
-          <SolidColorBrush x:Key="TitleBar" Color="#FFFFFF" />
-          <SolidColorBrush x:Key="TitleBarBorder" Color="#EEE8F4" />
-          <SolidColorBrush x:Key="InputBackground" Color="#F7F4FA" />
-          <SolidColorBrush x:Key="InputBorder" Color="#DED5E7" />
-          <SolidColorBrush x:Key="RowHover" Color="#FAF7FC" />
-          <SolidColorBrush x:Key="Separator" Color="#F1ECF6" />
-          <SolidColorBrush x:Key="Footer" Color="#FBFAFC" />
-          <SolidColorBrush x:Key="AccentPrimary" Color="#6B3AA0" />
-          <SolidColorBrush x:Key="AccentHover" Color="#5A2F8A" />
-          <SolidColorBrush x:Key="AccentLight" Color="#F1E7FA" />
-          <SolidColorBrush x:Key="TextPrimary" Color="#241F2B" />
-          <SolidColorBrush x:Key="TextSecondary" Color="#6B6575" />
-          <SolidColorBrush x:Key="TextTertiary" Color="#6E6976" />
-          <SolidColorBrush x:Key="TextHeader" Color="#6E6976" />
-          <SolidColorBrush x:Key="TrailInactive" Color="#E8E2EE" />
-          <SolidColorBrush x:Key="ToggleOff" Color="#D9D1E1" />
-          <SolidColorBrush x:Key="HoverBackground" Color="#F2EDF7" />
-          <SolidColorBrush x:Key="IconHoverBackground" Color="#F0EAF6" />
-          <SolidColorBrush x:Key="FavoriteBorderColor" Color="#D0C7DA" />
-          <SolidColorBrush x:Key="CategoryWorkFg" Color="#3B4FA0" />
-          <SolidColorBrush x:Key="CategoryWorkBg" Color="#E7E9F7" />
-          <SolidColorBrush x:Key="CategoryPersonalFg" Color="#A0551C" />
-          <SolidColorBrush x:Key="CategoryPersonalBg" Color="#FBEDE0" />
-          <SolidColorBrush x:Key="CategoryFinanceFg" Color="#1E7A4C" />
-          <SolidColorBrush x:Key="CategoryFinanceBg" Color="#E1F5E9" />
-          <SolidColorBrush x:Key="CategorySocialFg" Color="#B23C68" />
-          <SolidColorBrush x:Key="CategorySocialBg" Color="#FBE7EE" />
-          <SolidColorBrush x:Key="CategoryOtherFg" Color="#5B5F6B" />
-          <SolidColorBrush x:Key="CategoryOtherBg" Color="#EDEEF1" />
-        </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
-          <SolidColorBrush x:Key="WorkspaceBackground" Color="#14121B" />
-          <SolidColorBrush x:Key="CardBackground" Color="#211E2B" />
-          <SolidColorBrush x:Key="CardBorder" Color="#34303F" />
-          <SolidColorBrush x:Key="TitleBar" Color="#1B1822" />
-          <SolidColorBrush x:Key="TitleBarBorder" Color="#302B3D" />
-          <SolidColorBrush x:Key="InputBackground" Color="#2A2634" />
-          <SolidColorBrush x:Key="InputBorder" Color="#3D3849" />
-          <SolidColorBrush x:Key="RowHover" Color="#292534" />
-          <SolidColorBrush x:Key="Separator" Color="#302C3A" />
-          <SolidColorBrush x:Key="Footer" Color="#1D1A24" />
-          <SolidColorBrush x:Key="AccentPrimary" Color="#8452D6" />
-          <SolidColorBrush x:Key="AccentHover" Color="#6F3EBD" />
-          <SolidColorBrush x:Key="AccentLight" Color="#362A4D" />
-          <SolidColorBrush x:Key="TextPrimary" Color="#EDE9F3" />
-          <SolidColorBrush x:Key="TextSecondary" Color="#A29AB0" />
-          <SolidColorBrush x:Key="TextTertiary" Color="#968DA9" />
-          <SolidColorBrush x:Key="TextHeader" Color="#968DA9" />
-          <SolidColorBrush x:Key="TrailInactive" Color="#3C3749" />
-          <SolidColorBrush x:Key="ToggleOff" Color="#48435A" />
-          <SolidColorBrush x:Key="HoverBackground" Color="#2C2837" />
-          <SolidColorBrush x:Key="IconHoverBackground" Color="#322D3F" />
-          <SolidColorBrush x:Key="FavoriteBorderColor" Color="#5C5568" />
+          <SolidColorBrush x:Key="WorkspaceBackground" Color="#17130F" />
+          <SolidColorBrush x:Key="CardBackground" Color="#241C15" />
+          <SolidColorBrush x:Key="CardBorder" Color="#3D3120" />
+          <SolidColorBrush x:Key="TitleBar" Color="#1C1712" />
+          <SolidColorBrush x:Key="TitleBarBorder" Color="#362B1C" />
+          <SolidColorBrush x:Key="InputBackground" Color="#2B2116" />
+          <SolidColorBrush x:Key="InputBorder" Color="#46392A" />
+          <SolidColorBrush x:Key="RowHover" Color="#2A2117" />
+          <SolidColorBrush x:Key="Separator" Color="#33291A" />
+          <SolidColorBrush x:Key="Footer" Color="#1A1510" />
+          <SolidColorBrush x:Key="AccentPrimary" Color="#C8A24C" />
+          <SolidColorBrush x:Key="AccentHover" Color="#A8853D" />
+          <SolidColorBrush x:Key="AccentLight" Color="#3A2E1C" />
+          <SolidColorBrush x:Key="AccentText" Color="#E4C374" />
+          <SolidColorBrush x:Key="StrengthWeak" Color="#C96B58" />
+          <SolidColorBrush x:Key="StrengthMedium" Color="#C98A3E" />
+          <SolidColorBrush x:Key="TextPrimary" Color="#F3EADC" />
+          <SolidColorBrush x:Key="TextSecondary" Color="#B7A791" />
+          <SolidColorBrush x:Key="TextTertiary" Color="#8B7C68" />
+          <SolidColorBrush x:Key="TextHeader" Color="#8B7C68" />
+          <SolidColorBrush x:Key="TrailInactive" Color="#3C3225" />
+          <SolidColorBrush x:Key="ToggleOff" Color="#4A3D2C" />
+          <SolidColorBrush x:Key="HoverBackground" Color="#2C2319" />
+          <SolidColorBrush x:Key="IconHoverBackground" Color="#332818" />
+          <SolidColorBrush x:Key="FavoriteBorderColor" Color="#5C4F3D" />
           <SolidColorBrush x:Key="CategoryWorkFg" Color="#8C9AE8" />
           <SolidColorBrush x:Key="CategoryWorkBg" Color="#262A47" />
           <SolidColorBrush x:Key="CategoryPersonalFg" Color="#E8A468" />
@@ -80,20 +49,18 @@
         </ResourceDictionary>
       </ResourceDictionary.ThemeDictionaries>
 
-      <SolidColorBrush x:Key="StrengthWeak" Color="#E14B4B" />
-      <SolidColorBrush x:Key="StrengthMedium" Color="#E0932C" />
-      <SolidColorBrush x:Key="StrengthStrong" Color="#1E9A5A" />
-      <SolidColorBrush x:Key="StrengthExcelent" Color="#2F7FD6" />
-      <SolidColorBrush x:Key="StrengthExcellent" Color="#2F7FD6" />
+      <SolidColorBrush x:Key="StrengthStrong" Color="#7E9B6C" />
+      <SolidColorBrush x:Key="StrengthExcellent" Color="#6FA0C9" />
       <SolidColorBrush x:Key="CloseButtonHover" Color="#E5484D" />
       <SolidColorBrush x:Key="CloseButtonPressed" Color="#C93A3E" />
       <SolidColorBrush x:Key="FavoriteColor" Color="#E8A23D" />
-      <SolidColorBrush x:Key="StatusLocal" Color="#1E9A5A" />
-      <SolidColorBrush x:Key="StatusWarning" Color="#E0932C" />
-      <SolidColorBrush x:Key="StatusConnected" Color="#2F7FD6" />
+      <SolidColorBrush x:Key="StatusLocal" Color="#7E9B6C" />
+      <SolidColorBrush x:Key="StatusWarning" Color="#C98A3E" />
+      <SolidColorBrush x:Key="StatusConnected" Color="#6FA0C9" />
 
       <FontFamily x:Key="FonteMono">DejaVu Sans Mono, Liberation Mono, Noto Sans Mono, Ubuntu Mono, Consolas, monospace</FontFamily>
       <FontFamily x:Key="FontePadrao">avares://CofreDeSenhas/Ativos/Fontes/PlusJakartaSans#Plus Jakarta Sans, Inter</FontFamily>
+      <FontFamily x:Key="FonteDisplay">Georgia, Constantia, Cambria, Noto Serif, DejaVu Serif, Liberation Serif, serif</FontFamily>
 
       <x:Double x:Key="TamDisplay">26</x:Double>
       <x:Double x:Key="TamTitulo">21</x:Double>
@@ -105,17 +72,39 @@
       <x:Double x:Key="TamMonoCorpo">15</x:Double>
       <x:Double x:Key="TamMonoDisplay">22</x:Double>
 
-      <CornerRadius x:Key="RadiusBotao">12</CornerRadius>
+      <CornerRadius x:Key="RadiusBotao">10</CornerRadius>
       <CornerRadius x:Key="RadiusIcone">10</CornerRadius>
-      <CornerRadius x:Key="RadiusCartao">18</CornerRadius>
+      <CornerRadius x:Key="RadiusCartao">14</CornerRadius>
       <CornerRadius x:Key="RadiusInput">12</CornerRadius>
-      <CornerRadius x:Key="RadiusNavItem">12</CornerRadius>
-      <CornerRadius x:Key="RadiusDialogo">20</CornerRadius>
+      <CornerRadius x:Key="RadiusNavItem">10</CornerRadius>
+      <CornerRadius x:Key="RadiusDialogo">16</CornerRadius>
       <CornerRadius x:Key="RadiusPill">999</CornerRadius>
 
-      <BoxShadows x:Key="CardShadow">0 1 3 0 #172B1740, 0 8 20 0 #0D2B1740</BoxShadows>
-      <BoxShadows x:Key="DialogShadow">0 4 10 0 #1A2B1740, 0 16 40 0 #1F2B1740</BoxShadows>
-      <BoxShadows x:Key="FabShadow">0 6 16 0 #598452D6</BoxShadows>
+      <x:Double x:Key="EspacoXs">8</x:Double>
+      <x:Double x:Key="EspacoSm">14</x:Double>
+      <x:Double x:Key="EspacoMd">20</x:Double>
+      <x:Double x:Key="EspacoLg">24</x:Double>
+
+      <x:Double x:Key="TamIconeSm">28</x:Double>
+      <x:Double x:Key="TamIconeMd">36</x:Double>
+      <x:Double x:Key="TamIconeLg">44</x:Double>
+
+      <x:Double x:Key="TamIconeNav">20</x:Double>
+      <x:Double x:Key="TamIconeToolbar">18</x:Double>
+      <x:Double x:Key="TamIconeMenu">18</x:Double>
+      <x:Double x:Key="TamIconeCampo">18</x:Double>
+      <x:Double x:Key="TamIconeToggle">16</x:Double>
+      <x:Double x:Key="TamIconeRodape">14</x:Double>
+      <x:Double x:Key="TamIconeVazio">56</x:Double>
+      <x:Double x:Key="TamIconeHero">30</x:Double>
+      <x:Double x:Key="TamTileHero">64</x:Double>
+
+      <x:Double x:Key="LarguraBotaoRodape">120</x:Double>
+      <x:Double x:Key="LarguraBotaoRodapePrimario">140</x:Double>
+
+      <BoxShadows x:Key="CardShadow">0 1 3 0 #55000000, 0 8 20 0 #77000000</BoxShadows>
+      <BoxShadows x:Key="DialogShadow">0 4 10 0 #66000000, 0 16 40 0 #99000000</BoxShadows>
+      <BoxShadows x:Key="FabShadow">0 4 14 0 #55C8A24C</BoxShadows>
     </ResourceDictionary>
   </Application.Resources>
 
@@ -131,6 +120,20 @@
     <Style Selector="MenuFlyoutPresenter">
       <Setter Property="FontFamily" Value="{StaticResource FontePadrao}" />
       <Setter Property="MinWidth" Value="300" />
+      <Setter Property="Background" Value="{DynamicResource CardBackground}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource CardBorder}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="12" />
+      <Setter Property="Padding" Value="6,6" />
+    </Style>
+    <Style Selector="MenuItem.secao">
+      <Setter Property="IsHitTestVisible" Value="False" />
+      <Setter Property="Focusable" Value="False" />
+      <Setter Property="FontSize" Value="10" />
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="Foreground" Value="{DynamicResource TextHeader}" />
+      <Setter Property="Padding" Value="10,10,10,4" />
+      <Setter Property="MinHeight" Value="0" />
     </Style>
     <Style Selector="ContextMenu">
       <Setter Property="FontFamily" Value="{StaticResource FontePadrao}" />
@@ -140,14 +143,17 @@
     </Style>
 
     <Style Selector="TextBlock.display">
+      <Setter Property="FontFamily" Value="{StaticResource FonteDisplay}" />
       <Setter Property="FontSize" Value="{StaticResource TamDisplay}" />
-      <Setter Property="FontWeight" Value="ExtraBold" />
+      <Setter Property="FontWeight" Value="Bold" />
     </Style>
     <Style Selector="TextBlock.titulo">
+      <Setter Property="FontFamily" Value="{StaticResource FonteDisplay}" />
       <Setter Property="FontSize" Value="{StaticResource TamTitulo}" />
       <Setter Property="FontWeight" Value="Bold" />
     </Style>
     <Style Selector="TextBlock.subtitulo">
+      <Setter Property="FontFamily" Value="{StaticResource FonteDisplay}" />
       <Setter Property="FontSize" Value="{StaticResource TamSubtitulo}" />
       <Setter Property="FontWeight" Value="SemiBold" />
     </Style>
@@ -181,6 +187,14 @@
       </Setter>
     </Style>
 
+    <Style Selector="Button /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Transitions">
+        <Transitions>
+          <BrushTransition Property="Background" Duration="0:0:0.12" />
+        </Transitions>
+      </Setter>
+    </Style>
+
     <Style Selector="Button.primario">
       <Setter Property="Background" Value="{DynamicResource AccentPrimary}" />
       <Setter Property="Foreground" Value="White" />
@@ -192,7 +206,13 @@
       <Setter Property="HorizontalContentAlignment" Value="Center" />
       <Setter Property="VerticalContentAlignment" Value="Center" />
       <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
+      <Setter Property="RenderTransform" Value="scale(1)" />
       <Setter Property="Cursor" Value="Hand" />
+      <Setter Property="Transitions">
+        <Transitions>
+          <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.08" />
+        </Transitions>
+      </Setter>
     </Style>
     <Style Selector="Button.primario:pointerover /template/ ContentPresenter#PART_ContentPresenter">
       <Setter Property="Background" Value="{DynamicResource AccentHover}" />
@@ -253,24 +273,17 @@
       <Setter Property="Opacity" Value="0.4" />
     </Style>
 
-    <Style Selector="Button.icone-borda">
-      <Setter Property="Background" Value="Transparent" />
-      <Setter Property="Foreground" Value="{DynamicResource TextSecondary}" />
-      <Setter Property="FontSize" Value="14" />
-      <Setter Property="CornerRadius" Value="{StaticResource RadiusIcone}" />
-      <Setter Property="BorderThickness" Value="1" />
-      <Setter Property="BorderBrush" Value="{DynamicResource InputBorder}" />
-      <Setter Property="Padding" Value="0" />
-      <Setter Property="HorizontalContentAlignment" Value="Center" />
-      <Setter Property="VerticalContentAlignment" Value="Center" />
-      <Setter Property="Cursor" Value="Hand" />
+    <Style Selector="Button.icone.sm">
+      <Setter Property="Width" Value="{StaticResource TamIconeSm}" />
+      <Setter Property="Height" Value="{StaticResource TamIconeSm}" />
     </Style>
-    <Style Selector="Button.icone-borda:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-      <Setter Property="Background" Value="{DynamicResource IconHoverBackground}" />
-      <Setter Property="Foreground" Value="{DynamicResource AccentPrimary}" />
+    <Style Selector="Button.icone.md">
+      <Setter Property="Width" Value="{StaticResource TamIconeMd}" />
+      <Setter Property="Height" Value="{StaticResource TamIconeMd}" />
     </Style>
-    <Style Selector="Button.icone-borda:disabled">
-      <Setter Property="Opacity" Value="0.4" />
+    <Style Selector="Button.icone.lg">
+      <Setter Property="Width" Value="{StaticResource TamIconeLg}" />
+      <Setter Property="Height" Value="{StaticResource TamIconeLg}" />
     </Style>
 
     <Style Selector="Button.icone.borda">
@@ -319,7 +332,7 @@
 
     <Style Selector="Button.plano">
       <Setter Property="Background" Value="Transparent" />
-      <Setter Property="Foreground" Value="{DynamicResource AccentPrimary}" />
+      <Setter Property="Foreground" Value="{DynamicResource AccentText}" />
       <Setter Property="FontWeight" Value="Bold" />
       <Setter Property="FontSize" Value="{StaticResource TamBotao}" />
       <Setter Property="CornerRadius" Value="{StaticResource RadiusBotao}" />
@@ -426,6 +439,23 @@
       <Setter Property="Foreground" Value="{DynamicResource AccentPrimary}" />
     </Style>
 
+    <Style Selector="Ellipse.rivet">
+      <Setter Property="Width" Value="6" />
+      <Setter Property="Height" Value="6" />
+      <Setter Property="Fill" Value="{DynamicResource AccentPrimary}" />
+      <Setter Property="Stroke" Value="{DynamicResource AccentLight}" />
+      <Setter Property="StrokeThickness" Value="1.5" />
+      <Setter Property="Opacity" Value="0" />
+      <Setter Property="Transitions">
+        <Transitions>
+          <DoubleTransition Property="Opacity" Duration="0:0:0.15" />
+        </Transitions>
+      </Setter>
+    </Style>
+    <Style Selector="Button.nav-item.ativo Ellipse.rivet">
+      <Setter Property="Opacity" Value="1" />
+    </Style>
+
     <Style Selector="Button.fab">
       <Setter Property="Width" Value="60" />
       <Setter Property="Height" Value="60" />
@@ -436,7 +466,20 @@
       <Setter Property="Padding" Value="0" />
       <Setter Property="HorizontalContentAlignment" Value="Center" />
       <Setter Property="VerticalContentAlignment" Value="Center" />
+      <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
+      <Setter Property="RenderTransform" Value="scale(1)" />
       <Setter Property="Cursor" Value="Hand" />
+      <Setter Property="Transitions">
+        <Transitions>
+          <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.1" />
+        </Transitions>
+      </Setter>
+    </Style>
+    <Style Selector="Button.fab:pointerover">
+      <Setter Property="RenderTransform" Value="scale(1.06)" />
+    </Style>
+    <Style Selector="Button.fab:pressed">
+      <Setter Property="RenderTransform" Value="scale(0.94)" />
     </Style>
     <Style Selector="Button.fab /template/ ContentPresenter#PART_ContentPresenter">
       <Setter Property="BoxShadow" Value="{StaticResource FabShadow}" />
@@ -457,6 +500,13 @@
       <Setter Property="Padding" Value="14,12" />
       <Setter Property="FontSize" Value="{StaticResource TamCorpo}" />
       <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="TextBox.campo /template/ Border#PART_BorderElement">
+      <Setter Property="Transitions">
+        <Transitions>
+          <BrushTransition Property="BorderBrush" Duration="0:0:0.15" />
+        </Transitions>
+      </Setter>
     </Style>
     <Style Selector="TextBox.campo:pointerover /template/ Border#PART_BorderElement">
       <Setter Property="Background" Value="{DynamicResource InputBackground}" />
@@ -516,12 +566,55 @@
       <Setter Property="FontSize" Value="12" />
     </Style>
 
-    <Style Selector="Path.line-icon">
-      <Setter Property="Fill" Value="Transparent" />
-      <Setter Property="StrokeThickness" Value="2" />
-      <Setter Property="StrokeLineCap" Value="Round" />
-      <Setter Property="StrokeJoin" Value="Round" />
-      <Setter Property="Stretch" Value="Uniform" />
+    <Style Selector="MenuItem /template/ ContentControl#PART_IconPresenter">
+      <Setter Property="Width" Value="{StaticResource TamIconeMenu}" />
+      <Setter Property="Height" Value="{StaticResource TamIconeMenu}" />
     </Style>
+
+    <Style Selector="controles|Icone">
+      <Setter Property="Stroke" Value="{DynamicResource TextSecondary}" />
+      <Setter Property="Fill" Value="Transparent" />
+      <Setter Property="StrokeThickness" Value="1.75" />
+      <Setter Property="Transitions">
+        <Transitions>
+          <BrushTransition Property="Stroke" Duration="0:0:0.12" />
+          <BrushTransition Property="Fill" Duration="0:0:0.12" />
+        </Transitions>
+      </Setter>
+    </Style>
+    <Style Selector="controles|Icone[Preenchido=True]">
+      <Setter Property="Fill" Value="{DynamicResource TextSecondary}" />
+      <Setter Property="Stroke" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.icone:pointerover controles|Icone,
+                     Button.icone-linha:pointerover controles|Icone,
+                     Button.nav-toggle:pointerover controles|Icone">
+      <Setter Property="Stroke" Value="{DynamicResource AccentPrimary}" />
+    </Style>
+    <Style Selector="Button.icone-linha.excluir:pointerover controles|Icone">
+      <Setter Property="Stroke" Value="{DynamicResource StrengthWeak}" />
+    </Style>
+    <Style Selector="Button.janela controles|Icone">
+      <Setter Property="Stroke" Value="{DynamicResource TextPrimary}" />
+    </Style>
+    <Style Selector="Button.fechar:pointerover controles|Icone, Button.fechar:pressed controles|Icone">
+      <Setter Property="Stroke" Value="White" />
+    </Style>
+    <Style Selector="Button.fechar-dialogo controles|Icone">
+      <Setter Property="Stroke" Value="{DynamicResource TextSecondary}" />
+    </Style>
+    <Style Selector="Button.fechar-dialogo:pointerover controles|Icone">
+      <Setter Property="Stroke" Value="{DynamicResource TextPrimary}" />
+    </Style>
+    <Style Selector="Button.nav-item:pointerover controles|Icone">
+      <Setter Property="Stroke" Value="{DynamicResource TextPrimary}" />
+    </Style>
+    <Style Selector="Button.nav-item.ativo controles|Icone">
+      <Setter Property="Stroke" Value="{DynamicResource AccentPrimary}" />
+    </Style>
+    <Style Selector="Button:disabled controles|Icone">
+      <Setter Property="Opacity" Value="0.4" />
+    </Style>
+
   </Application.Styles>
 </Application>

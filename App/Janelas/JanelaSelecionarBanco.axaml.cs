@@ -21,10 +21,7 @@ namespace CofreDeSenhas.Janelas
 
             MontarGrade();
 
-            KeyDown += (s, e) =>
-            {
-                if (e.Key == Key.Escape) Close(false);
-            };
+            this.FecharComEsc();
         }
 
         private void MontarGrade()
@@ -79,7 +76,11 @@ namespace CofreDeSenhas.Janelas
                 FontWeight = FontWeight.SemiBold,
                 Foreground = Tema.Pincel(Tema.TextPrimary),
                 VerticalAlignment = VerticalAlignment.Center,
-                Margin = new Avalonia.Thickness(14, 0, 0, 0)
+                Margin = new Avalonia.Thickness(14, 0, 0, 0),
+                MaxWidth = 150,
+                TextWrapping = TextWrapping.Wrap,
+                TextTrimming = TextTrimming.CharacterEllipsis,
+                MaxLines = 2
             };
 
             var conteudo = new StackPanel
@@ -127,11 +128,7 @@ namespace CofreDeSenhas.Janelas
             });
         }
 
-        private void Arrastar(object? sender, PointerPressedEventArgs e)
-        {
-            if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
-                BeginMoveDrag(e);
-        }
+        private void Arrastar(object? sender, PointerPressedEventArgs e) => this.HabilitarArraste(e);
 
         private void Cancelar_Click(object? sender, RoutedEventArgs e) => Close(false);
     }

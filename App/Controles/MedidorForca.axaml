@@ -14,8 +14,11 @@
     </Grid>
     <Grid ColumnDefinitions="*,4,*,4,*,4,*">
       <Border Name="Seg1" Height="5" CornerRadius="3" Background="{DynamicResource TrailInactive}" />
+      <Ellipse Grid.Column="1" Width="4" Height="4" Fill="{DynamicResource CardBorder}" VerticalAlignment="Center" HorizontalAlignment="Center" />
       <Border Name="Seg2" Grid.Column="2" Height="5" CornerRadius="3" Background="{DynamicResource TrailInactive}" />
+      <Ellipse Grid.Column="3" Width="4" Height="4" Fill="{DynamicResource CardBorder}" VerticalAlignment="Center" HorizontalAlignment="Center" />
       <Border Name="Seg3" Grid.Column="4" Height="5" CornerRadius="3" Background="{DynamicResource TrailInactive}" />
+      <Ellipse Grid.Column="5" Width="4" Height="4" Fill="{DynamicResource CardBorder}" VerticalAlignment="Center" HorizontalAlignment="Center" />
       <Border Name="Seg4" Grid.Column="6" Height="5" CornerRadius="3" Background="{DynamicResource TrailInactive}" />
     </Grid>
   </StackPanel>

@@ -7,6 +7,9 @@ namespace GerenciadorDeSenhas.Repositorios
 {
     public class RepositorioSenhaBanco : IRepositorioSenha
     {
+        private const string ColunasInsert = "usuario, senha, dominio, descricao, totp, etiquetas, codigos_recuperacao, excluido, data_criacao, data_atualizacao, url, categoria, tipo, campos_extras, historico, favorito, fixado, guid_id";
+        private const string ParametrosInsert = "@usuario, @senha, @dominio, @descricao, @totp, @etiquetas, @codigos_recuperacao, @excluido, @data_criacao, @data_atualizacao, @url, @categoria, @tipo, @campos_extras, @historico, @favorito, @fixado, @guid_id";
+
         private readonly ConexaoBanco _cfg;
         private readonly ServicoBancoDados _bd = new();
         private readonly string _tabela = ServicoBancoDados.NomeTabela;
@@ -20,33 +23,54 @@ namespace GerenciadorDeSenhas.Repositorios
             _cfg = cfg ?? throw new ArgumentNullException(nameof(cfg));
         }
 
+        private async Task<DbConnection> AbrirConexaoAsync()
+        {
+            var con = _bd.CriarConexao(_cfg);
+            await con.OpenAsync();
+            return con;
+        }
+
         private async Task CarregarSeNecessarioAsync()
         {
             if (_carregado) return;
 
+            await _bd.GarantirColunasAsync(_cfg);
+
             _senhas = new List<Senha>();
             _mapa.Clear();
 
-            await using var con = _bd.CriarConexao(_cfg);
-            await con.OpenAsync();
+            await using var con = await AbrirConexaoAsync();
 
             await using var cmd = con.CreateCommand();
-            cmd.CommandText = $"SELECT id, usuario, senha, dominio, descricao, totp, etiquetas FROM {_tabela} WHERE excluido = @excluido";
-            Parametro(cmd, "@excluido", false);
+            cmd.CommandText = $"SELECT id, usuario, senha, dominio, descricao, totp, etiquetas, codigos_recuperacao, excluido, data_exclusao, data_criacao, data_atualizacao, data_ultima_copia_senha, data_ultima_copia_usuario, data_ultima_copia_totp, url, categoria, tipo, campos_extras, historico, favorito, fixado, guid_id FROM {_tabela}";
 
             await using var leitor = await cmd.ExecuteReaderAsync();
             while (await leitor.ReadAsync())
             {
                 var senha = new Senha
                 {
-                    Id = Guid.NewGuid(),
+                    Id = leitor[ServicoBancoDados.ColunaGuidId] is string guidTexto && Guid.TryParse(guidTexto, out var guid) ? guid : Guid.NewGuid(),
                     NomeServico = leitor["dominio"] is string dominio ? dominio : "",
                     Usuario = (string)leitor["usuario"],
                     SenhaHash = (string)leitor["senha"],
-                    Notas = leitor["descricao"] is string descricao ? descricao : null,
-                    TotpSegredo = leitor["totp"] is string totp ? totp : null,
-                    Etiquetas = DesserializarEtiquetas(leitor["etiquetas"]),
-                    Categoria = Categoria.Other
+                    Url = leitor[ServicoBancoDados.ColunaUrl] is string url ? url : null,
+                    Notas = leitor[ServicoBancoDados.ColunaDescricao] is string descricao ? descricao : null,
+                    TotpSegredo = leitor[ServicoBancoDados.ColunaTotp] is string totp ? totp : null,
+                    Etiquetas = DesserializarEtiquetas(leitor[ServicoBancoDados.ColunaEtiquetas]),
+                    CodigosRecuperacao = DesserializarCodigosRecuperacao(leitor[ServicoBancoDados.ColunaCodigosRecuperacao]),
+                    Categoria = DesserializarCategoria(leitor[ServicoBancoDados.ColunaCategoria]),
+                    Tipo = DesserializarTipo(leitor[ServicoBancoDados.ColunaTipo]),
+                    CamposExtras = DesserializarCamposExtras(leitor[ServicoBancoDados.ColunaCamposExtras]),
+                    Historico = DesserializarHistorico(leitor[ServicoBancoDados.ColunaHistorico]),
+                    Favorito = DesserializarBool(leitor[ServicoBancoDados.ColunaFavorito]),
+                    Fixado = DesserializarBool(leitor[ServicoBancoDados.ColunaFixado]),
+                    NaLixeira = Convert.ToBoolean(leitor["excluido"]),
+                    DataExclusao = DesserializarData(leitor[ServicoBancoDados.ColunaDataExclusao]),
+                    DataCriacao = DesserializarData(leitor[ServicoBancoDados.ColunaDataCriacao]) ?? DateTime.UtcNow,
+                    DataAtualizacao = DesserializarData(leitor[ServicoBancoDados.ColunaDataAtualizacao]) ?? DateTime.UtcNow,
+                    DataUltimaCopiaSenha = DesserializarData(leitor[ServicoBancoDados.ColunaDataUltimaCopiaSenha]),
+                    DataUltimaCopiaUsuario = DesserializarData(leitor[ServicoBancoDados.ColunaDataUltimaCopiaUsuario]),
+                    DataUltimaCopiaTotp = DesserializarData(leitor[ServicoBancoDados.ColunaDataUltimaCopiaTotp])
                 };
                 _senhas.Add(senha);
                 _mapa[senha.Id] = Convert.ToInt64(leitor["id"]);
@@ -60,15 +84,13 @@ namespace GerenciadorDeSenhas.Repositorios
             if (senha == null) throw new ArgumentNullException(nameof(senha));
             await CarregarSeNecessarioAsync();
 
-            await using var con = _bd.CriarConexao(_cfg);
-            await con.OpenAsync();
+            await using var con = await AbrirConexaoAsync();
 
             long id;
             if (_cfg.Tipo == TipoBanco.PostgreSQL)
             {
                 await using var cmd = con.CreateCommand();
-                cmd.CommandText = $"INSERT INTO {_tabela} (usuario, senha, dominio, descricao, totp, etiquetas, excluido) " +
-                                  "VALUES (@usuario, @senha, @dominio, @descricao, @totp, @etiquetas, @excluido) RETURNING id";
+                cmd.CommandText = $"INSERT INTO {_tabela} ({ColunasInsert}) VALUES ({ParametrosInsert}) RETURNING id";
                 PreencherCampos(cmd, senha);
                 id = Convert.ToInt64(await cmd.ExecuteScalarAsync());
             }
@@ -76,8 +98,7 @@ namespace GerenciadorDeSenhas.Repositorios
             {
                 await using (var cmd = con.CreateCommand())
                 {
-                    cmd.CommandText = $"INSERT INTO {_tabela} (usuario, senha, dominio, descricao, totp, etiquetas, excluido) " +
-                                      "VALUES (@usuario, @senha, @dominio, @descricao, @totp, @etiquetas, @excluido)";
+                    cmd.CommandText = $"INSERT INTO {_tabela} ({ColunasInsert}) VALUES ({ParametrosInsert})";
                     PreencherCampos(cmd, senha);
                     await cmd.ExecuteNonQueryAsync();
                 }
@@ -99,11 +120,10 @@ namespace GerenciadorDeSenhas.Repositorios
             if (!_mapa.TryGetValue(senha.Id, out var id))
                 throw new InvalidOperationException($"Senha com ID {senha.Id} não encontrada");
 
-            await using var con = _bd.CriarConexao(_cfg);
-            await con.OpenAsync();
+            await using var con = await AbrirConexaoAsync();
 
             await using var cmd = con.CreateCommand();
-            cmd.CommandText = $"UPDATE {_tabela} SET usuario = @usuario, senha = @senha, dominio = @dominio, descricao = @descricao, totp = @totp, etiquetas = @etiquetas WHERE id = @id";
+            cmd.CommandText = $"UPDATE {_tabela} SET usuario = @usuario, senha = @senha, dominio = @dominio, descricao = @descricao, totp = @totp, etiquetas = @etiquetas, codigos_recuperacao = @codigos_recuperacao, data_atualizacao = @data_atualizacao, url = @url, categoria = @categoria, tipo = @tipo, campos_extras = @campos_extras, historico = @historico, favorito = @favorito, fixado = @fixado WHERE id = @id";
             PreencherCampos(cmd, senha);
             Parametro(cmd, "@id", id);
             await cmd.ExecuteNonQueryAsync();
@@ -114,9 +134,54 @@ namespace GerenciadorDeSenhas.Repositorios
                 existente.NomeServico = senha.NomeServico;
                 existente.Usuario = senha.Usuario;
                 existente.SenhaHash = senha.SenhaHash;
+                existente.Url = senha.Url;
                 existente.Notas = senha.Notas;
                 existente.TotpSegredo = senha.TotpSegredo;
                 existente.Etiquetas = senha.Etiquetas;
+                existente.CodigosRecuperacao = senha.CodigosRecuperacao;
+                existente.Categoria = senha.Categoria;
+                existente.Tipo = senha.Tipo;
+                existente.CamposExtras = senha.CamposExtras;
+                existente.Historico = senha.Historico;
+                existente.Favorito = senha.Favorito;
+                existente.Fixado = senha.Fixado;
+                existente.DataAtualizacao = senha.DataAtualizacao;
+            }
+        }
+
+        public async Task RegistrarCopiaAsync(Guid id, TipoCampoCopiado campo)
+        {
+            await CarregarSeNecessarioAsync();
+
+            if (!_mapa.TryGetValue(id, out var idBanco))
+                throw new InvalidOperationException($"Senha com ID {id} não encontrada");
+
+            var coluna = campo switch
+            {
+                TipoCampoCopiado.Senha => ServicoBancoDados.ColunaDataUltimaCopiaSenha,
+                TipoCampoCopiado.Usuario => ServicoBancoDados.ColunaDataUltimaCopiaUsuario,
+                TipoCampoCopiado.Totp => ServicoBancoDados.ColunaDataUltimaCopiaTotp,
+                _ => throw new ArgumentOutOfRangeException(nameof(campo))
+            };
+            var agora = DateTime.UtcNow;
+
+            await using var con = await AbrirConexaoAsync();
+
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = $"UPDATE {_tabela} SET {coluna} = @valor WHERE id = @id";
+            Parametro(cmd, "@valor", SerializarData(agora));
+            Parametro(cmd, "@id", idBanco);
+            await cmd.ExecuteNonQueryAsync();
+
+            var senha = _senhas.FirstOrDefault(s => s.Id == id);
+            if (senha != null)
+            {
+                switch (campo)
+                {
+                    case TipoCampoCopiado.Senha: senha.DataUltimaCopiaSenha = agora; break;
+                    case TipoCampoCopiado.Usuario: senha.DataUltimaCopiaUsuario = agora; break;
+                    case TipoCampoCopiado.Totp: senha.DataUltimaCopiaTotp = agora; break;
+                }
             }
         }
 
@@ -127,17 +192,32 @@ namespace GerenciadorDeSenhas.Repositorios
             if (!_mapa.TryGetValue(id, out var idBanco))
                 throw new InvalidOperationException($"Senha com ID {id} não encontrada");
 
-            await using var con = _bd.CriarConexao(_cfg);
-            await con.OpenAsync();
+            var agora = DateTime.UtcNow;
+
+            await using var con = await AbrirConexaoAsync();
 
             await using var cmd = con.CreateCommand();
-            cmd.CommandText = $"UPDATE {_tabela} SET excluido = @excluido WHERE id = @id";
+            cmd.CommandText = $"UPDATE {_tabela} SET excluido = @excluido, data_exclusao = @data_exclusao WHERE id = @id";
             Parametro(cmd, "@excluido", true);
+            Parametro(cmd, "@data_exclusao", SerializarData(agora));
             Parametro(cmd, "@id", idBanco);
             await cmd.ExecuteNonQueryAsync();
 
-            _senhas.RemoveAll(s => s.Id == id);
-            _mapa.Remove(id);
+            var senha = _senhas.FirstOrDefault(s => s.Id == id);
+            if (senha != null)
+            {
+                senha.NaLixeira = true;
+                senha.DataExclusao = agora;
+            }
+        }
+
+        public async Task MoverTudoParaLixeiraAsync()
+        {
+            await CarregarSeNecessarioAsync();
+
+            var idsAtivos = _senhas.Where(s => !s.NaLixeira).Select(s => s.Id).ToList();
+            foreach (var id in idsAtivos)
+                await RemoverAsync(id);
         }
 
         public async Task<Senha?> ObterPorIdAsync(Guid id)
@@ -149,64 +229,123 @@ namespace GerenciadorDeSenhas.Repositorios
         public async Task<List<Senha>> ListarTodosAsync()
         {
             await CarregarSeNecessarioAsync();
-            return _senhas.ToList();
+            return _senhas.Where(s => !s.NaLixeira).ToList();
         }
 
-        public async Task<List<Senha>> BuscarPorCategoriaAsync(Categoria categoria)
+        public async Task<List<Senha>> ListarLixeiraAsync()
         {
             await CarregarSeNecessarioAsync();
-            return _senhas.Where(s => s.Categoria == categoria).ToList();
+            return _senhas.Where(s => s.NaLixeira).ToList();
         }
 
-        public async Task<List<Senha>> BuscarPorServicoAsync(string nomeServico)
+        public async Task RestaurarAsync(Guid id)
         {
-            if (string.IsNullOrWhiteSpace(nomeServico))
-                throw new ArgumentException("Nome do serviço não pode ser vazio");
-
             await CarregarSeNecessarioAsync();
-            return _senhas.Where(s =>
-                s.NomeServico.Contains(nomeServico, StringComparison.OrdinalIgnoreCase)).ToList();
+
+            if (!_mapa.TryGetValue(id, out var idBanco))
+                throw new InvalidOperationException($"Senha com ID {id} não encontrada");
+
+            await using var con = await AbrirConexaoAsync();
+
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = $"UPDATE {_tabela} SET excluido = @excluido, data_exclusao = @data_exclusao WHERE id = @id";
+            Parametro(cmd, "@excluido", false);
+            Parametro(cmd, "@data_exclusao", null);
+            Parametro(cmd, "@id", idBanco);
+            await cmd.ExecuteNonQueryAsync();
+
+            var senha = _senhas.FirstOrDefault(s => s.Id == id);
+            if (senha != null)
+            {
+                senha.NaLixeira = false;
+                senha.DataExclusao = null;
+            }
         }
 
-        public async Task<List<Senha>> ListarFavoritosAsync()
+        public async Task RemoverDefinitivamenteAsync(Guid id)
         {
             await CarregarSeNecessarioAsync();
-            return _senhas.Where(s => s.Favorito).ToList();
+
+            if (!_mapa.TryGetValue(id, out var idBanco))
+                return;
+
+            await using var con = await AbrirConexaoAsync();
+
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = $"DELETE FROM {_tabela} WHERE id = @id";
+            Parametro(cmd, "@id", idBanco);
+            await cmd.ExecuteNonQueryAsync();
+
+            _senhas.RemoveAll(s => s.Id == id);
+            _mapa.Remove(id);
         }
 
-        public async Task<int> ContarAsync()
+        public async Task EsvaziarLixeiraAsync()
         {
             await CarregarSeNecessarioAsync();
-            return _senhas.Count;
+
+            var idsLixeira = _senhas.Where(s => s.NaLixeira).Select(s => s.Id).ToList();
+            foreach (var id in idsLixeira)
+                await RemoverDefinitivamenteAsync(id);
         }
 
         public Task SalvarAsync() => Task.CompletedTask;
 
         public async Task GravarPorChaveAsync(Senha senha)
         {
-            await using var con = _bd.CriarConexao(_cfg);
-            await con.OpenAsync();
+            await using var con = await AbrirConexaoAsync();
             await GravarAsync(con, null, senha);
         }
 
         public async Task GravarVariasPorChaveAsync(IEnumerable<Senha> senhas)
         {
-            await using var con = _bd.CriarConexao(_cfg);
-            await con.OpenAsync();
+            await using var con = await AbrirConexaoAsync();
             await using var tx = await con.BeginTransactionAsync();
             foreach (var senha in senhas)
                 await GravarAsync(con, tx, senha);
             await tx.CommitAsync();
         }
 
+        public async Task SubstituirGuidAsync(Guid guidAntigo, Guid guidNovo)
+        {
+            await CarregarSeNecessarioAsync();
+
+            if (!_mapa.TryGetValue(guidAntigo, out var idInterno))
+                return;
+
+            await using var con = await AbrirConexaoAsync();
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = $"UPDATE {_tabela} SET guid_id = @guid_id WHERE id = @id";
+            Parametro(cmd, "@guid_id", guidNovo.ToString());
+            Parametro(cmd, "@id", idInterno);
+            await cmd.ExecuteNonQueryAsync();
+
+            _mapa.Remove(guidAntigo);
+            _mapa[guidNovo] = idInterno;
+
+            var senha = _senhas.FirstOrDefault(s => s.Id == guidAntigo);
+            if (senha != null)
+                senha.Id = guidNovo;
+        }
+
         public async Task ExcluirPorChaveAsync(string dominio, string usuario)
         {
-            await using var con = _bd.CriarConexao(_cfg);
-            await con.OpenAsync();
+            await using var con = await AbrirConexaoAsync();
 
             await using var cmd = con.CreateCommand();
             cmd.CommandText = $"UPDATE {_tabela} SET excluido = @excluido WHERE dominio = @dominio AND usuario = @usuario";
             Parametro(cmd, "@excluido", true);
+            Parametro(cmd, "@dominio", dominio);
+            Parametro(cmd, "@usuario", usuario);
+            await cmd.ExecuteNonQueryAsync();
+        }
+
+        public async Task ExcluirDefinitivamentePorChaveAsync(string dominio, string usuario)
+        {
+            await using var con = await AbrirConexaoAsync();
+
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = $"DELETE FROM {_tabela} WHERE dominio = @dominio AND usuario = @usuario";
             Parametro(cmd, "@dominio", dominio);
             Parametro(cmd, "@usuario", usuario);
             await cmd.ExecuteNonQueryAsync();
@@ -229,18 +368,28 @@ namespace GerenciadorDeSenhas.Repositorios
             cmd.Transaction = tx;
             if (id.HasValue)
             {
-                cmd.CommandText = $"UPDATE {_tabela} SET senha = @senha, descricao = @descricao, totp = @totp, etiquetas = @etiquetas, excluido = @excluido WHERE id = @id";
+                cmd.CommandText = $"UPDATE {_tabela} SET senha = @senha, descricao = @descricao, totp = @totp, etiquetas = @etiquetas, codigos_recuperacao = @codigos_recuperacao, excluido = @excluido, data_atualizacao = @data_atualizacao, data_exclusao = @data_exclusao, url = @url, categoria = @categoria, tipo = @tipo, campos_extras = @campos_extras, historico = @historico, favorito = @favorito, fixado = @fixado, guid_id = @guid_id WHERE id = @id";
                 Parametro(cmd, "@senha", senha.SenhaHash);
                 Parametro(cmd, "@descricao", senha.Notas);
                 Parametro(cmd, "@totp", senha.TotpSegredo);
                 Parametro(cmd, "@etiquetas", SerializarEtiquetas(senha.Etiquetas));
-                Parametro(cmd, "@excluido", false);
+                Parametro(cmd, "@codigos_recuperacao", SerializarCodigosRecuperacao(senha.CodigosRecuperacao));
+                Parametro(cmd, "@excluido", senha.NaLixeira);
+                Parametro(cmd, "@data_atualizacao", SerializarData(senha.DataAtualizacao));
+                Parametro(cmd, "@data_exclusao", SerializarData(senha.DataExclusao));
+                Parametro(cmd, "@url", senha.Url);
+                Parametro(cmd, "@categoria", SerializarInt((int)senha.Categoria));
+                Parametro(cmd, "@tipo", SerializarInt((int)senha.Tipo));
+                Parametro(cmd, "@campos_extras", SerializarCamposExtras(senha.CamposExtras));
+                Parametro(cmd, "@historico", SerializarHistorico(senha.Historico));
+                Parametro(cmd, "@favorito", SerializarBool(senha.Favorito));
+                Parametro(cmd, "@fixado", SerializarBool(senha.Fixado));
+                Parametro(cmd, "@guid_id", senha.Id.ToString());
                 Parametro(cmd, "@id", id.Value);
             }
             else
             {
-                cmd.CommandText = $"INSERT INTO {_tabela} (usuario, senha, dominio, descricao, totp, etiquetas, excluido) " +
-                                  "VALUES (@usuario, @senha, @dominio, @descricao, @totp, @etiquetas, @excluido)";
+                cmd.CommandText = $"INSERT INTO {_tabela} ({ColunasInsert}) VALUES ({ParametrosInsert})";
                 PreencherCampos(cmd, senha);
             }
             await cmd.ExecuteNonQueryAsync();
@@ -254,11 +403,104 @@ namespace GerenciadorDeSenhas.Repositorios
             Parametro(cmd, "@descricao", senha.Notas);
             Parametro(cmd, "@totp", senha.TotpSegredo);
             Parametro(cmd, "@etiquetas", SerializarEtiquetas(senha.Etiquetas));
-            Parametro(cmd, "@excluido", false);
+            Parametro(cmd, "@codigos_recuperacao", SerializarCodigosRecuperacao(senha.CodigosRecuperacao));
+            Parametro(cmd, "@excluido", senha.NaLixeira);
+            Parametro(cmd, "@data_criacao", SerializarData(senha.DataCriacao));
+            Parametro(cmd, "@data_atualizacao", SerializarData(senha.DataAtualizacao));
+            Parametro(cmd, "@url", senha.Url);
+            Parametro(cmd, "@categoria", SerializarInt((int)senha.Categoria));
+            Parametro(cmd, "@tipo", SerializarInt((int)senha.Tipo));
+            Parametro(cmd, "@campos_extras", SerializarCamposExtras(senha.CamposExtras));
+            Parametro(cmd, "@historico", SerializarHistorico(senha.Historico));
+            Parametro(cmd, "@favorito", SerializarBool(senha.Favorito));
+            Parametro(cmd, "@fixado", SerializarBool(senha.Fixado));
+            Parametro(cmd, "@guid_id", senha.Id.ToString());
         }
 
         private static string? SerializarEtiquetas(List<string> etiquetas) =>
             etiquetas.Count == 0 ? null : JsonSerializer.Serialize(etiquetas);
+
+        private static string? SerializarCodigosRecuperacao(List<CodigoRecuperacao> codigos) =>
+            codigos.Count == 0 ? null : JsonSerializer.Serialize(codigos);
+
+        private static List<CodigoRecuperacao> DesserializarCodigosRecuperacao(object? valor)
+        {
+            if (valor is not string texto || string.IsNullOrWhiteSpace(texto))
+                return new List<CodigoRecuperacao>();
+
+            try
+            {
+                return JsonSerializer.Deserialize<List<CodigoRecuperacao>>(texto) ?? new List<CodigoRecuperacao>();
+            }
+            catch
+            {
+                return new List<CodigoRecuperacao>();
+            }
+        }
+
+        private static string? SerializarCamposExtras(Dictionary<string, string> campos) =>
+            campos.Count == 0 ? null : JsonSerializer.Serialize(campos);
+
+        private static Dictionary<string, string> DesserializarCamposExtras(object? valor)
+        {
+            if (valor is not string texto || string.IsNullOrWhiteSpace(texto))
+                return new Dictionary<string, string>();
+
+            try
+            {
+                return JsonSerializer.Deserialize<Dictionary<string, string>>(texto) ?? new Dictionary<string, string>();
+            }
+            catch
+            {
+                return new Dictionary<string, string>();
+            }
+        }
+
+        private static string? SerializarHistorico(List<HistoricoSenha> historico) =>
+            historico.Count == 0 ? null : JsonSerializer.Serialize(historico);
+
+        private static List<HistoricoSenha> DesserializarHistorico(object? valor)
+        {
+            if (valor is not string texto || string.IsNullOrWhiteSpace(texto))
+                return new List<HistoricoSenha>();
+
+            try
+            {
+                return JsonSerializer.Deserialize<List<HistoricoSenha>>(texto) ?? new List<HistoricoSenha>();
+            }
+            catch
+            {
+                return new List<HistoricoSenha>();
+            }
+        }
+
+        private static string SerializarInt(int valor) => valor.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+        private static string SerializarBool(bool valor) => valor ? "1" : "0";
+
+        private static bool DesserializarBool(object? valor) => valor is string texto && texto == "1";
+
+        private static Categoria DesserializarCategoria(object? valor) =>
+            valor is string texto && int.TryParse(texto, out var numero) && Enum.IsDefined(typeof(Categoria), numero)
+                ? (Categoria)numero
+                : Categoria.Other;
+
+        private static TipoCredencial DesserializarTipo(object? valor) =>
+            valor is string texto && int.TryParse(texto, out var numero) && Enum.IsDefined(typeof(TipoCredencial), numero)
+                ? (TipoCredencial)numero
+                : TipoCredencial.Login;
+
+        private static string? SerializarData(DateTime? data) =>
+            data?.ToString("O", System.Globalization.CultureInfo.InvariantCulture);
+
+        private static DateTime? DesserializarData(object? valor)
+        {
+            if (valor is not string texto || string.IsNullOrWhiteSpace(texto))
+                return null;
+
+            return DateTime.TryParse(texto, System.Globalization.CultureInfo.InvariantCulture,
+                System.Globalization.DateTimeStyles.RoundtripKind, out var data) ? data : null;
+        }
 
         private static List<string> DesserializarEtiquetas(object? valor)
         {

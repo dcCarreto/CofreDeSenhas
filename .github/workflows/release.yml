@@ -1,0 +1,158 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - prod
+
+permissions:
+  contents: write
+
+jobs:
+  verificar-versao:
+    name: Verificar se há uma versão nova para lançar
+    runs-on: ubuntu-latest
+    outputs:
+      versao: ${{ steps.versao.outputs.versao }}
+      deve_lancar: ${{ steps.check.outputs.deve_lancar }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Determinar versão
+        id: versao
+        run: |
+          versao=$(grep -oP '(?<=<Version>)[^<]+' App/App.csproj)
+          if [ -z "$versao" ]; then
+            echo "Não foi possível determinar a versão em App/App.csproj." >&2
+            exit 1
+          fi
+          echo "versao=$versao" >> "$GITHUB_OUTPUT"
+
+      - name: Verificar se essa versão já foi lançada
+        id: check
+        run: |
+          if git ls-remote --exit-code --tags origin "refs/tags/v${{ steps.versao.outputs.versao }}" > /dev/null 2>&1; then
+            echo "Versão v${{ steps.versao.outputs.versao }} já foi lançada antes, nada a fazer."
+            echo "deve_lancar=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Versão v${{ steps.versao.outputs.versao }} é nova, vou lançar."
+            echo "deve_lancar=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  build-windows:
+    name: Gerar artefatos do Windows
+    needs: verificar-versao
+    if: needs.verificar-versao.outputs.deve_lancar == 'true'
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Garantir Inno Setup instalado
+        shell: pwsh
+        run: |
+          $candidatos = @(
+            "$env:LOCALAPPDATA\Programs\Inno Setup 6\ISCC.exe",
+            "C:\Program Files (x86)\Inno Setup 6\ISCC.exe",
+            "C:\Program Files\Inno Setup 6\ISCC.exe"
+          )
+          $iscc = $candidatos | Where-Object { Test-Path $_ } | Select-Object -First 1
+          if (-not $iscc -and -not (Get-Command iscc.exe -ErrorAction SilentlyContinue)) {
+            Write-Host "Inno Setup não encontrado, instalando via Chocolatey..."
+            choco install innosetup -y --no-progress
+          }
+
+      - name: Publicar executável e gerar instalador
+        shell: pwsh
+        run: .\App\distribuicao\gerar-instalador.ps1 -Versao "${{ needs.verificar-versao.outputs.versao }}"
+
+      - name: Empacotar o executável portátil
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          Copy-Item "publish\CofreDeSenhas.exe" "dist\CofreDeSenhas-${{ needs.verificar-versao.outputs.versao }}-win-x64-portatil.exe"
+
+      - name: Enviar artefatos do Windows
+        uses: actions/upload-artifact@v4
+        with:
+          name: artefatos-windows
+          path: dist/*
+          if-no-files-found: error
+
+  build-linux:
+    name: Gerar artefato do Linux
+    needs: verificar-versao
+    if: needs.verificar-versao.outputs.deve_lancar == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Publicar (linux-x64, autocontido)
+        run: |
+          dotnet publish App/App.csproj -f net10.0 -c Release -r linux-x64 \
+            --self-contained true -o publish-linux
+
+      - name: Empacotar em tar.gz
+        run: |
+          mkdir -p dist
+          tar -czf "dist/CofreDeSenhas-${{ needs.verificar-versao.outputs.versao }}-linux-x64.tar.gz" -C publish-linux .
+
+      - name: Gerar AppImage
+        run: |
+          chmod +x App/distribuicao/gerar-appimage.sh
+          ./App/distribuicao/gerar-appimage.sh "${{ needs.verificar-versao.outputs.versao }}"
+
+      - name: Enviar artefato do Linux
+        uses: actions/upload-artifact@v4
+        with:
+          name: artefatos-linux
+          path: dist/*
+          if-no-files-found: error
+
+  publicar-release:
+    name: Publicar release
+    needs: [ verificar-versao, build-windows, build-linux ]
+    if: |
+      needs.verificar-versao.outputs.deve_lancar == 'true' &&
+      needs.build-windows.result == 'success' &&
+      needs.build-linux.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Baixar artefatos
+        uses: actions/download-artifact@v4
+        with:
+          path: artefatos
+          merge-multiple: true
+
+      - name: Gerar CHECKSUMS.txt
+        run: |
+          mkdir -p dist
+          cp artefatos/* dist/
+          cd dist
+          sha256sum * > CHECKSUMS.txt
+          cat CHECKSUMS.txt
+
+      - name: Criar e publicar release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.verificar-versao.outputs.versao }}
+          target_commitish: ${{ github.sha }}
+          draft: false
+          generate_release_notes: true
+          body_path: .github/RELEASE_TEMPLATE.md
+          files: dist/*

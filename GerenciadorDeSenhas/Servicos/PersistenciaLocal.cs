@@ -1,12 +1,25 @@
 using System;
+using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using GerenciadorDeSenhas.Excecoes;
 using GerenciadorDeSenhas.Modelos;
 
 namespace GerenciadorDeSenhas.Servicos
 {
     public class PersistenciaLocal : IPersistenciaLocal
     {
+        public const int QuantidadeMaximaBackupsPadrao = 10;
+
+        private const int TentativasEscrita = 3;
+        private static readonly TimeSpan EsperaEntreTentativas = TimeSpan.FromMilliseconds(100);
+
+        private static readonly JsonSerializerOptions OpcoesJson = new()
+        {
+            WriteIndented = false,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+        };
+
         private readonly IServicoCriptografia _criptografia;
         private readonly string _pastaApp;
         private readonly string _caminhoSenhas;
@@ -43,17 +56,11 @@ namespace GerenciadorDeSenhas.Servicos
             if (chave == null)
                 throw new ArgumentNullException(nameof(chave));
 
-            var opcoes = new JsonSerializerOptions
-            {
-                WriteIndented = false,
-                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-            };
-
-            var json = JsonSerializer.Serialize(senhas, opcoes);
+            var json = JsonSerializer.Serialize(senhas, OpcoesJson);
 
             var criptografado = _criptografia.Criptografar(json);
 
-            int tentativas = 3;
+            int tentativas = TentativasEscrita;
             while (tentativas > 0)
             {
                 try
@@ -64,7 +71,7 @@ namespace GerenciadorDeSenhas.Servicos
                 catch (IOException) when (tentativas > 1)
                 {
                     tentativas--;
-                    await Task.Delay(100);
+                    await Task.Delay(EsperaEntreTentativas);
                 }
             }
         }
@@ -87,13 +94,21 @@ namespace GerenciadorDeSenhas.Servicos
 
                 return senhas;
             }
+            catch (CryptographicException ex)
+            {
+                throw new ErroLocalizavel("Vault.Error.WrongKeyOrCorrupt", ex);
+            }
+            catch (JsonException ex)
+            {
+                throw new ErroLocalizavel("Vault.Error.CorruptData", ex);
+            }
             catch (Exception ex)
             {
-                throw new InvalidOperationException($"Erro ao carregar senhas: {ex.Message}", ex);
+                throw new ErroLocalizavel("Vault.Error.IOFailure", ex);
             }
         }
 
-        public async Task BackupAutomaticoAsync(List<Senha> senhas, byte[] chave)
+        public async Task BackupAutomaticoAsync(List<Senha> senhas, byte[] chave, int quantidadeMaxima = QuantidadeMaximaBackupsPadrao)
         {
             if (senhas == null)
                 throw new ArgumentNullException(nameof(senhas));
@@ -103,13 +118,7 @@ namespace GerenciadorDeSenhas.Servicos
 
             try
             {
-                var opcoes = new JsonSerializerOptions
-                {
-                    WriteIndented = false,
-                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-                };
-
-                var json = JsonSerializer.Serialize(senhas, opcoes);
+                var json = JsonSerializer.Serialize(senhas, OpcoesJson);
 
                 var criptografado = _criptografia.Criptografar(json);
 
@@ -119,15 +128,51 @@ namespace GerenciadorDeSenhas.Servicos
 
                 await File.WriteAllTextAsync(caminhoBackup, criptografado);
 
-                LimparBackupsAntigos();
+                LimparBackupsAntigos(quantidadeMaxima);
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException($"Erro ao fazer backup: {ex.Message}", ex);
+                throw new ErroLocalizavel("Vault.Error.BackupFailed", ex);
             }
         }
 
-        private void LimparBackupsAntigos()
+        public List<InfoBackup> ListarBackups()
+        {
+            if (!Directory.Exists(_pastaBackup))
+                return new List<InfoBackup>();
+
+            return Directory.GetFiles(_pastaBackup, "senhas_backup_*.json.enc")
+                .Select(f => new InfoBackup(f, File.GetLastWriteTimeUtc(f)))
+                .OrderByDescending(b => b.DataUtc)
+                .ToList();
+        }
+
+        public async Task<List<Senha>> CarregarBackupAsync(string caminhoArquivo)
+        {
+            if (string.IsNullOrWhiteSpace(caminhoArquivo))
+                throw new ArgumentException("Caminho do backup não pode ser vazio", nameof(caminhoArquivo));
+
+            try
+            {
+                var criptografado = await File.ReadAllTextAsync(caminhoArquivo);
+                var json = _criptografia.Descriptografar(criptografado);
+                return JsonSerializer.Deserialize<List<Senha>>(json) ?? new List<Senha>();
+            }
+            catch (CryptographicException ex)
+            {
+                throw new ErroLocalizavel("Vault.Error.WrongKeyOrCorrupt", ex);
+            }
+            catch (JsonException ex)
+            {
+                throw new ErroLocalizavel("Vault.Error.CorruptData", ex);
+            }
+            catch (Exception ex)
+            {
+                throw new ErroLocalizavel("Vault.Error.IOFailure", ex);
+            }
+        }
+
+        private void LimparBackupsAntigos(int quantidadeMaxima)
         {
             try
             {
@@ -135,9 +180,9 @@ namespace GerenciadorDeSenhas.Servicos
                     .OrderByDescending(f => File.GetLastWriteTimeUtc(f))
                     .ToList();
 
-                if (arquivos.Count > 10)
+                if (arquivos.Count > quantidadeMaxima)
                 {
-                    for (int i = 10; i < arquivos.Count; i++)
+                    for (int i = quantidadeMaxima; i < arquivos.Count; i++)
                     {
                         File.Delete(arquivos[i]);
                     }
@@ -146,6 +191,17 @@ namespace GerenciadorDeSenhas.Servicos
             catch
             {
             }
+        }
+
+        public Task ApagarTudoAsync()
+        {
+            if (File.Exists(_caminhoSenhas))
+                File.Delete(_caminhoSenhas);
+
+            if (Directory.Exists(_pastaBackup))
+                Directory.Delete(_pastaBackup, recursive: true);
+
+            return Task.CompletedTask;
         }
 
         public bool ValidarIntegridade()

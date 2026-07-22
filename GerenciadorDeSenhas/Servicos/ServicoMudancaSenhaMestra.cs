@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using GerenciadorDeSenhas.Excecoes;
 using GerenciadorDeSenhas.Modelos;
 
 namespace GerenciadorDeSenhas.Servicos
@@ -18,14 +19,22 @@ namespace GerenciadorDeSenhas.Servicos
                 "GerenciadorSenhas");
         }
 
-        public async Task AlterarAsync(string senhaAtual, string novaSenha)
+        public async Task<byte[]?> MigrarKdfSeNecessarioAsync(string senhaAtual)
         {
-            if (string.IsNullOrWhiteSpace(novaSenha) || novaSenha.Length < 8)
-                throw new ArgumentException("A nova senha mestra deve ter pelo menos 8 caracteres.");
+            if (!new AutenticacaoMestra(_pastaApp).KdfDesatualizado())
+                return null;
+
+            return await AlterarAsync(senhaAtual, senhaAtual);
+        }
+
+        public async Task<byte[]> AlterarAsync(string senhaAtual, string novaSenha)
+        {
+            if (string.IsNullOrWhiteSpace(novaSenha) || novaSenha.Length < AutenticacaoMestra.TamanhoMinimoSenha)
+                throw new ErroLocalizavel("Master.Error.NewPasswordTooShort", AutenticacaoMestra.TamanhoMinimoSenha);
 
             var auth = new AutenticacaoMestra(_pastaApp);
             var chaveAntiga = auth.Autenticar(senhaAtual)
-                ?? throw new InvalidOperationException("Senha mestra atual incorreta.");
+                ?? throw new ErroLocalizavel("Master.Error.CurrentPasswordWrong");
 
             var cryptoAntigo = new ServicoCriptografia(chaveAntiga);
             var persistAntigo = new PersistenciaLocal(cryptoAntigo, _pastaApp);
@@ -65,6 +74,7 @@ namespace GerenciadorDeSenhas.Servicos
                         .ToList();
                 }
                 await persistNovo.SalvarSenhasAsync(senhas, chaveNova);
+                return chaveNova;
             }
             catch
             {

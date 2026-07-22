@@ -5,6 +5,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using System.Globalization;
 using GerenciadorDeSenhas.Modelos;
@@ -17,15 +18,18 @@ namespace CofreDeSenhas.Janelas
         private readonly IServicoSenha _servicoSenha;
         private readonly IServicoCriptografia? _criptografia;
         private readonly Senha _senhaAtual;
+        private readonly ServicoAnexos? _servicoAnexos;
         private readonly ServicoTotp _totp = new();
-        private DispatcherTimer? _timerTotp;
+        private readonly TotpPreview.Temporizador _timerTotp = new();
         private const int PeriodoTotp = 30;
 
-        public JanelaEditarSenha(IServicoSenha servicoSenha, Senha senhaAtual, IServicoCriptografia? criptografia)
+        public JanelaEditarSenha(IServicoSenha servicoSenha, Senha senhaAtual, IServicoCriptografia? criptografia,
+            ServicoAnexos? servicoAnexos = null)
         {
             _servicoSenha = servicoSenha ?? throw new ArgumentNullException(nameof(servicoSenha));
             _senhaAtual = senhaAtual ?? throw new ArgumentNullException(nameof(senhaAtual));
             _criptografia = criptografia;
+            _servicoAnexos = servicoAnexos ?? (criptografia != null ? new ServicoAnexos(criptografia) : null);
 
             InitializeComponent();
             Icon = Recursos.IconeApp();
@@ -36,20 +40,25 @@ namespace CofreDeSenhas.Janelas
             TxtUsuario.Text = _senhaAtual.Usuario;
             TxtUrl.Text = _senhaAtual.Url ?? "";
             TxtNotas.Text = _senhaAtual.Notas ?? "";
-            TxtCategoriaPersonalizada.Text = CategoriaPersonalizadaAtual();
+            TxtEtiquetas.Text = Etiquetas.Formatar(_senhaAtual.Etiquetas);
             TxtTotp.Text = TotpAtualPlain();
 
             AtualizarCategorias();
             CmbCategoria.SelectedIndex = (int)_senhaAtual.Categoria;
-            CmbCategoria.SelectionChanged += Categoria_Alterada;
-            AtualizarCampoCategoriaPersonalizada();
+
+            CmbTipo.ItemsSource = TemplatesCredencial.Rotulos;
+            CmbTipo.SelectedIndex = TemplatesCredencial.ObterIndice(_senhaAtual.Tipo);
+            CmbTipo.SelectionChanged += (s, e) => AtualizarCamposPorTipo();
+            AtualizarCamposPorTipo(usarValoresIniciais: true);
 
             TxtTotp.TextChanged += (s, e) => AtualizarPreviewTotp();
             MontarHistorico();
+            MontarCodigosRecuperacao();
+            MontarAnexos();
             Idioma.Alterado += Idioma_Alterado;
             Closed += (s, e) =>
             {
-                PararTimerTotp();
+                _timerTotp.Parar();
                 Idioma.Alterado -= Idioma_Alterado;
             };
             AtualizarPreviewTotp();
@@ -64,11 +73,7 @@ namespace CofreDeSenhas.Janelas
             catch { return ""; }
         }
 
-        private void Arrastar(object? sender, PointerPressedEventArgs e)
-        {
-            if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
-                BeginMoveDrag(e);
-        }
+        private void Arrastar(object? sender, PointerPressedEventArgs e) => this.HabilitarArraste(e);
 
         private void Cancelar_Click(object? sender, RoutedEventArgs e) => Close(false);
 
@@ -78,6 +83,13 @@ namespace CofreDeSenhas.Janelas
             AtualizarCategorias();
             AtualizarPreviewTotp();
             MontarHistorico();
+            MontarCodigosRecuperacao();
+            MontarAnexos();
+
+            var selecionadoTipo = Math.Max(0, CmbTipo.SelectedIndex);
+            CmbTipo.ItemsSource = TemplatesCredencial.Rotulos;
+            CmbTipo.SelectedIndex = selecionadoTipo;
+            AtualizarCamposPorTipo();
         }
 
         private void AtualizarTitulo()
@@ -92,6 +104,70 @@ namespace CofreDeSenhas.Janelas
             CmbCategoria.ItemsSource = CategoriasUI.Rotulos;
             CmbCategoria.SelectedIndex = selecionado;
         }
+
+        private void AtualizarCamposPorTipo(bool usarValoresIniciais = false)
+        {
+            var tipo = TemplatesCredencial.ObterTipo(CmbTipo.SelectedIndex);
+            LblUsuario.Text = TemplatesCredencial.RotuloUsuario(tipo);
+            AutomationProperties.SetName(TxtUsuario, TemplatesCredencial.RotuloUsuario(tipo));
+            LblSenha.Text = Idioma.Formatar("Entry.PasswordKeepCurrentFormat", TemplatesCredencial.RotuloSenha(tipo));
+            AutomationProperties.SetName(TxtSenha, LblSenha.Text);
+
+            var valoresAtuais = usarValoresIniciais
+                ? DescriptografarCamposExtras()
+                : PainelCamposExtras.Children
+                    .OfType<TextBox>()
+                    .Where(t => t.Tag is string)
+                    .ToDictionary(t => (string)t.Tag!, t => t.Text ?? "");
+
+            PainelCamposExtras.Children.Clear();
+            foreach (var campo in TemplatesCredencial.CamposExtras(tipo))
+            {
+                var rotulo = new TextBlock
+                {
+                    Text = campo.Rotulo,
+                    FontSize = 12,
+                    Foreground = Tema.Pincel(Tema.TextSecondary)
+                };
+                var caixa = new TextBox
+                {
+                    Classes = { "campo" },
+                    Margin = new Thickness(0, 0, 0, 14),
+                    Tag = campo.Chave
+                };
+                AutomationProperties.SetName(caixa, campo.Rotulo);
+                if (valoresAtuais.TryGetValue(campo.Chave, out var valor))
+                    caixa.Text = valor;
+
+                PainelCamposExtras.Children.Add(rotulo);
+                PainelCamposExtras.Children.Add(caixa);
+            }
+        }
+
+        private Dictionary<string, string> DescriptografarCamposExtras()
+        {
+            var resultado = new Dictionary<string, string>();
+            if (_criptografia == null)
+                return resultado;
+
+            foreach (var (chave, valorCifrado) in _senhaAtual.CamposExtras)
+            {
+                try { resultado[chave] = _criptografia.Descriptografar(valorCifrado); }
+                catch (Exception ex)
+                {
+                    Diagnostico.Registrar(ex, "CamposExtras");
+                    resultado[chave] = Idioma.Texto("Entry.FieldDecryptError");
+                }
+            }
+
+            return resultado;
+        }
+
+        private Dictionary<string, string> LerCamposExtras() =>
+            PainelCamposExtras.Children
+                .OfType<TextBox>()
+                .Where(t => t.Tag is string)
+                .ToDictionary(t => (string)t.Tag!, t => t.Text ?? "");
 
         private async void Salvar_Click(object? sender, RoutedEventArgs e)
         {
@@ -126,7 +202,8 @@ namespace CofreDeSenhas.Janelas
                     }
                 }
 
-                var (categoria, categoriasPersonalizadas) = LerCategoria();
+                var (categoria, etiquetas) = LerCategoriaEEtiquetas();
+                var tipo = TemplatesCredencial.ObterTipo(CmbTipo.SelectedIndex);
                 await _servicoSenha.AtualizarSenhaAsync(
                     _senhaAtual.Id,
                     TxtNomeServico.Text!,
@@ -135,7 +212,9 @@ namespace CofreDeSenhas.Janelas
                     categoria,
                     string.IsNullOrWhiteSpace(TxtUrl.Text) ? null : TxtUrl.Text,
                     string.IsNullOrWhiteSpace(TxtNotas.Text) ? null : TxtNotas.Text,
-                    categoriasPersonalizadas);
+                    etiquetas,
+                    tipo,
+                    LerCamposExtras());
 
                 await _servicoSenha.DefinirTotpAsync(_senhaAtual.Id, totp);
 
@@ -145,7 +224,7 @@ namespace CofreDeSenhas.Janelas
             catch (Exception ex)
             {
                 await CaixaMensagem.MostrarAsync(this,
-                    Idioma.Formatar("Entry.UpdateError", ex.Message), Idioma.Texto("Common.Error"), TipoMensagem.Erro);
+                    Idioma.Formatar("Entry.UpdateError", ErrosUi.MensagemAmigavel(ex)), Idioma.Texto("Common.Error"), TipoMensagem.Erro);
             }
         }
 
@@ -155,97 +234,45 @@ namespace CofreDeSenhas.Janelas
             if (string.IsNullOrWhiteSpace(entrada) || !_totp.SegredoValido(entrada))
             {
                 PainelTotp.IsVisible = false;
-                PararTimerTotp();
+                _timerTotp.Parar();
                 return;
             }
 
             try
             {
                 var codigo = _totp.Gerar(entrada);
-                LblCodigoTotp.Text = FormatarCodigo(codigo.Codigo);
+                LblCodigoTotp.Text = TotpPreview.FormatarCodigo(codigo.Codigo);
                 var contagem = Idioma.Formatar("Entry.TotpExpiresIn", codigo.SegundosRestantes);
-                AtualizarAnelTotp(codigo.SegundosRestantes, PeriodoTotp);
+                AnelTotp.Data = TotpPreview.ConstruirAnelProgresso(codigo.SegundosRestantes, PeriodoTotp, raio: 10, centro: 13);
                 AutomationProperties.SetName(LblCodigoTotp,
                     $"{Idioma.Texto("A11y.TotpPreview")}: {LblCodigoTotp.Text}. {contagem}");
                 PainelTotp.IsVisible = true;
-                GarantirTimerTotp();
+                _timerTotp.Garantir(AtualizarPreviewTotp);
             }
             catch
             {
                 PainelTotp.IsVisible = false;
-                PararTimerTotp();
+                _timerTotp.Parar();
             }
         }
 
-        private void GarantirTimerTotp()
-        {
-            if (_timerTotp != null)
-                return;
-
-            _timerTotp = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
-            _timerTotp.Tick += (s, e) => AtualizarPreviewTotp();
-            _timerTotp.Start();
-        }
-
-        private void PararTimerTotp()
-        {
-            _timerTotp?.Stop();
-            _timerTotp = null;
-        }
-
-        private void AtualizarAnelTotp(int restantes, int periodo)
-        {
-            double fracao = periodo <= 0 ? 0 : Math.Clamp(restantes / (double)periodo, 0, 1);
-            double angulo = fracao * 360;
-            if (angulo <= 0.1)
-            {
-                AnelTotp.Data = null;
-                return;
-            }
-            if (angulo >= 359.9)
-                angulo = 359.9;
-
-            const double r = 10, cx = 13, cy = 13;
-            double rad = angulo * Math.PI / 180.0;
-            double fx = cx + r * Math.Sin(rad);
-            double fy = cy - r * Math.Cos(rad);
-            int grande = angulo > 180 ? 1 : 0;
-            AnelTotp.Data = StreamGeometry.Parse(string.Format(CultureInfo.InvariantCulture,
-                "M {0} {1} A {2} {2} 0 {3} 1 {4:0.##} {5:0.##}", cx, cy - r, r, grande, fx, fy));
-        }
-
-        private string CategoriaPersonalizadaAtual() =>
-            _senhaAtual.Categoria == Categoria.Other && _senhaAtual.Etiquetas.Count > 0
-                ? _senhaAtual.Etiquetas[0]
-                : "";
-
-        private void Categoria_Alterada(object? sender, SelectionChangedEventArgs e) =>
-            AtualizarCampoCategoriaPersonalizada();
-
-        private void AtualizarCampoCategoriaPersonalizada()
-        {
-            bool visivel = (Categoria)Math.Max(0, CmbCategoria.SelectedIndex) == Categoria.Other;
-            LblCategoriaPersonalizada.IsVisible = visivel;
-            TxtCategoriaPersonalizada.IsVisible = visivel;
-            if (!visivel)
-                TxtCategoriaPersonalizada.Text = "";
-        }
-
-        private (Categoria categoria, List<string> categoriasPersonalizadas) LerCategoria()
+        private (Categoria categoria, List<string> etiquetas) LerCategoriaEEtiquetas()
         {
             var categoria = (Categoria)Math.Max(0, CmbCategoria.SelectedIndex);
-            if (categoria != Categoria.Other)
-                return (categoria, new List<string>());
+            var etiquetas = Etiquetas.Analisar(TxtEtiquetas.Text);
 
-            var texto = TxtCategoriaPersonalizada.Text;
-            if (CategoriasUI.TentarObterCategoria(texto, out var existente))
-                return (existente, new List<string>());
+            if (categoria == Categoria.Other)
+            {
+                var indice = etiquetas.FindIndex(e => CategoriasUI.TentarObterCategoria(e, out _));
+                if (indice >= 0)
+                {
+                    CategoriasUI.TentarObterCategoria(etiquetas[indice], out categoria);
+                    etiquetas.RemoveAt(indice);
+                }
+            }
 
-            return (Categoria.Other, Etiquetas.Normalizar(new[] { texto ?? "" }));
+            return (categoria, etiquetas);
         }
-
-        private static string FormatarCodigo(string codigo) =>
-            codigo.Length == 6 ? codigo.Insert(3, " ") : codigo;
 
         private void MontarHistorico()
         {
@@ -294,7 +321,7 @@ namespace CofreDeSenhas.Janelas
             AutomationProperties.SetName(campo, Idioma.Texto("A11y.PreviousPassword"));
 
             var btnCopiar = CriarBotaoHistorico(Idioma.Texto("Row.CopyPassword"), Idioma.Texto("Row.CopyPassword"));
-            btnCopiar.Click += async (_, _) => await CopiarAsync(plain);
+            btnCopiar.Click += async (_, _) => await CopiarAsync(plain, btnCopiar);
 
             var btnUsar = CriarBotaoHistorico(Idioma.Texto("Entry.HistoryUse"), Idioma.Texto("Entry.HistoryUseTooltip"));
             btnUsar.Click += (_, _) => UsarSenhaAnterior(plain);
@@ -335,6 +362,249 @@ namespace CofreDeSenhas.Janelas
             return botao;
         }
 
+        private void MontarCodigosRecuperacao()
+        {
+            PainelCodigosRecuperacao.Children.Clear();
+
+            foreach (var item in _senhaAtual.CodigosRecuperacao)
+                PainelCodigosRecuperacao.Children.Add(CriarLinhaCodigoRecuperacao(item));
+        }
+
+        private Control CriarLinhaCodigoRecuperacao(CodigoRecuperacao item)
+        {
+            string plain;
+            if (_criptografia == null)
+            {
+                plain = string.Empty;
+            }
+            else
+            {
+                try { plain = _criptografia.Descriptografar(item.Codigo); }
+                catch { plain = string.Empty; }
+            }
+
+            var campo = new TextBox
+            {
+                PasswordChar = '●',
+                IsReadOnly = true,
+                Text = plain,
+                FontSize = 13,
+                Margin = new Thickness(0, 0, 8, 0),
+                VerticalAlignment = VerticalAlignment.Center,
+                Opacity = item.Usado ? 0.55 : 1.0
+            };
+            campo.Classes.Add("campo");
+            campo.Classes.Add("revealPasswordButton");
+            AutomationProperties.SetName(campo, Idioma.Texto("A11y.RecoveryCode"));
+
+            var btnCopiar = CriarBotaoHistorico(Idioma.Texto("Row.CopyRecoveryCode"), Idioma.Texto("Row.CopyRecoveryCode"));
+            btnCopiar.Click += async (_, _) => await CopiarAsync(plain, btnCopiar);
+
+            var rotuloUsado = Idioma.Texto(item.Usado ? "Entry.RecoveryCodeUnmark" : "Entry.RecoveryCodeMarkUsed");
+            var btnUsado = CriarBotaoHistorico(rotuloUsado, rotuloUsado);
+            btnUsado.Click += async (_, _) => await AlternarUsadoAsync(item);
+
+            var rotuloRemover = Idioma.Texto("Entry.RecoveryCodeRemove");
+            var btnRemover = CriarBotaoHistorico(rotuloRemover, rotuloRemover);
+            btnRemover.Click += async (_, _) => await RemoverCodigoAsync(item);
+
+            var acoes = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                Spacing = 4,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            acoes.Children.Add(btnCopiar);
+            acoes.Children.Add(btnUsado);
+            acoes.Children.Add(btnRemover);
+
+            var linha = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto") };
+            Grid.SetColumn(campo, 0);
+            Grid.SetColumn(acoes, 1);
+            linha.Children.Add(campo);
+            linha.Children.Add(acoes);
+            return linha;
+        }
+
+        private async void AdicionarCodigosRecuperacao_Click(object? sender, RoutedEventArgs e)
+        {
+            var linhas = (TxtNovosCodigos.Text ?? "")
+                .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(l => l.Trim())
+                .Where(l => l.Length > 0)
+                .ToList();
+
+            if (linhas.Count == 0)
+                return;
+
+            try
+            {
+                await _servicoSenha.AdicionarCodigosRecuperacaoAsync(_senhaAtual.Id, linhas.Select(c => (c, false)));
+                await _servicoSenha.PersistirAsync();
+                TxtNovosCodigos.Text = "";
+                MontarCodigosRecuperacao();
+            }
+            catch (Exception ex)
+            {
+                await CaixaMensagem.MostrarAsync(this,
+                    Idioma.Formatar("Entry.RecoveryCodesAddError", ErrosUi.MensagemAmigavel(ex)), Idioma.Texto("Common.Error"), TipoMensagem.Erro);
+            }
+        }
+
+        private async Task AlternarUsadoAsync(CodigoRecuperacao item)
+        {
+            try
+            {
+                await _servicoSenha.MarcarCodigoRecuperacaoAsync(_senhaAtual.Id, item.Id, !item.Usado);
+                await _servicoSenha.PersistirAsync();
+                MontarCodigosRecuperacao();
+            }
+            catch (Exception ex)
+            {
+                await CaixaMensagem.MostrarAsync(this,
+                    Idioma.Formatar("Entry.RecoveryCodeMarkError", ErrosUi.MensagemAmigavel(ex)), Idioma.Texto("Common.Error"), TipoMensagem.Erro);
+            }
+        }
+
+        private async Task RemoverCodigoAsync(CodigoRecuperacao item)
+        {
+            var confirmar = await CaixaMensagem.ConfirmarAsync(this,
+                Idioma.Texto("Entry.RecoveryCodeRemoveConfirm"), Idioma.Texto("Entry.RecoveryCodeRemove"));
+            if (!confirmar)
+                return;
+
+            try
+            {
+                await _servicoSenha.RemoverCodigoRecuperacaoAsync(_senhaAtual.Id, item.Id);
+                await _servicoSenha.PersistirAsync();
+                MontarCodigosRecuperacao();
+            }
+            catch (Exception ex)
+            {
+                await CaixaMensagem.MostrarAsync(this,
+                    Idioma.Formatar("Entry.RecoveryCodeRemoveError", ErrosUi.MensagemAmigavel(ex)), Idioma.Texto("Common.Error"), TipoMensagem.Erro);
+            }
+        }
+
+        private void MontarAnexos()
+        {
+            PainelAnexos.Children.Clear();
+            BtnAdicionarAnexo.IsEnabled = _servicoAnexos != null &&
+                _senhaAtual.Anexos.Count < ServicoAnexos.QuantidadeMaximaPorCredencial;
+
+            foreach (var item in _senhaAtual.Anexos)
+                PainelAnexos.Children.Add(CriarLinhaAnexo(item));
+        }
+
+        private Control CriarLinhaAnexo(AnexoSenha item)
+        {
+            var nome = new TextBlock
+            {
+                Text = $"{item.NomeArquivo} ({FormatarTamanhoAnexo(item.TamanhoBytes)})",
+                FontSize = 13,
+                VerticalAlignment = VerticalAlignment.Center,
+                TextTrimming = TextTrimming.CharacterEllipsis
+            };
+            AutomationProperties.SetName(nome, item.NomeArquivo);
+
+            var btnBaixar = CriarBotaoHistorico(Idioma.Texto("Entry.AttachmentDownload"), Idioma.Texto("Entry.AttachmentDownload"));
+            btnBaixar.Click += async (_, _) => await BaixarAnexoAsync(item);
+
+            var btnRemover = CriarBotaoHistorico(Idioma.Texto("Entry.AttachmentRemove"), Idioma.Texto("Entry.AttachmentRemove"));
+            btnRemover.Click += async (_, _) => await RemoverAnexoAsync(item);
+
+            var acoes = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                Spacing = 4,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            acoes.Children.Add(btnBaixar);
+            acoes.Children.Add(btnRemover);
+
+            var linha = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto") };
+            Grid.SetColumn(nome, 0);
+            Grid.SetColumn(acoes, 1);
+            linha.Children.Add(nome);
+            linha.Children.Add(acoes);
+            return linha;
+        }
+
+        private static string FormatarTamanhoAnexo(long bytes) =>
+            bytes < 1024 * 1024 ? $"{Math.Max(1, bytes / 1024)} KB" : $"{bytes / 1024.0 / 1024.0:0.0} MB";
+
+        private async void AdicionarAnexo_Click(object? sender, RoutedEventArgs e)
+        {
+            if (_servicoAnexos == null)
+                return;
+
+            var arquivos = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+            {
+                Title = Idioma.Texto("Entry.AttachmentsAdd"),
+                AllowMultiple = false
+            });
+            if (arquivos.Count == 0)
+                return;
+
+            try
+            {
+                await using var origem = await arquivos[0].OpenReadAsync();
+                using var memoria = new MemoryStream();
+                await origem.CopyToAsync(memoria);
+
+                await _servicoAnexos.AdicionarAsync(_senhaAtual, arquivos[0].Name, memoria.ToArray());
+                await _servicoSenha.PersistirAsync();
+                MontarAnexos();
+            }
+            catch (LimiteAnexoExcedidoException ex)
+            {
+                await CaixaMensagem.MostrarAsync(this, ErrosUi.MensagemAmigavel(ex), Idioma.Texto("Entry.AttachmentsAdd"), TipoMensagem.Aviso);
+            }
+            catch (Exception ex)
+            {
+                await CaixaMensagem.MostrarAsync(this,
+                    Idioma.Formatar("Entry.AttachmentAddError", ErrosUi.MensagemAmigavel(ex)), Idioma.Texto("Common.Error"), TipoMensagem.Erro);
+            }
+        }
+
+        private async Task BaixarAnexoAsync(AnexoSenha item)
+        {
+            if (_servicoAnexos == null)
+                return;
+
+            var arquivo = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+            {
+                Title = Idioma.Texto("Entry.AttachmentDownload"),
+                SuggestedFileName = item.NomeArquivo
+            });
+            if (arquivo == null)
+                return;
+
+            try
+            {
+                var bytes = await _servicoAnexos.LerAsync(item);
+                await using var destino = await arquivo.OpenWriteAsync();
+                await destino.WriteAsync(bytes);
+            }
+            catch (Exception ex)
+            {
+                await CaixaMensagem.MostrarAsync(this,
+                    Idioma.Formatar("Entry.AttachmentDownloadError", ErrosUi.MensagemAmigavel(ex)), Idioma.Texto("Common.Error"), TipoMensagem.Erro);
+            }
+        }
+
+        private async Task RemoverAnexoAsync(AnexoSenha item)
+        {
+            var confirmar = await CaixaMensagem.ConfirmarAsync(this,
+                Idioma.Formatar("Entry.AttachmentRemoveConfirm", item.NomeArquivo), Idioma.Texto("Entry.AttachmentRemove"));
+            if (!confirmar || _servicoAnexos == null)
+                return;
+
+            _servicoAnexos.Remover(_senhaAtual, item.Id);
+            await _servicoSenha.PersistirAsync();
+            MontarAnexos();
+        }
+
         private void UsarSenhaAnterior(string senha)
         {
             TxtSenha.Text = senha;
@@ -342,7 +612,7 @@ namespace CofreDeSenhas.Janelas
             ExpHistorico.IsExpanded = false;
         }
 
-        private async Task CopiarAsync(string texto)
+        private async Task CopiarAsync(string texto, Button? origem = null)
         {
             if (string.IsNullOrEmpty(texto))
                 return;
@@ -354,7 +624,32 @@ namespace CofreDeSenhas.Janelas
                 catch { }
             }
 
-            Acessibilidade.Anunciar(this, Idioma.Formatar("A11y.Copied", Idioma.Texto("A11y.PreviousPassword")));
+            int segundos = Preferencias.SegundosLimpezaClipboard;
+            if (segundos > 0 && clipboard != null)
+            {
+                Acessibilidade.Anunciar(this,
+                    Idioma.Formatar("A11y.CopiedWillClear", Idioma.Texto("A11y.PreviousPassword"), segundos));
+                _ = ServicoLimpezaClipboard.ProgramarLimpezaAsync(new AreaTransferenciaAvalonia(clipboard), texto, segundos);
+
+                if (origem != null)
+                {
+                    var mensagem = Idioma.Formatar("Row.PasswordCopiedClearing", segundos);
+                    ToolTip.SetTip(origem, mensagem);
+                    AutomationProperties.SetName(origem, mensagem);
+                    var t = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+                    t.Tick += (s, e) =>
+                    {
+                        ToolTip.SetTip(origem, Idioma.Texto("Row.CopyPassword"));
+                        AutomationProperties.SetName(origem, Idioma.Texto("Row.CopyPassword"));
+                        t.Stop();
+                    };
+                    t.Start();
+                }
+            }
+            else
+            {
+                Acessibilidade.Anunciar(this, Idioma.Formatar("A11y.Copied", Idioma.Texto("A11y.PreviousPassword")));
+            }
         }
     }
 }

@@ -1,6 +1,8 @@
 using Avalonia.Controls;
+using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
+using CofreDeSenhas.Controles;
 
 namespace CofreDeSenhas
 {
@@ -31,6 +33,19 @@ namespace CofreDeSenhas
             using var memoria = new MemoryStream();
             stream.CopyTo(memoria);
             return memoria.ToArray();
+        }
+
+        public static Icone ImagemIcone(string chave, double tamanho, IBrush? cor = null, bool preenchido = false)
+        {
+            var icone = new Icone { Width = tamanho, Height = tamanho, Chave = chave, Preenchido = preenchido };
+            if (cor != null)
+            {
+                if (preenchido)
+                    icone.Fill = cor;
+                else
+                    icone.Stroke = cor;
+            }
+            return icone;
         }
     }
 }

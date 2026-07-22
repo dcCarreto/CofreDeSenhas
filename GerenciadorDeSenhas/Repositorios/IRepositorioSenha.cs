@@ -6,13 +6,15 @@ namespace GerenciadorDeSenhas.Repositorios
     {
         Task AdicionarAsync(Senha senha);
         Task AtualizarAsync(Senha senha);
+        Task RegistrarCopiaAsync(Guid id, TipoCampoCopiado campo);
         Task RemoverAsync(Guid id);
+        Task MoverTudoParaLixeiraAsync();
         Task<Senha?> ObterPorIdAsync(Guid id);
         Task<List<Senha>> ListarTodosAsync();
-        Task<List<Senha>> BuscarPorCategoriaAsync(Categoria categoria);
-        Task<List<Senha>> BuscarPorServicoAsync(string nomeServico);
-        Task<List<Senha>> ListarFavoritosAsync();
-        Task<int> ContarAsync();
+        Task<List<Senha>> ListarLixeiraAsync();
+        Task RestaurarAsync(Guid id);
+        Task RemoverDefinitivamenteAsync(Guid id);
+        Task EsvaziarLixeiraAsync();
         Task SalvarAsync();
     }
 }

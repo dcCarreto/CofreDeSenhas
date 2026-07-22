@@ -15,7 +15,17 @@ internal sealed class PersistenciaEmMemoria : IPersistenciaLocal
 
     public Task<List<Senha>> CarregarSenhasAsync(byte[] chave) => Task.FromResult(_dados.ToList());
 
-    public Task BackupAutomaticoAsync(List<Senha> senhas, byte[] chave) => Task.CompletedTask;
+    public Task BackupAutomaticoAsync(List<Senha> senhas, byte[] chave, int quantidadeMaxima = 10) => Task.CompletedTask;
+
+    public List<InfoBackup> ListarBackups() => new();
+
+    public Task<List<Senha>> CarregarBackupAsync(string caminhoArquivo) => Task.FromResult(new List<Senha>());
 
     public bool ValidarIntegridade() => true;
+
+    public Task ApagarTudoAsync()
+    {
+        _dados = new List<Senha>();
+        return Task.CompletedTask;
+    }
 }

@@ -24,6 +24,7 @@ public class RepositorioSenhaBancoTests : IDisposable
         _criptografia = new ServicoCriptografia(chave);
 
         _bd.CriarTabelaAsync(_cfg).GetAwaiter().GetResult();
+        _bd.GarantirColunasAsync(_cfg).GetAwaiter().GetResult();
     }
 
     private Senha NovaSenha(string dominio, string usuario, string plaintext) => new()
@@ -40,7 +41,55 @@ public class RepositorioSenhaBancoTests : IDisposable
         var repo = new RepositorioSenhaBanco(_cfg);
         await repo.AdicionarAsync(NovaSenha("gmail.com", "user@gmail.com", "segredo"));
 
-        Assert.Equal(1, await repo.ContarAsync());
+        Assert.Single(await repo.ListarTodosAsync());
+    }
+
+    [Fact]
+    public async Task Adicionar_PersisteDataCriacaoEDataAtualizacaoEntreInstancias()
+    {
+        var repo = new RepositorioSenhaBanco(_cfg);
+        var senha = NovaSenha("gmail.com", "user@gmail.com", "segredo");
+        await repo.AdicionarAsync(senha);
+
+        var outro = new RepositorioSenhaBanco(_cfg);
+        var carregada = (await outro.ListarTodosAsync()).Single();
+
+        Assert.True((DateTime.UtcNow - carregada.DataCriacao) < TimeSpan.FromMinutes(1));
+        Assert.True((DateTime.UtcNow - carregada.DataAtualizacao) < TimeSpan.FromMinutes(1));
+    }
+
+    [Fact]
+    public async Task Atualizar_AtualizaDataAtualizacaoSemMudarDataCriacao()
+    {
+        var repo = new RepositorioSenhaBanco(_cfg);
+        var senha = NovaSenha("gmail.com", "user@gmail.com", "segredo");
+        await repo.AdicionarAsync(senha);
+
+        var original = (await new RepositorioSenhaBanco(_cfg).ListarTodosAsync()).Single();
+
+        senha.DataAtualizacao = DateTime.UtcNow.AddDays(1);
+        await repo.AtualizarAsync(senha);
+
+        var atualizada = (await new RepositorioSenhaBanco(_cfg).ListarTodosAsync()).Single();
+
+        Assert.Equal(senha.DataAtualizacao, atualizada.DataAtualizacao, TimeSpan.FromSeconds(1));
+        Assert.Equal(original.DataCriacao, atualizada.DataCriacao, TimeSpan.FromSeconds(1));
+    }
+
+    [Fact]
+    public async Task RegistrarCopia_PersisteApenasACampoIndicadoEntreInstancias()
+    {
+        var repo = new RepositorioSenhaBanco(_cfg);
+        var senha = NovaSenha("gmail.com", "user@gmail.com", "segredo");
+        await repo.AdicionarAsync(senha);
+
+        await repo.RegistrarCopiaAsync(senha.Id, TipoCampoCopiado.Usuario);
+
+        var carregada = (await new RepositorioSenhaBanco(_cfg).ListarTodosAsync()).Single();
+
+        Assert.NotNull(carregada.DataUltimaCopiaUsuario);
+        Assert.Null(carregada.DataUltimaCopiaSenha);
+        Assert.Null(carregada.DataUltimaCopiaTotp);
     }
 
     [Fact]
@@ -88,6 +137,40 @@ public class RepositorioSenhaBancoTests : IDisposable
     }
 
     [Fact]
+    public async Task Adicionar_PersisteCodigosRecuperacaoEntreInstancias()
+    {
+        var repo = new RepositorioSenhaBanco(_cfg);
+        var senha = NovaSenha("app.com", "u", "s");
+        senha.CodigosRecuperacao.Add(new CodigoRecuperacao { Codigo = _criptografia.Criptografar("ABCD-1234") });
+        senha.CodigosRecuperacao.Add(new CodigoRecuperacao { Codigo = _criptografia.Criptografar("EFGH-5678"), Usado = true });
+        await repo.AdicionarAsync(senha);
+
+        var todas = await new RepositorioSenhaBanco(_cfg).ListarTodosAsync();
+
+        Assert.Single(todas);
+        Assert.Equal(2, todas[0].CodigosRecuperacao.Count);
+        Assert.Equal("ABCD-1234", _criptografia.Descriptografar(todas[0].CodigosRecuperacao[0].Codigo));
+        Assert.False(todas[0].CodigosRecuperacao[0].Usado);
+        Assert.Equal("EFGH-5678", _criptografia.Descriptografar(todas[0].CodigosRecuperacao[1].Codigo));
+        Assert.True(todas[0].CodigosRecuperacao[1].Usado);
+    }
+
+    [Fact]
+    public async Task Atualizar_PersisteMudancaNosCodigosRecuperacao()
+    {
+        var repo = new RepositorioSenhaBanco(_cfg);
+        var senha = NovaSenha("app.com", "u", "s");
+        await repo.AdicionarAsync(senha);
+
+        senha.CodigosRecuperacao.Add(new CodigoRecuperacao { Codigo = _criptografia.Criptografar("ABCD-1234") });
+        await repo.AtualizarAsync(senha);
+
+        var todas = await new RepositorioSenhaBanco(_cfg).ListarTodosAsync();
+        Assert.Single(todas[0].CodigosRecuperacao);
+        Assert.Equal("ABCD-1234", _criptografia.Descriptografar(todas[0].CodigosRecuperacao[0].Codigo));
+    }
+
+    [Fact]
     public async Task Atualizar_MudaDominioEUsuario()
     {
         var repo = new RepositorioSenhaBanco(_cfg);
@@ -113,7 +196,7 @@ public class RepositorioSenhaBancoTests : IDisposable
 
         await repo.RemoverAsync(senha.Id);
 
-        Assert.Equal(0, await repo.ContarAsync());
+        Assert.Empty(await repo.ListarTodosAsync());
         Assert.Empty(await new RepositorioSenhaBanco(_cfg).ListarTodosAsync());
 
         Assert.Equal(1, await ContarLinhas("SELECT COUNT(*) FROM CofreDeSenhas"));
@@ -121,16 +204,81 @@ public class RepositorioSenhaBancoTests : IDisposable
     }
 
     [Fact]
-    public async Task BuscarPorServico_EncontraPorDominio()
+    public async Task Remover_ApareceNaLixeiraComDataDeExclusao()
     {
         var repo = new RepositorioSenhaBanco(_cfg);
-        await repo.AdicionarAsync(NovaSenha("Netflix", "a", "1"));
-        await repo.AdicionarAsync(NovaSenha("Spotify", "b", "2"));
+        var senha = NovaSenha("site.com", "u", "s");
+        await repo.AdicionarAsync(senha);
 
-        var achados = await repo.BuscarPorServicoAsync("flix");
+        await repo.RemoverAsync(senha.Id);
 
-        Assert.Single(achados);
-        Assert.Equal("Netflix", achados[0].NomeServico);
+        var lixeira = await repo.ListarLixeiraAsync();
+        Assert.Single(lixeira);
+        Assert.True(lixeira[0].NaLixeira);
+        Assert.NotNull(lixeira[0].DataExclusao);
+
+        var novaInstancia = await new RepositorioSenhaBanco(_cfg).ListarLixeiraAsync();
+        Assert.Single(novaInstancia);
+        Assert.NotNull(novaInstancia[0].DataExclusao);
+    }
+
+    [Fact]
+    public async Task Restaurar_TrazDeVoltaEApagaDataDeExclusao()
+    {
+        var repo = new RepositorioSenhaBanco(_cfg);
+        var senha = NovaSenha("site.com", "u", "s");
+        await repo.AdicionarAsync(senha);
+        await repo.RemoverAsync(senha.Id);
+
+        await repo.RestaurarAsync(senha.Id);
+
+        Assert.Single(await repo.ListarTodosAsync());
+        Assert.Empty(await repo.ListarLixeiraAsync());
+
+        var novaInstancia = await new RepositorioSenhaBanco(_cfg).ListarTodosAsync();
+        Assert.Single(novaInstancia);
+        Assert.Null(novaInstancia[0].DataExclusao);
+    }
+
+    [Fact]
+    public async Task RemoverDefinitivamente_ApagaALinhaDoBanco()
+    {
+        var repo = new RepositorioSenhaBanco(_cfg);
+        var senha = NovaSenha("site.com", "u", "s");
+        await repo.AdicionarAsync(senha);
+        await repo.RemoverAsync(senha.Id);
+
+        await repo.RemoverDefinitivamenteAsync(senha.Id);
+
+        Assert.Empty(await repo.ListarLixeiraAsync());
+        Assert.Equal(0, await ContarLinhas("SELECT COUNT(*) FROM CofreDeSenhas"));
+    }
+
+    [Fact]
+    public async Task EsvaziarLixeira_RemoveSomenteAsLinhasExcluidas()
+    {
+        var repo = new RepositorioSenhaBanco(_cfg);
+        var ativa = NovaSenha("ativa.com", "u", "s");
+        var excluida = NovaSenha("excluida.com", "u", "s");
+        await repo.AdicionarAsync(ativa);
+        await repo.AdicionarAsync(excluida);
+        await repo.RemoverAsync(excluida.Id);
+
+        await repo.EsvaziarLixeiraAsync();
+
+        Assert.Equal(1, await ContarLinhas("SELECT COUNT(*) FROM CofreDeSenhas"));
+        Assert.Single(await repo.ListarTodosAsync());
+    }
+
+    [Fact]
+    public async Task ExcluirDefinitivamentePorChave_ApagaALinhaDoBanco()
+    {
+        var repo = new RepositorioSenhaBanco(_cfg);
+        await repo.GravarPorChaveAsync(NovaSenha("x.com", "u", "p"));
+
+        await repo.ExcluirDefinitivamentePorChaveAsync("x.com", "u");
+
+        Assert.Equal(0, await ContarLinhas("SELECT COUNT(*) FROM CofreDeSenhas"));
     }
 
     [Fact]
@@ -157,6 +305,131 @@ public class RepositorioSenhaBancoTests : IDisposable
         await repo.ExcluirPorChaveAsync("x.com", "u");
 
         Assert.Empty(await new RepositorioSenhaBanco(_cfg).ListarTodosAsync());
+    }
+
+    [Fact]
+    public async Task Adicionar_PersisteUrlCategoriaTipoFavoritoEFixadoEntreInstancias()
+    {
+        var repo = new RepositorioSenhaBanco(_cfg);
+        var senha = NovaSenha("banco.com", "u", "s");
+        senha.Url = "https://banco.com/login";
+        senha.Categoria = Categoria.Finance;
+        senha.Tipo = TipoCredencial.Cartao;
+        senha.Favorito = true;
+        senha.Fixado = true;
+        await repo.AdicionarAsync(senha);
+
+        var todas = await new RepositorioSenhaBanco(_cfg).ListarTodosAsync();
+
+        Assert.Single(todas);
+        Assert.Equal("https://banco.com/login", todas[0].Url);
+        Assert.Equal(Categoria.Finance, todas[0].Categoria);
+        Assert.Equal(TipoCredencial.Cartao, todas[0].Tipo);
+        Assert.True(todas[0].Favorito);
+        Assert.True(todas[0].Fixado);
+    }
+
+    [Fact]
+    public async Task Adicionar_PersisteCamposExtrasCifradosEntreInstancias()
+    {
+        var repo = new RepositorioSenhaBanco(_cfg);
+        var senha = NovaSenha("banco.com", "u", "s");
+        senha.CamposExtras["cvv"] = _criptografia.Criptografar("123");
+        await repo.AdicionarAsync(senha);
+
+        var todas = await new RepositorioSenhaBanco(_cfg).ListarTodosAsync();
+
+        Assert.Single(todas);
+        Assert.Equal("123", _criptografia.Descriptografar(todas[0].CamposExtras["cvv"]));
+    }
+
+    [Fact]
+    public async Task Adicionar_PersisteHistoricoEntreInstancias()
+    {
+        var repo = new RepositorioSenhaBanco(_cfg);
+        var senha = NovaSenha("banco.com", "u", "s");
+        senha.Historico.Add(new HistoricoSenha { SenhaHash = _criptografia.Criptografar("antiga"), DataAlteracao = DateTime.UtcNow });
+        await repo.AdicionarAsync(senha);
+
+        var todas = await new RepositorioSenhaBanco(_cfg).ListarTodosAsync();
+
+        Assert.Single(todas);
+        var anterior = Assert.Single(todas[0].Historico);
+        Assert.Equal("antiga", _criptografia.Descriptografar(anterior.SenhaHash));
+    }
+
+    [Fact]
+    public async Task GravarPorChave_InsereComUrlCategoriaTipoFavoritoEFixado()
+    {
+        var repo = new RepositorioSenhaBanco(_cfg);
+        var senha = NovaSenha("wifi.com", "u", "s");
+        senha.Url = "https://wifi.com";
+        senha.Categoria = Categoria.Work;
+        senha.Tipo = TipoCredencial.WiFi;
+        senha.Favorito = true;
+        senha.Fixado = true;
+        await repo.GravarPorChaveAsync(senha);
+
+        var todas = await new RepositorioSenhaBanco(_cfg).ListarTodosAsync();
+
+        Assert.Single(todas);
+        Assert.Equal("https://wifi.com", todas[0].Url);
+        Assert.Equal(Categoria.Work, todas[0].Categoria);
+        Assert.Equal(TipoCredencial.WiFi, todas[0].Tipo);
+        Assert.True(todas[0].Favorito);
+        Assert.True(todas[0].Fixado);
+    }
+
+    [Fact]
+    public async Task Adicionar_PreservaOMesmoGuidEntreInstancias()
+    {
+        var repo = new RepositorioSenhaBanco(_cfg);
+        var senha = NovaSenha("estavel.com", "u", "s");
+        await repo.AdicionarAsync(senha);
+
+        var carregada = (await new RepositorioSenhaBanco(_cfg).ListarTodosAsync()).Single();
+
+        Assert.Equal(senha.Id, carregada.Id);
+    }
+
+    [Fact]
+    public async Task SubstituirGuid_TrocaOIdentificadorEPreservaALinha()
+    {
+        var repo = new RepositorioSenhaBanco(_cfg);
+        var senha = NovaSenha("legado.com", "u", "s");
+        await repo.AdicionarAsync(senha);
+
+        var novoGuid = Guid.NewGuid();
+        await repo.SubstituirGuidAsync(senha.Id, novoGuid);
+
+        var carregada = (await new RepositorioSenhaBanco(_cfg).ListarTodosAsync()).Single();
+        Assert.Equal(novoGuid, carregada.Id);
+        Assert.Equal("legado.com", carregada.NomeServico);
+    }
+
+    [Fact]
+    public async Task GravarPorChave_AtualizarPreservaDataAtualizacaoEExcluidoENovosCampos()
+    {
+        var repo = new RepositorioSenhaBanco(_cfg);
+        var senha = NovaSenha("site.com", "u", "v1");
+        await repo.GravarPorChaveAsync(senha);
+
+        var atualizada = NovaSenha("site.com", "u", "v2");
+        atualizada.NaLixeira = true;
+        atualizada.DataExclusao = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        atualizada.DataAtualizacao = new DateTime(2026, 1, 2, 0, 0, 0, DateTimeKind.Utc);
+        atualizada.Favorito = true;
+        atualizada.Fixado = true;
+        await repo.GravarPorChaveAsync(atualizada);
+
+        var todas = await new RepositorioSenhaBanco(_cfg).ListarLixeiraAsync();
+
+        Assert.Single(todas);
+        Assert.True(todas[0].NaLixeira);
+        Assert.Equal(atualizada.DataExclusao, todas[0].DataExclusao);
+        Assert.Equal(atualizada.DataAtualizacao, todas[0].DataAtualizacao);
+        Assert.True(todas[0].Favorito);
+        Assert.True(todas[0].Fixado);
     }
 
     private async Task<long> ContarLinhas(string sql)

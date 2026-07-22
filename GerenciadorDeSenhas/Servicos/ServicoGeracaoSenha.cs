@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
+using GerenciadorDeSenhas.Excecoes;
 
 namespace GerenciadorDeSenhas.Servicos
 {
@@ -30,7 +31,7 @@ namespace GerenciadorDeSenhas.Servicos
             bool incluirNumeros, bool incluirEspeciais)
         {
             if (tamanho < 4 || tamanho > 1000)
-                throw new ArgumentException("O tamanho da senha deve ficar entre 4 e 1000 caracteres.");
+                throw new ErroLocalizavel("Generator.Error.LengthRange");
 
             var opcoes = new StringBuilder();
             if (incluirMaiusculas) opcoes.Append(Maiusculas);
@@ -39,7 +40,7 @@ namespace GerenciadorDeSenhas.Servicos
             if (incluirEspeciais) opcoes.Append(Especiais);
 
             if (opcoes.Length == 0)
-                throw new ArgumentException("Selecione pelo menos um tipo de caractere.");
+                throw new ErroLocalizavel("Generator.Error.NoCharacterType");
 
             var senha = new StringBuilder(tamanho);
             for (int i = 0; i < tamanho; i++)
@@ -82,13 +83,13 @@ namespace GerenciadorDeSenhas.Servicos
             string separador = "-", bool capitalizar = false, bool incluirNumero = true)
         {
             if (quantidadePalavras < 3 || quantidadePalavras > 12)
-                throw new ArgumentException("A frase-senha deve ter entre 3 e 12 palavras.");
+                throw new ErroLocalizavel("Generator.Error.PassphraseWordsRange");
 
             if (separador == null)
                 throw new ArgumentNullException(nameof(separador));
 
             if (separador.Length > 3)
-                throw new ArgumentException("O separador deve ter no máximo 3 caracteres.");
+                throw new ErroLocalizavel("Generator.Error.SeparatorTooLong");
 
             var palavrasValidas = NormalizarPalavras(palavras);
             var partes = new List<string>(quantidadePalavras + (incluirNumero ? 1 : 0));
@@ -118,7 +119,7 @@ namespace GerenciadorDeSenhas.Servicos
                 .ToList();
 
             if (palavrasValidas.Count < 2)
-                throw new ArgumentException("Informe uma lista com pelo menos duas palavras.");
+                throw new ErroLocalizavel("Generator.Error.NotEnoughWords");
 
             return palavrasValidas;
         }
@@ -126,7 +127,7 @@ namespace GerenciadorDeSenhas.Servicos
         private static void ValidarQuantidade(int quantidade)
         {
             if (quantidade < 1 || quantidade > 50)
-                throw new ArgumentException("A quantidade deve ficar entre 1 e 50.");
+                throw new ErroLocalizavel("Generator.Error.QuantityRange");
         }
 
         private static string Capitalizar(string palavra)

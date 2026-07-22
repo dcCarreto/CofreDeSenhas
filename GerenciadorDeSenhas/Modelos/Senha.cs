@@ -15,16 +15,28 @@ namespace GerenciadorDeSenhas.Modelos
         public List<string> Etiquetas { get; set; } = new();
         public string? Notas { get; set; }
 
+        public TipoCredencial Tipo { get; set; } = TipoCredencial.Login;
+        public Dictionary<string, string> CamposExtras { get; set; } = new();
+
         public string? TotpSegredo { get; set; }
 
         public List<HistoricoSenha> Historico { get; set; } = new();
 
-        public bool Favorito { get; set; }
+        public List<CodigoRecuperacao> CodigosRecuperacao { get; set; } = new();
 
-        public byte[] IV { get; set; } = new byte[12];
-        public byte[] AuthTag { get; set; } = new byte[16];
+        public List<AnexoSenha> Anexos { get; set; } = new();
+
+        public bool Favorito { get; set; }
+        public bool Fixado { get; set; }
+
+        public bool NaLixeira { get; set; }
+        public DateTime? DataExclusao { get; set; }
 
         public DateTime DataCriacao { get; set; } = DateTime.UtcNow;
         public DateTime DataAtualizacao { get; set; } = DateTime.UtcNow;
+
+        public DateTime? DataUltimaCopiaSenha { get; set; }
+        public DateTime? DataUltimaCopiaUsuario { get; set; }
+        public DateTime? DataUltimaCopiaTotp { get; set; }
     }
 }

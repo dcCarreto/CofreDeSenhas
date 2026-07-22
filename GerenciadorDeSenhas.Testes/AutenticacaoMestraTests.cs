@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using GerenciadorDeSenhas.Excecoes;
 using GerenciadorDeSenhas.Servicos;
 using Xunit;
 
@@ -36,18 +38,36 @@ public class AutenticacaoMestraTests : IDisposable
         Assert.True(_auth.ExisteSenhaMestra());
     }
 
+    [Fact]
+    public void ExcluirSenhaMestra_ComSenhaCriada_RemoveArquivoEDeixaDeExistir()
+    {
+        _auth.CriarSenhaMestra("SenhaMestra@123");
+
+        _auth.ExcluirSenhaMestra();
+
+        Assert.False(_auth.ExisteSenhaMestra());
+    }
+
+    [Fact]
+    public void ExcluirSenhaMestra_SemSenhaCriada_NaoLancaExcecao()
+    {
+        _auth.ExcluirSenhaMestra();
+
+        Assert.False(_auth.ExisteSenhaMestra());
+    }
+
     [Theory]
     [InlineData("")]
     [InlineData("   ")]
     public void CriarSenhaMestra_ComSenhaVazia_LancaExcecao(string senha)
     {
-        Assert.Throws<ArgumentException>(() => _auth.CriarSenhaMestra(senha));
+        Assert.Throws<ErroLocalizavel>(() => _auth.CriarSenhaMestra(senha));
     }
 
     [Fact]
     public void CriarSenhaMestra_ComMenosDe8Caracteres_LancaExcecao()
     {
-        Assert.Throws<ArgumentException>(() => _auth.CriarSenhaMestra("Abc@123"));
+        Assert.Throws<ErroLocalizavel>(() => _auth.CriarSenhaMestra("Abc@123"));
     }
 
     [Fact]
@@ -157,6 +177,129 @@ public class AutenticacaoMestraTests : IDisposable
 
         Assert.Null(excecao);
         Assert.Null(_auth.Autenticar("SenhaMestra@123"));
+    }
+
+    [Fact]
+    public void PastaApp_RetornaPastaConfigurada()
+    {
+        Assert.Equal(_pasta, _auth.PastaApp);
+    }
+
+    [Fact]
+    public void CriarSenhaMestra_GravaComArgon2id_NaoPrecisaMigrar()
+    {
+        _auth.CriarSenhaMestra("SenhaMestra@123");
+
+        Assert.False(_auth.KdfDesatualizado());
+    }
+
+    [Fact]
+    public void KdfDesatualizado_SemArquivo_RetornaFalse()
+    {
+        Assert.False(_auth.KdfDesatualizado());
+    }
+
+    [Fact]
+    public void KdfDesatualizado_ComArquivoNoFormatoAntigoSemContagem_RetornaTrue()
+    {
+        EscreverAuthFormatoAntigo(_pasta, "SenhaMestra@123", 100_000);
+
+        Assert.True(_auth.KdfDesatualizado());
+    }
+
+    [Fact]
+    public void Autenticar_ComArquivoNoFormatoAntigoSemContagem_UsaIteracoesLegadasEFunciona()
+    {
+        EscreverAuthFormatoAntigo(_pasta, "SenhaMestra@123", 100_000);
+
+        var chave = _auth.Autenticar("SenhaMestra@123");
+
+        Assert.NotNull(chave);
+        Assert.Equal(32, chave!.Length);
+    }
+
+    [Fact]
+    public void KdfDesatualizado_ComArquivoPbkdf2ComContagem_RetornaTrue()
+    {
+        EscreverAuthFormatoPbkdf2ComContagem(_pasta, "SenhaMestra@123", 600_000);
+
+        Assert.True(_auth.KdfDesatualizado());
+    }
+
+    [Fact]
+    public void Autenticar_ComArquivoNoFormatoArgon2id_Funciona()
+    {
+        EscreverAuthFormatoArgon2id(_pasta, "SenhaMestra@123", 3, 65536, 1);
+
+        var chave = _auth.Autenticar("SenhaMestra@123");
+
+        Assert.NotNull(chave);
+        Assert.Equal(32, chave!.Length);
+    }
+
+    [Fact]
+    public void KdfDesatualizado_ComArquivoNoFormatoArgon2id_RetornaFalse()
+    {
+        EscreverAuthFormatoArgon2id(_pasta, "SenhaMestra@123", 3, 65536, 1);
+
+        Assert.False(_auth.KdfDesatualizado());
+    }
+
+    private static void EscreverAuthFormatoAntigo(string pasta, string senha, int iteracoesLegado)
+    {
+        var salt = RandomNumberGenerator.GetBytes(16);
+        var chave = Rfc2898DeriveBytes.Pbkdf2(senha, salt, iteracoesLegado, HashAlgorithmName.SHA256, 32);
+        var verificador = SHA256.HashData(chave);
+
+        var dados = new byte[16 + 32];
+        Buffer.BlockCopy(salt, 0, dados, 0, 16);
+        Buffer.BlockCopy(verificador, 0, dados, 16, 32);
+
+        File.WriteAllText(Path.Combine(pasta, "auth.dat"), Convert.ToBase64String(dados));
+    }
+
+    private static void EscreverAuthFormatoPbkdf2ComContagem(string pasta, string senha, int iteracoes)
+    {
+        var salt = RandomNumberGenerator.GetBytes(16);
+        var chave = Rfc2898DeriveBytes.Pbkdf2(senha, salt, iteracoes, HashAlgorithmName.SHA256, 32);
+        var verificador = SHA256.HashData(chave);
+
+        var dados = new byte[16 + 32 + sizeof(int)];
+        Buffer.BlockCopy(salt, 0, dados, 0, 16);
+        Buffer.BlockCopy(verificador, 0, dados, 16, 32);
+        BitConverter.GetBytes(iteracoes).CopyTo(dados, 48);
+
+        File.WriteAllText(Path.Combine(pasta, "auth.dat"), Convert.ToBase64String(dados));
+    }
+
+    private static void EscreverAuthFormatoArgon2id(string pasta, string senha, int tempoCusto, int memoriaKb, int paralelismo)
+    {
+        var salt = RandomNumberGenerator.GetBytes(16);
+        using var argon2 = new Konscious.Security.Cryptography.Argon2id(System.Text.Encoding.UTF8.GetBytes(senha))
+        {
+            Salt = salt,
+            DegreeOfParallelism = paralelismo,
+            Iterations = tempoCusto,
+            MemorySize = memoriaKb
+        };
+        var chave = argon2.GetBytes(32);
+        var verificador = SHA256.HashData(chave);
+
+        var dados = new byte[16 + 32 + sizeof(int) + 1 + sizeof(int) + sizeof(int)];
+        var offset = 0;
+        Buffer.BlockCopy(salt, 0, dados, offset, 16);
+        offset += 16;
+        Buffer.BlockCopy(verificador, 0, dados, offset, 32);
+        offset += 32;
+        BitConverter.GetBytes(tempoCusto).CopyTo(dados, offset);
+        offset += sizeof(int);
+        dados[offset] = 1;
+        offset += 1;
+        BitConverter.GetBytes(memoriaKb).CopyTo(dados, offset);
+        offset += sizeof(int);
+        BitConverter.GetBytes(paralelismo).CopyTo(dados, offset);
+
+        File.WriteAllText(Path.Combine(pasta, "auth.dat"), Convert.ToBase64String(dados));
     }
 
     private static bool ContemSubsequencia(byte[] palheiro, byte[] agulha)

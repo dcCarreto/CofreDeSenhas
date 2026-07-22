@@ -5,6 +5,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using GerenciadorDeSenhas.Excecoes;
 using GerenciadorDeSenhas.Modelos;
 
 namespace GerenciadorDeSenhas.Servicos
@@ -31,7 +32,7 @@ namespace GerenciadorDeSenhas.Servicos
             if (itens == null)
                 throw new ArgumentNullException(nameof(itens));
             if (string.IsNullOrWhiteSpace(senhaExportacao) || senhaExportacao.Length < TamanhoMinimoSenha)
-                throw new ArgumentException($"A senha de exportação deve ter pelo menos {TamanhoMinimoSenha} caracteres.");
+                throw new ErroLocalizavel("Export.Error.PasswordTooShort", TamanhoMinimoSenha);
 
             var json = JsonSerializer.Serialize(itens, OpcoesJson);
             var textoBytes = Encoding.UTF8.GetBytes(json);
@@ -63,9 +64,9 @@ namespace GerenciadorDeSenhas.Servicos
         public async Task<List<SenhaExportada>> ImportarAsync(string caminhoArquivo, string senhaExportacao)
         {
             if (!File.Exists(caminhoArquivo))
-                throw new InvalidOperationException("Arquivo de importação não encontrado.");
+                throw new ErroLocalizavel("Export.Error.FileNotFound");
             if (string.IsNullOrWhiteSpace(senhaExportacao))
-                throw new InvalidOperationException("Informe a senha de exportação.");
+                throw new ErroLocalizavel("Export.Error.PasswordRequired");
 
             EnvelopeExportacao? envelope;
             try
@@ -74,11 +75,11 @@ namespace GerenciadorDeSenhas.Servicos
             }
             catch
             {
-                throw new InvalidOperationException("Arquivo de importação inválido ou corrompido.");
+                throw new ErroLocalizavel("Export.Error.InvalidFile");
             }
 
             if (envelope == null || envelope.Salt == null || envelope.Iv == null || envelope.Tag == null || envelope.Dados == null)
-                throw new InvalidOperationException("Arquivo de importação inválido ou corrompido.");
+                throw new ErroLocalizavel("Export.Error.InvalidFile");
 
             byte[] salt, iv, tag, cifrado;
             try
@@ -90,7 +91,7 @@ namespace GerenciadorDeSenhas.Servicos
             }
             catch
             {
-                throw new InvalidOperationException("Arquivo de importação inválido ou corrompido.");
+                throw new ErroLocalizavel("Export.Error.InvalidFile");
             }
 
             var chave = DerivarChave(senhaExportacao, salt, envelope.Iteracoes);
@@ -102,7 +103,7 @@ namespace GerenciadorDeSenhas.Servicos
             }
             catch (CryptographicException)
             {
-                throw new InvalidOperationException("Senha de exportação incorreta ou arquivo corrompido.");
+                throw new ErroLocalizavel("Export.Error.WrongPassword");
             }
 
             try
@@ -112,7 +113,7 @@ namespace GerenciadorDeSenhas.Servicos
             }
             catch
             {
-                throw new InvalidOperationException("Conteúdo do arquivo de importação inválido.");
+                throw new ErroLocalizavel("Export.Error.InvalidContent");
             }
         }
 

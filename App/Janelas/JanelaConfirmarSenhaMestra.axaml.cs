@@ -12,26 +12,28 @@ namespace CofreDeSenhas.Janelas
 
         public string SenhaConfirmada { get; private set; } = string.Empty;
 
-        public JanelaConfirmarSenhaMestra()
+        public JanelaConfirmarSenhaMestra(string? titulo = null, string? instrucao = null, string? textoBotao = null)
         {
             InitializeComponent();
             Icon = Recursos.IconeApp();
             Acessibilidade.Vincular(this);
 
-            KeyDown += (s, e) =>
+            if (titulo != null)
             {
-                if (e.Key == Key.Enter) Confirmar();
-                if (e.Key == Key.Escape) Close(false);
-            };
+                Title = titulo;
+                LblTitulo.Text = titulo;
+            }
+            if (instrucao != null)
+                LblInstrucao.Text = instrucao;
+            if (textoBotao != null)
+                BtnConfirmar.Content = textoBotao;
+
+            this.FecharComEscConfirmarComEnter(Confirmar);
 
             Opened += (s, e) => TxtSenha.Focus();
         }
 
-        private void Arrastar(object? sender, PointerPressedEventArgs e)
-        {
-            if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed && e.Source is not TextBox)
-                BeginMoveDrag(e);
-        }
+        private void Arrastar(object? sender, PointerPressedEventArgs e) => this.HabilitarArraste(e, origem => origem is TextBox);
 
         private void Cancelar_Click(object? sender, RoutedEventArgs e) => Close(false);
 
@@ -56,12 +58,6 @@ namespace CofreDeSenhas.Janelas
             Close(true);
         }
 
-        private void MostrarErro(string msg)
-        {
-            LblErro.Text = msg;
-            AutomationProperties.SetName(LblErro, msg);
-            TxtSenha.SelectAll();
-            TxtSenha.Focus();
-        }
+        private void MostrarErro(string msg) => this.MostrarErroInline(LblErro, msg, TxtSenha);
     }
 }

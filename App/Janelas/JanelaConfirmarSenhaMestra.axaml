@@ -1,14 +1,16 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:c="using:CofreDeSenhas.Controles"
         x:Class="CofreDeSenhas.Janelas.JanelaConfirmarSenhaMestra"
-        Title="{DynamicResource Qr.RegenerateTitle}"
+        Title="Confirmar senha mestra"
         Width="440"
         SizeToContent="Height"
         CanResize="False"
         SystemDecorations="None"
         Background="Transparent"
         TransparencyLevelHint="Transparent"
-        WindowStartupLocation="CenterOwner">
+        WindowStartupLocation="CenterOwner"
+        RenderOptions.BitmapInterpolationMode="HighQuality">
 
   <Border CornerRadius="{StaticResource RadiusDialogo}"
           ClipToBounds="True"
@@ -23,17 +25,21 @@
               BorderThickness="0,0,0,1"
               PointerPressed="Arrastar">
         <Grid>
-          <TextBlock Text="{DynamicResource Qr.RegenerateTitle}"
+          <TextBlock Name="LblTitulo"
+                     Text="{DynamicResource Qr.RegenerateTitle}"
                      Classes="titulo"
                      Foreground="{DynamicResource TextPrimary}"
                      VerticalAlignment="Center"
                      AutomationProperties.HeadingLevel="1"
-                     Margin="24,0,0,0" />
-          <Button Classes="fechar-dialogo" Content="✕"
+                     Margin="24,0,60,0"
+                     TextTrimming="CharacterEllipsis" />
+          <Button Classes="fechar-dialogo"
                   AutomationProperties.Name="{DynamicResource Access.Close}"
                   HorizontalAlignment="Right" VerticalAlignment="Center"
                   Margin="0,0,14,0"
-                  Click="Cancelar_Click" />
+                  Click="Cancelar_Click">
+            <c:Icone Width="{StaticResource TamIconeToolbar}" Height="{StaticResource TamIconeToolbar}" Chave="IconeFechar" />
+          </Button>
         </Grid>
       </Border>
 
@@ -41,26 +47,24 @@
               Height="72"
               BorderBrush="{DynamicResource CardBorder}"
               BorderThickness="0,1,0,0">
-        <Grid Margin="24,0">
-          <Button Name="BtnGerar" Classes="primario" Content="{DynamicResource Qr.GenerateButton}"
-                  Width="200" Height="40"
-                  HorizontalAlignment="Left" VerticalAlignment="Center"
-                  Click="Gerar_Click" />
+        <StackPanel Orientation="Horizontal" Spacing="10"
+                    HorizontalAlignment="Right" VerticalAlignment="Center" Margin="24,0">
+          <Button Name="BtnConfirmar" Classes="primario" Content="{DynamicResource Qr.GenerateButton}"
+                  MinWidth="140" Height="40" Click="Gerar_Click" />
           <Button Classes="secundario" Content="{DynamicResource Common.Cancel}"
-                  Width="150" Height="40"
-                  HorizontalAlignment="Right" VerticalAlignment="Center"
-                  Click="Cancelar_Click" />
-        </Grid>
+                  MinWidth="120" Height="40" Click="Cancelar_Click" />
+        </StackPanel>
       </Border>
 
-      <StackPanel Margin="24,16,24,10" Spacing="4">
-        <TextBlock Text="{DynamicResource Qr.RegenerateInstruction}"
+      <StackPanel Margin="24,18,24,16" Spacing="4">
+        <TextBlock Name="LblInstrucao"
+                   Text="{DynamicResource Qr.RegenerateInstruction}"
                    FontSize="12"
                    Foreground="{DynamicResource TextSecondary}"
                    TextWrapping="Wrap"
                    Margin="0,0,0,12" />
 
-        <TextBlock Text="{DynamicResource Login.MasterPassword}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
+        <TextBlock Text="{DynamicResource Login.MasterPassword}" Classes="legenda" />
         <TextBox Name="TxtSenha" Classes="campo revealPasswordButton" PasswordChar="●" Margin="0,0,0,8"
                  AutomationProperties.Name="{DynamicResource Login.MasterPassword}"
                  AutomationProperties.HelpText="{DynamicResource A11y.PasswordFieldHelp}"
@@ -71,7 +75,7 @@
                    Foreground="{DynamicResource StrengthWeak}"
                    TextWrapping="Wrap"
                    AutomationProperties.LiveSetting="Assertive"
-                   MinHeight="20" />
+                   MinHeight="34" />
       </StackPanel>
     </DockPanel>
   </Border>

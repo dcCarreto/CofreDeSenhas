@@ -41,7 +41,7 @@ public class RepositorioSenhaTests : IDisposable
         };
 
         await _repositorio.AdicionarAsync(senha);
-        var total = await _repositorio.ContarAsync();
+        var total = (await _repositorio.ListarTodosAsync()).Count;
 
         Assert.Equal(1, total);
     }
@@ -102,6 +102,43 @@ public class RepositorioSenhaTests : IDisposable
     }
 
     [Fact]
+    public async Task RegistrarCopiaAsync_GravaApenasADataDoCampoIndicado()
+    {
+        var senha = new Senha
+        {
+            Id = Guid.NewGuid(),
+            NomeServico = "Gmail",
+            Usuario = "user@gmail.com",
+            SenhaHash = _criptografia.Criptografar("senha123"),
+            Categoria = Categoria.Personal
+        };
+
+        await _repositorio.AdicionarAsync(senha);
+
+        await _repositorio.RegistrarCopiaAsync(senha.Id, TipoCampoCopiado.Senha);
+        var apenasSenha = await _repositorio.ObterPorIdAsync(senha.Id);
+
+        Assert.NotNull(apenasSenha!.DataUltimaCopiaSenha);
+        Assert.Null(apenasSenha.DataUltimaCopiaUsuario);
+        Assert.Null(apenasSenha.DataUltimaCopiaTotp);
+
+        await _repositorio.RegistrarCopiaAsync(senha.Id, TipoCampoCopiado.Usuario);
+        await _repositorio.RegistrarCopiaAsync(senha.Id, TipoCampoCopiado.Totp);
+        var todos = await _repositorio.ObterPorIdAsync(senha.Id);
+
+        Assert.NotNull(todos!.DataUltimaCopiaSenha);
+        Assert.NotNull(todos.DataUltimaCopiaUsuario);
+        Assert.NotNull(todos.DataUltimaCopiaTotp);
+    }
+
+    [Fact]
+    public async Task RegistrarCopiaAsync_ComIdInexistente_LancaExcecao()
+    {
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            _repositorio.RegistrarCopiaAsync(Guid.NewGuid(), TipoCampoCopiado.Senha));
+    }
+
+    [Fact]
     public async Task RemoverAsync_ComSenhaExistente_Remove()
     {
         var senha = new Senha
@@ -116,91 +153,9 @@ public class RepositorioSenhaTests : IDisposable
         await _repositorio.AdicionarAsync(senha);
 
         await _repositorio.RemoverAsync(senha.Id);
-        var total = await _repositorio.ContarAsync();
+        var total = (await _repositorio.ListarTodosAsync()).Count;
 
         Assert.Equal(0, total);
-    }
-
-    [Fact]
-    public async Task BuscarPorCategoriaAsync_RetornaApenasCategoriaSolicitada()
-    {
-        var senhaWork = new Senha
-        {
-            Id = Guid.NewGuid(),
-            NomeServico = "Jira",
-            Usuario = "dev@company.com",
-            SenhaHash = _criptografia.Criptografar("jira123"),
-            Categoria = Categoria.Work
-        };
-
-        var senhaPersonal = new Senha
-        {
-            Id = Guid.NewGuid(),
-            NomeServico = "Gmail",
-            Usuario = "user@gmail.com",
-            SenhaHash = _criptografia.Criptografar("gmail123"),
-            Categoria = Categoria.Personal
-        };
-
-        await _repositorio.AdicionarAsync(senhaWork);
-        await _repositorio.AdicionarAsync(senhaPersonal);
-
-        var workSenhas = await _repositorio.BuscarPorCategoriaAsync(Categoria.Work);
-
-        Assert.Single(workSenhas);
-        Assert.Equal("Jira", workSenhas[0].NomeServico);
-    }
-
-    [Fact]
-    public async Task BuscarPorServicoAsync_RetornaBuscaInsensitiva()
-    {
-        var senha = new Senha
-        {
-            Id = Guid.NewGuid(),
-            NomeServico = "GmAiL",
-            Usuario = "user@gmail.com",
-            SenhaHash = _criptografia.Criptografar("senha123"),
-            Categoria = Categoria.Personal
-        };
-
-        await _repositorio.AdicionarAsync(senha);
-
-        var resultado = await _repositorio.BuscarPorServicoAsync("gmail");
-
-        Assert.Single(resultado);
-        Assert.Equal("GmAiL", resultado[0].NomeServico);
-    }
-
-    [Fact]
-    public async Task ListarFavoritosAsync_RetornaApenasMarkedFavorites()
-    {
-        var senhaFavorita = new Senha
-        {
-            Id = Guid.NewGuid(),
-            NomeServico = "Gmail",
-            Usuario = "user@gmail.com",
-            SenhaHash = _criptografia.Criptografar("senha123"),
-            Categoria = Categoria.Personal,
-            Favorito = true
-        };
-
-        var senhaNormal = new Senha
-        {
-            Id = Guid.NewGuid(),
-            NomeServico = "GitHub",
-            Usuario = "dev@github.com",
-            SenhaHash = _criptografia.Criptografar("github123"),
-            Categoria = Categoria.Work,
-            Favorito = false
-        };
-
-        await _repositorio.AdicionarAsync(senhaFavorita);
-        await _repositorio.AdicionarAsync(senhaNormal);
-
-        var favoritos = await _repositorio.ListarFavoritosAsync();
-
-        Assert.Single(favoritos);
-        Assert.Equal("Gmail", favoritos[0].NomeServico);
     }
 
     [Fact]
@@ -286,6 +241,116 @@ public class RepositorioSenhaTests : IDisposable
             _repositorio.AtualizarAsync(senha));
     }
 
+    [Fact]
+    public async Task RemoverAsync_MoveParaLixeiraComDataDeExclusao()
+    {
+        var senha = new Senha
+        {
+            Id = Guid.NewGuid(),
+            NomeServico = "GitHub",
+            Usuario = "dev@github.com",
+            SenhaHash = _criptografia.Criptografar("github123"),
+            Categoria = Categoria.Work
+        };
+
+        await _repositorio.AdicionarAsync(senha);
+        await _repositorio.RemoverAsync(senha.Id);
+
+        var lixeira = await _repositorio.ListarLixeiraAsync();
+
+        Assert.Single(lixeira);
+        Assert.True(lixeira[0].NaLixeira);
+        Assert.NotNull(lixeira[0].DataExclusao);
+        Assert.Empty(await _repositorio.ListarTodosAsync());
+    }
+
+    [Fact]
+    public async Task RestaurarAsync_TrazDeVoltaParaListarTodosELimpaDataExclusao()
+    {
+        var senha = new Senha
+        {
+            Id = Guid.NewGuid(),
+            NomeServico = "GitHub",
+            Usuario = "dev@github.com",
+            SenhaHash = _criptografia.Criptografar("github123"),
+            Categoria = Categoria.Work
+        };
+
+        await _repositorio.AdicionarAsync(senha);
+        await _repositorio.RemoverAsync(senha.Id);
+        await _repositorio.RestaurarAsync(senha.Id);
+
+        var ativas = await _repositorio.ListarTodosAsync();
+
+        Assert.Single(ativas);
+        Assert.False(ativas[0].NaLixeira);
+        Assert.Null(ativas[0].DataExclusao);
+        Assert.Empty(await _repositorio.ListarLixeiraAsync());
+    }
+
+    [Fact]
+    public async Task RemoverDefinitivamenteAsync_ApagaDaLixeiraParaSempre()
+    {
+        var senha = new Senha
+        {
+            Id = Guid.NewGuid(),
+            NomeServico = "GitHub",
+            Usuario = "dev@github.com",
+            SenhaHash = _criptografia.Criptografar("github123"),
+            Categoria = Categoria.Work
+        };
+
+        await _repositorio.AdicionarAsync(senha);
+        await _repositorio.RemoverAsync(senha.Id);
+        await _repositorio.RemoverDefinitivamenteAsync(senha.Id);
+
+        Assert.Empty(await _repositorio.ListarLixeiraAsync());
+        Assert.Empty(await _repositorio.ListarTodosAsync());
+        Assert.Null(await _repositorio.ObterPorIdAsync(senha.Id));
+    }
+
+    [Fact]
+    public async Task EsvaziarLixeiraAsync_RemoveSomenteOsItensNaLixeira()
+    {
+        var ativa = new Senha
+        {
+            Id = Guid.NewGuid(),
+            NomeServico = "Ativa",
+            Usuario = "ativa@teste.com",
+            SenhaHash = _criptografia.Criptografar("ativa123"),
+            Categoria = Categoria.Personal
+        };
+        var excluida1 = new Senha
+        {
+            Id = Guid.NewGuid(),
+            NomeServico = "Excluida1",
+            Usuario = "e1@teste.com",
+            SenhaHash = _criptografia.Criptografar("e1"),
+            Categoria = Categoria.Other
+        };
+        var excluida2 = new Senha
+        {
+            Id = Guid.NewGuid(),
+            NomeServico = "Excluida2",
+            Usuario = "e2@teste.com",
+            SenhaHash = _criptografia.Criptografar("e2"),
+            Categoria = Categoria.Other
+        };
+
+        await _repositorio.AdicionarAsync(ativa);
+        await _repositorio.AdicionarAsync(excluida1);
+        await _repositorio.AdicionarAsync(excluida2);
+        await _repositorio.RemoverAsync(excluida1.Id);
+        await _repositorio.RemoverAsync(excluida2.Id);
+
+        await _repositorio.EsvaziarLixeiraAsync();
+
+        Assert.Empty(await _repositorio.ListarLixeiraAsync());
+        var restantes = await _repositorio.ListarTodosAsync();
+        Assert.Single(restantes);
+        Assert.Equal("Ativa", restantes[0].NomeServico);
+    }
+
     public void Dispose()
     {
         try
@@ -296,26 +361,5 @@ public class RepositorioSenhaTests : IDisposable
         catch
         {
         }
-    }
-
-    [Fact]
-    public async Task ContarAsync_ComMultiplasSenhas_RetornaQuantidadeCorreta()
-    {
-        for (int i = 0; i < 5; i++)
-        {
-            var senha = new Senha
-            {
-                Id = Guid.NewGuid(),
-                NomeServico = $"Servico{i}",
-                Usuario = $"user{i}@example.com",
-                SenhaHash = _criptografia.Criptografar($"senha{i}"),
-                Categoria = Categoria.Personal
-            };
-            await _repositorio.AdicionarAsync(senha);
-        }
-
-        var total = await _repositorio.ContarAsync();
-
-        Assert.Equal(5, total);
     }
 }

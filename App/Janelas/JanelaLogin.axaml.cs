@@ -13,14 +13,14 @@ namespace CofreDeSenhas.Janelas
     public partial class JanelaLogin : Window
     {
         private readonly AutenticacaoMestra _auth;
-        private readonly Action<byte[]> _aoAutenticar;
+        private readonly Action<byte[], string?> _aoAutenticar;
         private readonly bool _primeiroAcesso;
         private readonly ServicoDesbloqueioBiometrico _biometria = new();
 
         private BiometriaModo _modoBiometria = BiometriaModo.Desbloquear;
         private int _tentativas;
 
-        public JanelaLogin(AutenticacaoMestra auth, Action<byte[]> aoAutenticar)
+        public JanelaLogin(AutenticacaoMestra auth, Action<byte[], string?> aoAutenticar)
         {
             _auth = auth;
             _aoAutenticar = aoAutenticar;
@@ -42,6 +42,12 @@ namespace CofreDeSenhas.Janelas
             AtualizarTextos();
             ConfigurarAcessibilidadeLeitorTela();
             PainelConfirmar.IsVisible = _primeiroAcesso;
+            Medidor.IsVisible = _primeiroAcesso;
+            LblPrimeiroAcessoAviso.IsVisible = _primeiroAcesso;
+            TxtSenha.TextChanged += (s, e) =>
+            {
+                if (_primeiroAcesso) Medidor.Avaliar(TxtSenha.Text);
+            };
 
             BtnAcessibilidade.Flyout!.Opened += (s, e) =>
                 Acessibilidade.MarcarMenus(MenuDaltonismoLogin, MenuEscalaLogin, MenuAltoContrasteLogin,
@@ -93,40 +99,15 @@ namespace CofreDeSenhas.Janelas
             Gerador.AtualizarTema();
         }
 
-        private void Daltonismo_Alterado(object? sender, RoutedEventArgs e)
-        {
-            if (sender is MenuItem item)
-                Acessibilidade.SelecionarDaltonismo(item.Tag as string);
-        }
+        private void Daltonismo_Alterado(object? sender, RoutedEventArgs e) => Acessibilidade.TratarClickDaltonismo(sender);
 
-        private void Escala_Alterada(object? sender, RoutedEventArgs e)
-        {
-            if (sender is MenuItem item)
-                Acessibilidade.SelecionarEscala(item.Tag as string);
-        }
+        private void Escala_Alterada(object? sender, RoutedEventArgs e) => Acessibilidade.TratarClickEscala(sender);
 
-        private void AltoContraste_Alterado(object? sender, RoutedEventArgs e)
-        {
-            if (sender is MenuItem item)
-                Acessibilidade.SelecionarAltoContraste(item.IsChecked);
-        }
+        private void AltoContraste_Alterado(object? sender, RoutedEventArgs e) => Acessibilidade.TratarClickAltoContraste(sender);
 
-        private void ReduzirAnimacoes_Alterado(object? sender, RoutedEventArgs e)
-        {
-            if (sender is MenuItem item)
-                Acessibilidade.SelecionarReducaoMovimento(item.IsChecked);
-        }
+        private void ReduzirAnimacoes_Alterado(object? sender, RoutedEventArgs e) => Acessibilidade.TratarClickReducaoMovimento(sender);
 
-        private void LeitorTela_Alterado(object? sender, RoutedEventArgs e)
-        {
-            if (sender is MenuItem item)
-            {
-                Acessibilidade.SelecionarLeitorTela(item.IsChecked);
-                Acessibilidade.Anunciar(this, Idioma.Texto(Acessibilidade.LeitorTela
-                    ? "A11y.ScreenReaderEnabled"
-                    : "A11y.ScreenReaderDisabled"), assertivo: true, forcar: true);
-            }
-        }
+        private void LeitorTela_Alterado(object? sender, RoutedEventArgs e) => Acessibilidade.TratarClickLeitorTela(this, sender);
 
         private async void Principal_Click(object? sender, RoutedEventArgs e) => await ConfirmarAsync();
 
@@ -187,7 +168,7 @@ namespace CofreDeSenhas.Janelas
 
             if (_primeiroAcesso)
             {
-                if (senha.Length < 8)
+                if (senha.Length < AutenticacaoMestra.TamanhoMinimoSenha)
                 {
                     MostrarErro(Idioma.Texto("Login.Error.PasswordLength"));
                     return;
@@ -205,13 +186,13 @@ namespace CofreDeSenhas.Janelas
                 }
                 catch (Exception ex)
                 {
-                    MostrarErro(ex.Message);
+                    MostrarErro(ErrosUi.MensagemAmigavel(ex));
                     return;
                 }
 
                 await QrBackup.OferecerSalvarAsync(this, senha);
                 await OferecerBiometriaAsync(chave);
-                _aoAutenticar(chave);
+                _aoAutenticar(chave, senha);
             }
             else
             {
@@ -224,7 +205,8 @@ namespace CofreDeSenhas.Janelas
                 var chave = _auth.Autenticar(senha);
                 if (chave != null)
                 {
-                    _aoAutenticar(chave);
+                    var chaveMigrada = await MigrarKdfSeNecessarioAsync(senha);
+                    _aoAutenticar(chaveMigrada ?? chave, senha);
                     return;
                 }
 
@@ -253,6 +235,32 @@ namespace CofreDeSenhas.Janelas
             }
         }
 
+        private async Task<byte[]?> MigrarKdfSeNecessarioAsync(string senha)
+        {
+            try
+            {
+                var novaChave = await new ServicoMudancaSenhaMestra(_auth.PastaApp)
+                    .MigrarKdfSeNecessarioAsync(senha);
+                if (novaChave == null)
+                    return null;
+
+                if (_biometria.EstaHabilitado)
+                {
+                    await _biometria.DesabilitarAsync();
+                    await CaixaMensagem.MostrarAsync(this,
+                        Idioma.Texto("Biometric.DisabledAfterKdfUpgrade"),
+                        Idioma.Texto("Biometric.Title"),
+                        TipoMensagem.Info);
+                }
+
+                return novaChave;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
         private async Task DesbloquearComBiometriaAsync()
         {
             LblErro.Text = "";
@@ -262,7 +270,7 @@ namespace CofreDeSenhas.Janelas
             var resultado = await _biometria.DesbloquearAsync(this, _auth);
             if (resultado.Sucesso && resultado.Chave != null)
             {
-                _aoAutenticar(resultado.Chave);
+                _aoAutenticar(resultado.Chave, null);
                 return;
             }
 
@@ -306,7 +314,7 @@ namespace CofreDeSenhas.Janelas
 
             if (resultado.Sucesso)
             {
-                _aoAutenticar(chave);
+                _aoAutenticar(chave, senha);
                 return;
             }
 
@@ -372,12 +380,7 @@ namespace CofreDeSenhas.Janelas
             }
         }
 
-        private void MostrarErro(string msg)
-        {
-            LblErro.Text = msg;
-            AutomationProperties.SetName(LblErro, msg);
-            Acessibilidade.Anunciar(this, msg, assertivo: true);
-        }
+        private void MostrarErro(string msg) => this.MostrarErroInline(LblErro, msg);
 
         private enum BiometriaModo
         {

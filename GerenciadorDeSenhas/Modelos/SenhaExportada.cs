@@ -2,6 +2,7 @@ namespace GerenciadorDeSenhas.Modelos
 {
     public class SenhaExportada
     {
+        public Guid Id { get; set; } = Guid.NewGuid();
         public string NomeServico { get; set; } = string.Empty;
         public string Usuario { get; set; } = string.Empty;
         public string Senha { get; set; } = string.Empty;
@@ -9,9 +10,16 @@ namespace GerenciadorDeSenhas.Modelos
         public Categoria Categoria { get; set; }
         public List<string> Etiquetas { get; set; } = new();
         public string? Notas { get; set; }
+        public TipoCredencial Tipo { get; set; } = TipoCredencial.Login;
+        public Dictionary<string, string> CamposExtras { get; set; } = new();
         public string? TotpSegredo { get; set; }
         public List<HistoricoSenhaExportada> Historico { get; set; } = new();
+        public List<CodigoRecuperacaoExportado> CodigosRecuperacao { get; set; } = new();
+        public List<AnexoExportado> Anexos { get; set; } = new();
         public bool Favorito { get; set; }
+        public bool Fixado { get; set; }
+        public bool NaLixeira { get; set; }
+        public DateTime? DataExclusao { get; set; }
         public DateTime DataCriacao { get; set; }
         public DateTime DataAtualizacao { get; set; }
     }
@@ -20,5 +28,17 @@ namespace GerenciadorDeSenhas.Modelos
     {
         public string Senha { get; set; } = string.Empty;
         public DateTime DataAlteracao { get; set; }
+    }
+
+    public class CodigoRecuperacaoExportado
+    {
+        public string Codigo { get; set; } = string.Empty;
+        public bool Usado { get; set; }
+    }
+
+    public class AnexoExportado
+    {
+        public string NomeArquivo { get; set; } = string.Empty;
+        public string ConteudoBase64 { get; set; } = string.Empty;
     }
 }

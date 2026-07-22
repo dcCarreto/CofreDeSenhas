@@ -1,4 +1,4 @@
-using System.Text.RegularExpressions;
+using GerenciadorDeSenhas.Excecoes;
 using GerenciadorDeSenhas.Modelos;
 using GerenciadorDeSenhas.Repositorios;
 
@@ -20,7 +20,8 @@ namespace GerenciadorDeSenhas.Servicos
 
         public async Task<Senha> CriarSenhaAsync(string nomeServico, string usuario, string senhaPlaintext,
             Categoria categoria, string? url = null, string? notas = null, string? totpSegredo = null,
-            IEnumerable<string>? etiquetas = null)
+            IEnumerable<string>? etiquetas = null, TipoCredencial tipo = TipoCredencial.Login,
+            IReadOnlyDictionary<string, string>? camposExtras = null)
         {
             ValidarEntrada(nomeServico, usuario, senhaPlaintext);
 
@@ -36,6 +37,8 @@ namespace GerenciadorDeSenhas.Servicos
                 Notas = notas,
                 TotpSegredo = CifrarTotp(totpSegredo),
                 Favorito = false,
+                Tipo = tipo,
+                CamposExtras = CifrarCamposExtras(camposExtras),
                 DataCriacao = DateTime.UtcNow,
                 DataAtualizacao = DateTime.UtcNow
             };
@@ -45,13 +48,12 @@ namespace GerenciadorDeSenhas.Servicos
         }
 
         public async Task AtualizarSenhaAsync(Guid id, string nomeServico, string usuario, string senhaPlaintext,
-            Categoria categoria, string? url = null, string? notas = null, IEnumerable<string>? etiquetas = null)
+            Categoria categoria, string? url = null, string? notas = null, IEnumerable<string>? etiquetas = null,
+            TipoCredencial? tipo = null, IReadOnlyDictionary<string, string>? camposExtras = null)
         {
             ValidarEntrada(nomeServico, usuario, senhaPlaintext);
 
-            var senha = await _repositorio.ObterPorIdAsync(id);
-            if (senha == null)
-                throw new InvalidOperationException($"Senha com ID {id} não encontrada");
+            var senha = await ObterOuFalharAsync(id);
 
             RegistrarHistoricoSeMudou(senha, senhaPlaintext);
 
@@ -63,21 +65,86 @@ namespace GerenciadorDeSenhas.Servicos
                 senha.Etiquetas = Etiquetas.Normalizar(etiquetas);
             senha.Url = url;
             senha.Notas = notas;
+            if (tipo.HasValue)
+                senha.Tipo = tipo.Value;
+            if (camposExtras != null)
+                senha.CamposExtras = CifrarCamposExtras(camposExtras);
             senha.DataAtualizacao = DateTime.UtcNow;
 
             await _repositorio.AtualizarAsync(senha);
         }
 
+        private Dictionary<string, string> CifrarCamposExtras(IReadOnlyDictionary<string, string>? camposExtras)
+        {
+            var resultado = new Dictionary<string, string>();
+            if (camposExtras == null)
+                return resultado;
+
+            foreach (var (chave, valor) in camposExtras)
+                if (!string.IsNullOrWhiteSpace(valor))
+                    resultado[chave] = _criptografia.Criptografar(valor);
+
+            return resultado;
+        }
+
         public async Task DefinirTotpAsync(Guid id, string? segredoPlaintext)
         {
-            var senha = await _repositorio.ObterPorIdAsync(id);
-            if (senha == null)
-                throw new InvalidOperationException($"Senha com ID {id} não encontrada");
+            var senha = await ObterOuFalharAsync(id);
 
             senha.TotpSegredo = CifrarTotp(segredoPlaintext);
             senha.DataAtualizacao = DateTime.UtcNow;
 
             await _repositorio.AtualizarAsync(senha);
+        }
+
+        public async Task AdicionarCodigosRecuperacaoAsync(Guid id, IEnumerable<(string Codigo, bool Usado)> codigos)
+        {
+            var senha = await ObterOuFalharAsync(id);
+
+            var novos = (codigos ?? Enumerable.Empty<(string Codigo, bool Usado)>())
+                .Where(c => !string.IsNullOrWhiteSpace(c.Codigo))
+                .Select(c => new CodigoRecuperacao
+                {
+                    Codigo = _criptografia.Criptografar(c.Codigo.Trim()),
+                    Usado = c.Usado
+                });
+
+            senha.CodigosRecuperacao.AddRange(novos);
+            senha.DataAtualizacao = DateTime.UtcNow;
+
+            await _repositorio.AtualizarAsync(senha);
+        }
+
+        public async Task MarcarCodigoRecuperacaoAsync(Guid id, Guid codigoId, bool usado)
+        {
+            var senha = await ObterOuFalharAsync(id);
+
+            var codigo = senha.CodigosRecuperacao.FirstOrDefault(c => c.Id == codigoId);
+            if (codigo == null)
+                throw new InvalidOperationException($"Código de recuperação com ID {codigoId} não encontrado");
+
+            codigo.Usado = usado;
+            senha.DataAtualizacao = DateTime.UtcNow;
+
+            await _repositorio.AtualizarAsync(senha);
+        }
+
+        public async Task RemoverCodigoRecuperacaoAsync(Guid id, Guid codigoId)
+        {
+            var senha = await ObterOuFalharAsync(id);
+
+            senha.CodigosRecuperacao.RemoveAll(c => c.Id == codigoId);
+            senha.DataAtualizacao = DateTime.UtcNow;
+
+            await _repositorio.AtualizarAsync(senha);
+        }
+
+        private async Task<Senha> ObterOuFalharAsync(Guid id)
+        {
+            var senha = await _repositorio.ObterPorIdAsync(id);
+            if (senha == null)
+                throw new InvalidOperationException($"Senha com ID {id} não encontrada");
+            return senha;
         }
 
         private string? CifrarTotp(string? segredoPlaintext)
@@ -115,16 +182,14 @@ namespace GerenciadorDeSenhas.Servicos
 
         public async Task RemoverSenhaAsync(Guid id)
         {
-            var senha = await _repositorio.ObterPorIdAsync(id);
-            if (senha == null)
-                throw new InvalidOperationException($"Senha com ID {id} não encontrada");
+            var senha = await ObterOuFalharAsync(id);
 
             await _repositorio.RemoverAsync(id);
         }
 
-        public async Task<Senha?> ObterSenhaAsync(Guid id)
+        public async Task LimparCofreAsync()
         {
-            return await _repositorio.ObterPorIdAsync(id);
+            await _repositorio.MoverTudoParaLixeiraAsync();
         }
 
         public async Task<List<Senha>> ListarTodosAsync()
@@ -132,47 +197,29 @@ namespace GerenciadorDeSenhas.Servicos
             return await _repositorio.ListarTodosAsync();
         }
 
-        public async Task<List<Senha>> BuscarPorServicoAsync(string nomeServico)
+        public async Task<List<Senha>> ListarLixeiraAsync()
         {
-            if (string.IsNullOrWhiteSpace(nomeServico))
-                throw new ArgumentException("Nome do serviço não pode ser vazio");
-
-            return await _repositorio.BuscarPorServicoAsync(nomeServico);
+            return await _repositorio.ListarLixeiraAsync();
         }
 
-        public async Task<List<Senha>> ListarPorCategoriaAsync(Categoria categoria)
+        public async Task RestaurarSenhaAsync(Guid id)
         {
-            return await _repositorio.BuscarPorCategoriaAsync(categoria);
+            await _repositorio.RestaurarAsync(id);
         }
 
-        public async Task<List<Senha>> ListarPorEtiquetaAsync(string etiqueta)
+        public async Task RemoverDefinitivamenteAsync(Guid id)
         {
-            if (string.IsNullOrWhiteSpace(etiqueta))
-                throw new ArgumentException("A etiqueta não pode ser vazia");
-
-            var alvo = etiqueta.Trim();
-            var todas = await _repositorio.ListarTodosAsync();
-            return todas
-                .Where(s => s.Etiquetas.Any(e => string.Equals(e, alvo, StringComparison.OrdinalIgnoreCase)))
-                .ToList();
+            await _repositorio.RemoverDefinitivamenteAsync(id);
         }
 
-        public async Task<List<string>> ListarEtiquetasAsync()
+        public async Task EsvaziarLixeiraAsync()
         {
-            var todas = await _repositorio.ListarTodosAsync();
-            return Etiquetas.Distintas(todas);
-        }
-
-        public async Task<List<Senha>> ListarFavoritosAsync()
-        {
-            return await _repositorio.ListarFavoritosAsync();
+            await _repositorio.EsvaziarLixeiraAsync();
         }
 
         public async Task MarcarComoFavoritoAsync(Guid id)
         {
-            var senha = await _repositorio.ObterPorIdAsync(id);
-            if (senha == null)
-                throw new InvalidOperationException($"Senha com ID {id} não encontrada");
+            var senha = await ObterOuFalharAsync(id);
 
             senha.Favorito = true;
             senha.DataAtualizacao = DateTime.UtcNow;
@@ -181,13 +228,107 @@ namespace GerenciadorDeSenhas.Servicos
 
         public async Task RemoverDeFavoritoAsync(Guid id)
         {
-            var senha = await _repositorio.ObterPorIdAsync(id);
-            if (senha == null)
-                throw new InvalidOperationException($"Senha com ID {id} não encontrada");
+            var senha = await ObterOuFalharAsync(id);
 
             senha.Favorito = false;
             senha.DataAtualizacao = DateTime.UtcNow;
             await _repositorio.AtualizarAsync(senha);
+        }
+
+        public async Task MarcarComoFixadoAsync(Guid id)
+        {
+            var senha = await ObterOuFalharAsync(id);
+
+            senha.Fixado = true;
+            senha.DataAtualizacao = DateTime.UtcNow;
+            await _repositorio.AtualizarAsync(senha);
+        }
+
+        public async Task RemoverFixacaoAsync(Guid id)
+        {
+            var senha = await ObterOuFalharAsync(id);
+
+            senha.Fixado = false;
+            senha.DataAtualizacao = DateTime.UtcNow;
+            await _repositorio.AtualizarAsync(senha);
+        }
+
+        public async Task RegistrarCopiaAsync(Guid id, TipoCampoCopiado campo)
+        {
+            await _repositorio.RegistrarCopiaAsync(id, campo);
+        }
+
+        public async Task AplicarSincronizadoAsync(SenhaExportada item)
+        {
+            var historico = item.Historico
+                .Where(h => !string.IsNullOrEmpty(h.Senha))
+                .Select(h => new HistoricoSenha
+                {
+                    SenhaHash = _criptografia.Criptografar(h.Senha),
+                    DataAlteracao = h.DataAlteracao
+                })
+                .ToList();
+
+            var codigosRecuperacao = item.CodigosRecuperacao
+                .Where(c => !string.IsNullOrEmpty(c.Codigo))
+                .Select(c => new CodigoRecuperacao
+                {
+                    Codigo = _criptografia.Criptografar(c.Codigo),
+                    Usado = c.Usado
+                })
+                .ToList();
+
+            var existente = await _repositorio.ObterPorIdAsync(item.Id);
+            if (existente != null)
+            {
+                existente.NomeServico = item.NomeServico;
+                existente.Usuario = item.Usuario;
+                existente.SenhaHash = _criptografia.Criptografar(item.Senha);
+                existente.Url = item.Url;
+                existente.Categoria = item.Categoria;
+                existente.Etiquetas = Etiquetas.Normalizar(item.Etiquetas);
+                existente.Notas = item.Notas;
+                existente.Tipo = item.Tipo;
+                existente.CamposExtras = CifrarCamposExtras(item.CamposExtras);
+                existente.TotpSegredo = CifrarTotp(item.TotpSegredo);
+                existente.Historico = historico;
+                existente.CodigosRecuperacao = codigosRecuperacao;
+                existente.Favorito = item.Favorito;
+                existente.Fixado = item.Fixado;
+                existente.NaLixeira = item.NaLixeira;
+                existente.DataExclusao = item.DataExclusao;
+                existente.DataCriacao = item.DataCriacao;
+                existente.DataAtualizacao = item.DataAtualizacao;
+
+                await _repositorio.AtualizarAsync(existente);
+            }
+            else
+            {
+                var novo = new Senha
+                {
+                    Id = item.Id,
+                    NomeServico = item.NomeServico,
+                    Usuario = item.Usuario,
+                    SenhaHash = _criptografia.Criptografar(item.Senha),
+                    Url = item.Url,
+                    Categoria = item.Categoria,
+                    Etiquetas = Etiquetas.Normalizar(item.Etiquetas),
+                    Notas = item.Notas,
+                    Tipo = item.Tipo,
+                    CamposExtras = CifrarCamposExtras(item.CamposExtras),
+                    TotpSegredo = CifrarTotp(item.TotpSegredo),
+                    Historico = historico,
+                    CodigosRecuperacao = codigosRecuperacao,
+                    Favorito = item.Favorito,
+                    Fixado = item.Fixado,
+                    NaLixeira = item.NaLixeira,
+                    DataExclusao = item.DataExclusao,
+                    DataCriacao = item.DataCriacao,
+                    DataAtualizacao = item.DataAtualizacao
+                };
+
+                await _repositorio.AdicionarAsync(novo);
+            }
         }
 
         public async Task PersistirAsync()
@@ -195,53 +336,25 @@ namespace GerenciadorDeSenhas.Servicos
             await _repositorio.SalvarAsync();
         }
 
-        public bool ValidarForteSenha(string senha)
-        {
-            if (string.IsNullOrWhiteSpace(senha))
-                return false;
-
-            if (senha.Length < 12)
-                return false;
-
-            if (!Regex.IsMatch(senha, @"[A-Z]"))
-                return false;
-
-            if (!Regex.IsMatch(senha, @"[a-z]"))
-                return false;
-
-            if (!Regex.IsMatch(senha, @"\d"))
-                return false;
-
-            if (!Regex.IsMatch(senha, @"[!@#$%^&*()_+\-=\[\]{};':""\|,.<>\/?]"))
-                return false;
-
-            return true;
-        }
-
-        public int ContarSenhas()
-        {
-            return _repositorio.ContarAsync().Result;
-        }
-
         private static void ValidarEntrada(string nomeServico, string usuario, string senhaPlaintext)
         {
             if (string.IsNullOrWhiteSpace(nomeServico))
-                throw new ArgumentException("Nome do serviço não pode ser vazio");
+                throw new ErroLocalizavel("Entry.Error.ServiceRequired");
 
             if (string.IsNullOrWhiteSpace(usuario))
-                throw new ArgumentException("Usuário não pode ser vazio");
+                throw new ErroLocalizavel("Entry.Error.UserRequired");
 
             if (string.IsNullOrWhiteSpace(senhaPlaintext))
-                throw new ArgumentException("Senha não pode ser vazia");
+                throw new ErroLocalizavel("Entry.Error.PasswordRequired");
 
             if (nomeServico.Length > 100)
-                throw new ArgumentException("Nome do serviço não pode exceder 100 caracteres");
+                throw new ErroLocalizavel("Entry.Error.ServiceTooLong", 100);
 
             if (usuario.Length > 255)
-                throw new ArgumentException("Usuário não pode exceder 255 caracteres");
+                throw new ErroLocalizavel("Entry.Error.UserTooLong", 255);
 
             if (senhaPlaintext.Length > 1000)
-                throw new ArgumentException("Senha não pode exceder 1000 caracteres");
+                throw new ErroLocalizavel("Entry.Error.PasswordTooLong", 1000);
         }
     }
 }

@@ -1,3 +1,4 @@
+using GerenciadorDeSenhas.Excecoes;
 using GerenciadorDeSenhas.Modelos;
 using GerenciadorDeSenhas.Servicos;
 using Xunit;
@@ -196,19 +197,19 @@ public class ServicoImportacaoCsvTests
         var csv = "name,username,url\n" +
                   "Site,user,https://x";
 
-        Assert.Throws<InvalidOperationException>(() => _servico.Importar(csv));
+        Assert.Throws<ErroLocalizavel>(() => _servico.Importar(csv));
     }
 
     [Fact]
     public void Importar_ConteudoVazio_LancaInvalidOperation()
     {
-        Assert.Throws<InvalidOperationException>(() => _servico.Importar(""));
+        Assert.Throws<ErroLocalizavel>(() => _servico.Importar(""));
     }
 
     [Fact]
     public void Importar_ApenasCabecalho_LancaInvalidOperation()
     {
-        Assert.Throws<InvalidOperationException>(() => _servico.Importar("name,username,password"));
+        Assert.Throws<ErroLocalizavel>(() => _servico.Importar("name,username,password"));
     }
 
     [Fact]
@@ -231,7 +232,7 @@ public class ServicoImportacaoCsvTests
     [Fact]
     public void ImportarArquivo_Inexistente_LancaInvalidOperation()
     {
-        Assert.Throws<InvalidOperationException>(() =>
+        Assert.Throws<ErroLocalizavel>(() =>
             _servico.ImportarArquivo(Path.Combine(Path.GetTempPath(), "nao_existe_" + Guid.NewGuid().ToString("N") + ".csv")));
     }
 }

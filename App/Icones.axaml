@@ -1,42 +1,66 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-  <StreamGeometry x:Key="IconeCofre">M8 10 V7 A4 4 0 0 1 16 7 V10 M8 10 H16 A2 2 0 0 1 18 12 V17 A2 2 0 0 1 16 19 H8 A2 2 0 0 1 6 17 V12 A2 2 0 0 1 8 10 Z</StreamGeometry>
-  <StreamGeometry x:Key="IconeFavoritas">M12 3.5 L14.12 9.09 L20.08 9.37 L15.42 13.11 L17 18.88 L12 15.6 L7 18.88 L8.58 13.11 L3.92 9.37 L9.88 9.09 Z</StreamGeometry>
-  <StreamGeometry x:Key="IconeRecentes">M4 12 A8 8 0 0 0 20 12 A8 8 0 0 0 4 12 Z M12 7.5 V12.3 L15.3 14.3</StreamGeometry>
-  <StreamGeometry x:Key="IconeMenu">M4 7 H20 M4 12 H20 M4 17 H20</StreamGeometry>
-  <StreamGeometry x:Key="IconeConfiguracoes">M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z</StreamGeometry>
-  <StreamGeometry x:Key="IconeSol">M8 12 A4 4 0 0 0 16 12 A4 4 0 0 0 8 12 Z M18 12 H20.5 M16.24 16.24 L18.01 18.01 M12 18 V20.5 M7.76 16.24 L5.99 18.01 M6 12 H3.5 M7.76 7.76 L5.99 5.99 M12 6 V3.5 M16.24 7.76 L18.01 5.99</StreamGeometry>
-  <StreamGeometry x:Key="IconeLua">M19.5 13A7.5 7.5 0 1 1 11 5.5a6 6 0 0 0 8.5 7.5Z</StreamGeometry>
-  <StreamGeometry x:Key="IconeMinimizar">M5 12 H19</StreamGeometry>
+  <StreamGeometry x:Key="IconeCofre">M5 4 H19 A1 1 0 0 1 20 5 V19 A1 1 0 0 1 19 20 H5 A1 1 0 0 1 4 19 V5 A1 1 0 0 1 5 4 Z M6.5 4 V20 M17 9 V15 M12.5 12 A2.5 2.5 0 1 0 12.49 12</StreamGeometry>
+  <StreamGeometry x:Key="IconeFavoritas">M11.525 2.295 A0.53 0.53 0 0 1 12.475 2.295 L14.785 6.974 A2.123 2.123 0 0 0 16.38 8.134 L21.546 8.89 A0.53 0.53 0 0 1 21.84 9.794 L18.104 13.432 A2.123 2.123 0 0 0 17.493 15.31 L18.375 20.45 A0.53 0.53 0 0 1 17.604 21.01 L12.986 18.582 A2.122 2.122 0 0 0 11.013 18.582 L6.396 21.01 A0.53 0.53 0 0 1 5.626 20.45 L6.507 15.311 A2.122 2.122 0 0 0 5.896 13.432 L2.16 9.795 A0.53 0.53 0 0 1 2.454 8.889 L7.619 8.134 A2.122 2.122 0 0 0 9.216 6.974 Z</StreamGeometry>
+  <StreamGeometry x:Key="IconeRecentes">M3 12 A9 9 0 1 0 12 3 A9.75 9.75 0 0 0 5.26 5.74 L3 8 M3 3 L3 8 L8 8 M12 7 L12 12 L16 14</StreamGeometry>
+  <StreamGeometry x:Key="IconeMenu">M4 5 H20 M4 12 H20 M4 19 H20</StreamGeometry>
+  <StreamGeometry x:Key="IconeConfiguracoes">M9.671 4.136 A2.34 2.34 0 0 1 14.33 4.136 A2.34 2.34 0 0 0 17.649 6.051 A2.34 2.34 0 0 1 19.979 10.084 A2.34 2.34 0 0 0 19.979 13.915 A2.34 2.34 0 0 1 17.649 17.948 A2.34 2.34 0 0 0 14.33 19.863 A2.34 2.34 0 0 1 9.671 19.863 A2.34 2.34 0 0 0 6.351 17.948 A2.34 2.34 0 0 1 4.021 13.915 A2.34 2.34 0 0 0 4.021 10.084 A2.34 2.34 0 0 1 6.35 6.051 A2.34 2.34 0 0 0 9.671 4.136 Z M9 12 A3 3 0 1 0 15 12 A3 3 0 1 0 9 12 Z</StreamGeometry>
+  <StreamGeometry x:Key="IconeMinimizar">M5 11.25 H19 V12.75 H5 Z</StreamGeometry>
   <StreamGeometry x:Key="IconeMaximizar">M5 5 H19 V19 H5 Z</StreamGeometry>
   <StreamGeometry x:Key="IconeRestaurar">M6 8 H16 V18 H6 Z M9 5 H17 V13</StreamGeometry>
-  <StreamGeometry x:Key="IconeFechar">M6 6 L18 18 M18 6 L6 18</StreamGeometry>
+  <StreamGeometry x:Key="IconeFechar">M18 6 L6 18 M6 6 L18 18</StreamGeometry>
 
-  <StreamGeometry x:Key="IconeRevelar">M3 12 Q12 5 21 12 Q12 19 3 12 Z M9.4 12 A2.6 2.6 0 0 0 14.6 12 A2.6 2.6 0 0 0 9.4 12 Z</StreamGeometry>
-  <StreamGeometry x:Key="IconeOcultar">M3 12 Q12 5 21 12 Q12 19 3 12 Z M4 4 L20 20</StreamGeometry>
-  <StreamGeometry x:Key="IconeCopiar">M8 8 H18 V18 H8 Z M6 6 H16 V8 M6 6 V16 H8</StreamGeometry>
-  <StreamGeometry x:Key="IconeTotp">M3 12 A4 4 0 0 0 11 12 A4 4 0 0 0 3 12 Z M11 12 H19 M16 12 V15 M19 12 V14.5</StreamGeometry>
-  <StreamGeometry x:Key="IconeEditar">M5 19 L6 15.2 L16.5 4.7 A2.1 2.1 0 0 1 19.3 7.5 L8.8 18 Z</StreamGeometry>
-  <StreamGeometry x:Key="IconeExcluir">M5 7 H19 M9 7 V4.5 H15 V7 M6.5 7 L7 20 H17 L17.5 7 M10.5 10.5 V16.5 M13.5 10.5 V16.5</StreamGeometry>
+  <StreamGeometry x:Key="IconeRevelar">M2.062 12.348 A1 1 0 0 1 2.062 11.652 A10.75 10.75 0 0 1 21.938 11.652 A1 1 0 0 1 21.938 12.348 A10.75 10.75 0 0 1 2.062 12.348 Z M9 12 A3 3 0 1 0 15 12 A3 3 0 1 0 9 12 Z</StreamGeometry>
+  <StreamGeometry x:Key="IconeOcultar">M10.733 5.076 A10.744 10.744 0 0 1 21.938 11.651 A1 1 0 0 1 21.938 12.347 A10.747 10.747 0 0 1 20.494 14.837 M14.084 14.158 A3 3 0 0 1 9.842 9.916 M17.479 17.499 A10.75 10.75 0 0 1 2.062 12.348 A1 1 0 0 1 2.062 11.652 A10.75 10.75 0 0 1 6.508 6.509 M2 2 L22 22</StreamGeometry>
+  <StreamGeometry x:Key="IconeCopiar">M10 8 H20 A2 2 0 0 1 22 10 V20 A2 2 0 0 1 20 22 H10 A2 2 0 0 1 8 20 V10 A2 2 0 0 1 10 8 Z M4 16 C2.9 16 2 15.1 2 14 V4 C2 2.9 2.9 2 4 2 H14 C15.1 2 16 2.9 16 4</StreamGeometry>
+  <StreamGeometry x:Key="IconeTotp">M12 4.5 A7.5 7.5 0 1 0 19.5 12 A7.5 7.5 0 0 0 12 4.5 Z M12 8 V12 L15.2 14</StreamGeometry>
+  <StreamGeometry x:Key="IconeEditar">M21.174 6.812 A1 1 0 0 0 17.188 2.825 L3.842 16.174 A2 2 0 0 0 3.342 17.004 L2.021 21.356 A0.5 0.5 0 0 0 2.644 21.978 L6.997 20.658 A2 2 0 0 0 7.827 20.161 Z M15 5 L19 9</StreamGeometry>
+  <StreamGeometry x:Key="IconeExcluir">M10 11 L10 17 M14 11 L14 17 M19 6 L19 20 A2 2 0 0 1 17 22 L7 22 A2 2 0 0 1 5 20 L5 6 M3 6 L21 6 M8 6 L8 4 A2 2 0 0 1 10 2 L14 2 A2 2 0 0 1 16 4 L16 6</StreamGeometry>
 
-  <StreamGeometry x:Key="IconeBuscar">M4 10 A6 6 0 0 0 16 10 A6 6 0 0 0 4 10 Z M14.5 14.5 L20 20</StreamGeometry>
+  <StreamGeometry x:Key="IconeBuscar">M3 11 A8 8 0 1 0 19 11 A8 8 0 1 0 3 11 Z M21 21 L16.66 16.66</StreamGeometry>
   <StreamGeometry x:Key="IconeFiltro">M4 5 H20 L14 12.5 V18 L10 20 V12.5 Z</StreamGeometry>
+  <StreamGeometry x:Key="IconeEtiqueta">M12.586 2.586 A2 2 0 0 0 11.172 2 L4 2 A2 2 0 0 0 2 4 L2 11.172 A2 2 0 0 0 2.586 12.586 L11.29 21.29 A2.426 2.426 0 0 0 14.71 21.29 L21.29 14.71 A2.426 2.426 0 0 0 21.29 11.29 Z M7 7.5 A0.5 0.5 0 1 0 8 7.5 A0.5 0.5 0 1 0 7 7.5 Z</StreamGeometry>
+  <StreamGeometry x:Key="IconeFixar">M9 10.76 A2 2 0 0 1 7.89 12.55 L6.11 13.45 A2 2 0 0 0 5 15.24 V16 A1 1 0 0 0 6 17 L18 17 A1 1 0 0 0 19 16 V15.24 A2 2 0 0 0 17.89 13.45 L16.11 12.55 A2 2 0 0 1 15 10.76 V7 A1 1 0 0 1 16 6 A2 2 0 0 0 16 2 L8 2 A2 2 0 0 0 8 6 A1 1 0 0 1 9 7 Z M12 17 L12 22</StreamGeometry>
   <StreamGeometry x:Key="IconeOrdenar">M8 16 V4 M4.5 8 L8 4 L11.5 8 M16 8 V20 M12.5 16 L16 20 L19.5 16</StreamGeometry>
-  <StreamGeometry x:Key="IconeAuditoria">M12 3 L19 6 V11.5 C19 16.5 16 19.8 12 21 C8 19.8 5 16.5 5 11.5 V6 Z M9 12 L11 14.5 L15.5 9.5</StreamGeometry>
-  <StreamGeometry x:Key="IconeAlternarIcones">M7 4 H17 A3 3 0 0 1 20 7 V17 A3 3 0 0 1 17 20 H7 A3 3 0 0 1 4 17 V7 A3 3 0 0 1 7 4 Z M7.7 9.5 A1.8 1.8 0 0 0 11.3 9.5 A1.8 1.8 0 0 0 7.7 9.5 Z M5.5 16.5 L10 11.5 L13 14.5 L16.5 11 L19 14</StreamGeometry>
+  <StreamGeometry x:Key="IconeAuditoria">M20 13 C20 18 16.5 20.5 12.34 21.95 A1 1 0 0 1 11.67 21.94 C7.5 20.5 4 18 4 13 V6 A1 1 0 0 1 5 5 C7 5 9.5 3.8 11.24 2.28 A1.17 1.17 0 0 1 12.76 2.28 C14.51 3.81 17 5 19 5 A1 1 0 0 1 20 6 Z M9 12 L11 14 L15 10</StreamGeometry>
   <StreamGeometry x:Key="IconeNovaSenha">M12 5 V19 M5 12 H19</StreamGeometry>
-  <StreamGeometry x:Key="IconeExportar">M12 3.5 V15 M7 10.5 L12 15.5 L17 10.5 M4.5 19.5 H19.5</StreamGeometry>
-  <StreamGeometry x:Key="IconeImportar">M12 15.5 V4 M7 9 L12 4 L17 9 M4.5 19.5 H19.5</StreamGeometry>
+  <StreamGeometry x:Key="IconeExportar">M12 3 L12 15 M17 8 L12 3 L7 8 M21 15 L21 19 A2 2 0 0 1 19 21 L5 21 A2 2 0 0 1 3 19 L3 15</StreamGeometry>
+  <StreamGeometry x:Key="IconeImportar">M12 15 L12 3 M21 15 L21 19 A2 2 0 0 1 19 21 L5 21 A2 2 0 0 1 3 19 L3 15 M7 10 L12 15 L17 10</StreamGeometry>
 
-  <StreamGeometry x:Key="IconeExpandir">M6 9.5 L12 15.5 L18 9.5</StreamGeometry>
-  <StreamGeometry x:Key="IconeSubmenu">M9.5 6 L15.5 12 L9.5 18</StreamGeometry>
-  <StreamGeometry x:Key="IconeBanco">M5 6 A7 2.6 0 0 0 19 6 A7 2.6 0 0 0 5 6 Z M5 6 V18 A7 2.6 0 0 0 19 18 V6 M5 12 A7 2.6 0 0 0 19 12</StreamGeometry>
+  <StreamGeometry x:Key="IconeBanco">M3 5 A9 3 0 1 0 21 5 A9 3 0 1 0 3 5 Z M3 5 L3 19 A9 3 0 0 0 21 19 L21 5 M3 12 A9 3 0 0 0 21 12</StreamGeometry>
   <StreamGeometry x:Key="IconeQrCode">M4 4 H10 V10 H4 Z M6.2 6.2 H7.8 V7.8 H6.2 Z M14 4 H20 V10 H14 Z M16.2 6.2 H17.8 V7.8 H16.2 Z M4 14 H10 V20 H4 Z M6.2 16.2 H7.8 V17.8 H6.2 Z M14.5 14.5 H16.5 V16.5 H14.5 Z M18 14.5 H20 V16.5 H18 Z M14.5 18 H16.5 V20 H14.5 Z M18 18 H20 V20 H18 Z</StreamGeometry>
-  <StreamGeometry x:Key="IconeWindowsHello">M8.5 4 H15.5 A4.5 4.5 0 0 1 20 8.5 V15.5 A4.5 4.5 0 0 1 15.5 20 H8.5 A4.5 4.5 0 0 1 4 15.5 V8.5 A4.5 4.5 0 0 1 8.5 4 Z M9.8 10.5 V12.5 M14.2 10.5 V12.5 M9.5 14.8 C10.6 16.6 13.4 16.6 14.5 14.8</StreamGeometry>
-  <StreamGeometry x:Key="IconeIdioma">M4 12 A8 8 0 0 0 20 12 A8 8 0 0 0 4 12 Z M4 12 H20 M9 12 A3 8 0 0 0 15 12 A3 8 0 0 0 9 12 Z M5.2 8 H18.8 M5.2 16 H18.8</StreamGeometry>
-  <StreamGeometry x:Key="IconeAcessibilidade">M4 12 A8 8 0 0 0 20 12 A8 8 0 0 0 4 12 Z M10.5 9 A1.5 1.5 0 0 0 13.5 9 A1.5 1.5 0 0 0 10.5 9 Z M8.5 13 H15.5 M12 13 V17.5 M9.5 17.5 L12 14.5 L14.5 17.5</StreamGeometry>
-  <StreamGeometry x:Key="IconeImportarCsv">M7 3 H14 L18 7 V21 H7 Z M14 3 V7 H18 M9.5 12 H15.5 M9.5 15 H15.5 M9.5 18 H13</StreamGeometry>
-  <StreamGeometry x:Key="IconeEspeciais">M12 5 V19 M6 8.5 L18 15.5 M18 8.5 L6 15.5</StreamGeometry>
+  <StreamGeometry x:Key="IconeWindowsHello">M12 21 C7.5 21 5 18 5 13.5 V10 A7 7 0 0 1 19 10 V13.5 M9 20.3 C7 19 6 16.5 6 13.5 V10.3 A6 6 0 0 1 18 10.3 M10.7 19.3 C9.5 18 8.7 16.2 8.7 14 V10.7 A3.3 3.3 0 0 1 15.3 10.7 V13</StreamGeometry>
+  <StreamGeometry x:Key="IconeIdioma">M2 12 A10 10 0 1 0 22 12 A10 10 0 1 0 2 12 Z M12 2 A14.5 14.5 0 0 0 12 22 A14.5 14.5 0 0 0 12 2 M2 12 L22 12</StreamGeometry>
+  <StreamGeometry x:Key="IconeAcessibilidade">M15 4 A1 1 0 1 0 17 4 A1 1 0 1 0 15 4 Z M18 19 L19 12 L13 13 M5 8 L8 5 L13.5 8 L11.14 11.5 M4.24 14.5 A5 5 0 0 0 11.12 20.5 M13.76 17.5 A5 5 0 0 0 6.88 11.5</StreamGeometry>
+  <StreamGeometry x:Key="IconeImportarCsv">M6 22 A2 2 0 0 1 4 20 L4 4 A2 2 0 0 1 6 2 L14 2 A2.4 2.4 0 0 1 15.704 2.706 L19.292 6.294 A2.4 2.4 0 0 1 20 8 L20 20 A2 2 0 0 1 18 22 Z M14 2 L14 7 A1 1 0 0 0 15 8 L20 8 M8 13 L10 13 M14 13 L16 13 M8 17 L10 17 M14 17 L16 17</StreamGeometry>
+  <StreamGeometry x:Key="IconeEspeciais">M12 6 L12 18 M17.196 9 L6.804 15 M6.804 9 L17.196 15</StreamGeometry>
+  <StreamGeometry x:Key="IconeNumeros">M4 9 L20 9 M4 15 L20 15 M10 3 L8 21 M16 3 L14 21</StreamGeometry>
+  <StreamGeometry x:Key="IconeCapitalizar">M15 11 L19.5 11 A1 1 0 0 1 19.5 16 L15.5 16 A0.5 0.5 0 0 1 15 15.5 L15 6.5 A0.5 0.5 0 0 1 15.5 6 L18.5 6 A1 1 0 0 1 18.5 11 M2 16 L6.039 6.31 A0.5 0.5 0 0 1 6.962 6.31 L11 16 M3.304 13 L9.696 13</StreamGeometry>
+  <StreamGeometry x:Key="IconeLetraMaiuscula">M15 11 L19.5 11 A1 1 0 0 1 19.5 16 L15.5 16 A0.5 0.5 0 0 1 15 15.5 L15 6.5 A0.5 0.5 0 0 1 15.5 6 L18.5 6 A1 1 0 0 1 18.5 11 M2 16 L6.039 6.31 A0.5 0.5 0 0 1 6.962 6.31 L11 16 M3.304 13 L9.696 13</StreamGeometry>
+  <StreamGeometry x:Key="IconeLetraMinuscula">M3 12.5 A3.5 3.5 0 1 0 10 12.5 A3.5 3.5 0 1 0 3 12.5 Z M10 9 L10 16 M14 12.5 A3.5 3.5 0 1 0 21 12.5 A3.5 3.5 0 1 0 14 12.5 Z M14 6 L14 16</StreamGeometry>
+
+  <StreamGeometry x:Key="IconeUsuario">M12 12 A4 4 0 1 0 12 4 A4 4 0 0 0 12 12 Z M4 21 C5.5 17.6 8.5 16 12 16 C15.5 16 18.5 17.6 20 21</StreamGeometry>
+  <StreamGeometry x:Key="IconeChave">M2.586 17.414 A2 2 0 0 0 2 18.828 L2 21 A1 1 0 0 0 3 22 L6 22 A1 1 0 0 0 7 21 L7 20 A1 1 0 0 1 8 19 L9 19 A1 1 0 0 0 10 18 L10 17 A1 1 0 0 1 11 16 L11.172 16 A2 2 0 0 0 12.586 15.414 L13.4 14.6 A6.5 6.5 0 1 0 9.4 10.6 Z M16.5 7.5 L16.51 7.5</StreamGeometry>
+  <StreamGeometry x:Key="IconeLink">M9 17 L7 17 A5 5 0 0 1 7 7 L9 7 M15 7 L17 7 A5 5 0 1 1 17 17 L15 17 M8 12 L16 12</StreamGeometry>
+  <StreamGeometry x:Key="IconeNotas">M6 22 A2 2 0 0 1 4 20 L4 4 A2 2 0 0 1 6 2 L14 2 A2.4 2.4 0 0 1 15.704 2.706 L19.292 6.294 A2.4 2.4 0 0 1 20 8 L20 20 A2 2 0 0 1 18 22 Z M14 2 L14 7 A1 1 0 0 0 15 8 L20 8</StreamGeometry>
+  <StreamGeometry x:Key="IconeCheck">M20 6 L9 17 L4 12</StreamGeometry>
+  <StreamGeometry x:Key="IconeVazamentos">M20 13 C20 18 16.5 20.5 12.34 21.95 A1 1 0 0 1 11.67 21.94 C7.5 20.5 4 18 4 13 V6 A1 1 0 0 1 5 5 C7 5 9.5 3.8 11.24 2.28 A1.17 1.17 0 0 1 12.76 2.28 C14.51 3.81 17 5 19 5 A1 1 0 0 1 20 6 Z M12 8 L12 12 M12 16 L12.01 16</StreamGeometry>
+  <StreamGeometry x:Key="IconeRelatorioSeguranca">M3.34 19 A10 10 0 1 1 20.66 19 M12 14 L16 10</StreamGeometry>
+  <StreamGeometry x:Key="IconeBancoDesconectado">M3 5 A9 3 0 1 0 21 5 A9 3 0 1 0 3 5 Z M3 5 L3 19 A9 3 0 0 0 21 19 L21 5 M3 12 A9 3 0 0 0 21 12 M2 2 L22 22</StreamGeometry>
+  <StreamGeometry x:Key="IconeGerar">M3 12 A9 9 0 0 1 12 3 A9.75 9.75 0 0 1 18.74 5.74 L21 8 M21 3 L21 8 L16 8 M21 12 A9 9 0 0 1 12 21 A9.75 9.75 0 0 1 5.26 18.26 L3 16 M8 16 L3 16 L3 21</StreamGeometry>
+  <StreamGeometry x:Key="IconeCadeado">M5 11 H19 A2 2 0 0 1 21 13 V20 A2 2 0 0 1 19 22 H5 A2 2 0 0 1 3 20 V13 A2 2 0 0 1 5 11 Z M7 11 L7 7 A5 5 0 0 1 17 7 L17 11</StreamGeometry>
+  <StreamGeometry x:Key="IconeChaveGerador">M2.586 17.414 A2 2 0 0 0 2 18.828 L2 21 A1 1 0 0 0 3 22 L6 22 A1 1 0 0 0 7 21 L7 20 A1 1 0 0 1 8 19 L9 19 A1 1 0 0 0 10 18 L10 17 A1 1 0 0 1 11 16 L11.172 16 A2 2 0 0 0 12.586 15.414 L13.4 14.6 A6.5 6.5 0 1 0 9.4 10.6 Z M16.5 7.5 L16.51 7.5</StreamGeometry>
+  <StreamGeometry x:Key="IconeAtalhoTeclado">M4 4 H20 A2 2 0 0 1 22 6 V18 A2 2 0 0 1 20 20 H4 A2 2 0 0 1 2 18 V6 A2 2 0 0 1 4 4 Z M10 8 L10.01 8 M12 12 L12.01 12 M14 8 L14.01 8 M16 12 L16.01 12 M18 8 L18.01 8 M6 8 L6.01 8 M8 12 L8.01 12 M7 16 L17 16</StreamGeometry>
+
+  <StreamGeometry x:Key="IconeInfo">M2 12 A10 10 0 1 0 22 12 A10 10 0 1 0 2 12 Z M12 16 L12 12 M12 8 L12.01 8</StreamGeometry>
+  <StreamGeometry x:Key="IconeAviso">M21.73 18 L13.73 4 A2 2 0 0 0 10.25 4 L2.25 18 A2 2 0 0 0 4 21 L20 21 A2 2 0 0 0 21.73 18 Z M12 9 L12 13 M12 17 L12.01 17</StreamGeometry>
+  <StreamGeometry x:Key="IconeErro">M4 12 A8 8 0 0 0 20 12 A8 8 0 0 0 4 12 Z M9.5 9.5 L14.5 14.5 M14.5 9.5 L9.5 14.5</StreamGeometry>
+
+  <StreamGeometry x:Key="IconePrivacidade">M2 15 A4 4 0 1 0 10 15 A4 4 0 1 0 2 15 Z M14 15 A4 4 0 1 0 22 15 A4 4 0 1 0 14 15 Z M14 15 A2 2 0 0 0 12 13 A2 2 0 0 0 10 15 M2.5 13 L5 7 C5.7 5.7 6.4 5 8 5 M21.5 13 L19 7 C18.3 5.7 17.5 5 16 5</StreamGeometry>
+  <StreamGeometry x:Key="IconeSincronizacao">M9 20 L4 20 A2 2 0 0 1 2 18 L2 5 A2 2 0 0 1 4 3 L7.9 3 A2 2 0 0 1 9.59 3.9 L10.4 5.1 A2 2 0 0 0 12.07 6 L20 6 A2 2 0 0 1 22 8 L22 8.5 M12 10 L12 14 L16 14 M12 14 L13.535 12.395 A5 5 0 0 1 21.535 13.895 M22 22 L22 18 L18 18 M22 18 L20.465 19.605 A5 5 0 0 1 12.465 18.105</StreamGeometry>
+  <StreamGeometry x:Key="IconeVerificarAtualizacoes">M10.268 21 A2 2 0 0 0 13.732 21 M3.262 15.326 A1 1 0 0 0 4 17 L20 17 A1 1 0 0 0 20.74 15.327 C19.41 13.956 18 12.499 18 8 A6 6 0 0 0 6 8 C6 12.499 4.589 13.956 3.262 15.326 Z</StreamGeometry>
+  <StreamGeometry x:Key="IconeBloquearAgora">M5 11 H19 A2 2 0 0 1 21 13 V20 A2 2 0 0 1 19 22 H5 A2 2 0 0 1 3 20 V13 A2 2 0 0 1 5 11 Z M7 11 L7 7 A5 5 0 0 1 17 7 L17 11</StreamGeometry>
+  <StreamGeometry x:Key="IconeBloqueioAutomatico">M10 2 L14 2 M12 14 L15 11 M4 14 A8 8 0 1 0 20 14 A8 8 0 1 0 4 14 Z</StreamGeometry>
 
 </ResourceDictionary>

@@ -35,10 +35,7 @@ namespace CofreDeSenhas.Janelas
             Idioma.Alterado += Idioma_Alterado;
             Closed += (s, e) => Idioma.Alterado -= Idioma_Alterado;
 
-            KeyDown += (s, e) =>
-            {
-                if (e.Key == Key.Escape) Close(false);
-            };
+            this.FecharComEsc();
 
             Opened += (s, e) => (_txtArquivo ?? _txtHost)?.Focus();
         }
@@ -68,7 +65,7 @@ namespace CofreDeSenhas.Janelas
                 AutomationProperties.SetName(_txtArquivo, Idioma.Texto("Db.DatabaseFile"));
                 AutomationProperties.SetIsRequiredForForm(_txtArquivo, true);
 
-                var btnProcurar = new Button { Content = Idioma.Texto("Db.Browse"), Width = 110, Height = 38 };
+                var btnProcurar = new Button { Content = Idioma.Texto("Db.Browse"), MinWidth = 130, Height = 40 };
                 btnProcurar.Classes.Add("secundario");
                 btnProcurar.Margin = new Thickness(8, 0, 0, 0);
                 AutomationProperties.SetName(btnProcurar, Idioma.Texto("Db.Browse"));
@@ -97,13 +94,17 @@ namespace CofreDeSenhas.Janelas
             MostrarErro("");
         }
 
-        private static TextBlock Rotulo(string texto) => new()
+        private static TextBlock Rotulo(string texto)
         {
-            Text = texto,
-            FontSize = 12,
-            Foreground = Tema.Pincel(Tema.TextSecondary),
-            Margin = new Thickness(0, 8, 0, 4)
-        };
+            var rotulo = new TextBlock
+            {
+                Text = texto,
+                Foreground = Tema.Pincel(Tema.TextSecondary),
+                Margin = new Thickness(0, 8, 0, 4)
+            };
+            rotulo.Classes.Add("legenda");
+            return rotulo;
+        }
 
         private TextBox AdicionarCampo(string rotulo, string? valor, bool senha = false)
         {
@@ -157,7 +158,7 @@ namespace CofreDeSenhas.Janelas
                 }
                 catch (Exception ex)
                 {
-                    MostrarErro(Idioma.Formatar("Db.ConnectionFailed", PrimeiraLinha(ex.Message)));
+                    MostrarErro(Idioma.Formatar("Db.ConnectionFailed", ErrosUi.MensagemAmigavel(ex)));
                 }
             });
         }
@@ -193,7 +194,7 @@ namespace CofreDeSenhas.Janelas
                 }
                 catch (Exception ex)
                 {
-                    MostrarErro(Idioma.Formatar("Db.CannotConnect", PrimeiraLinha(ex.Message)));
+                    MostrarErro(Idioma.Formatar("Db.CannotConnect", ErrosUi.MensagemAmigavel(ex)));
                 }
             });
         }
@@ -253,10 +254,7 @@ namespace CofreDeSenhas.Janelas
         private void MostrarErro(string msg)
         {
             LblErro.Foreground = Tema.Pincel(Tema.StrengthWeak);
-            LblErro.Text = msg;
-            AutomationProperties.SetName(LblErro, msg);
-            if (!string.IsNullOrWhiteSpace(msg))
-                Acessibilidade.Anunciar(this, msg, assertivo: true);
+            this.MostrarErroInline(LblErro, msg);
         }
 
         private void MostrarSucesso(string msg)
@@ -267,17 +265,7 @@ namespace CofreDeSenhas.Janelas
             Acessibilidade.Anunciar(this, msg, assertivo: true);
         }
 
-        private static string PrimeiraLinha(string texto)
-        {
-            var quebra = texto.IndexOf('\n');
-            return quebra < 0 ? texto : texto[..quebra].TrimEnd('\r');
-        }
-
-        private void Arrastar(object? sender, PointerPressedEventArgs e)
-        {
-            if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed && e.Source is not TextBox)
-                BeginMoveDrag(e);
-        }
+        private void Arrastar(object? sender, PointerPressedEventArgs e) => this.HabilitarArraste(e, origem => origem is TextBox);
 
         private void Cancelar_Click(object? sender, RoutedEventArgs e) => Close(false);
     }
