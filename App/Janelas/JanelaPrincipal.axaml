@@ -28,8 +28,11 @@
                 PointerPressed="BarraTitulo_PointerPressed">
           <Grid>
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="14,0,0,0" Spacing="8">
-              <Image Source="/Ativos/app.png" Width="26" Height="26" />
+              <c:Icone Width="{StaticResource TamIconeToolbar}" Height="{StaticResource TamIconeToolbar}"
+                     Stroke="{DynamicResource TextPrimary}"
+                     Chave="IconeCadeado" />
               <TextBlock Text="{DynamicResource App.Title}"
+                         FontFamily="{StaticResource FonteDisplay}"
                          FontSize="16" FontWeight="Bold"
                          Foreground="{DynamicResource TextPrimary}"
                          VerticalAlignment="Center" />
@@ -39,33 +42,33 @@
               <Button Name="BtnConfig" Classes="janela"
                       ToolTip.Tip="{DynamicResource Settings.Tooltip}"
                       AutomationProperties.Name="{DynamicResource Settings.Tooltip}">
-                <Image Width="28" Height="28" Stretch="Uniform"
-                       Source="avares://CofreDeSenhas/Ativos/Icones/IconeConfiguracoes.png" />
+                <c:Icone Width="{StaticResource TamIconeMenu}" Height="{StaticResource TamIconeMenu}"
+                       Chave="IconeConfiguracoes" />
                 <Button.Flyout>
                   <MenuFlyout Placement="BottomEdgeAlignedRight">
                     <MenuItem Classes="secao" Header="{DynamicResource Settings.SectionSecurity}" />
                     <MenuItem Header="{DynamicResource Settings.ChangeMasterPassword}" Click="AlterarSenhaMestra_Click">
                       <MenuItem.Icon>
-                        <Image Width="28" Height="28" Stretch="Uniform"
-                               Source="avares://CofreDeSenhas/Ativos/Icones/IconeCofre.png" />
+                        <c:Icone Width="{StaticResource TamIconeMenu}" Height="{StaticResource TamIconeMenu}"
+                               Chave="IconeCofre" />
                       </MenuItem.Icon>
                     </MenuItem>
                     <MenuItem Header="{DynamicResource Settings.RegenerateQr}" Click="RegerarQrCode_Click">
                       <MenuItem.Icon>
-                        <Image Width="28" Height="28" Stretch="Uniform"
-                               Source="avares://CofreDeSenhas/Ativos/Icones/IconeQrCode.png" />
+                        <c:Icone Width="{StaticResource TamIconeMenu}" Height="{StaticResource TamIconeMenu}"
+                               Chave="IconeQrCode" />
                       </MenuItem.Icon>
                     </MenuItem>
                     <MenuItem Name="MenuBiometria" Header="{DynamicResource Settings.EnableWindowsHello}" Click="Biometria_Click">
                       <MenuItem.Icon>
-                        <Image Width="28" Height="28" Stretch="Uniform"
-                               Source="avares://CofreDeSenhas/Ativos/Icones/IconeWindowsHello.png" />
+                        <c:Icone Width="{StaticResource TamIconeMenu}" Height="{StaticResource TamIconeMenu}"
+                               Chave="IconeWindowsHello" />
                       </MenuItem.Icon>
                     </MenuItem>
                     <MenuItem Name="MenuBloqueio" Header="{DynamicResource Settings.AutoLock}">
                       <MenuItem.Icon>
-                        <Path Classes="line-icon" Width="28" Height="28" Stroke="{DynamicResource TextSecondary}"
-                              Data="{StaticResource IconeBloqueioAutomatico}" />
+                        <c:Icone Width="{StaticResource TamIconeMenu}" Height="{StaticResource TamIconeMenu}"
+                               Chave="IconeBloqueioAutomatico" />
                       </MenuItem.Icon>
                       <MenuItem Header="{DynamicResource Settings.Disabled}" ToggleType="Radio" Tag="0" Click="Bloqueio_Alterado" />
                       <MenuItem Header="{DynamicResource Settings.AfterOneMinute}" ToggleType="Radio" Tag="1" Click="Bloqueio_Alterado" />
@@ -75,8 +78,8 @@
                     </MenuItem>
                     <MenuItem Name="MenuLimpezaClipboard" Header="{DynamicResource Settings.ClipboardClear}">
                       <MenuItem.Icon>
-                        <Image Width="28" Height="28" Stretch="Uniform"
-                               Source="avares://CofreDeSenhas/Ativos/Icones/IconeCopiar.png" />
+                        <c:Icone Width="{StaticResource TamIconeMenu}" Height="{StaticResource TamIconeMenu}"
+                               Chave="IconeCopiar" />
                       </MenuItem.Icon>
                       <MenuItem Header="{DynamicResource Settings.Disabled}" ToggleType="Radio" Tag="0" Click="LimpezaClipboard_Alterada" />
                       <MenuItem Header="{DynamicResource Settings.ClipboardClear.After15}" ToggleType="Radio" Tag="15" Click="LimpezaClipboard_Alterada" />
@@ -85,16 +88,16 @@
                     </MenuItem>
                     <MenuItem Header="{DynamicResource Settings.LockNow}" Click="BloquearAgora_Click">
                       <MenuItem.Icon>
-                        <Path Classes="line-icon" Width="28" Height="28" Stroke="{DynamicResource TextSecondary}"
-                              Data="{StaticResource IconeBloquearAgora}" />
+                        <c:Icone Width="{StaticResource TamIconeMenu}" Height="{StaticResource TamIconeMenu}"
+                               Chave="IconeBloquearAgora" />
                       </MenuItem.Icon>
                     </MenuItem>
                     <Separator />
                     <MenuItem Classes="secao" Header="{DynamicResource Settings.SectionAppearance}" />
                     <MenuItem Name="MenuIdioma" Header="{DynamicResource Settings.Language}">
                       <MenuItem.Icon>
-                        <Image Width="28" Height="28" Stretch="Uniform"
-                               Source="avares://CofreDeSenhas/Ativos/Icones/IconeIdioma.png" />
+                        <c:Icone Width="{StaticResource TamIconeMenu}" Height="{StaticResource TamIconeMenu}"
+                               Chave="IconeIdioma" />
                       </MenuItem.Icon>
                       <MenuItem Header="Português (Brasil)" ToggleType="Radio" Tag="pt-BR" Click="Idioma_Alterado" />
                       <MenuItem Header="English" ToggleType="Radio" Tag="en" Click="Idioma_Alterado" />
@@ -105,8 +108,8 @@
                     </MenuItem>
                     <MenuItem Name="MenuAcessibilidade" Header="{DynamicResource Access.Title}">
                       <MenuItem.Icon>
-                        <Image Width="28" Height="28" Stretch="Uniform"
-                               Source="avares://CofreDeSenhas/Ativos/Icones/IconeAcessibilidade.png" />
+                        <c:Icone Width="{StaticResource TamIconeMenu}" Height="{StaticResource TamIconeMenu}"
+                               Chave="IconeAcessibilidade" />
                       </MenuItem.Icon>
                       <MenuItem Name="MenuDaltonismo" Header="{DynamicResource Access.Colorblind}">
                         <MenuItem Header="{DynamicResource Access.None}" ToggleType="Radio" Tag="Nenhum" Click="Daltonismo_Alterado" />
@@ -128,14 +131,14 @@
                     <MenuItem Classes="secao" Header="{DynamicResource Settings.SectionData}" />
                     <MenuItem Header="{DynamicResource Settings.Backup}" Click="Backup_Click">
                       <MenuItem.Icon>
-                        <Image Width="28" Height="28" Stretch="Uniform"
-                               Source="avares://CofreDeSenhas/Ativos/Icones/IconeExportar.png" />
+                        <c:Icone Width="{StaticResource TamIconeMenu}" Height="{StaticResource TamIconeMenu}"
+                               Chave="IconeExportar" />
                       </MenuItem.Icon>
                     </MenuItem>
                     <MenuItem Header="{DynamicResource Settings.Sync}" Click="Sincronizacao_Click">
                       <MenuItem.Icon>
-                        <Path Classes="line-icon" Width="28" Height="28" Stroke="{DynamicResource TextSecondary}"
-                              Data="{StaticResource IconeSincronizacao}" />
+                        <c:Icone Width="{StaticResource TamIconeMenu}" Height="{StaticResource TamIconeMenu}"
+                               Chave="IconeSincronizacao" />
                       </MenuItem.Icon>
                     </MenuItem>
                     <MenuItem Name="MenuIconesOnline" Header="{DynamicResource Settings.OnlineIcons}"
@@ -148,51 +151,52 @@
                               ToggleType="CheckBox" Click="VerificarAtualizacoes_Alterado"
                               ToolTip.Tip="{DynamicResource Settings.CheckUpdatesTooltip}">
                       <MenuItem.Icon>
-                        <Path Classes="line-icon" Width="28" Height="28" Stroke="{DynamicResource TextSecondary}"
-                              Data="{StaticResource IconeVerificarAtualizacoes}" />
+                        <c:Icone Width="{StaticResource TamIconeMenu}" Height="{StaticResource TamIconeMenu}"
+                               Chave="IconeVerificarAtualizacoes" />
                       </MenuItem.Icon>
                     </MenuItem>
                     <MenuItem Header="{DynamicResource Settings.ImportCsv}" Click="ImportarCsv_Click">
                       <MenuItem.Icon>
-                        <Image Width="28" Height="28" Stretch="Uniform"
-                               Source="avares://CofreDeSenhas/Ativos/Icones/IconeImportarCsv.png" />
+                        <c:Icone Width="{StaticResource TamIconeMenu}" Height="{StaticResource TamIconeMenu}"
+                               Chave="IconeImportarCsv" />
                       </MenuItem.Icon>
                     </MenuItem>
                     <MenuItem Header="{DynamicResource Settings.ConnectDatabase}" Click="ConectarBanco_Click"
                               ToolTip.Tip="{DynamicResource Settings.ConnectDatabaseTooltip}">
                       <MenuItem.Icon>
-                        <Image Width="28" Height="28" Stretch="Uniform"
-                               Source="avares://CofreDeSenhas/Ativos/Icones/IconeBanco.png" />
+                        <c:Icone Width="{StaticResource TamIconeMenu}" Height="{StaticResource TamIconeMenu}"
+                               Chave="IconeBanco" />
                       </MenuItem.Icon>
                     </MenuItem>
                     <MenuItem Name="MenuDesconectarBanco" Header="{DynamicResource Settings.DisconnectDatabase}"
                               IsVisible="False" Click="DesconectarBanco_Click">
                       <MenuItem.Icon>
-                        <Path Classes="line-icon" Width="28" Height="28" Stroke="{DynamicResource TextSecondary}"
-                              Data="{StaticResource IconeBancoDesconectado}" />
+                        <c:Icone Width="{StaticResource TamIconeMenu}" Height="{StaticResource TamIconeMenu}"
+                               Chave="IconeBancoDesconectado" />
                       </MenuItem.Icon>
                     </MenuItem>
                     <Separator />
                     <MenuItem Classes="secao" Header="{DynamicResource Settings.SectionHelp}" />
                     <MenuItem Header="{DynamicResource Settings.KeyboardShortcuts}" Click="AtalhosTeclado_Click">
                       <MenuItem.Icon>
-                        <Path Classes="line-icon" Width="28" Height="28" Stroke="{DynamicResource TextSecondary}"
-                              Data="{StaticResource IconeAtalhoTeclado}" />
+                        <c:Icone Width="{StaticResource TamIconeMenu}" Height="{StaticResource TamIconeMenu}"
+                               Chave="IconeAtalhoTeclado" />
                       </MenuItem.Icon>
                     </MenuItem>
                     <Separator />
                     <MenuItem Classes="secao" Header="{DynamicResource Settings.SectionDanger}" />
                     <MenuItem Header="{DynamicResource Settings.ClearVault}" Click="LimparCofre_Click">
                       <MenuItem.Icon>
-                        <Image Width="28" Height="28" Stretch="Uniform"
-                               Source="avares://CofreDeSenhas/Ativos/Icones/IconeExcluir.png" />
+                        <c:Icone Width="{StaticResource TamIconeMenu}" Height="{StaticResource TamIconeMenu}"
+                               Chave="IconeExcluir" />
                       </MenuItem.Icon>
                     </MenuItem>
                     <MenuItem Header="{DynamicResource Settings.DeleteVault}" Foreground="{DynamicResource StrengthWeak}"
                               Click="ExcluirCofre_Click">
                       <MenuItem.Icon>
-                        <Path Classes="line-icon" Width="28" Height="28" Stroke="{DynamicResource StrengthWeak}"
-                              Data="{StaticResource IconeAviso}" />
+                        <c:Icone Width="{StaticResource TamIconeMenu}" Height="{StaticResource TamIconeMenu}"
+                               Stroke="{DynamicResource StrengthWeak}"
+                               Chave="IconeAviso" />
                       </MenuItem.Icon>
                     </MenuItem>
                   </MenuFlyout>
@@ -201,34 +205,28 @@
               <Button Name="BtnPrivacidade" Classes="janela"
                       AutomationProperties.Name="{DynamicResource Privacy.Enable}"
                       Click="Privacidade_Click">
-                <Image Width="28" Height="28" Stretch="Uniform"
-                       Source="avares://CofreDeSenhas/Ativos/Icones/IconeOcultar.png" />
-              </Button>
-              <Button Name="BtnTema" Classes="janela"
-                      AutomationProperties.Name="{DynamicResource Theme.Dark}"
-                      Click="Tema_Click">
-                <Image Width="28" Height="28" Stretch="Uniform"
-                       Source="avares://CofreDeSenhas/Ativos/Icones/IconeSol.png" />
+                <c:Icone Width="{StaticResource TamIconeToolbar}" Height="{StaticResource TamIconeToolbar}"
+                       Chave="IconeOcultar" />
               </Button>
               <Border Width="1" Height="20" Margin="6,0" VerticalAlignment="Center"
                       Background="{DynamicResource Separator}" />
               <Button Classes="janela"
                       AutomationProperties.Name="{DynamicResource Access.Minimize}"
                       Click="Minimizar_Click">
-                <Image Width="28" Height="28" Stretch="Uniform"
-                       Source="avares://CofreDeSenhas/Ativos/Icones/IconeMinimizar.png" />
+                <c:Icone Width="{StaticResource TamIconeToolbar}" Height="{StaticResource TamIconeToolbar}"
+                       Chave="IconeMinimizar" />
               </Button>
               <Button Name="BtnMaximizar" Classes="janela"
                       AutomationProperties.Name="{DynamicResource Access.Maximize}"
                       Click="Maximizar_Click">
-                <Image Width="28" Height="28" Stretch="Uniform"
-                       Source="avares://CofreDeSenhas/Ativos/Icones/IconeMaximizar.png" />
+                <c:Icone Width="{StaticResource TamIconeToolbar}" Height="{StaticResource TamIconeToolbar}"
+                       Chave="IconeMaximizar" />
               </Button>
               <Button Classes="janela fechar"
                       AutomationProperties.Name="{DynamicResource Access.Close}"
                       Click="Fechar_Click">
-                <Image Width="28" Height="28" Stretch="Uniform"
-                       Source="avares://CofreDeSenhas/Ativos/Icones/IconeFechar.png" />
+                <c:Icone Width="{StaticResource TamIconeToolbar}" Height="{StaticResource TamIconeToolbar}"
+                       Chave="IconeFechar" />
               </Button>
             </StackPanel>
           </Grid>
@@ -250,8 +248,8 @@
                       ToolTip.Tip="{DynamicResource Nav.Toggle}"
                       AutomationProperties.Name="{DynamicResource Nav.Toggle}"
                       Click="ToggleNav_Click">
-                <Image Width="28" Height="28" Stretch="Uniform"
-                       Source="avares://CofreDeSenhas/Ativos/Icones/IconeMenu.png" />
+                <c:Icone Width="{StaticResource TamIconeNav}" Height="{StaticResource TamIconeNav}"
+                       Chave="IconeMenu" />
               </Button>
 
               <Button Name="BtnFabGerador"
@@ -262,51 +260,52 @@
                       Classes="fab"
                       ToolTip.Tip="{DynamicResource Generator.Title}"
                       Click="ToggleGerador_Click">
-                <Path Name="IconeFabGerador"
-                      Classes="line-icon"
-                      Width="26" Height="26"
-                      Stretch="Uniform"
-                      RenderTransformOrigin="0.5,0.5"
-                      Stroke="White"
-                      StrokeThickness="2"
-                      Data="{StaticResource IconeChaveGerador}" />
+                <c:Icone Name="IconeFabGerador"
+                       Width="{StaticResource TamIconeHero}" Height="{StaticResource TamIconeHero}"
+                       RenderTransformOrigin="0.5,0.5"
+                       Stroke="White"
+                       Chave="IconeChaveGerador" />
               </Button>
 
               <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
               <StackPanel Margin="0,12,0,0" Spacing="4">
                 <Button Name="BtnNavCofre" Classes="nav-item ativo" Click="NavCofre_Click">
                   <Grid ColumnDefinitions="40,*">
-                    <Image Width="37" Height="37" Stretch="Uniform"
+                    <c:Icone Width="{StaticResource TamIconeNav}" Height="{StaticResource TamIconeNav}"
                            VerticalAlignment="Center"
                            HorizontalAlignment="Center"
-                           Source="avares://CofreDeSenhas/Ativos/Icones/IconeCofre.png" />
+                           Chave="IconeCofre" />
+                    <Ellipse Classes="rivet" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,2,5" />
                     <TextBlock Name="LblNavCofre" Grid.Column="1" Text="{DynamicResource Nav.Vault}" VerticalAlignment="Center" />
                   </Grid>
                 </Button>
                 <Button Name="BtnNavFavoritas" Classes="nav-item" Click="NavFavoritas_Click">
                   <Grid ColumnDefinitions="40,*">
-                    <Image Width="37" Height="37" Stretch="Uniform"
+                    <c:Icone Width="{StaticResource TamIconeNav}" Height="{StaticResource TamIconeNav}"
                            VerticalAlignment="Center"
                            HorizontalAlignment="Center"
-                           Source="avares://CofreDeSenhas/Ativos/Icones/IconeFavoritas.png" />
+                           Chave="IconeFavoritas" />
+                    <Ellipse Classes="rivet" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,2,5" />
                     <TextBlock Name="LblNavFavoritas" Grid.Column="1" Text="{DynamicResource Nav.Favorites}" VerticalAlignment="Center" />
                   </Grid>
                 </Button>
                 <Button Name="BtnNavRecentes" Classes="nav-item" Click="NavRecentes_Click">
                   <Grid ColumnDefinitions="40,*">
-                    <Image Width="37" Height="37" Stretch="Uniform"
+                    <c:Icone Width="{StaticResource TamIconeNav}" Height="{StaticResource TamIconeNav}"
                            VerticalAlignment="Center"
                            HorizontalAlignment="Center"
-                           Source="avares://CofreDeSenhas/Ativos/Icones/IconeRecentes.png" />
+                           Chave="IconeRecentes" />
+                    <Ellipse Classes="rivet" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,2,5" />
                     <TextBlock Name="LblNavRecentes" Grid.Column="1" Text="{DynamicResource Nav.Recent}" VerticalAlignment="Center" />
                   </Grid>
                 </Button>
                 <Button Name="BtnNavLixeira" Classes="nav-item" Click="NavLixeira_Click">
                   <Grid ColumnDefinitions="40,*">
-                    <Image Width="37" Height="37" Stretch="Uniform"
+                    <c:Icone Width="{StaticResource TamIconeNav}" Height="{StaticResource TamIconeNav}"
                            VerticalAlignment="Center"
                            HorizontalAlignment="Center"
-                           Source="avares://CofreDeSenhas/Ativos/Icones/IconeExcluir.png" />
+                           Chave="IconeExcluir" />
+                    <Ellipse Classes="rivet" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,2,5" />
                     <TextBlock Name="LblNavLixeira" Grid.Column="1" Text="{DynamicResource Nav.Trash}" VerticalAlignment="Center" />
                   </Grid>
                 </Button>
@@ -369,8 +368,8 @@
                         CornerRadius="0,0,12,12">
                   <Grid Margin="28,0" ColumnDefinitions="Auto,*,Auto">
                     <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                      <Image Width="23" Height="23" Stretch="Uniform"
-                             Source="avares://CofreDeSenhas/Ativos/Icones/IconeCofre.png" />
+                      <c:Icone Width="{StaticResource TamIconeRodape}" Height="{StaticResource TamIconeRodape}"
+                             Chave="IconeCofre" />
                       <TextBlock Name="LblStatus"
                                  Text="{DynamicResource Vault.Connection.Local}"
                                  FontSize="12" Foreground="{DynamicResource TextSecondary}"
@@ -388,14 +387,14 @@
                               ToolTip.Tip="{DynamicResource Update.Dismiss}"
                               AutomationProperties.Name="{DynamicResource Update.Dismiss}"
                               Click="DispensarAtualizacao_Click">
-                        <Image Width="14" Height="14" Stretch="Uniform"
-                               Source="avares://CofreDeSenhas/Ativos/Icones/IconeFechar.png" />
+                        <c:Icone Width="{StaticResource TamIconeRodape}" Height="{StaticResource TamIconeRodape}"
+                               Chave="IconeFechar" />
                       </Button>
                     </StackPanel>
                     <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8"
                                 HorizontalAlignment="Right" VerticalAlignment="Center">
-                      <Image Width="23" Height="23" Stretch="Uniform"
-                             Source="avares://CofreDeSenhas/Ativos/Icones/IconeRecentes.png" />
+                      <c:Icone Width="{StaticResource TamIconeRodape}" Height="{StaticResource TamIconeRodape}"
+                             Chave="IconeRecentes" />
                       <Ellipse Name="PontoConexao" Width="8" Height="8" Fill="{DynamicResource StatusLocal}" VerticalAlignment="Center" />
                       <TextBlock Name="LblConexao" Text="{DynamicResource Vault.Connection.Local}" FontSize="12"
                                  Foreground="{DynamicResource TextSecondary}" VerticalAlignment="Center"
@@ -424,15 +423,15 @@
                               ToolTip.Tip="{DynamicResource Vault.ImportTooltip}"
                               AutomationProperties.Name="{DynamicResource Vault.ImportTooltip}"
                               Click="Importar_Click">
-                        <Image Width="23" Height="23" Stretch="Uniform"
-                               Source="avares://CofreDeSenhas/Ativos/Icones/IconeImportar.png" />
+                        <c:Icone Width="{StaticResource TamIconeToolbar}" Height="{StaticResource TamIconeToolbar}"
+                               Chave="IconeImportar" />
                       </Button>
                       <Button Classes="icone borda" Width="40" Height="38"
                               ToolTip.Tip="{DynamicResource Vault.ExportTooltip}"
                               AutomationProperties.Name="{DynamicResource Vault.ExportTooltip}"
                               Click="Exportar_Click">
-                        <Image Width="23" Height="23" Stretch="Uniform"
-                               Source="avares://CofreDeSenhas/Ativos/Icones/IconeExportar.png" />
+                        <c:Icone Width="{StaticResource TamIconeToolbar}" Height="{StaticResource TamIconeToolbar}"
+                               Chave="IconeExportar" />
                       </Button>
                     </StackPanel>
                   </Grid>
@@ -466,9 +465,9 @@
                              AutomationProperties.HelpText="{DynamicResource A11y.OptionalField}"
                              TextChanged="Busca_Alterada">
                       <TextBox.InnerLeftContent>
-                        <Image Width="23" Height="23" Stretch="Uniform" Margin="10,0,0,0"
+                        <c:Icone Width="{StaticResource TamIconeToolbar}" Height="{StaticResource TamIconeToolbar}" Margin="10,0,0,0"
                                VerticalAlignment="Center"
-                               Source="avares://CofreDeSenhas/Ativos/Icones/IconeBuscar.png" />
+                               Chave="IconeBuscar" />
                       </TextBox.InnerLeftContent>
                     </TextBox>
 
@@ -479,12 +478,12 @@
                                 AutomationProperties.Name="{DynamicResource Entry.Category}"
                                 AutomationProperties.HelpText="{DynamicResource A11y.OptionalField}"
                                 SelectionChanged="Filtro_Alterado" />
-                      <Image Width="23" Height="23" Stretch="Uniform"
+                      <c:Icone Width="{StaticResource TamIconeToolbar}" Height="{StaticResource TamIconeToolbar}"
                              Margin="12,0,0,0"
                              HorizontalAlignment="Left"
                              VerticalAlignment="Center"
                              IsHitTestVisible="False"
-                             Source="avares://CofreDeSenhas/Ativos/Icones/IconeFiltro.png" />
+                             Chave="IconeFiltro" />
                     </Grid>
 
                     <Grid Name="GridFiltroEtiqueta" Grid.Column="4" Height="38" VerticalAlignment="Center">
@@ -494,12 +493,12 @@
                                 AutomationProperties.Name="{DynamicResource Vault.TagFilter}"
                                 AutomationProperties.HelpText="{DynamicResource A11y.OptionalField}"
                                 SelectionChanged="Filtro_Alterado" />
-                      <Image Width="22" Height="22" Stretch="Uniform"
+                      <c:Icone Width="{StaticResource TamIconeToolbar}" Height="{StaticResource TamIconeToolbar}"
                              Margin="12,0,0,0"
                              HorizontalAlignment="Left"
                              VerticalAlignment="Center"
                              IsHitTestVisible="False"
-                             Source="avares://CofreDeSenhas/Ativos/Icones/IconeEtiqueta.png" />
+                             Chave="IconeEtiqueta" />
                     </Grid>
 
                     <Button Name="BtnOrdenar" Grid.Column="6" Classes="icone borda"
@@ -507,40 +506,40 @@
                             ToolTip.Tip="{DynamicResource Vault.SortTooltip}"
                             AutomationProperties.Name="{DynamicResource Vault.SortTooltip}"
                             Click="Ordenar_Click">
-                      <Image Width="24" Height="24" Stretch="Uniform"
-                             Source="avares://CofreDeSenhas/Ativos/Icones/IconeOrdenar.png" />
+                      <c:Icone Width="{StaticResource TamIconeToolbar}" Height="{StaticResource TamIconeToolbar}"
+                             Chave="IconeOrdenar" />
                     </Button>
                     <Button Name="BtnVazamentos" Grid.Column="8" Classes="icone borda"
                             Width="40" Height="38" VerticalAlignment="Center"
                             ToolTip.Tip="{DynamicResource Vault.BreachTooltip}"
                             AutomationProperties.Name="{DynamicResource Vault.BreachTooltip}"
                             Click="VerificarVazamentos_Click">
-                      <Path Classes="line-icon" Width="17" Height="17" Stroke="{DynamicResource TextSecondary}"
-                            Data="{StaticResource IconeVazamentos}" />
+                      <c:Icone Width="{StaticResource TamIconeToolbar}" Height="{StaticResource TamIconeToolbar}"
+                             Chave="IconeVazamentos" />
                     </Button>
                     <Button Name="BtnAuditoria" Grid.Column="10" Classes="icone borda"
                             Width="40" Height="38" VerticalAlignment="Center"
                             ToolTip.Tip="{DynamicResource Vault.AuditTooltip}"
                             AutomationProperties.Name="{DynamicResource Vault.AuditTooltip}"
                             Click="AuditarCofre_Click">
-                      <Image Width="26" Height="26" Stretch="Uniform"
-                             Source="avares://CofreDeSenhas/Ativos/Icones/IconeAuditoria.png" />
+                      <c:Icone Width="{StaticResource TamIconeToolbar}" Height="{StaticResource TamIconeToolbar}"
+                             Chave="IconeAuditoria" />
                     </Button>
                     <Button Name="BtnRelatorioSeguranca" Grid.Column="12" Classes="icone borda"
                             Width="40" Height="38" VerticalAlignment="Center"
                             ToolTip.Tip="{DynamicResource Vault.SecurityReportTooltip}"
                             AutomationProperties.Name="{DynamicResource Vault.SecurityReportTooltip}"
                             Click="RelatorioSeguranca_Click">
-                      <Path Classes="line-icon" Width="17" Height="17" Stroke="{DynamicResource TextSecondary}"
-                            Data="{StaticResource IconeRelatorioSeguranca}" />
+                      <c:Icone Width="{StaticResource TamIconeToolbar}" Height="{StaticResource TamIconeToolbar}"
+                             Chave="IconeRelatorioSeguranca" />
                     </Button>
                     <Button Name="BtnFavoritos" Grid.Column="14" Classes="icone borda"
                             Width="40" Height="38" VerticalAlignment="Center"
                             ToolTip.Tip="{DynamicResource Vault.FavoritesOnlyTooltip}"
                             AutomationProperties.Name="{DynamicResource Vault.FavoritesOnlyTooltip}"
                             Click="FiltroFavoritos_Click">
-                      <Image Width="23" Height="23" Stretch="Uniform"
-                             Source="avares://CofreDeSenhas/Ativos/Icones/IconeFavoritas.png" />
+                      <c:Icone Width="{StaticResource TamIconeToolbar}" Height="{StaticResource TamIconeToolbar}"
+                             Chave="IconeFavoritas" />
                     </Button>
 
                     <Border Name="DivisorAcoesLista" Grid.Column="16" Width="1" Margin="0,6" Background="{DynamicResource Separator}" />
@@ -549,8 +548,8 @@
                             AutomationProperties.Name="{DynamicResource Vault.NewPassword}"
                             Click="NovaSenha_Click">
                       <StackPanel Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
-                        <Image Width="22" Height="22" Stretch="Uniform"
-                               Source="avares://CofreDeSenhas/Ativos/Icones/IconeNovaSenha.png" />
+                        <c:Icone Width="{StaticResource TamIconeToolbar}" Height="{StaticResource TamIconeToolbar}"
+                               Chave="IconeNovaSenha" />
                         <TextBlock Text="{DynamicResource Vault.NewPassword}" VerticalAlignment="Center" />
                       </StackPanel>
                     </Button>
@@ -559,8 +558,8 @@
                             AutomationProperties.Name="{DynamicResource Trash.EmptyButton}"
                             Click="EsvaziarLixeira_Click">
                       <StackPanel Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
-                        <Image Width="22" Height="22" Stretch="Uniform"
-                               Source="avares://CofreDeSenhas/Ativos/Icones/IconeExcluir.png" />
+                        <c:Icone Width="{StaticResource TamIconeToolbar}" Height="{StaticResource TamIconeToolbar}"
+                               Chave="IconeExcluir" />
                         <TextBlock Text="{DynamicResource Trash.EmptyButton}" VerticalAlignment="Center" />
                       </StackPanel>
                     </Button>
@@ -570,8 +569,8 @@
                           Background="{DynamicResource AccentLight}" CornerRadius="{StaticResource RadiusPill}"
                           Padding="14,8" Margin="0,0,0,12">
                     <Grid ColumnDefinitions="Auto,*,Auto">
-                      <Path Classes="line-icon" Width="14" Height="14" Stroke="{DynamicResource AccentText}"
-                            Data="{StaticResource IconeRelatorioSeguranca}" VerticalAlignment="Center" />
+                      <c:Icone Width="{StaticResource TamIconeRodape}" Height="{StaticResource TamIconeRodape}" Stroke="{DynamicResource AccentText}"
+                             Chave="IconeRelatorioSeguranca" VerticalAlignment="Center" />
                       <TextBlock Name="LblFiltroSeguranca" Grid.Column="1" FontSize="12" FontWeight="SemiBold"
                                  Foreground="{DynamicResource AccentText}" VerticalAlignment="Center" Margin="8,0" />
                       <Button Grid.Column="2" Classes="plano" Content="{DynamicResource SecurityReport.ClearFilter}"
@@ -667,8 +666,8 @@
                       <Border Width="96" Height="96" CornerRadius="48"
                               BorderBrush="{DynamicResource InputBorder}" BorderThickness="1.5"
                               HorizontalAlignment="Center">
-                        <Image Width="61" Height="61" Stretch="Uniform"
-                               Source="avares://CofreDeSenhas/Ativos/Icones/IconeCofre.png" />
+                        <c:Icone Width="{StaticResource TamIconeVazio}" Height="{StaticResource TamIconeVazio}"
+                               Chave="IconeCofre" />
                       </Border>
                       <TextBlock Name="TxtVazioMensagem" Classes="subtitulo" Text="{DynamicResource Vault.Empty}"
                                  Foreground="{DynamicResource TextPrimary}"
@@ -704,8 +703,8 @@
                           ToolTip.Tip="{DynamicResource Details.Close}"
                           AutomationProperties.Name="{DynamicResource Details.Close}"
                           Click="FecharDetalhes_Click">
-                    <Image Width="23" Height="23" Stretch="Uniform"
-                           Source="avares://CofreDeSenhas/Ativos/Icones/IconeFechar.png" />
+                    <c:Icone Width="{StaticResource TamIconeToolbar}" Height="{StaticResource TamIconeToolbar}"
+                           Chave="IconeFechar" />
                   </Button>
                 </Grid>
 
@@ -716,16 +715,16 @@
                   <Grid ColumnDefinitions="Auto,10,*">
                     <Button Classes="secundario" Height="38" Click="ExcluirDetalhes_Click">
                       <StackPanel Orientation="Horizontal" Spacing="7">
-                        <Image Width="22" Height="22" Stretch="Uniform"
-                               Source="avares://CofreDeSenhas/Ativos/Icones/IconeExcluir.png" />
+                        <c:Icone Width="{StaticResource TamIconeCampo}" Height="{StaticResource TamIconeCampo}"
+                               Chave="IconeExcluir" />
                         <TextBlock Text="{DynamicResource Details.Delete}" />
                       </StackPanel>
                     </Button>
                     <Button Grid.Column="2" Classes="primario" Height="38" FontSize="13"
                             Click="SalvarDetalhes_Click">
                       <StackPanel Orientation="Horizontal" Spacing="7">
-                        <Path Classes="line-icon" Width="14" Height="14" Stroke="White"
-                              Data="{StaticResource IconeCheck}" />
+                        <c:Icone Width="{StaticResource TamIconeCampo}" Height="{StaticResource TamIconeCampo}" Stroke="White"
+                               Chave="IconeCheck" />
                         <TextBlock Text="{DynamicResource Details.Save}" />
                       </StackPanel>
                     </Button>
@@ -771,16 +770,15 @@
                     <StackPanel Spacing="6">
                       <TextBlock Name="LblDetalheUsuario" Text="{DynamicResource Entry.UserEmail}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
                       <Grid ColumnDefinitions="Auto,*,Auto">
-                        <Path Classes="line-icon" Width="16" Height="16" Margin="0,0,8,0" VerticalAlignment="Center"
-                              Stroke="{DynamicResource TextSecondary}"
-                              Data="{StaticResource IconeUsuario}" />
+                        <c:Icone Width="{StaticResource TamIconeCampo}" Height="{StaticResource TamIconeCampo}" Margin="0,0,8,0" VerticalAlignment="Center"
+                               Chave="IconeUsuario" />
                         <TextBox Name="TxtDetalheUsuario" Grid.Column="1" Classes="campo" Height="38" />
                         <Button Grid.Column="2" Classes="icone" Width="36" Height="36" Margin="8,0,0,0"
                                 ToolTip.Tip="{DynamicResource Row.CopyUser}"
                                 AutomationProperties.Name="{DynamicResource Row.CopyUser}"
                                 Click="CopiarUsuarioDetalhes_Click">
-                          <Image Width="22" Height="22" Stretch="Uniform"
-                                 Source="avares://CofreDeSenhas/Ativos/Icones/IconeCopiar.png" />
+                          <c:Icone Width="{StaticResource TamIconeCampo}" Height="{StaticResource TamIconeCampo}"
+                                 Chave="IconeCopiar" />
                         </Button>
                       </Grid>
                     </StackPanel>
@@ -788,24 +786,23 @@
                     <StackPanel Spacing="6">
                       <TextBlock Name="LblDetalheSenha" Text="{DynamicResource Entry.Password}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
                       <Grid ColumnDefinitions="Auto,*,Auto,Auto">
-                        <Path Classes="line-icon" Width="16" Height="16" Margin="0,0,8,0" VerticalAlignment="Center"
-                              Stroke="{DynamicResource TextSecondary}"
-                              Data="{StaticResource IconeChave}" />
+                        <c:Icone Width="{StaticResource TamIconeCampo}" Height="{StaticResource TamIconeCampo}" Margin="0,0,8,0" VerticalAlignment="Center"
+                               Chave="IconeChave" />
                         <TextBox Name="TxtDetalheSenha" Grid.Column="1" Classes="campo" Height="38"
                                  FontFamily="{StaticResource FonteMono}" />
                         <Button Name="BtnDetalheRevelar" Grid.Column="2" Classes="icone" Width="36" Height="36" Margin="8,0,0,0"
                                 ToolTip.Tip="{DynamicResource Row.RevealPassword}"
                                 AutomationProperties.Name="{DynamicResource Row.RevealPassword}"
                                 Click="RevelarSenhaDetalhes_Click">
-                          <Image Width="22" Height="22" Stretch="Uniform"
-                                 Source="avares://CofreDeSenhas/Ativos/Icones/IconeRevelar.png" />
+                          <c:Icone Width="{StaticResource TamIconeCampo}" Height="{StaticResource TamIconeCampo}"
+                                 Chave="IconeRevelar" />
                         </Button>
                         <Button Name="BtnCopiarSenhaDetalhes" Grid.Column="3" Classes="icone" Width="36" Height="36" Margin="4,0,0,0"
                                 ToolTip.Tip="{DynamicResource Row.CopyPassword}"
                                 AutomationProperties.Name="{DynamicResource Row.CopyPassword}"
                                 Click="CopiarSenhaDetalhes_Click">
-                          <Image Width="22" Height="22" Stretch="Uniform"
-                                 Source="avares://CofreDeSenhas/Ativos/Icones/IconeCopiar.png" />
+                          <c:Icone Width="{StaticResource TamIconeCampo}" Height="{StaticResource TamIconeCampo}"
+                                 Chave="IconeCopiar" />
                         </Button>
                       </Grid>
                     </StackPanel>
@@ -831,8 +828,8 @@
                                   ToolTip.Tip="{DynamicResource Row.CopyTotp}"
                                   AutomationProperties.Name="{DynamicResource Row.CopyTotp}"
                                   Click="CopiarTotpDetalhes_Click">
-                            <Image Width="22" Height="22" Stretch="Uniform"
-                                   Source="avares://CofreDeSenhas/Ativos/Icones/IconeCopiar.png" />
+                            <c:Icone Width="{StaticResource TamIconeCampo}" Height="{StaticResource TamIconeCampo}"
+                                   Chave="IconeCopiar" />
                           </Button>
                         </Grid>
                       </Border>
@@ -854,16 +851,15 @@
                     <StackPanel Spacing="6">
                       <TextBlock Text="{DynamicResource Entry.UrlOptional}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
                       <Grid ColumnDefinitions="Auto,*,Auto">
-                        <Path Classes="line-icon" Width="16" Height="16" Margin="0,0,8,0" VerticalAlignment="Center"
-                              Stroke="{DynamicResource TextSecondary}"
-                              Data="{StaticResource IconeLink}" />
+                        <c:Icone Width="{StaticResource TamIconeCampo}" Height="{StaticResource TamIconeCampo}" Margin="0,0,8,0" VerticalAlignment="Center"
+                               Chave="IconeLink" />
                         <TextBox Name="TxtDetalheUrl" Grid.Column="1" Classes="campo" Height="38" />
                         <Button Grid.Column="2" Classes="icone" Width="36" Height="36" Margin="8,0,0,0"
                                 ToolTip.Tip="{DynamicResource Row.CopyUrl}"
                                 AutomationProperties.Name="{DynamicResource Row.CopyUrl}"
                                 Click="CopiarUrlDetalhes_Click">
-                          <Image Width="22" Height="22" Stretch="Uniform"
-                                 Source="avares://CofreDeSenhas/Ativos/Icones/IconeCopiar.png" />
+                          <c:Icone Width="{StaticResource TamIconeCampo}" Height="{StaticResource TamIconeCampo}"
+                                 Chave="IconeCopiar" />
                         </Button>
                       </Grid>
                     </StackPanel>
@@ -871,9 +867,8 @@
                     <StackPanel Spacing="6">
                       <TextBlock Text="{DynamicResource Entry.NotesOptional}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
                       <Grid ColumnDefinitions="Auto,*">
-                        <Path Classes="line-icon" Width="16" Height="16" Margin="0,13,8,0" VerticalAlignment="Top"
-                              Stroke="{DynamicResource TextSecondary}"
-                              Data="{StaticResource IconeNotas}" />
+                        <c:Icone Width="{StaticResource TamIconeCampo}" Height="{StaticResource TamIconeCampo}" Margin="0,13,8,0" VerticalAlignment="Top"
+                               Chave="IconeNotas" />
                         <TextBox Name="TxtDetalheNotas" Grid.Column="1" Classes="campo"
                                  MinHeight="86"
                                  AcceptsReturn="True"
@@ -919,8 +914,8 @@
                           ToolTip.Tip="{DynamicResource Generator.Close}"
                           AutomationProperties.Name="{DynamicResource Generator.Close}"
                           Click="FecharGerador_Click">
-                    <Image Width="23" Height="23" Stretch="Uniform"
-                           Source="avares://CofreDeSenhas/Ativos/Icones/IconeFechar.png" />
+                    <c:Icone Width="{StaticResource TamIconeToolbar}" Height="{StaticResource TamIconeToolbar}"
+                           Chave="IconeFechar" />
                   </Button>
                 </Grid>
                 <c:GeradorSenha Name="Gerador" />

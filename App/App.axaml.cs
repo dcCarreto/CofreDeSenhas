@@ -2,7 +2,6 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-using Avalonia.Styling;
 using CofreDeSenhas.Janelas;
 using GerenciadorDeSenhas.Repositorios;
 using GerenciadorDeSenhas.Servicos;
@@ -27,7 +26,7 @@ namespace CofreDeSenhas
                 Preferencias.EscalaInterface,
                 Preferencias.ReduzirAnimacoes,
                 Preferencias.LeitorTela);
-            AplicarTema(Preferencias.ModoEscuro);
+            Acessibilidade.Aplicar();
             Idioma.Alterado += (s, e) => AtualizarTextosBandeja();
 
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
@@ -37,14 +36,6 @@ namespace CofreDeSenhas
             }
 
             base.OnFrameworkInitializationCompleted();
-        }
-
-        public static void AplicarTema(bool escuro)
-        {
-            Tema.DefinirModo(escuro);
-            if (Current != null)
-                Current.RequestedThemeVariant = escuro ? ThemeVariant.Dark : ThemeVariant.Light;
-            Acessibilidade.Aplicar();
         }
 
         private static TipoDaltonismo ResolverDaltonismo(string? valor) =>

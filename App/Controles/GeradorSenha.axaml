@@ -48,20 +48,20 @@
               <Button Classes="icone" Width="32" Height="32"
                       AutomationProperties.Name="{DynamicResource Row.RevealPassword}"
                       Click="OlhoGerada_Click">
-                <Image Width="22" Height="22" Stretch="Uniform"
-                       Source="avares://CofreDeSenhas/Ativos/Icones/IconeRevelar.png" />
+                <c:Icone Width="{StaticResource TamIconeCampo}" Height="{StaticResource TamIconeCampo}"
+                       Chave="IconeRevelar" />
               </Button>
               <Button Classes="icone" Width="32" Height="32"
                       AutomationProperties.Name="{DynamicResource Row.CopyPassword}"
                       Click="CopiarGerada_Click">
-                <Image Width="22" Height="22" Stretch="Uniform"
-                       Source="avares://CofreDeSenhas/Ativos/Icones/IconeCopiar.png" />
+                <c:Icone Width="{StaticResource TamIconeCampo}" Height="{StaticResource TamIconeCampo}"
+                       Chave="IconeCopiar" />
               </Button>
               <Button Classes="icone" Width="32" Height="32" FontSize="16"
                       AutomationProperties.Name="{DynamicResource Generator.GeneratePassword}"
                       Click="Gerar_Click">
-                <Path Classes="line-icon" Width="15" Height="15" Stroke="{DynamicResource TextSecondary}"
-                      Data="{StaticResource IconeGerar}" />
+                <c:Icone Width="{StaticResource TamIconeCampo}" Height="{StaticResource TamIconeCampo}"
+                       Chave="IconeGerar" />
               </Button>
             </StackPanel>
           </Grid>
@@ -92,36 +92,36 @@
                         AutomationProperties.Name="{DynamicResource Generator.Length}" />
 
         <Grid ColumnDefinitions="24,*,Auto" Height="30" Margin="0,0,0,6">
-          <Image Width="22" Height="22" Stretch="Uniform"
+          <c:Icone Width="{StaticResource TamIconeToggle}" Height="{StaticResource TamIconeToggle}"
                  HorizontalAlignment="Center" VerticalAlignment="Center"
-                 Source="avares://CofreDeSenhas/Ativos/Icones/IconeLetraMaiuscula.png" />
+                 Chave="IconeLetraMaiuscula" />
           <TextBlock Grid.Column="1" Text="{DynamicResource Generator.Uppercase}" FontSize="13"
                      Foreground="{DynamicResource TextPrimary}" VerticalAlignment="Center" />
           <c:CustomToggle Name="ToggleMaiusculas" Grid.Column="2" Checked="True" VerticalAlignment="Center"
                           AutomationProperties.Name="{DynamicResource Generator.Uppercase}" />
         </Grid>
         <Grid ColumnDefinitions="24,*,Auto" Height="30" Margin="0,0,0,6">
-          <Image Width="22" Height="22" Stretch="Uniform"
+          <c:Icone Width="{StaticResource TamIconeToggle}" Height="{StaticResource TamIconeToggle}"
                  HorizontalAlignment="Center" VerticalAlignment="Center"
-                 Source="avares://CofreDeSenhas/Ativos/Icones/IconeLetraMinuscula.png" />
+                 Chave="IconeLetraMinuscula" />
           <TextBlock Grid.Column="1" Text="{DynamicResource Generator.Lowercase}" FontSize="13"
                      Foreground="{DynamicResource TextPrimary}" VerticalAlignment="Center" />
           <c:CustomToggle Name="ToggleMinusculas" Grid.Column="2" Checked="True" VerticalAlignment="Center"
                           AutomationProperties.Name="{DynamicResource Generator.Lowercase}" />
         </Grid>
         <Grid ColumnDefinitions="24,*,Auto" Height="30" Margin="0,0,0,6">
-          <Image Width="22" Height="22" Stretch="Uniform"
+          <c:Icone Width="{StaticResource TamIconeToggle}" Height="{StaticResource TamIconeToggle}"
                  HorizontalAlignment="Center" VerticalAlignment="Center"
-                 Source="avares://CofreDeSenhas/Ativos/Icones/IconeNumeros.png" />
+                 Chave="IconeNumeros" />
           <TextBlock Grid.Column="1" Text="{DynamicResource Generator.Numbers}" FontSize="13"
                      Foreground="{DynamicResource TextPrimary}" VerticalAlignment="Center" />
           <c:CustomToggle Name="ToggleNumeros" Grid.Column="2" Checked="True" VerticalAlignment="Center"
                           AutomationProperties.Name="{DynamicResource Generator.Numbers}" />
         </Grid>
         <Grid ColumnDefinitions="24,*,Auto" Height="30" Margin="0,0,0,22">
-          <Image Width="22" Height="22" Stretch="Uniform"
+          <c:Icone Width="{StaticResource TamIconeToggle}" Height="{StaticResource TamIconeToggle}"
                  HorizontalAlignment="Center" VerticalAlignment="Center"
-                 Source="avares://CofreDeSenhas/Ativos/Icones/IconeEspeciais.png" />
+                 Chave="IconeEspeciais" />
           <TextBlock Grid.Column="1" Text="{DynamicResource Generator.Special}" FontSize="13"
                      Foreground="{DynamicResource TextPrimary}" VerticalAlignment="Center" />
           <c:CustomToggle Name="ToggleEspeciais" Grid.Column="2" VerticalAlignment="Center"
@@ -147,18 +147,18 @@
                     VerticalAlignment="Center" HorizontalAlignment="Stretch" />
         </Grid>
         <Grid ColumnDefinitions="24,*,Auto" Height="30" Margin="0,0,0,6">
-          <Image Width="22" Height="22" Stretch="Uniform"
+          <c:Icone Width="{StaticResource TamIconeToggle}" Height="{StaticResource TamIconeToggle}"
                  HorizontalAlignment="Center" VerticalAlignment="Center"
-                 Source="avares://CofreDeSenhas/Ativos/Icones/IconeCapitalizar.png" />
+                 Chave="IconeCapitalizar" />
           <TextBlock Grid.Column="1" Text="{DynamicResource Generator.Capitalize}" FontSize="13"
                      Foreground="{DynamicResource TextPrimary}" VerticalAlignment="Center" />
           <c:CustomToggle Name="ToggleCapitalizarFrase" Grid.Column="2" VerticalAlignment="Center"
                           AutomationProperties.Name="{DynamicResource Generator.Capitalize}" />
         </Grid>
         <Grid ColumnDefinitions="24,*,Auto" Height="30" Margin="0,0,0,22">
-          <Image Width="22" Height="22" Stretch="Uniform"
+          <c:Icone Width="{StaticResource TamIconeToggle}" Height="{StaticResource TamIconeToggle}"
                  HorizontalAlignment="Center" VerticalAlignment="Center"
-                 Source="avares://CofreDeSenhas/Ativos/Icones/IconeNumeros.png" />
+                 Chave="IconeNumeros" />
           <TextBlock Grid.Column="1" Text="{DynamicResource Generator.AddNumber}" FontSize="13"
                      Foreground="{DynamicResource TextPrimary}" VerticalAlignment="Center" />
           <c:CustomToggle Name="ToggleNumeroFrase" Grid.Column="2" Checked="True" VerticalAlignment="Center"
@@ -171,8 +171,8 @@
               AutomationProperties.Name="{DynamicResource Generator.GeneratePassword}"
               Click="Gerar_Click">
         <StackPanel Orientation="Horizontal" Spacing="8">
-          <Path Classes="line-icon" Width="15" Height="15" Stroke="White"
-                Data="{StaticResource IconeGerar}" />
+          <c:Icone Width="{StaticResource TamIconeCampo}" Height="{StaticResource TamIconeCampo}" Stroke="White"
+                 Chave="IconeGerar" />
           <TextBlock Text="{DynamicResource Generator.GeneratePassword}" />
         </StackPanel>
       </Button>
@@ -183,8 +183,8 @@
                 AutomationProperties.Name="{DynamicResource Generator.SaveToVault}"
                 Click="SalvarNoCofre_Click">
           <StackPanel Orientation="Horizontal" Spacing="7">
-            <Path Classes="line-icon" Width="14" Height="14" Stroke="{DynamicResource TextSecondary}"
-                  Data="{StaticResource IconeCadeado}" />
+            <c:Icone Width="{StaticResource TamIconeCampo}" Height="{StaticResource TamIconeCampo}"
+                   Chave="IconeCadeado" />
             <TextBlock Text="{DynamicResource Generator.SaveToVault}" />
           </StackPanel>
         </Button>
@@ -193,8 +193,8 @@
                 AutomationProperties.Name="{DynamicResource Generator.Clear}"
                 Click="Limpar_Click">
           <StackPanel Orientation="Horizontal" Spacing="6">
-            <Image Width="20" Height="20" Stretch="Uniform"
-                   Source="avares://CofreDeSenhas/Ativos/Icones/IconeExcluir.png" />
+            <c:Icone Width="{StaticResource TamIconeCampo}" Height="{StaticResource TamIconeCampo}"
+                   Chave="IconeExcluir" />
             <TextBlock Text="{DynamicResource Generator.Clear}" />
           </StackPanel>
         </Button>

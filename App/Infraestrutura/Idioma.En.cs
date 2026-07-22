@@ -58,8 +58,6 @@ namespace CofreDeSenhas
             ("Update.Available", "New version available: {0}"),
             ("Update.Dismiss", "Dismiss update notice"),
             ("Icons.ConsentMessage", "To display each service's real icon, the app queries Google's favicon service, sending only the site's domain (for example, github.com). No password, username, or any other data leaves your computer, and downloaded icons are cached on disk to avoid repeated lookups.\n\nEnable online icon fetching?"),
-            ("Theme.Light", "Light theme"),
-            ("Theme.Dark", "Dark theme"),
             ("Privacy.Enable", "Enable privacy mode"),
             ("Privacy.Disable", "Disable privacy mode"),
             ("Settings.LockNow", "Lock now"),

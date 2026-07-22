@@ -42,7 +42,6 @@ namespace CofreDeSenhas
             ("Update.Available", "Nouvelle version disponible : {0}"),
             ("Update.Dismiss", "Ignorer l'avis de mise à jour"),
             ("Icons.ConsentMessage", "Pour afficher l'icône réelle de chaque service, l'application interroge le service d'icônes de Google en envoyant uniquement le domaine du site (par exemple, github.com). Aucun mot de passe, identifiant ou autre donnée ne quitte votre ordinateur, et les icônes téléchargées sont mises en cache sur le disque pour éviter de nouvelles requêtes.\n\nActiver la récupération d'icônes en ligne ?"),
-            ("Theme.Light", "Thème clair"), ("Theme.Dark", "Thème sombre"),
             ("Privacy.Enable", "Activer le mode confidentialité"), ("Privacy.Disable", "Désactiver le mode confidentialité"),
             ("Settings.LockNow", "Verrouiller maintenant"),
             ("Settings.SectionHelp", "AIDE"),

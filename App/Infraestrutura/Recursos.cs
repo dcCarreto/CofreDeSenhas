@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
+using CofreDeSenhas.Controles;
 
 namespace CofreDeSenhas
 {
@@ -10,7 +11,6 @@ namespace CofreDeSenhas
         private static readonly Uri _uriIcone = new("avares://CofreDeSenhas/Ativos/app.png");
 
         private static Bitmap? _logo;
-        private static readonly Dictionary<string, Bitmap> _iconesPng = new();
 
         public static Bitmap Logo
         {
@@ -35,23 +35,17 @@ namespace CofreDeSenhas
             return memoria.ToArray();
         }
 
-        public static Bitmap IconePng(string chave)
+        public static Icone ImagemIcone(string chave, double tamanho, IBrush? cor = null, bool preenchido = false)
         {
-            if (!_iconesPng.TryGetValue(chave, out var bitmap))
+            var icone = new Icone { Width = tamanho, Height = tamanho, Chave = chave, Preenchido = preenchido };
+            if (cor != null)
             {
-                using var stream = AssetLoader.Open(new Uri($"avares://CofreDeSenhas/Ativos/Icones/{chave}.png"));
-                bitmap = new Bitmap(stream);
-                _iconesPng[chave] = bitmap;
+                if (preenchido)
+                    icone.Fill = cor;
+                else
+                    icone.Stroke = cor;
             }
-            return bitmap;
+            return icone;
         }
-
-        public static Image ImagemIcone(string chave, double tamanho) => new()
-        {
-            Width = tamanho,
-            Height = tamanho,
-            Stretch = Stretch.Uniform,
-            Source = IconePng(chave)
-        };
     }
 }

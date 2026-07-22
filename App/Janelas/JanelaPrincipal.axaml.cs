@@ -19,7 +19,6 @@ using GerenciadorDeSenhas.Excecoes;
 using GerenciadorDeSenhas.Modelos;
 using GerenciadorDeSenhas.Repositorios;
 using GerenciadorDeSenhas.Servicos;
-using AvaloniaPath = Avalonia.Controls.Shapes.Path;
 
 namespace CofreDeSenhas.Janelas
 {
@@ -117,7 +116,6 @@ namespace CofreDeSenhas.Janelas
             Gerador.SolicitouSalvar += Gerador_SolicitouSalvar;
             Gerador.ShowHeader = false;
 
-            AtualizarBotaoTema();
             AtualizarBotaoPrivacidade();
             PintarFiltroFavoritos();
             AtualizarNavegacao();
@@ -230,7 +228,7 @@ namespace CofreDeSenhas.Janelas
             AutomationProperties.SetName(BtnPrivacidade, dica);
         }
 
-        private static Image IconeOlhoPrivacidade(bool ativo) =>
+        private static Icone IconeOlhoPrivacidade(bool ativo) =>
             Recursos.ImagemIcone(ativo ? "IconeRevelar" : "IconeOcultar", 28);
 
         private async Task CopiarUsuarioLinhaFocadaAsync()
@@ -503,30 +501,6 @@ namespace CofreDeSenhas.Janelas
 
         private void Fechar_Click(object? sender, RoutedEventArgs e) => Close();
 
-        private void Tema_Click(object? sender, RoutedEventArgs e)
-        {
-            App.AplicarTema(!Tema.ModoEscuro);
-            Preferencias.ModoEscuro = Tema.ModoEscuro;
-            Preferencias.Salvar();
-
-            AtualizarBotaoTema();
-            Gerador.AtualizarTema();
-            PintarFiltroFavoritos();
-            AtualizarNavegacao();
-            FiltrarSenhas();
-        }
-
-        private void AtualizarBotaoTema()
-        {
-            BtnTema.Content = IconeSolLua(Tema.ModoEscuro);
-            var dica = Idioma.Texto(Tema.ModoEscuro ? "Theme.Light" : "Theme.Dark");
-            ToolTip.SetTip(BtnTema, dica);
-            Avalonia.Automation.AutomationProperties.SetName(BtnTema, dica);
-        }
-
-        private static Image IconeSolLua(bool mostrarSol) =>
-            Recursos.ImagemIcone(mostrarSol ? "IconeSol" : "IconeLua", 28);
-
         private void Idioma_Alterado(object? sender, RoutedEventArgs e)
         {
             if (sender is not MenuItem item || item.Tag is not string codigo ||
@@ -540,7 +514,6 @@ namespace CofreDeSenhas.Janelas
 
         private void IdiomaGlobal_Alterado(object? sender, EventArgs e)
         {
-            AtualizarBotaoTema();
             AtualizarBotaoPrivacidade();
             MarcarIdiomaSelecionado();
             AtualizarMenuBiometria();
@@ -1468,7 +1441,7 @@ namespace CofreDeSenhas.Janelas
             AutomationProperties.SetName(LblContadorHeader, LblContadorHeader.Text ?? "");
         }
 
-        private static Image IconeJanela(string chave) => Recursos.ImagemIcone(chave, 28);
+        private static Icone IconeJanela(string chave) => Recursos.ImagemIcone(chave, 28);
 
         private static string TextoBloqueioAutomatico()
         {
@@ -1561,8 +1534,8 @@ namespace CofreDeSenhas.Janelas
             BtnFabGerador.Height = _navColapsada ? 40 : 60;
             BtnFabGerador.CornerRadius = new CornerRadius(_navColapsada ? 20 : 30);
             BtnFabGerador.Margin = new Thickness(0, 0, 0, 16);
-            IconeFabGerador.Width = _navColapsada ? 20 : 26;
-            IconeFabGerador.Height = _navColapsada ? 20 : 26;
+            IconeFabGerador.Width = _navColapsada ? 20 : 30;
+            IconeFabGerador.Height = _navColapsada ? 20 : 30;
 
             foreach (var texto in TextosNav())
                 texto.IsVisible = !_navColapsada;

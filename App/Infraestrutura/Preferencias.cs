@@ -34,7 +34,6 @@ namespace CofreDeSenhas
 
         private class Dados
         {
-            public bool ModoEscuro { get; set; }
             public PerfilBanco? UltimoBanco { get; set; }
             public int MinutosBloqueio { get; set; } = MinutosBloqueioPadrao;
             public string? Idioma { get; set; }
@@ -57,7 +56,6 @@ namespace CofreDeSenhas
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             CaminhosApp.PastaDados, "config.json");
 
-        public static bool ModoEscuro { get; set; }
         public static PerfilBanco? UltimoBanco { get; set; }
         public static int MinutosBloqueio { get; set; } = MinutosBloqueioPadrao;
         public static string? Idioma { get; set; }
@@ -89,7 +87,6 @@ namespace CofreDeSenhas
                     var d = JsonSerializer.Deserialize<Dados>(File.ReadAllText(_caminho));
                     if (d != null)
                     {
-                        ModoEscuro = d.ModoEscuro;
                         UltimoBanco = d.UltimoBanco;
                         MinutosBloqueio = d.MinutosBloqueio;
                         Idioma = d.Idioma;
@@ -118,7 +115,7 @@ namespace CofreDeSenhas
             {
                 var dir = Path.GetDirectoryName(_caminho)!;
                 if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
-                File.WriteAllText(_caminho, JsonSerializer.Serialize(new Dados { ModoEscuro = ModoEscuro, UltimoBanco = UltimoBanco, MinutosBloqueio = MinutosBloqueio, Idioma = Idioma, Daltonismo = Daltonismo, AltoContraste = AltoContraste, EscalaInterface = EscalaInterface, ReduzirAnimacoes = ReduzirAnimacoes, LeitorTela = LeitorTela, IconesOnline = IconesOnline, SegundosLimpezaClipboard = SegundosLimpezaClipboard, FrequenciaBackup = FrequenciaBackup, MaximoBackups = MaximoBackups, RegistrarHistoricoUso = RegistrarHistoricoUso, VerificarAtualizacoes = VerificarAtualizacoes, VersaoDispensada = VersaoDispensada, Sincronizacao = Sincronizacao }));
+                File.WriteAllText(_caminho, JsonSerializer.Serialize(new Dados { UltimoBanco = UltimoBanco, MinutosBloqueio = MinutosBloqueio, Idioma = Idioma, Daltonismo = Daltonismo, AltoContraste = AltoContraste, EscalaInterface = EscalaInterface, ReduzirAnimacoes = ReduzirAnimacoes, LeitorTela = LeitorTela, IconesOnline = IconesOnline, SegundosLimpezaClipboard = SegundosLimpezaClipboard, FrequenciaBackup = FrequenciaBackup, MaximoBackups = MaximoBackups, RegistrarHistoricoUso = RegistrarHistoricoUso, VerificarAtualizacoes = VerificarAtualizacoes, VersaoDispensada = VersaoDispensada, Sincronizacao = Sincronizacao }));
             }
             catch { }
         }

@@ -9,7 +9,6 @@ using Avalonia.Threading;
 using CofreDeSenhas.Janelas;
 using GerenciadorDeSenhas.Excecoes;
 using GerenciadorDeSenhas.Servicos;
-using AvaloniaPath = Avalonia.Controls.Shapes.Path;
 
 namespace CofreDeSenhas.Controles
 {
@@ -75,40 +74,13 @@ namespace CofreDeSenhas.Controles
             Grid.SetColumnSpan(BtnLimpar, _permiteSalvar ? 1 : 3);
         }
 
-        private static AvaloniaPath CriarIcone(string chave, double tamanho, IBrush? stroke = null) => new()
-        {
-            Data = (Geometry)Application.Current!.FindResource(chave)!,
-            Width = tamanho,
-            Height = tamanho,
-            Stretch = Stretch.Uniform,
-            Stroke = stroke ?? Tema.Pincel(Tema.TextSecondary),
-            StrokeThickness = 2,
-            StrokeLineCap = PenLineCap.Round,
-            Fill = Brushes.Transparent
-        };
-
-        private static StackPanel CriarConteudoBotao(string icone, string texto, double tamanhoIcone, IBrush? stroke = null) => new()
+        private static StackPanel CriarConteudoBotaoImagem(string icone, string texto, double tamanhoIcone, IBrush? cor = null) => new()
         {
             Orientation = Orientation.Horizontal,
             Spacing = 8,
             Children =
             {
-                CriarIcone(icone, tamanhoIcone, stroke),
-                new TextBlock
-                {
-                    Text = texto,
-                    VerticalAlignment = VerticalAlignment.Center
-                }
-            }
-        };
-
-        private static StackPanel CriarConteudoBotaoImagem(string icone, string texto, double tamanhoIcone) => new()
-        {
-            Orientation = Orientation.Horizontal,
-            Spacing = 8,
-            Children =
-            {
-                Recursos.ImagemIcone(icone, tamanhoIcone),
+                Recursos.ImagemIcone(icone, tamanhoIcone, cor),
                 new TextBlock
                 {
                     Text = texto,
@@ -182,7 +154,7 @@ namespace CofreDeSenhas.Controles
             var texto = Idioma.Texto(fraseSenha
                 ? "Generator.GeneratePassphrase"
                 : "Generator.GeneratePassword");
-            BtnGerar.Content = CriarConteudoBotao("IconeGerar", texto, 15, Brushes.White);
+            BtnGerar.Content = CriarConteudoBotaoImagem("IconeGerar", texto, 18, Brushes.White);
             AutomationProperties.SetName(BtnGerar, texto);
         }
 
@@ -270,7 +242,7 @@ namespace CofreDeSenhas.Controles
 
             var btnCopiarTodas = new Button
             {
-                Content = CriarConteudoBotaoImagem("IconeCopiar", Idioma.Texto("Generator.CopyAll"), 20),
+                Content = CriarConteudoBotaoImagem("IconeCopiar", Idioma.Texto("Generator.CopyAll"), 20, Tema.Pincel(Tema.AccentText)),
                 Height = 26,
                 FontSize = 12,
                 Foreground = Tema.Pincel(Tema.AccentText),
@@ -315,14 +287,12 @@ namespace CofreDeSenhas.Controles
             btnCopiar.Click += async (s, e) =>
             {
                 await AreaTransferenciaFeedback.CopiarComAvisoAsync(AreaTransferencia, senha, this, ItemGeradoNome);
-                btnCopiar.Content = CriarIcone("IconeCheck", 13);
-                btnCopiar.Foreground = Tema.Pincel(Tema.StrengthStrong);
+                btnCopiar.Content = Recursos.ImagemIcone("IconeCheck", 20, Tema.Pincel(Tema.StrengthStrong));
 
                 var t = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
                 t.Tick += (ss, ee) =>
                 {
                     btnCopiar.Content = Recursos.ImagemIcone("IconeCopiar", 20);
-                    btnCopiar.ClearValue(ForegroundProperty);
                     t.Stop();
                 };
                 t.Start();

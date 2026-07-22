@@ -42,7 +42,6 @@ namespace CofreDeSenhas
             ("Update.Available", "Neue Version verfügbar: {0}"),
             ("Update.Dismiss", "Update-Hinweis ausblenden"),
             ("Icons.ConsentMessage", "Um das echte Symbol jedes Dienstes anzuzeigen, fragt die App den Favicon-Dienst von Google ab und sendet dabei nur die Domain der Website (zum Beispiel github.com). Kein Passwort, Benutzername oder sonstige Daten verlassen Ihren Computer, und heruntergeladene Symbole werden auf der Festplatte zwischengespeichert, um erneute Abfragen zu vermeiden.\n\nOnline-Symbole aktivieren?"),
-            ("Theme.Light", "Helles Design"), ("Theme.Dark", "Dunkles Design"),
             ("Privacy.Enable", "Privatsphärenmodus aktivieren"), ("Privacy.Disable", "Privatsphärenmodus deaktivieren"),
             ("Settings.LockNow", "Jetzt sperren"),
             ("Settings.SectionHelp", "HILFE"),

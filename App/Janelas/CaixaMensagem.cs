@@ -4,7 +4,6 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
-using Path = Avalonia.Controls.Shapes.Path;
 
 namespace CofreDeSenhas.Janelas
 {
@@ -41,7 +40,7 @@ namespace CofreDeSenhas.Janelas
 
             var btnFechar = new Button
             {
-                Content = Recursos.ImagemIcone("IconeFechar", 19)
+                Content = Recursos.ImagemIcone("IconeFechar", 18)
             };
             btnFechar.Classes.Add("fechar-dialogo");
             btnFechar.Margin = new Thickness(0, 0, 14, 0);
@@ -58,26 +57,19 @@ namespace CofreDeSenhas.Janelas
             bordaHeader.Bind(Border.BorderBrushProperty, this.GetResourceObservable("CardBorder"));
             DockPanel.SetDock(bordaHeader, Dock.Top);
 
-            var glifo = new Path
+            var glifo = Recursos.ImagemIcone(tipo switch
             {
-                Classes = { "line-icon" },
-                Data = (Geometry?)Application.Current!.FindResource(tipo switch
-                {
-                    TipoMensagem.Aviso => "IconeAviso",
-                    TipoMensagem.Erro => "IconeErro",
-                    _ => "IconeInfo"
-                }),
-                Width = 22,
-                Height = 22,
-                Stroke = tipo switch
-                {
-                    TipoMensagem.Aviso => Tema.Pincel(Tema.StrengthMedium),
-                    TipoMensagem.Erro => Tema.Pincel(Tema.StrengthWeak),
-                    _ => Tema.Pincel(Tema.AccentPrimary)
-                },
-                VerticalAlignment = VerticalAlignment.Center,
-                Margin = new Thickness(0, 0, 14, 0)
-            };
+                TipoMensagem.Aviso => "IconeAviso",
+                TipoMensagem.Erro => "IconeErro",
+                _ => "IconeInfo"
+            }, 22, tipo switch
+            {
+                TipoMensagem.Aviso => Tema.Pincel(Tema.StrengthMedium),
+                TipoMensagem.Erro => Tema.Pincel(Tema.StrengthWeak),
+                _ => Tema.Pincel(Tema.AccentPrimary)
+            });
+            glifo.VerticalAlignment = VerticalAlignment.Center;
+            glifo.Margin = new Thickness(0, 0, 14, 0);
 
             var lblTexto = new TextBlock
             {

@@ -31,7 +31,15 @@
           <ScrollViewer VerticalScrollBarVisibility="Auto">
           <StackPanel VerticalAlignment="Center" HorizontalAlignment="Stretch"
                       Margin="44,0" MaxWidth="360">
-            <Image Source="/Ativos/app.png" Width="72" Height="72" HorizontalAlignment="Center" />
+            <Border Width="{StaticResource TamTileHero}" Height="{StaticResource TamTileHero}"
+                    CornerRadius="{StaticResource RadiusCartao}"
+                    Background="{DynamicResource AccentPrimary}"
+                    HorizontalAlignment="Center">
+              <c:Icone Width="{StaticResource TamIconeHero}" Height="{StaticResource TamIconeHero}"
+                     HorizontalAlignment="Center" VerticalAlignment="Center"
+                     Stroke="White"
+                     Chave="IconeCadeado" />
+            </Border>
 
             <TextBlock Text="{DynamicResource App.Title}"
                        Classes="display"
@@ -113,8 +121,8 @@
                     IsVisible="False"
                     Click="Biometria_Click">
               <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
-                <Image Width="22" Height="22" Stretch="Uniform" VerticalAlignment="Center"
-                       Source="avares://CofreDeSenhas/Ativos/Icones/IconeWindowsHello.png" />
+                <c:Icone Width="{StaticResource TamIconeCampo}" Height="{StaticResource TamIconeCampo}" VerticalAlignment="Center"
+                       Chave="IconeWindowsHello" />
                 <TextBlock Name="LblBiometria" Text="{DynamicResource Login.WindowsHello}" VerticalAlignment="Center" />
               </StackPanel>
             </Button>
@@ -139,8 +147,8 @@
                   TabIndex="6"
                   ToolTip.Tip="{DynamicResource Access.Title}"
                   AutomationProperties.Name="{DynamicResource Access.Title}">
-            <Image Width="28" Height="28" Stretch="Uniform"
-                   Source="avares://CofreDeSenhas/Ativos/Icones/IconeAcessibilidade.png" />
+            <c:Icone Width="{StaticResource TamIconeToolbar}" Height="{StaticResource TamIconeToolbar}"
+                   Chave="IconeAcessibilidade" />
             <Button.Flyout>
               <MenuFlyout Placement="BottomEdgeAlignedRight">
                 <MenuItem Name="MenuDaltonismoLogin" Header="{DynamicResource Access.Colorblind}">
@@ -170,7 +178,7 @@
                   Margin="0,20,20,0"
                   TabIndex="7"
                   Click="Fechar_Click">
-            <Image Width="22" Height="22" Stretch="Uniform" Source="avares://CofreDeSenhas/Ativos/Icones/IconeFechar.png" />
+            <c:Icone Width="{StaticResource TamIconeToolbar}" Height="{StaticResource TamIconeToolbar}" Chave="IconeFechar" />
           </Button>
         </Grid>
       </Grid>

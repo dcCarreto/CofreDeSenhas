@@ -42,7 +42,6 @@ namespace CofreDeSenhas
             ("Update.Available", "Nueva versión disponible: {0}"),
             ("Update.Dismiss", "Descartar aviso de actualización"),
             ("Icons.ConsentMessage", "Para mostrar el icono real de cada servicio, la aplicación consulta el servicio de iconos de Google enviando solo el dominio del sitio (por ejemplo, github.com). Ninguna contraseña, usuario u otro dato sale de tu equipo, y los iconos descargados se guardan en caché en el disco para evitar nuevas consultas.\n\n¿Activar la búsqueda de iconos en línea?"),
-            ("Theme.Light", "Tema claro"), ("Theme.Dark", "Tema oscuro"),
             ("Privacy.Enable", "Activar modo privacidad"), ("Privacy.Disable", "Desactivar modo privacidad"),
             ("Settings.LockNow", "Bloquear ahora"),
             ("Settings.SectionHelp", "AYUDA"),

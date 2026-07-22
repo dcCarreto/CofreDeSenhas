@@ -12,7 +12,6 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using GerenciadorDeSenhas.Modelos;
 using GerenciadorDeSenhas.Servicos;
-using AvaloniaPath = Avalonia.Controls.Shapes.Path;
 
 namespace CofreDeSenhas.Controles
 {
@@ -60,7 +59,6 @@ namespace CofreDeSenhas.Controles
         private Button? _btnTotp;
         private DispatcherTimer? _timerFeedbackUsuario;
 
-        private static readonly Geometry IconeCheck = StreamGeometry.Parse("M5 12 L10 17 L19 7");
         private const string MascaraPrivacidade = "••••••••";
 
         public Senha Senha => _senha;
@@ -163,7 +161,7 @@ namespace CofreDeSenhas.Controles
 
             var estrela = new Button
             {
-                Content = CriarIconeEstrela(_senha.Favorito),
+                Content = CriarIconeEstrela(_senha.Favorito, 18),
                 Width = 30,
                 Height = 30,
                 HorizontalAlignment = HorizontalAlignment.Center,
@@ -230,7 +228,7 @@ namespace CofreDeSenhas.Controles
             _btnCopiar = CriarBotaoAcaoImagem("IconeCopiar", Idioma.Texto("Row.CopyPassword"));
             _btnCopiar.Click += async (s, e) => await CopiarAsync();
 
-            _btnFixar = new Button { Content = CriarIconePin(_senha.Fixado) };
+            _btnFixar = new Button { Content = CriarIconePin(_senha.Fixado, 18) };
             _btnFixar.Classes.Add("icone-linha");
             var dicaFixar = Idioma.Texto(_senha.Fixado ? "Row.UnpinEntry" : "Row.PinEntry");
             ToolTip.SetTip(_btnFixar, dicaFixar);
@@ -687,72 +685,28 @@ namespace CofreDeSenhas.Controles
             _grid.ColumnDefinitions[9].Width = new GridLength(acoes);
         }
 
-        private static Geometry Icone(string chave) => (Geometry)Application.Current!.FindResource(chave)!;
-
-        private static Button CriarBotaoAcao(Geometry icone, string dica)
-        {
-            var btn = new Button { Content = CriarIcone(icone) };
-            btn.Classes.Add("icone-linha");
-            ToolTip.SetTip(btn, dica);
-            AutomationProperties.SetName(btn, dica);
-            return btn;
-        }
-
         private static Button CriarBotaoAcaoImagem(string chave, string dica)
         {
-            var btn = new Button { Content = Recursos.ImagemIcone(chave, 22) };
+            var btn = new Button { Content = Recursos.ImagemIcone(chave, 18) };
             btn.Classes.Add("icone-linha");
             ToolTip.SetTip(btn, dica);
             AutomationProperties.SetName(btn, dica);
             return btn;
         }
 
-        private static AvaloniaPath CriarIcone(Geometry data, IBrush? stroke = null) => new()
-        {
-            Data = data,
-            Width = 14,
-            Height = 14,
-            Stretch = Stretch.Uniform,
-            Stroke = stroke ?? Tema.Pincel(Tema.TextSecondary),
-            StrokeThickness = 2,
-            StrokeLineCap = PenLineCap.Round,
-            Fill = Brushes.Transparent
-        };
+        private static Icone CriarIconeEstrela(bool favorito, double tamanho) =>
+            Recursos.ImagemIcone("IconeFavoritas", tamanho,
+                Tema.Pincel(favorito ? Tema.FavoriteColor : Tema.FavoriteBorderColor),
+                preenchido: favorito);
 
-        private static AvaloniaPath CriarIconeEstrela(bool favorito) => new()
-        {
-            Data = Icone("IconeFavoritas"),
-            Width = 16,
-            Height = 16,
-            Stretch = Stretch.Uniform,
-            Stroke = Tema.Pincel(favorito ? Tema.FavoriteColor : Tema.FavoriteBorderColor),
-            StrokeThickness = 1.8,
-            StrokeLineCap = PenLineCap.Round,
-            StrokeJoin = PenLineJoin.Round,
-            Fill = favorito ? Tema.Pincel(Tema.FavoriteColor) : Brushes.Transparent
-        };
+        private static Icone CriarIconePin(bool fixado, double tamanho) =>
+            Recursos.ImagemIcone("IconeFixar", tamanho,
+                Tema.Pincel(fixado ? Tema.AccentPrimary : Tema.TextSecondary),
+                preenchido: fixado);
 
-        private static AvaloniaPath CriarIconePin(bool fixado) => new()
+        private static void DefinirIconeImagem(Button botao, string chave, IBrush? cor = null)
         {
-            Data = Icone("IconeFixar"),
-            Width = 14,
-            Height = 14,
-            Stretch = Stretch.Uniform,
-            Stroke = Tema.Pincel(fixado ? Tema.AccentPrimary : Tema.TextSecondary),
-            StrokeThickness = 1.6,
-            StrokeLineCap = PenLineCap.Round,
-            StrokeJoin = PenLineJoin.Round,
-            Fill = fixado ? Tema.Pincel(Tema.AccentPrimary) : Brushes.Transparent
-        };
-
-        private static void DefinirIcone(Button botao, Geometry data)
-        {
-            botao.Content = CriarIcone(data);
-        }
-
-        private static void DefinirIconeImagem(Button botao, string chave)
-        {
-            botao.Content = Recursos.ImagemIcone(chave, 22);
+            botao.Content = Recursos.ImagemIcone(chave, 18, cor);
         }
 
         private void AtualizarIndicador()
@@ -938,8 +892,7 @@ namespace CofreDeSenhas.Controles
             var vaiLimpar = await AreaTransferenciaFeedback.CopiarComAvisoAsync(clipboard, plain, this, Idioma.Texto("Row.CopyPassword"));
             await RegistrarCopiaSeHabilitadoAsync(TipoCampoCopiado.Senha);
 
-            DefinirIcone(_btnCopiar, IconeCheck);
-            _btnCopiar.Foreground = Tema.Pincel(Tema.StrengthStrong);
+            DefinirIconeImagem(_btnCopiar, "IconeCheck", Tema.Pincel(Tema.StrengthStrong));
 
             if (vaiLimpar)
             {
@@ -952,7 +905,6 @@ namespace CofreDeSenhas.Controles
             t.Tick += (s, e) =>
             {
                 DefinirIconeImagem(_btnCopiar, "IconeCopiar");
-                _btnCopiar.ClearValue(Button.ForegroundProperty);
                 if (vaiLimpar)
                 {
                     ToolTip.SetTip(_btnCopiar, Idioma.Texto("Row.CopyPassword"));
@@ -983,14 +935,12 @@ namespace CofreDeSenhas.Controles
             }
             await RegistrarCopiaSeHabilitadoAsync(TipoCampoCopiado.Totp);
 
-            DefinirIcone(_btnTotp, IconeCheck);
-            _btnTotp.Foreground = Tema.Pincel(Tema.StrengthStrong);
+            DefinirIconeImagem(_btnTotp, "IconeCheck", Tema.Pincel(Tema.StrengthStrong));
             Acessibilidade.Anunciar(this, Idioma.Formatar("A11y.Copied", Idioma.Texto("Row.CopyTotp")));
             var t = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
             t.Tick += (s, e) =>
             {
                 DefinirIconeImagem(_btnTotp, "IconeTotp");
-                _btnTotp.ClearValue(Button.ForegroundProperty);
                 t.Stop();
             };
             t.Start();

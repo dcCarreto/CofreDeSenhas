@@ -109,109 +109,40 @@ namespace CofreDeSenhas
             ("StatusConnected", CorVisual.StatusConnected)
         };
 
-        private static readonly IReadOnlyDictionary<CorVisual, uint> PadraoClaro = D(
-            (CorVisual.WorkspaceBackground, 0xFFF4F1F7),
-            (CorVisual.CardBackground, 0xFFFFFFFF),
-            (CorVisual.CardBorder, 0xFFEAE4F1),
-            (CorVisual.TitleBar, 0xFFFFFFFF),
-            (CorVisual.TitleBarBorder, 0xFFEEE8F4),
-            (CorVisual.InputBackground, 0xFFF7F4FA),
-            (CorVisual.InputBorder, 0xFFDED5E7),
-            (CorVisual.RowHover, 0xFFFAF7FC),
-            (CorVisual.Separator, 0xFFF1ECF6),
-            (CorVisual.Footer, 0xFFFBFAFC),
-            (CorVisual.AccentPrimary, 0xFF6B3AA0),
-            (CorVisual.AccentHover, 0xFF5A2F8A),
-            (CorVisual.AccentLight, 0xFFF1E7FA),
-            (CorVisual.AccentText, 0xFF6B3AA0),
-            (CorVisual.TextPrimary, 0xFF241F2B),
-            (CorVisual.TextSecondary, 0xFF6B6575),
-            (CorVisual.TextTertiary, 0xFF6E6976),
-            (CorVisual.TextHeader, 0xFF6E6976),
-            (CorVisual.TrailInactive, 0xFFE8E2EE),
-            (CorVisual.ToggleOff, 0xFFD9D1E1),
-            (CorVisual.HoverBackground, 0xFFF2EDF7),
-            (CorVisual.IconHoverBackground, 0xFFF0EAF6),
-            (CorVisual.FavoriteColor, 0xFFC9861A),
-            (CorVisual.FavoriteBorderColor, 0xFFD0C7DA),
-            (CorVisual.StrengthWeak, 0xFFD33D3D),
-            (CorVisual.StrengthMedium, 0xFFA66813),
-            (CorVisual.StrengthStrong, 0xFF1E9A5A),
-            (CorVisual.StrengthExcellent, 0xFF2F7FD6),
-            (CorVisual.CloseButtonHover, 0xFFE5484D),
-            (CorVisual.CloseButtonPressed, 0xFFC93A3E),
-            (CorVisual.StatusLocal, 0xFF1E9A5A),
-            (CorVisual.StatusWarning, 0xFFE0932C),
-            (CorVisual.StatusConnected, 0xFF2F7FD6));
-
         private static readonly IReadOnlyDictionary<CorVisual, uint> PadraoEscuro = D(
-            (CorVisual.WorkspaceBackground, 0xFF14121B),
-            (CorVisual.CardBackground, 0xFF211E2B),
-            (CorVisual.CardBorder, 0xFF34303F),
-            (CorVisual.TitleBar, 0xFF1B1822),
-            (CorVisual.TitleBarBorder, 0xFF302B3D),
-            (CorVisual.InputBackground, 0xFF2A2634),
-            (CorVisual.InputBorder, 0xFF3D3849),
-            (CorVisual.RowHover, 0xFF292534),
-            (CorVisual.Separator, 0xFF302C3A),
-            (CorVisual.Footer, 0xFF1D1A24),
-            (CorVisual.AccentPrimary, 0xFF8452D6),
-            (CorVisual.AccentHover, 0xFF6F3EBD),
-            (CorVisual.AccentLight, 0xFF362A4D),
-            (CorVisual.AccentText, 0xFFA986E8),
-            (CorVisual.TextPrimary, 0xFFEDE9F3),
-            (CorVisual.TextSecondary, 0xFFA29AB0),
-            (CorVisual.TextTertiary, 0xFF968DA9),
-            (CorVisual.TextHeader, 0xFF968DA9),
-            (CorVisual.TrailInactive, 0xFF3C3749),
-            (CorVisual.ToggleOff, 0xFF48435A),
-            (CorVisual.HoverBackground, 0xFF2C2837),
-            (CorVisual.IconHoverBackground, 0xFF322D3F),
+            (CorVisual.WorkspaceBackground, 0xFF17130F),
+            (CorVisual.CardBackground, 0xFF241C15),
+            (CorVisual.CardBorder, 0xFF3D3120),
+            (CorVisual.TitleBar, 0xFF1C1712),
+            (CorVisual.TitleBarBorder, 0xFF362B1C),
+            (CorVisual.InputBackground, 0xFF2B2116),
+            (CorVisual.InputBorder, 0xFF46392A),
+            (CorVisual.RowHover, 0xFF2A2117),
+            (CorVisual.Separator, 0xFF33291A),
+            (CorVisual.Footer, 0xFF1A1510),
+            (CorVisual.AccentPrimary, 0xFFC8A24C),
+            (CorVisual.AccentHover, 0xFFA8853D),
+            (CorVisual.AccentLight, 0xFF3A2E1C),
+            (CorVisual.AccentText, 0xFFE4C374),
+            (CorVisual.TextPrimary, 0xFFF3EADC),
+            (CorVisual.TextSecondary, 0xFFB7A791),
+            (CorVisual.TextTertiary, 0xFF8B7C68),
+            (CorVisual.TextHeader, 0xFF8B7C68),
+            (CorVisual.TrailInactive, 0xFF3C3225),
+            (CorVisual.ToggleOff, 0xFF4A3D2C),
+            (CorVisual.HoverBackground, 0xFF2C2319),
+            (CorVisual.IconHoverBackground, 0xFF332818),
             (CorVisual.FavoriteColor, 0xFFE8A23D),
-            (CorVisual.FavoriteBorderColor, 0xFF5C5568),
-            (CorVisual.StrengthWeak, 0xFFE85F5F),
-            (CorVisual.StrengthMedium, 0xFFE0932C),
-            (CorVisual.StrengthStrong, 0xFF1E9A5A),
-            (CorVisual.StrengthExcellent, 0xFF2F7FD6),
+            (CorVisual.FavoriteBorderColor, 0xFF5C4F3D),
+            (CorVisual.StrengthWeak, 0xFFC96B58),
+            (CorVisual.StrengthMedium, 0xFFC98A3E),
+            (CorVisual.StrengthStrong, 0xFF7E9B6C),
+            (CorVisual.StrengthExcellent, 0xFF6FA0C9),
             (CorVisual.CloseButtonHover, 0xFFE5484D),
             (CorVisual.CloseButtonPressed, 0xFFC93A3E),
-            (CorVisual.StatusLocal, 0xFF1E9A5A),
-            (CorVisual.StatusWarning, 0xFFE0932C),
-            (CorVisual.StatusConnected, 0xFF2F7FD6));
-
-        private static readonly IReadOnlyDictionary<CorVisual, uint> ProtanopiaClaro = D(
-            (CorVisual.WorkspaceBackground, 0xFFEAF0F4),
-            (CorVisual.CardBackground, 0xFFFFFFFF),
-            (CorVisual.CardBorder, 0xFFDDE6EC),
-            (CorVisual.TitleBar, 0xFFFFFFFF),
-            (CorVisual.TitleBarBorder, 0xFFDDE6EC),
-            (CorVisual.InputBackground, 0xFFF6F9FB),
-            (CorVisual.InputBorder, 0xFFD4E0E8),
-            (CorVisual.RowHover, 0xFFEAF4FA),
-            (CorVisual.Separator, 0xFFE4EBF0),
-            (CorVisual.Footer, 0xFFF8FAFC),
-            (CorVisual.AccentPrimary, 0xFF0072B2),
-            (CorVisual.AccentHover, 0xFF005A8D),
-            (CorVisual.AccentLight, 0xFFE4F2FA),
-            (CorVisual.TextPrimary, 0xFF17212B),
-            (CorVisual.TextSecondary, 0xFF5B6874),
-            (CorVisual.TextTertiary, 0xFF758291),
-            (CorVisual.TextHeader, 0xFF697888),
-            (CorVisual.TrailInactive, 0xFFD7E1E8),
-            (CorVisual.ToggleOff, 0xFFBAC8D2),
-            (CorVisual.HoverBackground, 0xFFE8F1F7),
-            (CorVisual.IconHoverBackground, 0xFFE1EDF5),
-            (CorVisual.FavoriteColor, 0xFFC4870A),
-            (CorVisual.FavoriteBorderColor, 0xFF82909E),
-            (CorVisual.StrengthWeak, 0xFFD55E00),
-            (CorVisual.StrengthMedium, 0xFFE69F00),
-            (CorVisual.StrengthStrong, 0xFF009E73),
-            (CorVisual.StrengthExcellent, 0xFF0072B2),
-            (CorVisual.CloseButtonHover, 0xFFD55E00),
-            (CorVisual.CloseButtonPressed, 0xFFA64200),
-            (CorVisual.StatusLocal, 0xFF009E73),
-            (CorVisual.StatusWarning, 0xFFE69F00),
-            (CorVisual.StatusConnected, 0xFF0072B2));
+            (CorVisual.StatusLocal, 0xFF7E9B6C),
+            (CorVisual.StatusWarning, 0xFFC98A3E),
+            (CorVisual.StatusConnected, 0xFF6FA0C9));
 
         private static readonly IReadOnlyDictionary<CorVisual, uint> ProtanopiaEscuro = D(
             (CorVisual.WorkspaceBackground, 0xFF0F151A),
@@ -247,40 +178,6 @@ namespace CofreDeSenhas
             (CorVisual.StatusWarning, 0xFFE69F00),
             (CorVisual.StatusConnected, 0xFF56B4E9));
 
-        private static readonly IReadOnlyDictionary<CorVisual, uint> DeuteranopiaClaro = D(
-            (CorVisual.WorkspaceBackground, 0xFFECF0F6),
-            (CorVisual.CardBackground, 0xFFFFFFFF),
-            (CorVisual.CardBorder, 0xFFDDE4EF),
-            (CorVisual.TitleBar, 0xFFFFFFFF),
-            (CorVisual.TitleBarBorder, 0xFFDDE4EF),
-            (CorVisual.InputBackground, 0xFFF7F9FC),
-            (CorVisual.InputBorder, 0xFFD6DFEB),
-            (CorVisual.RowHover, 0xFFEAF2FB),
-            (CorVisual.Separator, 0xFFE5EAF2),
-            (CorVisual.Footer, 0xFFF9FAFC),
-            (CorVisual.AccentPrimary, 0xFF005AB5),
-            (CorVisual.AccentHover, 0xFF004783),
-            (CorVisual.AccentLight, 0xFFE5F0FB),
-            (CorVisual.TextPrimary, 0xFF182230),
-            (CorVisual.TextSecondary, 0xFF5D6876),
-            (CorVisual.TextTertiary, 0xFF778392),
-            (CorVisual.TextHeader, 0xFF6B7888),
-            (CorVisual.TrailInactive, 0xFFD9E1EB),
-            (CorVisual.ToggleOff, 0xFFBDC9D6),
-            (CorVisual.HoverBackground, 0xFFE8F0F8),
-            (CorVisual.IconHoverBackground, 0xFFE2ECF6),
-            (CorVisual.FavoriteColor, 0xFFC4870A),
-            (CorVisual.FavoriteBorderColor, 0xFF8290A0),
-            (CorVisual.StrengthWeak, 0xFFD55E00),
-            (CorVisual.StrengthMedium, 0xFFE69F00),
-            (CorVisual.StrengthStrong, 0xFF0072B2),
-            (CorVisual.StrengthExcellent, 0xFFCC79A7),
-            (CorVisual.CloseButtonHover, 0xFFD55E00),
-            (CorVisual.CloseButtonPressed, 0xFFA64200),
-            (CorVisual.StatusLocal, 0xFF0072B2),
-            (CorVisual.StatusWarning, 0xFFE69F00),
-            (CorVisual.StatusConnected, 0xFF005AB5));
-
         private static readonly IReadOnlyDictionary<CorVisual, uint> DeuteranopiaEscuro = D(
             (CorVisual.WorkspaceBackground, 0xFF10151D),
             (CorVisual.CardBackground, 0xFF1B2430),
@@ -315,40 +212,6 @@ namespace CofreDeSenhas
             (CorVisual.StatusWarning, 0xFFE69F00),
             (CorVisual.StatusConnected, 0xFF56B4E9));
 
-        private static readonly IReadOnlyDictionary<CorVisual, uint> TritanopiaClaro = D(
-            (CorVisual.WorkspaceBackground, 0xFFF0EDF2),
-            (CorVisual.CardBackground, 0xFFFFFFFF),
-            (CorVisual.CardBorder, 0xFFE5DCE5),
-            (CorVisual.TitleBar, 0xFFFFFFFF),
-            (CorVisual.TitleBarBorder, 0xFFE5DCE5),
-            (CorVisual.InputBackground, 0xFFFAF7FA),
-            (CorVisual.InputBorder, 0xFFE2D6E1),
-            (CorVisual.RowHover, 0xFFFAEDF4),
-            (CorVisual.Separator, 0xFFF0E6EE),
-            (CorVisual.Footer, 0xFFFCFAFC),
-            (CorVisual.AccentPrimary, 0xFFC2185B),
-            (CorVisual.AccentHover, 0xFF9B1248),
-            (CorVisual.AccentLight, 0xFFFCE8F1),
-            (CorVisual.TextPrimary, 0xFF271923),
-            (CorVisual.TextSecondary, 0xFF705D6A),
-            (CorVisual.TextTertiary, 0xFF8A7483),
-            (CorVisual.TextHeader, 0xFF7B6876),
-            (CorVisual.TrailInactive, 0xFFE7DCE5),
-            (CorVisual.ToggleOff, 0xFFD3C2D0),
-            (CorVisual.HoverBackground, 0xFFF5EDF3),
-            (CorVisual.IconHoverBackground, 0xFFF3E5EE),
-            (CorVisual.FavoriteColor, 0xFF2E7D32),
-            (CorVisual.FavoriteBorderColor, 0xFF927F8E),
-            (CorVisual.StrengthWeak, 0xFFD32F2F),
-            (CorVisual.StrengthMedium, 0xFFE67E22),
-            (CorVisual.StrengthStrong, 0xFF2E7D32),
-            (CorVisual.StrengthExcellent, 0xFF6A1B9A),
-            (CorVisual.CloseButtonHover, 0xFFD32F2F),
-            (CorVisual.CloseButtonPressed, 0xFFA32121),
-            (CorVisual.StatusLocal, 0xFF2E7D32),
-            (CorVisual.StatusWarning, 0xFFE67E22),
-            (CorVisual.StatusConnected, 0xFFC2185B));
-
         private static readonly IReadOnlyDictionary<CorVisual, uint> TritanopiaEscuro = D(
             (CorVisual.WorkspaceBackground, 0xFF171118),
             (CorVisual.CardBackground, 0xFF271E28),
@@ -382,40 +245,6 @@ namespace CofreDeSenhas
             (CorVisual.StatusLocal, 0xFF81C784),
             (CorVisual.StatusWarning, 0xFFE67E22),
             (CorVisual.StatusConnected, 0xFFF06292));
-
-        private static readonly IReadOnlyDictionary<CorVisual, uint> MonocromaciaClaro = D(
-            (CorVisual.WorkspaceBackground, 0xFFECEFF3),
-            (CorVisual.CardBackground, 0xFFFFFFFF),
-            (CorVisual.CardBorder, 0xFFD9DEE7),
-            (CorVisual.TitleBar, 0xFFFFFFFF),
-            (CorVisual.TitleBarBorder, 0xFFD9DEE7),
-            (CorVisual.InputBackground, 0xFFF7F8FA),
-            (CorVisual.InputBorder, 0xFFD1D7E0),
-            (CorVisual.RowHover, 0xFFE8EDF3),
-            (CorVisual.Separator, 0xFFE4E8EE),
-            (CorVisual.Footer, 0xFFF9FAFB),
-            (CorVisual.AccentPrimary, 0xFF475569),
-            (CorVisual.AccentHover, 0xFF334155),
-            (CorVisual.AccentLight, 0xFFE5E7EB),
-            (CorVisual.TextPrimary, 0xFF111827),
-            (CorVisual.TextSecondary, 0xFF4B5563),
-            (CorVisual.TextTertiary, 0xFF6B7280),
-            (CorVisual.TextHeader, 0xFF5F6773),
-            (CorVisual.TrailInactive, 0xFFD9DEE7),
-            (CorVisual.ToggleOff, 0xFFB8C0CC),
-            (CorVisual.HoverBackground, 0xFFE8ECF1),
-            (CorVisual.IconHoverBackground, 0xFFE2E7EE),
-            (CorVisual.FavoriteColor, 0xFF374151),
-            (CorVisual.FavoriteBorderColor, 0xFF9CA3AF),
-            (CorVisual.StrengthWeak, 0xFF1F2937),
-            (CorVisual.StrengthMedium, 0xFF4B5563),
-            (CorVisual.StrengthStrong, 0xFF6B7280),
-            (CorVisual.StrengthExcellent, 0xFF9CA3AF),
-            (CorVisual.CloseButtonHover, 0xFF374151),
-            (CorVisual.CloseButtonPressed, 0xFF111827),
-            (CorVisual.StatusLocal, 0xFF4B5563),
-            (CorVisual.StatusWarning, 0xFF6B7280),
-            (CorVisual.StatusConnected, 0xFF374151));
 
         private static readonly IReadOnlyDictionary<CorVisual, uint> MonocromaciaEscuro = D(
             (CorVisual.WorkspaceBackground, 0xFF101214),
@@ -664,19 +493,19 @@ namespace CofreDeSenhas
                 leitorTela.IsChecked = LeitorTela;
         }
 
-        public static Color TextoPrincipal(bool escuro) => Color.FromUInt32(escuro ? 0xFFFFFFFF : 0xFF000000);
-        public static Color TextoSecundario(bool escuro) => Color.FromUInt32(escuro ? 0xFFE4E4E9 : 0xFF2B2B31);
-        public static Color TextoTerciario(bool escuro) => Color.FromUInt32(escuro ? 0xFFCFCFD6 : 0xFF3A3A41);
-        public static Color Borda(bool escuro) => Color.FromUInt32(escuro ? 0xFFFFFFFF : 0xFF000000);
+        public static Color TextoPrincipal() => Color.FromUInt32(0xFFFFFFFF);
+        public static Color TextoSecundario() => Color.FromUInt32(0xFFE4E4E9);
+        public static Color TextoTerciario() => Color.FromUInt32(0xFFCFCFD6);
+        public static Color Borda() => Color.FromUInt32(0xFFFFFFFF);
 
-        internal static Color Cor(CorVisual cor, bool escuro)
+        internal static Color Cor(CorVisual cor)
         {
-            if (AltoContraste && TentarCorAltoContraste(cor, escuro, out var altoContraste))
+            if (AltoContraste && TentarCorAltoContraste(cor, out var altoContraste))
                 return altoContraste;
 
-            var valores = ValoresTema(escuro);
+            var valores = ValoresTema();
             if (!valores.TryGetValue(cor, out var argb))
-                argb = (escuro ? PadraoEscuro : PadraoClaro)[cor];
+                argb = PadraoEscuro[cor];
 
             return Color.FromUInt32(argb);
         }
@@ -726,9 +555,8 @@ namespace CofreDeSenhas
             if (app == null)
                 return;
 
-            bool escuro = Tema.ModoEscuro;
             foreach (var (chave, cor) in RecursosTema)
-                app.Resources[chave] = new SolidColorBrush(Cor(cor, escuro));
+                app.Resources[chave] = new SolidColorBrush(Cor(cor));
         }
 
         public static void Vincular(Window janela)
@@ -849,36 +677,36 @@ namespace CofreDeSenhas
             return EscalaNormal;
         }
 
-        private static IReadOnlyDictionary<CorVisual, uint> ValoresTema(bool escuro) => Daltonismo switch
+        private static IReadOnlyDictionary<CorVisual, uint> ValoresTema() => Daltonismo switch
         {
-            TipoDaltonismo.Protanopia => escuro ? ProtanopiaEscuro : ProtanopiaClaro,
-            TipoDaltonismo.Deuteranopia => escuro ? DeuteranopiaEscuro : DeuteranopiaClaro,
-            TipoDaltonismo.Tritanopia => escuro ? TritanopiaEscuro : TritanopiaClaro,
-            TipoDaltonismo.Monocromacia => escuro ? MonocromaciaEscuro : MonocromaciaClaro,
-            _ => escuro ? PadraoEscuro : PadraoClaro
+            TipoDaltonismo.Protanopia => ProtanopiaEscuro,
+            TipoDaltonismo.Deuteranopia => DeuteranopiaEscuro,
+            TipoDaltonismo.Tritanopia => TritanopiaEscuro,
+            TipoDaltonismo.Monocromacia => MonocromaciaEscuro,
+            _ => PadraoEscuro
         };
 
-        private static bool TentarCorAltoContraste(CorVisual cor, bool escuro, out Color resultado)
+        private static bool TentarCorAltoContraste(CorVisual cor, out Color resultado)
         {
             resultado = default;
             switch (cor)
             {
                 case CorVisual.TextPrimary:
-                    resultado = TextoPrincipal(escuro);
+                    resultado = TextoPrincipal();
                     return true;
                 case CorVisual.TextSecondary:
-                    resultado = TextoSecundario(escuro);
+                    resultado = TextoSecundario();
                     return true;
                 case CorVisual.TextTertiary:
                 case CorVisual.TextHeader:
-                    resultado = TextoTerciario(escuro);
+                    resultado = TextoTerciario();
                     return true;
                 case CorVisual.CardBorder:
                 case CorVisual.InputBorder:
                 case CorVisual.Separator:
                 case CorVisual.TitleBarBorder:
                 case CorVisual.FavoriteBorderColor:
-                    resultado = Borda(escuro);
+                    resultado = Borda();
                     return true;
                 default:
                     return false;
