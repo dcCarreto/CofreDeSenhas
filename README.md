@@ -11,7 +11,7 @@ plataformas.
 ![Licença](https://img.shields.io/badge/licen%C3%A7a-MIT-blue)
 ![Plataforma](https://img.shields.io/badge/plataforma-Windows%2010%2F11%20%7C%20Linux-0078D6)
 ![.NET](https://img.shields.io/badge/.NET-10-512BD4)
-![Versão](https://img.shields.io/badge/vers%C3%A3o-2.0.0-success)
+![Versão](https://img.shields.io/badge/vers%C3%A3o-2.1.1-success)
 
 Este é um projeto de código aberto e software livre, distribuído sob a licença
 MIT. Você pode usá-lo, estudá-lo, modificá-lo e compartilhá-lo livremente.
@@ -82,17 +82,11 @@ mestra, permitindo criar e copiar senhas antes mesmo de abrir o cofre.
 ## Capturas de tela
 
 A tela principal reúne a barra lateral de navegação, a lista de credenciais e o
-status do cofre no rodapé. A aplicação oferece tema claro e tema escuro, com a
-preferência persistida entre sessões. As imagens abaixo usam dados fictícios
-apenas para demonstração.
+status do cofre no rodapé, na identidade visual "cofre, latão escovado": tema
+escuro único, com latão escovado como destaque e tipografia serifada nos
+títulos. As imagens abaixo usam dados fictícios apenas para demonstração.
 
-Tema claro:
-
-![Cofre de Senhas no tema claro](docs/captura-clara.png)
-
-Tema escuro:
-
-![Cofre de Senhas no tema escuro](docs/captura-escura.png)
+![Cofre de Senhas: barra lateral, lista de credenciais e rodapé](docs/captura-cofre.png)
 
 Na tela de senha mestra, o gerador fica à esquerda e o desbloqueio à direita, com
 seletor de idioma e, no Windows, a opção de desbloqueio por Windows Hello:
@@ -126,30 +120,60 @@ caractere:
 ### Cofre de senhas
 
 - Cadastro, edição e remoção de credenciais, com os campos de serviço, usuário,
-  senha, URL, categoria, notas e marcação de favorito.
+  senha, URL, categoria, etiquetas, notas e marcação de favorito.
+- Tipos de credencial: além do login padrão, seis modelos prontos (Cartão,
+  Chave de licença, Wi-Fi, Servidor, Banco de dados, além do próprio Login),
+  cada um renomeando os campos para o vocabulário certo e mostrando campos
+  extras próprios (cartão: validade, CVV, bandeira; Wi-Fi: segurança, banda;
+  servidor/banco de dados: host, porta e mais alguns), todos cifrados
+  individualmente.
 - Códigos TOTP (autenticação em duas etapas) por entrada: cole a chave secreta
   (Base32) ou um link `otpauth://` e o cofre gera o código de seis dígitos
   localmente, com prévia ao vivo e contagem regressiva na criação e edição, além
   de cópia por um clique na lista.
+- Códigos de recuperação por credencial: cole um ou mais códigos de backup (um
+  por linha), cada um copiável individualmente, marcável como usado ou
+  removível, sempre ocultos por padrão como as senhas.
 - Categorias predefinidas (Trabalho, Pessoal, Finanças, Social e Outro), com
-  categoria personalizada quando `Outro` é selecionada.
-- Busca em tempo real por serviço, usuário ou categoria personalizada, com filtro
-  por categoria no mesmo seletor.
+  categoria personalizada quando `Outro` é selecionada, e etiquetas livres que
+  valem para qualquer categoria, com múltiplas por credencial.
+- Busca em tempo real por serviço, usuário ou categoria personalizada, com
+  filtros por categoria e por etiqueta combináveis entre si e com os filtros de
+  favoritos e auditoria.
 - Barra lateral de navegação com atalhos para o cofre completo, os favoritos, os
-  itens recentes e cada categoria.
+  itens recentes, a lixeira e cada categoria.
+- Lixeira criptografada: excluir uma credencial move para a lixeira em vez de
+  apagar na hora, com a data da exclusão exibida. Da lixeira dá para restaurar,
+  excluir em definitivo ou esvaziar tudo de uma vez, sempre com confirmação
+  antes de qualquer exclusão definitiva.
 - Indicador de força por senha armazenada.
-- Verificação de senhas comprometidas via Have I Been Pwned.
-- Auditoria local para detectar senhas fracas, repetidas ou sem atualização há
-  365 dias ou mais.
+- Relatório de segurança do cofre: pontuação geral (0 a 100) calculada a partir
+  de senhas fracas, repetidas, antigas e comprometidas, além de contas sem
+  autenticação em duas etapas, sem URL ou sem categoria. Cada linha do relatório
+  pode ser clicada para filtrar a lista principal por aquele problema. A
+  verificação de vazamento (Have I Been Pwned, por k-anonymity) é disparada pela
+  própria tela e continua opcional; o restante é sempre calculado localmente.
 - Histórico de senhas por credencial: a cada troca, a senha anterior é guardada
   de forma cifrada com a data da substituição, podendo ser revelada, copiada ou
   reutilizada na tela de edição. As últimas dez versões são mantidas.
-- Lista com ícones por serviço, categoria e ações rápidas para revelar, copiar e
-  editar.
-- Colunas redimensionáveis para serviço, usuário, categoria, data e ações.
+- Anexos criptografados: até 5 arquivos por credencial (5 MB cada, 100 MB no
+  total do cofre), cada um cifrado individualmente (AES-256-GCM) e guardado à
+  parte do cofre principal. Ficam só no dispositivo local, sem sincronizar para
+  bancos de dados conectados.
+- Lista com ícones por serviço, categoria e ações rápidas para revelar, copiar,
+  fixar no topo e editar.
+- Cabeçalhos da lista clicáveis para ordenar por serviço, usuário, categoria ou
+  força, com indicação da coluna e do sentido ativos.
+- Colunas redimensionáveis para serviço, usuário, categoria, data e ações, com
+  redistribuição proporcional da largura ao redimensionar a janela.
 - Edição inline do nome do serviço diretamente na lista.
 - Cópia do usuário com um clique na coluna `Usuário`, exibindo confirmação
   visual temporária na linha.
+- Atalhos de teclado para as ações mais frequentes (`Ctrl+F` busca, `Ctrl+N`
+  nova senha, `Ctrl+G` gerador, `Ctrl+L` bloqueia o cofre na hora, `Ctrl+H`
+  modo privacidade, `Ctrl+Shift+U`/`Ctrl+Shift+P` copiam usuário/senha da linha
+  em foco), com folha consultável em Configurações → Ajuda → "Atalhos de
+  teclado...".
 
 A edição de uma credencial reúne serviço, usuário, senha, URL, categoria e notas,
 com o código TOTP calculado ao vivo e o histórico das senhas anteriores:
@@ -157,9 +181,10 @@ com o código TOTP calculado ao vivo e o histórico das senhas anteriores:
 ![Edição de credencial com código TOTP ao vivo e histórico de senhas](docs/editar-credencial.png)
 
 A auditoria marca na própria lista as senhas fracas, repetidas ou sem atualização
-há muito tempo, tudo localmente e sem enviar nada para fora:
+há muito tempo, e o relatório de segurança reúne tudo numa pontuação geral do
+cofre, tudo calculado localmente e sem enviar nada para fora:
 
-![Lista do cofre com marcações de auditoria de senhas](docs/auditoria.png)
+![Relatório de segurança do cofre, com pontuação geral e contagem por problema](docs/relatorio-seguranca.png)
 
 ### Segurança e autenticação
 
@@ -173,9 +198,23 @@ há muito tempo, tudo localmente e sem enviar nada para fora:
   dispositivo e senha mestra como fallback.
 - Alteração da senha mestra pelo menu de configurações, com re-criptografia
   automática de todo o cofre e backup com rollback em caso de falha.
+- Mensagens de erro traduzidas para o idioma ativo em vez de texto técnico cru
+  (senha, geração, exportação, importação, troca de senha mestra, anexos,
+  persistência local). O erro original continua registrado num log de
+  diagnóstico rotativo em disco (limitado a 1 MB) para investigação.
+- Zona de risco no menu de configurações: "Limpar cofre" move todas as
+  credenciais para a lixeira (reversível) e "Excluir cofre" apaga em definitivo
+  o cofre local, os anexos, a senha mestra e a credencial biométrica associada
+  — sempre com reautenticação pela senha mestra antes de confirmar.
 
 ### Backup e recuperação
 
+- Backup automático local: frequência configurável (manual, diário ou semanal),
+  quantidade máxima de backups mantidos (5, 10 ou 20) e backup manual a
+  qualquer momento, na tela "Backup e restauração..." do menu de
+  configurações. Qualquer backup listado pode ser restaurado, sempre com aviso
+  e confirmação antes de substituir o cofre atual. Os backups permanecem
+  sempre cifrados.
 - Exportação e importação do cofre em um arquivo portável (`.gsenhas`), protegido
   por uma senha de exportação independente da senha mestra.
 - Importação de arquivos CSV de outros gerenciadores (Bitwarden, LastPass,
@@ -186,14 +225,32 @@ há muito tempo, tudo localmente e sem enviar nada para fora:
   do cofre e a cada alteração da senha mestra. O QR code mostra uma versão em
   senha-frase da senha mestra, e não a senha original caractere a caractere.
 
+### Sincronização entre dispositivos (pasta compartilhada)
+
+- O item "Sincronização..." no menu de configurações liga o cofre a outros
+  dispositivos através de uma pasta compartilhada (Dropbox, OneDrive, Google
+  Drive ou qualquer pasta sincronizada por outro meio) — o aplicativo só lê e
+  escreve um arquivo cifrado ali dentro, sem falar diretamente com nenhum
+  provedor.
+- A chave de sincronização deriva da própria senha mestra (mesma senha em
+  todos os dispositivos), e os dados saem cifrados com AES-256-GCM antes de
+  qualquer gravação: o provedor de nuvem nunca vê texto puro.
+- Sincroniza ao desbloquear, em intervalo configurável (5 a 60 minutos) ou sob
+  demanda; sem pasta acessível, o cofre continua funcionando 100% local.
+  Conflitos usam a edição mais recente por credencial inteira, incluindo
+  exclusão e restauração da lixeira. Anexos ainda não sincronizam por essa via.
+- Pensada para sincronizar os seus próprios dispositivos sem manter um banco de
+  dados — para compartilhar o cofre com outras pessoas de confiança ou
+  hospedar você mesmo o armazenamento, use a conexão a banco de dados externo,
+  abaixo.
+
 ### Banco de dados externo (self-hosted/compartilhado)
 
 - Conexão a um banco de dados externo pelo menu de configurações, com suporte a
   SQLite, PostgreSQL, MySQL/MariaDB e SQL Server, e teste de conexão. Pensado
   para uso self-hosted ou compartilhado com outras pessoas de confiança — para
   sincronizar só os seus próprios dispositivos, sem manter um banco de dados,
-  use a sincronização por pasta compartilhada, no menu de configurações
-  ("Sincronização...").
+  use a sincronização por pasta compartilhada, acima.
 - Cada credencial tem uma identidade estável (`guid_id`), a mesma usada pela
   sincronização por pasta. Ao conectar, as duas bases são mescladas por
   credencial: em conflito, vale a edição mais recente — não mais "o cofre
@@ -214,9 +271,17 @@ há muito tempo, tudo localmente e sem enviar nada para fora:
 ### Interface
 
 - Janela sem moldura, com cantos arredondados e redimensionamento livre.
-- Identidade visual própria, com paleta e tokens de cor, tipografia Plus Jakarta
-  Sans, catálogo de ícones de traço e componentes consistentes nos dois temas.
-- Tema claro e tema escuro, com a preferência persistida entre sessões.
+- Identidade visual própria "cofre, latão escovado": tema escuro único (sem
+  alternância de tema), paleta de carvão quente com latão escovado como único
+  destaque, tipografia serifada nos títulos (corpo do texto em Plus Jakarta
+  Sans), cantos mais quadrados e um pequeno rebite de latão decorativo no item
+  de navegação ativo e no medidor de força. Catálogo de ícones de traço único
+  e consistente em toda a interface.
+- Modo privacidade: um botão na barra de título (ou o atalho `Ctrl+H`) oculta
+  de uma vez o nome do serviço, o usuário, a categoria/etiquetas e o avatar de
+  cada credencial na lista, substituindo tudo por marcadores neutros — útil em
+  ambientes compartilhados ou capturas de tela. É um modo de sessão: começa
+  sempre desativado ao abrir o cofre.
 - Recursos de acessibilidade: modos para daltonismo (protanopia, deuteranopia,
   tritanopia e monocromacia), alto contraste, escala de fonte, redução de
   animações e suporte aprimorado a leitores de tela.
@@ -239,6 +304,21 @@ o idioma, a acessibilidade, a importação de CSV, a conexão a banco de dados e
 Windows Hello:
 
 ![Menu de configurações do aplicativo](docs/configuracoes.png)
+
+### Atualização automática
+
+- O item "Verificar atualizações" no menu de configurações (ligado por padrão)
+  consulta a release mais recente do GitHub a cada abertura do cofre. Havendo
+  versão nova, a barra inferior mostra um botão "Atualizar agora".
+- O botão baixa o instalador (ou o executável portátil, conforme como o cofre
+  está rodando), confere o hash SHA256 contra o `CHECKSUMS.txt` da própria
+  release e, só se bater, aplica a atualização sozinho: instala em modo
+  silencioso ou troca o executável portátil no lugar, fecha o cofre e reabre a
+  versão nova automaticamente — sem instalador para rodar na mão.
+- Qualquer falha (sem internet, checksum não bate, arquivo não encontrado) ou
+  fora do Windows cai de volta no comportamento antigo, abrindo a página de
+  releases no navegador. A consulta e o download são leitura pública da API do
+  GitHub, sem enviar nenhum dado além disso.
 
 ## Modelo de segurança
 
@@ -525,8 +605,8 @@ em `~/.config/GerenciadorSenhas/` no Linux:
 - `senhas.json.enc`: cofre criptografado com as credenciais.
 - `biometria.dat`: chave do cofre cifrada e vinculada a uma credencial do
   Windows Hello, para desbloqueio biométrico quando ativado neste dispositivo.
-- `config.json`: preferências da interface (como o tema e o idioma) e o último
-  perfil de conexão a banco, sem a senha do servidor.
+- `config.json`: preferências da interface (como o idioma e a acessibilidade) e
+  o último perfil de conexão a banco, sem a senha do servidor.
 - `backups/`: cópias de segurança do cofre.
 
 Esses arquivos não fazem parte do repositório e contêm dados sensíveis.

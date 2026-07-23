@@ -1,8 +1,11 @@
 # Notas da release
 
 <!--
-  Modelo de descrição da release. Esta release foi criada como rascunho pelo
-  workflow "Release" — revise e complete os itens abaixo antes de publicar.
+  Modelo usado por .github/scripts/montar_notas_release.py para montar a nota
+  de cada release automaticamente: ele troca "X.Y.Z" pela versão publicada e
+  preenche "Destaques desta versão" e "Mudanças" com o trecho correspondente
+  do CHANGELOG.md. Editar este arquivo muda o formato de todas as releases
+  futuras.
 -->
 
 ## Destaques desta versão
