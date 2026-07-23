@@ -6,6 +6,13 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+## [2.1.1] - 2026-07-23
+
+Sem mudança de funcionalidade para quem usa o cofre — esta versão existe pra
+que os próprios arquivos publicados (instalador, portátil, pacote Linux,
+AppImage) já saiam da cadeia de build endurecida descrita abaixo, em vez de
+só o código-fonte carregar a mudança.
+
 ### Segurança
 - Cada arquivo publicado numa release (instalador, portátil, pacote Linux,
   AppImage e o próprio `CHECKSUMS.txt`) agora carrega uma *attestation* de
@@ -436,7 +443,8 @@ gerenciador de senhas seguro e completo.
 - PBKDF2-SHA256 (100k iterações) para a senha mestra; verificador one-way em `auth.dat`.
 - Comparações em tempo constante; arquivos sensíveis isolados em `%APPDATA%`.
 
-[Não lançado]: https://github.com/dcCarreto/CofreDeSenhas/compare/v2.1.0...HEAD
+[Não lançado]: https://github.com/dcCarreto/CofreDeSenhas/compare/v2.1.1...HEAD
+[2.1.1]: https://github.com/dcCarreto/CofreDeSenhas/compare/v2.1.0...v2.1.1
 [2.1.0]: https://github.com/dcCarreto/CofreDeSenhas/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/dcCarreto/CofreDeSenhas/compare/v1.0.0...v2.0.0
 [1.0.0]: https://github.com/dcCarreto/CofreDeSenhas/releases/tag/v1.0.0
