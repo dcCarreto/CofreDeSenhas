@@ -356,11 +356,24 @@ Get-FileHash .\arquivo-baixado -Algorithm SHA256
 sha256sum -c CHECKSUMS.txt
 ```
 
-Compare o valor calculado com o que consta em `CHECKSUMS.txt`. Os arquivos
-ainda não são assinados digitalmente — assinatura de código no Windows exige
-um certificado pago e é um item avaliado para o futuro (veja o
-[roadmap](ROADMAP.md)) — então o hash SHA256 é, por enquanto, a forma de
-verificação disponível.
+Compare o valor calculado com o que consta em `CHECKSUMS.txt`.
+
+A partir da versão 2.1.0, cada arquivo publicado também tem uma *attestation*
+de proveniência (SLSA/Sigstore) — uma prova assinada de que aquele arquivo
+exato foi gerado pelo workflow de release deste repositório, a partir de um
+commit específico, e não montado ou alterado por fora dele. É uma garantia
+mais forte que o hash sozinho: o hash prova que o arquivo não mudou desde que
+foi publicado, a attestation prova de onde ele veio. Conferir exige o
+[GitHub CLI](https://cli.github.com/):
+
+```
+gh attestation verify arquivo-baixado --owner dcCarreto
+```
+
+Os arquivos ainda não são assinados digitalmente (Authenticode, no caso do
+Windows) — isso exige um certificado pago e é um item avaliado para o futuro
+(veja o [roadmap](ROADMAP.md)) — então hash + attestation são, por enquanto,
+as formas de verificação disponíveis.
 
 ## Estrutura do projeto
 

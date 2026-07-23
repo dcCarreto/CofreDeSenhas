@@ -6,6 +6,19 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+### Segurança
+- Cada arquivo publicado numa release (instalador, portátil, pacote Linux,
+  AppImage e o próprio `CHECKSUMS.txt`) agora carrega uma *attestation* de
+  proveniência (SLSA/Sigstore), verificável publicamente com
+  `gh attestation verify` — prova assinada de que o arquivo saiu do workflow
+  de release deste repositório a partir de um commit específico, mais forte
+  que o hash SHA256 sozinho (que um comprometimento da release já publicada
+  trocaria junto). README documenta como conferir.
+- O pipeline de build passou a fixar por hash de commit (em vez de tag
+  flutuante) todas as GitHub Actions de terceiro que usa, e o `appimagetool`
+  baixado durante o build do Linux trocou uma tag "continuous" por uma
+  versão fixa com hash conferido antes de rodar.
+
 ## [2.1.0] - 2026-07-22
 
 Terceira geração do projeto: zona de risco pra apagar o cofre por completo,

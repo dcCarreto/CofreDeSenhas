@@ -390,6 +390,23 @@ Repaginação completa da interface, preservando todas as funcionalidades:
   versão só vira release se o código já estiver na `prod` e a suíte de
   testes daquele exato commit passar; nenhuma release sai de um build ou
   teste quebrado.
+- Endurecimento da cadeia de build: todas as GitHub Actions de terceiro
+  usadas em `release.yml`/`ci.yml` (checkout, setup-dotnet, upload/download-
+  artifact, action-gh-release) passaram de tag flutuante (`@v4`) para hash de
+  commit fixo, cada uma com um comentário indicando a versão — uma tag pode
+  ser remarcada pra outro commit sem aviso, um hash não. Cada artefato
+  publicado (instalador, portátil, pacote Linux, AppImage, o próprio
+  `CHECKSUMS.txt`) ganha também uma *attestation* de proveniência
+  (`actions/attest-build-provenance`, SLSA/Sigstore) verificável publicamente
+  contra o log de transparência do Sigstore — prova assinada de que aquele
+  arquivo saiu daquele workflow, daquele commit, e não foi montado ou
+  alterado por fora dele; README documenta como conferir com
+  `gh attestation verify`. O `appimagetool` baixado durante o build do Linux
+  passou de uma tag "continuous" (que muda sem aviso) pra uma versão fixa
+  (1.9.1) com hash SHA256 conferido antes de rodar. Assinatura de código
+  (Authenticode) no instalador Windows segue como o item de maior impacto
+  ainda pendente, dependente de comprar um certificado — ver
+  [`THREAT_MODEL.md`](THREAT_MODEL.md).
 
 - Empacotamento para Linux: novo `App/distribuicao/gerar-appimage.sh` gera um
   AppImage autocontido (`CofreDeSenhas-X.Y.Z-x86_64.AppImage`), que roda em

@@ -24,13 +24,28 @@ appdir="$trabalho/CofreDeSenhas.AppDir"
 rm -rf "$appdir"
 mkdir -p "$appdir/usr/bin"
 
+# Versão fixa (não "continuous") com hash conferido, pra não rodar um binário
+# de terceiro trocado sem aviso durante o build de release.
+appimagetool_versao="1.9.1"
+appimagetool_sha256="ed4ce84f0d9caff66f50bcca6ff6f35aae54ce8135408b3fa33abfc3cb384eb0"
+
 appimagetool="$(command -v appimagetool || true)"
 if [ -z "$appimagetool" ]; then
     appimagetool="$trabalho/appimagetool"
     if [ ! -x "$appimagetool" ]; then
-        echo "Baixando o appimagetool..."
+        echo "Baixando o appimagetool $appimagetool_versao..."
         curl -fsSL -o "$appimagetool" \
-            https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
+            "https://github.com/AppImage/appimagetool/releases/download/$appimagetool_versao/appimagetool-x86_64.AppImage"
+
+        hash_obtido=$(sha256sum "$appimagetool" | cut -d ' ' -f 1)
+        if [ "$hash_obtido" != "$appimagetool_sha256" ]; then
+            echo "Erro: hash do appimagetool não confere." >&2
+            echo "Esperado: $appimagetool_sha256" >&2
+            echo "Obtido:   $hash_obtido" >&2
+            rm -f "$appimagetool"
+            exit 1
+        fi
+
         chmod +x "$appimagetool"
     fi
 fi

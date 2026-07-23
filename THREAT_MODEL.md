@@ -107,10 +107,20 @@ acesso com uma chave desatualizada.
 - **Ataques físicos avançados a hardware** (side-channel, cold boot attack, chip-off em
   TPM) — fora do modelo de ameaça de um gerenciador de senhas para uso pessoal em desktop.
 - **Compromissos de cadeia de suprimento em dependências de terceiros** (pacotes NuGet,
-  o próprio .NET) antes de chegarem a este repositório. O hash SHA256 publicado em cada
-  release (`CHECKSUMS.txt`) garante que o binário baixado é o que foi publicado, mas não
-  cobre a cadeia de build das dependências. Assinatura de código no Windows é um item
-  futuro do roadmap, hoje sem certificado disponível.
+  o próprio .NET) antes de chegarem a este repositório — isso continua fora de alcance.
+  O que o pipeline de release cobre: cada artefato publicado (instalador, portátil,
+  pacote Linux, AppImage) tem hash SHA256 em `CHECKSUMS.txt` e uma *attestation* de
+  proveniência (SLSA/Sigstore, via `actions/attest-build-provenance`) verificável
+  publicamente contra o log de transparência do Sigstore/Rekor — não é só um arquivo de
+  hash ao lado do binário na mesma release (que um comprometimento da release trocaria
+  junto), é uma prova assinada de que aquele arquivo exato saiu daquele workflow exato,
+  a partir daquele commit exato. As dependências de terceiros usadas *pelo próprio
+  workflow* (GitHub Actions de checkout, build, upload/download e publicação) são fixadas
+  por hash de commit, não por tag flutuante, e o `appimagetool` baixado durante o build do
+  Linux tem versão fixa com hash conferido antes de rodar. Assinatura de código
+  (Authenticode) no instalador Windows segue como item futuro do roadmap, hoje sem
+  certificado disponível — é o que eliminaria o aviso de "editor desconhecido" do
+  SmartScreen.
 
 ## Como isso evolui
 
