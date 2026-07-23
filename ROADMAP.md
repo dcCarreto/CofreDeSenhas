@@ -149,7 +149,36 @@ Repaginação completa da interface, preservando todas as funcionalidades:
   — incluindo a desativação e reoferta do Windows Hello, pelo mesmo motivo
   de o vínculo biométrico guardar a chave antiga.
 
-### Não lançado
+### Versão 2.1.0
+
+Terceira geração do projeto: zona de risco pra apagar o cofre por completo,
+mensagens de erro amigáveis em vez de texto técnico cru, nova identidade
+visual "cofre, latão escovado" com tema escuro único, relatório de segurança
+com pontuação geral do cofre e atualização em um clique.
+
+#### Identidade visual "cofre, latão escovado"
+
+- Tema único escuro: a alternância entre tema claro e escuro (entregue na
+  repaginação anterior, ver "Identidade visual" acima) dá lugar a um tema
+  único, escuro por opção de design — mais consistente com a metáfora de
+  "cofre" que o projeto persegue, e uma superfície visual só pra manter.
+- Nova paleta "carvão quente" com latão escovado como único destaque de cor,
+  tipografia serifada nos títulos (fonte de sistema, sem custo de
+  empacotamento), cantos mais quadrados e um pequeno rebite de latão
+  decorativo no item de navegação ativo e no medidor de força.
+- Catálogo de ícones consolidado numa única biblioteca vetorial de traço
+  (barra lateral, barra de ferramentas, menu de configurações, campos,
+  alternadores, rodapé, estado vazio e tela de desbloqueio), com espessura,
+  tamanho e cor padronizados por seção em vez de valores soltos por tela.
+- Diálogos e caixas de mensagem passam a escurecer a janela por trás ao
+  abrir, ganham botão de fechar com ícone, corpo rolável e largura maior; o
+  zoom de acessibilidade passa a travar o crescimento da janela no tamanho
+  útil da tela, em vez de deixá-la crescer para fora dos limites visíveis.
+- Menu de configurações reorganizado em seções rotuladas (Segurança,
+  Aparência e Dados) em vez de uma lista única com mais de dez itens; nome
+  do serviço no painel de detalhes deixa de parecer campo de formulário
+  comum; colunas da tabela do cofre redistribuem a largura proporcionalmente
+  ao redimensionar a janela.
 
 #### Backup e recuperação de dados
 
@@ -216,6 +245,19 @@ Repaginação completa da interface, preservando todas as funcionalidades:
   bloquear o cofre — pelo atalho, pelo menu ou por inatividade — a área de
   transferência agora é sempre limpa no mesmo instante, não só depois do
   temporizador de limpeza automática.
+
+- Zona de risco no menu de configurações: "Limpar cofre" move todas as
+  credenciais para a lixeira (reversível) e "Excluir cofre" apaga em
+  definitivo o cofre local, os anexos, a senha mestra e a credencial
+  biométrica associada — sempre com reautenticação pela senha mestra antes
+  de confirmar, e reinício automático do aplicativo ao final.
+
+- Mensagens de erro amigáveis: os erros que apareciam com texto técnico fixo
+  (senha, geração, exportação, importação CSV, troca de senha mestra,
+  anexos, persistência local) passam a ser traduzidos para o idioma ativo
+  antes de chegar à tela. O erro original continua registrado num log de
+  diagnóstico rotativo em disco (limitado a 1 MB) para investigação, sem
+  expor detalhes técnicos a quem usa o cofre.
 
 - `SECURITY.md` com a política de divulgação responsável de
   vulnerabilidades: como reportar (aviso de segurança privado do GitHub,
@@ -304,6 +346,12 @@ Repaginação completa da interface, preservando todas as funcionalidades:
   campos extras são hoje só locais: não sincronizam para bancos de dados
   conectados.
 
+- Importação mais transparente: a importação (JSON e CSV) passa a
+  distinguir itens inválidos de duplicados, com contadores separados, e
+  mostra uma barra de progresso visível em vez de travar a janela sem
+  feedback. A importação de CSV também mostra uma lista prévia dos itens
+  detectados antes de pedir confirmação.
+
 #### Sincronização e banco de dados
 
 - Sincronização criptografada de ponta a ponta: novo item "Sincronização..."
@@ -390,23 +438,6 @@ Repaginação completa da interface, preservando todas as funcionalidades:
   versão só vira release se o código já estiver na `prod` e a suíte de
   testes daquele exato commit passar; nenhuma release sai de um build ou
   teste quebrado.
-- Endurecimento da cadeia de build: todas as GitHub Actions de terceiro
-  usadas em `release.yml`/`ci.yml` (checkout, setup-dotnet, upload/download-
-  artifact, action-gh-release) passaram de tag flutuante (`@v4`) para hash de
-  commit fixo, cada uma com um comentário indicando a versão — uma tag pode
-  ser remarcada pra outro commit sem aviso, um hash não. Cada artefato
-  publicado (instalador, portátil, pacote Linux, AppImage, o próprio
-  `CHECKSUMS.txt`) ganha também uma *attestation* de proveniência
-  (`actions/attest-build-provenance`, SLSA/Sigstore) verificável publicamente
-  contra o log de transparência do Sigstore — prova assinada de que aquele
-  arquivo saiu daquele workflow, daquele commit, e não foi montado ou
-  alterado por fora dele; README documenta como conferir com
-  `gh attestation verify`. O `appimagetool` baixado durante o build do Linux
-  passou de uma tag "continuous" (que muda sem aviso) pra uma versão fixa
-  (1.9.1) com hash SHA256 conferido antes de rodar. Assinatura de código
-  (Authenticode) no instalador Windows segue como o item de maior impacto
-  ainda pendente, dependente de comprar um certificado — ver
-  [`THREAT_MODEL.md`](THREAT_MODEL.md).
 
 - Empacotamento para Linux: novo `App/distribuicao/gerar-appimage.sh` gera um
   AppImage autocontido (`CofreDeSenhas-X.Y.Z-x86_64.AppImage`), que roda em
@@ -461,6 +492,39 @@ Repaginação completa da interface, preservando todas as funcionalidades:
   `Idioma`, sem passar pelo menu (evita gravar preferência de idioma no
   perfil real durante o teste).
 
+### Versão 2.1.1
+
+Sem mudança de funcionalidade para quem usa o cofre — existe só pra que os
+próprios arquivos publicados numa release já saiam de uma cadeia de build
+mais dura de comprometer, e pra que a nota de cada release publicada
+reflita de verdade o que mudou.
+
+- Endurecimento da cadeia de build: todas as GitHub Actions de terceiro
+  usadas em `release.yml`/`ci.yml` (checkout, setup-dotnet, upload/download-
+  artifact, action-gh-release) passaram de tag flutuante (`@v4`) para hash de
+  commit fixo, cada uma com um comentário indicando a versão — uma tag pode
+  ser remarcada pra outro commit sem aviso, um hash não. Cada artefato
+  publicado (instalador, portátil, pacote Linux, AppImage, o próprio
+  `CHECKSUMS.txt`) ganha também uma *attestation* de proveniência
+  (`actions/attest-build-provenance`, SLSA/Sigstore) verificável publicamente
+  contra o log de transparência do Sigstore — prova assinada de que aquele
+  arquivo saiu daquele workflow, daquele commit, e não foi montado ou
+  alterado por fora dele; README documenta como conferir com
+  `gh attestation verify`. O `appimagetool` baixado durante o build do Linux
+  passou de uma tag "continuous" (que muda sem aviso) pra uma versão fixa
+  (1.9.1) com hash SHA256 conferido antes de rodar. Assinatura de código
+  (Authenticode) no instalador Windows segue como o item de maior impacto
+  ainda pendente, dependente de comprar um certificado — ver
+  [`THREAT_MODEL.md`](THREAT_MODEL.md).
+- Corrigido o gerador de notas de release: o workflow publicava o modelo
+  (`.github/RELEASE_TEMPLATE.md`) direto como nota de cada release, sem
+  trocar o placeholder de versão (`X.Y.Z`) nem preencher "Destaques desta
+  versão" e "Mudanças" — toda release saía com texto cru e seções vazias.
+  Um novo script (`.github/scripts/montar_notas_release.py`), chamado por
+  um passo do workflow antes de publicar, monta a nota de verdade a partir
+  do `CHANGELOG.md`; as notas já publicadas das releases 2.1.0 e 2.1.1
+  foram corrigidas via API com o mesmo conteúdo que o script gera agora.
+
 ## Em andamento
 
 ### Extensão de navegador
@@ -511,13 +575,12 @@ Ideias e melhorias consideradas para versões futuras, agrupadas por prioridade:
 
 #### Melhorias visuais e experiência de uso
 
-Boa parte foi entregue na repaginação da identidade visual (tela vazia
-ilustrada, revisão de espaçamentos, contraste e consistência, e foco de teclado
-visível). Continuam planejados:
+Boa parte foi entregue nas duas repaginações de identidade visual (a
+original, e depois "cofre, latão escovado" na 2.1.0), nas mensagens de erro
+amigáveis e na importação com prévia e barra de progresso — essas duas
+últimas também da 2.1.0. Continuam planejados:
 
-- Melhorar mensagens de erro.
 - Melhorar tela de primeiro uso.
-- Melhorar experiência de importação.
 - Melhorar responsividade em telas menores.
 
 #### Manutenção interna
