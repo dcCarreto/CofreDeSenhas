@@ -51,6 +51,78 @@ public class ServicoBancoDadosTests : IDisposable
     }
 
     [Fact]
+    public void MontarStringConexao_PostgreSQL_PorPadraoAceitaCertificadoAutoassinado()
+    {
+        var cfg = ConexaoServidor(TipoBanco.PostgreSQL, exigirCertificado: false);
+
+        var str = _bd.MontarStringConexao(cfg);
+
+        Assert.Contains("Prefer", str);
+    }
+
+    [Fact]
+    public void MontarStringConexao_PostgreSQL_ComExigirCertificado_ValidaCertificado()
+    {
+        var cfg = ConexaoServidor(TipoBanco.PostgreSQL, exigirCertificado: true);
+
+        var str = _bd.MontarStringConexao(cfg);
+
+        Assert.Contains("VerifyFull", str);
+    }
+
+    [Fact]
+    public void MontarStringConexao_MySQL_PorPadraoAceitaCertificadoAutoassinado()
+    {
+        var cfg = ConexaoServidor(TipoBanco.MySQL, exigirCertificado: false);
+
+        var str = _bd.MontarStringConexao(cfg);
+
+        Assert.Contains("Preferred", str);
+    }
+
+    [Fact]
+    public void MontarStringConexao_MySQL_ComExigirCertificado_ValidaCertificado()
+    {
+        var cfg = ConexaoServidor(TipoBanco.MySQL, exigirCertificado: true);
+
+        var str = _bd.MontarStringConexao(cfg);
+
+        Assert.Contains("VerifyFull", str);
+    }
+
+    [Fact]
+    public void MontarStringConexao_SqlServer_PorPadraoConfiaNoCertificadoSemValidar()
+    {
+        var cfg = ConexaoServidor(TipoBanco.SqlServer, exigirCertificado: false);
+
+        var str = _bd.MontarStringConexao(cfg);
+
+        Assert.Contains("Trust Server Certificate=True", str, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Encrypt=True", str, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void MontarStringConexao_SqlServer_ComExigirCertificado_NaoConfiaSemValidar()
+    {
+        var cfg = ConexaoServidor(TipoBanco.SqlServer, exigirCertificado: true);
+
+        var str = _bd.MontarStringConexao(cfg);
+
+        Assert.Contains("Trust Server Certificate=False", str, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static ConexaoBanco ConexaoServidor(TipoBanco tipo, bool exigirCertificado) => new()
+    {
+        Tipo = tipo,
+        Host = "meuhost",
+        Porta = 1234,
+        Banco = "meubanco",
+        Usuario = "meuusuario",
+        SenhaServidor = "segredo",
+        ExigirCertificadoValido = exigirCertificado
+    };
+
+    [Fact]
     public void MontarStringConexao_SQLite_IncluiCaminhoDoArquivo()
     {
         var str = _bd.MontarStringConexao(_sqlite);

@@ -23,8 +23,8 @@ namespace GerenciadorDeSenhas.Repositorios
 
         private async Task MesclarAsync()
         {
-            var locais = await _local.ListarTodosAsync();
-            var doBanco = await _banco.ListarTodosAsync();
+            var locais = await _local.ListarTudoAsync();
+            var doBanco = await _banco.ListarTudoAsync();
 
             if (!_reconciliacaoJaRealizada)
             {
@@ -43,7 +43,7 @@ namespace GerenciadorDeSenhas.Repositorios
                     await _local.AtualizarAsync(item);
             }
 
-            await _banco.GravarVariasPorChaveAsync(await _local.ListarTodosAsync());
+            await _banco.GravarVariasPorChaveAsync(await _local.ListarTudoAsync());
 
             await _local.SalvarAsync();
         }
@@ -130,6 +130,12 @@ namespace GerenciadorDeSenhas.Repositorios
         {
             await SincronizarAsync();
             return await _local.ListarLixeiraAsync();
+        }
+
+        public async Task<List<Senha>> ListarTudoAsync()
+        {
+            await SincronizarAsync();
+            return await _local.ListarTudoAsync();
         }
 
         public async Task RestaurarAsync(Guid id)

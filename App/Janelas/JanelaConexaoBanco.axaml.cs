@@ -3,7 +3,10 @@ using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Layout;
+using Avalonia.Media;
 using Avalonia.Platform.Storage;
+using CofreDeSenhas.Controles;
 using GerenciadorDeSenhas.Modelos;
 using GerenciadorDeSenhas.Servicos;
 
@@ -20,6 +23,7 @@ namespace CofreDeSenhas.Janelas
         private TextBox? _txtBanco;
         private TextBox? _txtUsuario;
         private TextBox? _txtSenha;
+        private CustomToggle? _toggleCertificado;
 
         public ConexaoBanco? Conexao { get; private set; }
 
@@ -48,6 +52,7 @@ namespace CofreDeSenhas.Janelas
             var bancoAtual = _txtBanco?.Text;
             var usuarioAtual = _txtUsuario?.Text;
             var senhaAtual = _txtSenha?.Text;
+            var certificadoAtual = _toggleCertificado?.Checked;
 
             Campos.Children.Clear();
             var provedor = ProvedorBanco.De(_tipo);
@@ -85,7 +90,50 @@ namespace CofreDeSenhas.Janelas
                 _txtBanco = AdicionarCampo(Idioma.Texto("Db.Database"), bancoAtual ?? (temPerfil ? perfil!.Banco : null));
                 _txtUsuario = AdicionarCampo(Idioma.Texto("Db.User"), usuarioAtual ?? (temPerfil ? perfil!.Usuario : null));
                 _txtSenha = AdicionarCampo(Idioma.Texto("Db.Password"), senhaAtual, senha: true);
+
+                _toggleCertificado = AdicionarToggleCertificado(
+                    certificadoAtual ?? (temPerfil && perfil!.ExigirCertificadoValido));
             }
+        }
+
+        private CustomToggle AdicionarToggleCertificado(bool valor)
+        {
+            var rotulo = Idioma.Texto("Db.RequireValidCertificate");
+
+            var linha = new Grid
+            {
+                ColumnDefinitions = new ColumnDefinitions("*,Auto"),
+                Margin = new Thickness(0, 12, 0, 2)
+            };
+
+            var texto = new TextBlock
+            {
+                Text = rotulo,
+                FontSize = 13,
+                VerticalAlignment = VerticalAlignment.Center,
+                Foreground = Tema.Pincel(Tema.TextPrimary)
+            };
+
+            var toggle = new CustomToggle { Checked = valor, VerticalAlignment = VerticalAlignment.Center };
+            AutomationProperties.SetName(toggle, rotulo);
+            AutomationProperties.SetHelpText(toggle, Idioma.Texto("Db.RequireValidCertificateHelp"));
+            Grid.SetColumn(toggle, 1);
+
+            linha.Children.Add(texto);
+            linha.Children.Add(toggle);
+            Campos.Children.Add(linha);
+
+            var ajuda = new TextBlock
+            {
+                Text = Idioma.Texto("Db.RequireValidCertificateHelp"),
+                FontSize = 11,
+                TextWrapping = TextWrapping.Wrap,
+                Foreground = Tema.Pincel(Tema.TextSecondary),
+                Margin = new Thickness(0, 2, 0, 0)
+            };
+            Campos.Children.Add(ajuda);
+
+            return toggle;
         }
 
         private void Idioma_Alterado(object? sender, EventArgs e)
@@ -235,7 +283,8 @@ namespace CofreDeSenhas.Janelas
                 Porta = porta,
                 Banco = banco,
                 Usuario = usuario,
-                SenhaServidor = _txtSenha?.Text ?? ""
+                SenhaServidor = _txtSenha?.Text ?? "",
+                ExigirCertificadoValido = _toggleCertificado?.Checked ?? false
             };
         }
 

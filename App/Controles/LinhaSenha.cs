@@ -33,6 +33,9 @@ namespace CofreDeSenhas.Controles
         private bool _salvandoServico;
         private bool _modoPrivacidade;
         private string _textoCategoriaReal = "";
+        private string _dicaCategoriaReal = "";
+        private Border _chipCategoria = null!;
+        private StackPanel _painelCategoria = null!;
         private int _versaoAvatar;
         private int _nivelForca = -1;
         private int _vazamentos = -1;
@@ -97,6 +100,7 @@ namespace CofreDeSenhas.Controles
             RestaurarUsuarioOculto();
             AtualizarTextoServico();
             AtualizarTextoCategoria();
+            AtualizarIndicador();
         }
 
         public LinhaSenha(Senha senha, Func<Senha, string?> obterSenhaPlain,
@@ -496,13 +500,23 @@ namespace CofreDeSenhas.Controles
                 MaxWidth = 104,
                 Child = _lblCategoria
             };
-            ToolTip.SetTip(chip, dica);
-            AutomationProperties.SetName(chip, dica.Replace('\n', ' '));
-            ToolTip.SetTip(painel, dica);
-            AutomationProperties.SetName(painel, dica.Replace('\n', ' '));
             painel.Children.Add(chip);
 
+            _dicaCategoriaReal = dica;
+            _chipCategoria = chip;
+            _painelCategoria = painel;
+            AtualizarAcessibilidadeCategoria();
+
             return painel;
+        }
+
+        private void AtualizarAcessibilidadeCategoria()
+        {
+            var texto = _modoPrivacidade ? MascaraPrivacidade : _dicaCategoriaReal;
+            ToolTip.SetTip(_chipCategoria, texto);
+            AutomationProperties.SetName(_chipCategoria, texto.Replace('\n', ' '));
+            ToolTip.SetTip(_painelCategoria, texto);
+            AutomationProperties.SetName(_painelCategoria, texto.Replace('\n', ' '));
         }
 
         private void AtualizarAvatarServico()
@@ -542,12 +556,17 @@ namespace CofreDeSenhas.Controles
 
         private void AtualizarTextoServico()
         {
-            _lblServico.Text = _modoPrivacidade ? MascaraPrivacidade : _senha.NomeServico;
+            var nome = _modoPrivacidade ? MascaraPrivacidade : _senha.NomeServico;
+            _lblServico.Text = nome;
+            AutomationProperties.SetName(_lblServico, $"{nome} — {Idioma.Texto("Row.EditService")}");
             AtualizarAvatarServico();
         }
 
-        private void AtualizarTextoCategoria() =>
+        private void AtualizarTextoCategoria()
+        {
             _lblCategoria.Text = _modoPrivacidade ? MascaraPrivacidade : _textoCategoriaReal;
+            AtualizarAcessibilidadeCategoria();
+        }
 
         private async Task CarregarAvatarServicoAsync(IconeServico icone, int versao)
         {
@@ -771,10 +790,18 @@ namespace CofreDeSenhas.Controles
 
         private void AtualizarNomeAcessivel(string? status)
         {
-            var partes = new List<string> { _senha.NomeServico };
-            if (!string.IsNullOrWhiteSpace(_senha.Usuario))
-                partes.Add(_senha.Usuario);
-            partes.Add(CategoriasUI.Rotulo(_senha.Categoria));
+            var partes = new List<string>();
+            if (_modoPrivacidade)
+            {
+                partes.Add(MascaraPrivacidade);
+            }
+            else
+            {
+                partes.Add(_senha.NomeServico);
+                if (!string.IsNullOrWhiteSpace(_senha.Usuario))
+                    partes.Add(_senha.Usuario);
+                partes.Add(CategoriasUI.Rotulo(_senha.Categoria));
+            }
             if (!string.IsNullOrWhiteSpace(status))
                 partes.Add(status!);
             AutomationProperties.SetName(this, string.Join(". ", partes));
@@ -875,7 +902,8 @@ namespace CofreDeSenhas.Controles
             DefinirIconeImagem(_btnOlho, "IconeRevelar");
             ToolTip.SetTip(_btnOlho, Idioma.Texto("Row.RevealPassword"));
             AutomationProperties.SetName(_btnOlho, Idioma.Texto("Row.RevealPassword"));
-            AutomationProperties.SetName(_lblUsuario, $"{_senha.Usuario} — {Idioma.Texto("Row.CopyUser")}");
+            var usuarioAcessivel = _modoPrivacidade ? MascaraPrivacidade : _senha.Usuario;
+            AutomationProperties.SetName(_lblUsuario, $"{usuarioAcessivel} — {Idioma.Texto("Row.CopyUser")}");
         }
 
         private Task RegistrarCopiaSeHabilitadoAsync(TipoCampoCopiado campo) =>

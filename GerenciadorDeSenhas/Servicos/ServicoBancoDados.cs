@@ -52,7 +52,8 @@ namespace GerenciadorDeSenhas.Servicos
                 Port = cfg.Porta,
                 Database = cfg.Banco,
                 Username = cfg.Usuario,
-                Password = cfg.SenhaServidor
+                Password = cfg.SenhaServidor,
+                SslMode = cfg.ExigirCertificadoValido ? SslMode.VerifyFull : SslMode.Prefer
             }.ConnectionString,
 
             TipoBanco.MySQL => new MySqlConnectionStringBuilder
@@ -61,7 +62,8 @@ namespace GerenciadorDeSenhas.Servicos
                 Port = (uint)cfg.Porta,
                 Database = cfg.Banco,
                 UserID = cfg.Usuario,
-                Password = cfg.SenhaServidor
+                Password = cfg.SenhaServidor,
+                SslMode = cfg.ExigirCertificadoValido ? MySqlSslMode.VerifyFull : MySqlSslMode.Preferred
             }.ConnectionString,
 
             TipoBanco.SqlServer => new SqlConnectionStringBuilder
@@ -70,7 +72,8 @@ namespace GerenciadorDeSenhas.Servicos
                 InitialCatalog = cfg.Banco,
                 UserID = cfg.Usuario,
                 Password = cfg.SenhaServidor,
-                TrustServerCertificate = true
+                Encrypt = true,
+                TrustServerCertificate = !cfg.ExigirCertificadoValido
             }.ConnectionString,
 
             _ => throw new NotSupportedException($"Banco não suportado: {cfg.Tipo}")

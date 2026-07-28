@@ -58,10 +58,13 @@ jobs:
         run: dotnet restore CofreDeSenhas.sln
 
       - name: Compilar
-        run: dotnet build CofreDeSenhas.sln -c Release --no-restore
+        # App.Testes é multi-target (inclui net10.0-windows... para o código exclusivo do
+        # Windows Hello); este job roda em ubuntu-latest, então fica restrito à TFM sem
+        # sufixo de SO — o binário -windows nunca deve ser carregado fora do Windows.
+        run: dotnet build CofreDeSenhas.sln -c Release --no-restore --framework net10.0
 
       - name: Executar testes
-        run: dotnet test CofreDeSenhas.sln -c Release --no-build --verbosity normal
+        run: dotnet test CofreDeSenhas.sln -c Release --no-build --verbosity normal --framework net10.0
 
   build-windows:
     name: Gerar artefatos do Windows

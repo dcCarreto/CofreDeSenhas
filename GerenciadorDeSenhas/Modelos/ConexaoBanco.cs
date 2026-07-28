@@ -13,6 +13,8 @@ namespace GerenciadorDeSenhas.Modelos
 
         public string? SenhaServidor { get; set; }
 
+        public bool ExigirCertificadoValido { get; set; }
+
         public string Descricao => Tipo == TipoBanco.SQLite
             ? $"SQLite — {Path.GetFileName(Banco)}"
             : $"{ProvedorBanco.De(Tipo).Rotulo} — {Banco}";

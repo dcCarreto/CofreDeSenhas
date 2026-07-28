@@ -1,9 +1,11 @@
+using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
 using CofreDeSenhas;
+using CofreDeSenhas.Controles;
 using CofreDeSenhas.Janelas;
 using GerenciadorDeSenhas.Modelos;
 using GerenciadorDeSenhas.Repositorios;
@@ -88,6 +90,77 @@ namespace App.Testes
                 janela.GetVisualDescendants().OfType<TextBlock>().Any(t => t.Text == "••••••••"));
 
             Assert.DoesNotContain(janela.GetVisualDescendants().OfType<TextBlock>(), t => t.Text == "Servico Sensivel");
+        }
+
+        [AvaloniaFact]
+        public async Task AtalhoModoPrivacidade_MascaraNomeAcessivelETooltipsDaLinha()
+        {
+            var (servico, chave) = CriarServico();
+            await servico.CriarSenhaAsync("Servico Sensivel", "usuario.sensivel", "SenhaForte123!", Categoria.Work);
+
+            var janela = new JanelaPrincipal(servico, chave);
+            janela.Show();
+            await TesteUtil.AguardarAsync(() =>
+                janela.GetVisualDescendants().OfType<TextBlock>().Any(t => t.Text == "Servico Sensivel"));
+
+            janela.RaiseEvent(new KeyEventArgs
+            {
+                RoutedEvent = InputElement.KeyDownEvent,
+                Key = Key.H,
+                KeyModifiers = KeyModifiers.Control
+            });
+            await TesteUtil.AguardarAsync(() =>
+                janela.GetVisualDescendants().OfType<TextBlock>().Any(t => t.Text == "••••••••"));
+
+            var linha = janela.GetVisualDescendants().OfType<LinhaSenha>().Single();
+
+            var nomeLinha = AutomationProperties.GetName(linha);
+            Assert.DoesNotContain("Servico Sensivel", nomeLinha ?? "");
+            Assert.DoesNotContain("usuario.sensivel", nomeLinha ?? "");
+
+            foreach (var descendente in linha.GetVisualDescendants().OfType<Control>())
+            {
+                var nome = AutomationProperties.GetName(descendente);
+                Assert.DoesNotContain("Servico Sensivel", nome ?? "");
+                Assert.DoesNotContain("usuario.sensivel", nome ?? "");
+
+                var dica = ToolTip.GetTip(descendente) as string;
+                Assert.DoesNotContain("Servico Sensivel", dica ?? "");
+                Assert.DoesNotContain("usuario.sensivel", dica ?? "");
+            }
+        }
+
+        [AvaloniaFact]
+        public async Task AtalhoModoPrivacidade_MascaraTooltipDaEtiquetaNoChipDeCategoria()
+        {
+            var (servico, chave) = CriarServico();
+            await servico.CriarSenhaAsync("Servico Etiquetado", "usuario.etiquetado", "SenhaForte123!",
+                Categoria.Other, etiquetas: new[] { "EtiquetaSecreta" });
+
+            var janela = new JanelaPrincipal(servico, chave);
+            janela.Show();
+            await TesteUtil.AguardarAsync(() =>
+                janela.GetVisualDescendants().OfType<TextBlock>().Any(t => t.Text == "Servico Etiquetado"));
+
+            janela.RaiseEvent(new KeyEventArgs
+            {
+                RoutedEvent = InputElement.KeyDownEvent,
+                Key = Key.H,
+                KeyModifiers = KeyModifiers.Control
+            });
+            await TesteUtil.AguardarAsync(() =>
+                janela.GetVisualDescendants().OfType<TextBlock>().Any(t => t.Text == "••••••••"));
+
+            var linha = janela.GetVisualDescendants().OfType<LinhaSenha>().Single();
+
+            foreach (var descendente in linha.GetVisualDescendants().OfType<Control>())
+            {
+                var nome = AutomationProperties.GetName(descendente);
+                Assert.DoesNotContain("EtiquetaSecreta", nome ?? "");
+
+                var dica = ToolTip.GetTip(descendente) as string;
+                Assert.DoesNotContain("EtiquetaSecreta", dica ?? "");
+            }
         }
 
         [AvaloniaFact]

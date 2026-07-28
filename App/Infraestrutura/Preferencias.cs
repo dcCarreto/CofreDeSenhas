@@ -13,6 +13,7 @@ namespace CofreDeSenhas
         public string? SenhaCifrada { get; set; }
         public bool Conectado { get; set; }
         public bool ReconciliacaoInicialConcluida { get; set; }
+        public bool ExigirCertificadoValido { get; set; }
     }
 
     public sealed class PerfilSincronizacao

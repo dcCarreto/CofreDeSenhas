@@ -17,7 +17,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ windows-latest, ubuntu-latest ]
+        include:
+          - os: windows-latest
+            framework_arg: ''
+          - os: ubuntu-latest
+            # App.Testes é multi-target (inclui net10.0-windows...) para compilar e testar
+            # o código exclusivo do Windows Hello (#if WINDOWS). No Linux, restringe à TFM
+            # sem sufixo de SO — o binário -windows nunca deve ser carregado fora do Windows.
+            framework_arg: '--framework net10.0'
 
     steps:
       - name: Checkout
@@ -32,7 +39,7 @@ jobs:
         run: dotnet restore CofreDeSenhas.sln
 
       - name: Compilar
-        run: dotnet build CofreDeSenhas.sln -c Release --no-restore
+        run: dotnet build CofreDeSenhas.sln -c Release --no-restore ${{ matrix.framework_arg }}
 
       - name: Executar testes
-        run: dotnet test CofreDeSenhas.sln -c Release --no-build --verbosity normal
+        run: dotnet test CofreDeSenhas.sln -c Release --no-build --verbosity normal ${{ matrix.framework_arg }}

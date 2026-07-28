@@ -12,6 +12,7 @@ namespace GerenciadorDeSenhas.Repositorios
         Task<Senha?> ObterPorIdAsync(Guid id);
         Task<List<Senha>> ListarTodosAsync();
         Task<List<Senha>> ListarLixeiraAsync();
+        Task<List<Senha>> ListarTudoAsync();
         Task RestaurarAsync(Guid id);
         Task RemoverDefinitivamenteAsync(Guid id);
         Task EsvaziarLixeiraAsync();

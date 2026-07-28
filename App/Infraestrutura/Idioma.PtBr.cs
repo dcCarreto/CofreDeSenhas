@@ -362,6 +362,8 @@ namespace CofreDeSenhas
             ("Db.Database", "Banco de dados"),
             ("Db.User", "Usuário"),
             ("Db.Password", "Senha"),
+            ("Db.RequireValidCertificate", "Exigir certificado válido do servidor"),
+            ("Db.RequireValidCertificateHelp", "Desligado (padrão): a conexão é sempre cifrada, mas aceita certificado autoassinado — comum em banco local ou na rede interna. Ligue para exigir um certificado validado por uma autoridade confiável, recomendado para banco fora da sua rede."),
             ("Db.SQLitePickerTitle", "Arquivo do banco SQLite"),
             ("Db.ConnectionSuccess", "Conexão bem-sucedida."),
             ("Db.CreateTableTitle", "Criar tabela"),

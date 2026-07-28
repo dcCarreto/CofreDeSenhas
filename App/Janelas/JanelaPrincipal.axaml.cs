@@ -2905,7 +2905,8 @@ namespace CofreDeSenhas.Janelas
                             ? null
                             : _criptografia!.Criptografar(cfg.SenhaServidor),
                         Conectado = true,
-                        ReconciliacaoInicialConcluida = espelho?.ReconciliacaoRealizadaNestaSessao == true
+                        ReconciliacaoInicialConcluida = espelho?.ReconciliacaoRealizadaNestaSessao == true,
+                        ExigirCertificadoValido = cfg.ExigirCertificadoValido
                     };
                     Preferencias.Salvar();
                 }
@@ -2944,7 +2945,8 @@ namespace CofreDeSenhas.Janelas
                 Host = perfil.Host,
                 Porta = perfil.Porta,
                 Banco = perfil.Banco,
-                Usuario = perfil.Usuario
+                Usuario = perfil.Usuario,
+                ExigirCertificadoValido = perfil.ExigirCertificadoValido
             };
 
             if (!string.IsNullOrEmpty(perfil.SenhaCifrada))

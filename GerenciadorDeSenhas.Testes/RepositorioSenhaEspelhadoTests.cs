@@ -174,6 +174,31 @@ public class RepositorioSenhaEspelhadoTests : IDisposable
     }
 
     [Fact]
+    public async Task Remover_ComDoisEspelhosNoMesmoBanco_ExclusaoNaoEhRevertida()
+    {
+        var id = Guid.NewGuid();
+        var criada = DateTime.UtcNow.AddMinutes(-10);
+
+        var localA = NovoLocal();
+        var espelhoA = new RepositorioSenhaEspelhado(localA, NovoBanco(), reconciliacaoJaRealizada: true);
+        await espelhoA.AdicionarAsync(NovaComId(id, "app", "u", "s", criada));
+
+        var localB = NovoLocal();
+        var espelhoB1 = new RepositorioSenhaEspelhado(localB, NovoBanco(), reconciliacaoJaRealizada: true);
+        await espelhoB1.ListarTodosAsync();
+        Assert.Single(await localB.ListarTodosAsync());
+
+        await espelhoA.RemoverAsync(id);
+
+        var espelhoB2 = new RepositorioSenhaEspelhado(localB, NovoBanco(), reconciliacaoJaRealizada: true);
+        await espelhoB2.ListarTodosAsync();
+
+        Assert.Empty(await localB.ListarTodosAsync());
+        Assert.Empty(await NovoBanco().ListarTodosAsync());
+        Assert.Equal(1, await ContarLinhas("SELECT COUNT(*) FROM CofreDeSenhas WHERE excluido = 1"));
+    }
+
+    [Fact]
     public async Task Restaurar_TrazDeVoltaNosDoisLados()
     {
         var local = NovoLocal();

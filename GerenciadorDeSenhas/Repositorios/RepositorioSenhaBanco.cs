@@ -238,6 +238,12 @@ namespace GerenciadorDeSenhas.Repositorios
             return _senhas.Where(s => s.NaLixeira).ToList();
         }
 
+        public async Task<List<Senha>> ListarTudoAsync()
+        {
+            await CarregarSeNecessarioAsync();
+            return _senhas.ToList();
+        }
+
         public async Task RestaurarAsync(Guid id)
         {
             await CarregarSeNecessarioAsync();
@@ -330,12 +336,15 @@ namespace GerenciadorDeSenhas.Repositorios
 
         public async Task ExcluirPorChaveAsync(Guid guidId)
         {
+            var agora = DateTime.UtcNow;
+
             await using var con = await AbrirConexaoAsync();
 
             await using var cmd = con.CreateCommand();
-            cmd.CommandText = $"UPDATE {_tabela} SET excluido = @excluido, data_exclusao = @data_exclusao WHERE guid_id = @guid_id";
+            cmd.CommandText = $"UPDATE {_tabela} SET excluido = @excluido, data_exclusao = @data_exclusao, data_atualizacao = @data_atualizacao WHERE guid_id = @guid_id";
             Parametro(cmd, "@excluido", true);
-            Parametro(cmd, "@data_exclusao", SerializarData(DateTime.UtcNow));
+            Parametro(cmd, "@data_exclusao", SerializarData(agora));
+            Parametro(cmd, "@data_atualizacao", SerializarData(agora));
             Parametro(cmd, "@guid_id", guidId.ToString());
             await cmd.ExecuteNonQueryAsync();
         }

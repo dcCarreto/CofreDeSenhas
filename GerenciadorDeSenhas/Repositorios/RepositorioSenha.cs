@@ -56,9 +56,17 @@ namespace GerenciadorDeSenhas.Repositorios
             existente.Categoria = senha.Categoria;
             existente.Etiquetas = senha.Etiquetas;
             existente.Notas = senha.Notas;
+            existente.Tipo = senha.Tipo;
+            existente.CamposExtras = senha.CamposExtras;
             existente.TotpSegredo = senha.TotpSegredo;
+            existente.Historico = senha.Historico;
+            existente.CodigosRecuperacao = senha.CodigosRecuperacao;
+            existente.Anexos = senha.Anexos;
             existente.Favorito = senha.Favorito;
             existente.Fixado = senha.Fixado;
+            existente.NaLixeira = senha.NaLixeira;
+            existente.DataExclusao = senha.DataExclusao;
+            existente.DataCriacao = senha.DataCriacao;
             existente.DataAtualizacao = senha.DataAtualizacao;
         }
 
@@ -87,8 +95,10 @@ namespace GerenciadorDeSenhas.Repositorios
             if (senha == null)
                 throw new InvalidOperationException($"Senha com ID {id} não encontrada");
 
+            var agora = DateTime.UtcNow;
             senha.NaLixeira = true;
-            senha.DataExclusao = DateTime.UtcNow;
+            senha.DataExclusao = agora;
+            senha.DataAtualizacao = agora;
         }
 
         public async Task MoverTudoParaLixeiraAsync()
@@ -100,6 +110,7 @@ namespace GerenciadorDeSenhas.Repositorios
             {
                 senha.NaLixeira = true;
                 senha.DataExclusao = agora;
+                senha.DataAtualizacao = agora;
             }
         }
 
@@ -121,6 +132,12 @@ namespace GerenciadorDeSenhas.Repositorios
             return _senhas.Where(s => s.NaLixeira).ToList();
         }
 
+        public async Task<List<Senha>> ListarTudoAsync()
+        {
+            await CarregarSeNecessarioAsync();
+            return _senhas.ToList();
+        }
+
         public async Task RestaurarAsync(Guid id)
         {
             await CarregarSeNecessarioAsync();
@@ -131,6 +148,7 @@ namespace GerenciadorDeSenhas.Repositorios
 
             senha.NaLixeira = false;
             senha.DataExclusao = null;
+            senha.DataAtualizacao = DateTime.UtcNow;
         }
 
         public async Task RemoverDefinitivamenteAsync(Guid id)
