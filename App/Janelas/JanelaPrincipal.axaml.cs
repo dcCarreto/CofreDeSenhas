@@ -1773,6 +1773,9 @@ namespace CofreDeSenhas.Janelas
 
         private void AbrirDetalhes(Senha senha)
         {
+            if (_modoPrivacidade)
+                return;
+
             _senhaDetalhe = senha;
             _senhaDetalhePlain = ObterSenhaPlain(senha) ?? "";
             _senhaDetalheVisivel = false;

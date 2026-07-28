@@ -86,12 +86,7 @@ namespace GerenciadorDeSenhas.Repositorios
         {
             await SincronizarAsync();
 
-            var antiga = await _local.ObterPorIdAsync(senha.Id);
-
             await _local.AtualizarAsync(senha);
-
-            if (antiga != null && Chave(antiga) != Chave(senha))
-                await _banco.ExcluirPorChaveAsync(antiga.NomeServico, antiga.Usuario);
             await _banco.GravarPorChaveAsync(senha);
         }
 
@@ -105,20 +100,18 @@ namespace GerenciadorDeSenhas.Repositorios
         {
             await SincronizarAsync();
 
-            var senha = await _local.ObterPorIdAsync(id);
             await _local.RemoverAsync(id);
-            if (senha != null)
-                await _banco.ExcluirPorChaveAsync(senha.NomeServico, senha.Usuario);
+            await _banco.ExcluirPorChaveAsync(id);
         }
 
         public async Task MoverTudoParaLixeiraAsync()
         {
             await SincronizarAsync();
 
-            var ativos = await _local.ListarTodosAsync();
+            var idsAtivos = (await _local.ListarTodosAsync()).Select(s => s.Id).ToList();
             await _local.MoverTudoParaLixeiraAsync();
-            foreach (var senha in ativos)
-                await _banco.ExcluirPorChaveAsync(senha.NomeServico, senha.Usuario);
+            foreach (var id in idsAtivos)
+                await _banco.ExcluirPorChaveAsync(id);
         }
 
         public async Task<Senha?> ObterPorIdAsync(Guid id)
@@ -154,20 +147,18 @@ namespace GerenciadorDeSenhas.Repositorios
         {
             await SincronizarAsync();
 
-            var senha = await _local.ObterPorIdAsync(id);
             await _local.RemoverDefinitivamenteAsync(id);
-            if (senha != null)
-                await _banco.ExcluirDefinitivamentePorChaveAsync(senha.NomeServico, senha.Usuario);
+            await _banco.ExcluirDefinitivamentePorChaveAsync(id);
         }
 
         public async Task EsvaziarLixeiraAsync()
         {
             await SincronizarAsync();
 
-            var lixeira = await _local.ListarLixeiraAsync();
+            var idsLixeira = (await _local.ListarLixeiraAsync()).Select(s => s.Id).ToList();
             await _local.EsvaziarLixeiraAsync();
-            foreach (var senha in lixeira)
-                await _banco.ExcluirDefinitivamentePorChaveAsync(senha.NomeServico, senha.Usuario);
+            foreach (var id in idsLixeira)
+                await _banco.ExcluirDefinitivamentePorChaveAsync(id);
         }
 
         public async Task SalvarAsync()

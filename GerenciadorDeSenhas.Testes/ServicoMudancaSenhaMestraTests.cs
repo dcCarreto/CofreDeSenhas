@@ -134,6 +134,69 @@ public class ServicoMudancaSenhaMestraTests : IDisposable
     }
 
     [Fact]
+    public async Task AlterarAsync_RecifraCamposExtrasCodigosRecuperacaoEAnexos()
+    {
+        var auth = new AutenticacaoMestra(_pasta);
+        var chave = auth.CriarSenhaMestra("SenhaAntiga@123");
+        var crypto = new ServicoCriptografia(chave);
+        var persist = new PersistenciaLocal(crypto, _pasta);
+        var repo = new RepositorioSenha(persist, chave);
+        var servico = new ServicoSenha(repo, crypto);
+        var servicoAnexos = new ServicoAnexos(crypto, _pasta);
+
+        var camposExtras = new Dictionary<string, string> { ["cvv"] = "123" };
+        var senha = await servico.CriarSenhaAsync("Banco", "titular", "Senha@Forte1", Categoria.Personal,
+            tipo: TipoCredencial.Cartao, camposExtras: camposExtras);
+        await servico.AdicionarCodigosRecuperacaoAsync(senha.Id, new[] { ("CODIGO-1", false) });
+        var anexo = await servicoAnexos.AdicionarAsync(senha, "chave.txt", "conteudo-secreto"u8.ToArray());
+        await servico.PersistirAsync();
+
+        await new ServicoMudancaSenhaMestra(_pasta).AlterarAsync("SenhaAntiga@123", "SenhaNova@456");
+
+        var chaveNova = new AutenticacaoMestra(_pasta).Autenticar("SenhaNova@456");
+        Assert.NotNull(chaveNova);
+
+        var cryptoNovo = new ServicoCriptografia(chaveNova!);
+        var persistNovo = new PersistenciaLocal(cryptoNovo, _pasta);
+        var senhas = await persistNovo.CarregarSenhasAsync(chaveNova!);
+        var recarregada = Assert.Single(senhas);
+
+        Assert.Equal("123", cryptoNovo.Descriptografar(recarregada.CamposExtras["cvv"]));
+        var codigo = Assert.Single(recarregada.CodigosRecuperacao);
+        Assert.Equal("CODIGO-1", cryptoNovo.Descriptografar(codigo.Codigo));
+
+        var anexosNovo = new ServicoAnexos(cryptoNovo, _pasta);
+        var conteudoAnexo = await anexosNovo.LerAsync(recarregada.Anexos.Single(a => a.Id == anexo.Id));
+        Assert.Equal("conteudo-secreto", System.Text.Encoding.UTF8.GetString(conteudoAnexo));
+    }
+
+    [Fact]
+    public void RestaurarBackupOrfaoSeNecessario_ComBackupsOrfaos_RestauraEApagaOsBak()
+    {
+        var auth = new AutenticacaoMestra(_pasta);
+        auth.CriarSenhaMestra("SenhaOriginal@123");
+
+        var authPath = Path.Combine(_pasta, "auth.dat");
+        var vaultPath = Path.Combine(_pasta, "senhas.json.enc");
+        var authBak = authPath + ".bak";
+        var vaultBak = vaultPath + ".bak";
+
+        File.Copy(authPath, authBak);
+        File.WriteAllText(vaultPath, "estado-anterior-valido");
+        File.Copy(vaultPath, vaultBak);
+
+        File.WriteAllText(authPath, "lixo-de-escrita-interrompida");
+        File.WriteAllText(vaultPath, "lixo-de-escrita-interrompida");
+
+        new ServicoMudancaSenhaMestra(_pasta).RestaurarBackupOrfaoSeNecessario();
+
+        Assert.False(File.Exists(authBak));
+        Assert.False(File.Exists(vaultBak));
+        Assert.Equal("estado-anterior-valido", File.ReadAllText(vaultPath));
+        Assert.NotNull(new AutenticacaoMestra(_pasta).Autenticar("SenhaOriginal@123"));
+    }
+
+    [Fact]
     public async Task MigrarKdfSeNecessarioAsync_ComCofreJaAtualizado_NaoAlteraNadaERetornaNull()
     {
         await PrepararCofre("SenhaAtual@123", ("Svc", "u", "Senha@Forte1"));

@@ -66,7 +66,7 @@ namespace GerenciadorDeSenhas.Servicos
 
             var anexo = new AnexoSenha { NomeArquivo = nomeArquivo.Trim(), TamanhoBytes = conteudo.Length };
             var cifrado = _criptografia.CriptografarBytes(conteudo);
-            await File.WriteAllBytesAsync(CaminhoArquivo(anexo.Id), cifrado);
+            await EscritaAtomica.EscreverBytesAsync(CaminhoArquivo(anexo.Id), cifrado);
 
             senha.Anexos.Add(anexo);
             return anexo;
@@ -78,6 +78,26 @@ namespace GerenciadorDeSenhas.Servicos
 
             var cifrado = await File.ReadAllBytesAsync(CaminhoArquivo(anexo.Id));
             return _criptografia.DescriptografarBytes(cifrado);
+        }
+
+        public async Task<Dictionary<Guid, byte[]>> LerTodosBrutosAsync(IEnumerable<Guid> anexoIds)
+        {
+            var resultado = new Dictionary<Guid, byte[]>();
+            foreach (var id in anexoIds)
+            {
+                var caminho = CaminhoArquivo(id);
+                if (File.Exists(caminho))
+                    resultado[id] = await File.ReadAllBytesAsync(caminho);
+            }
+            return resultado;
+        }
+
+        public async Task EscreverBrutoAsync(Guid anexoId, byte[] cifrado)
+        {
+            if (!Directory.Exists(_pastaAnexos))
+                Directory.CreateDirectory(_pastaAnexos);
+
+            await EscritaAtomica.EscreverBytesAsync(CaminhoArquivo(anexoId), cifrado);
         }
 
         public void Remover(Senha senha, Guid anexoId)

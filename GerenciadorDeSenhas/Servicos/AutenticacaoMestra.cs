@@ -67,7 +67,7 @@ namespace GerenciadorDeSenhas.Servicos
             offset += sizeof(int);
             BitConverter.GetBytes(ParalelismoAtual).CopyTo(dados, offset);
 
-            File.WriteAllText(_caminhoAuth, Convert.ToBase64String(dados));
+            EscritaAtomica.EscreverTexto(_caminhoAuth, Convert.ToBase64String(dados));
             return chave;
         }
 

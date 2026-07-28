@@ -328,26 +328,25 @@ namespace GerenciadorDeSenhas.Repositorios
                 senha.Id = guidNovo;
         }
 
-        public async Task ExcluirPorChaveAsync(string dominio, string usuario)
+        public async Task ExcluirPorChaveAsync(Guid guidId)
         {
             await using var con = await AbrirConexaoAsync();
 
             await using var cmd = con.CreateCommand();
-            cmd.CommandText = $"UPDATE {_tabela} SET excluido = @excluido WHERE dominio = @dominio AND usuario = @usuario";
+            cmd.CommandText = $"UPDATE {_tabela} SET excluido = @excluido, data_exclusao = @data_exclusao WHERE guid_id = @guid_id";
             Parametro(cmd, "@excluido", true);
-            Parametro(cmd, "@dominio", dominio);
-            Parametro(cmd, "@usuario", usuario);
+            Parametro(cmd, "@data_exclusao", SerializarData(DateTime.UtcNow));
+            Parametro(cmd, "@guid_id", guidId.ToString());
             await cmd.ExecuteNonQueryAsync();
         }
 
-        public async Task ExcluirDefinitivamentePorChaveAsync(string dominio, string usuario)
+        public async Task ExcluirDefinitivamentePorChaveAsync(Guid guidId)
         {
             await using var con = await AbrirConexaoAsync();
 
             await using var cmd = con.CreateCommand();
-            cmd.CommandText = $"DELETE FROM {_tabela} WHERE dominio = @dominio AND usuario = @usuario";
-            Parametro(cmd, "@dominio", dominio);
-            Parametro(cmd, "@usuario", usuario);
+            cmd.CommandText = $"DELETE FROM {_tabela} WHERE guid_id = @guid_id";
+            Parametro(cmd, "@guid_id", guidId.ToString());
             await cmd.ExecuteNonQueryAsync();
         }
 
@@ -357,9 +356,8 @@ namespace GerenciadorDeSenhas.Repositorios
             await using (var busca = con.CreateCommand())
             {
                 busca.Transaction = tx;
-                busca.CommandText = $"SELECT id FROM {_tabela} WHERE dominio = @dominio AND usuario = @usuario";
-                Parametro(busca, "@dominio", senha.NomeServico);
-                Parametro(busca, "@usuario", senha.Usuario);
+                busca.CommandText = $"SELECT id FROM {_tabela} WHERE guid_id = @guid_id";
+                Parametro(busca, "@guid_id", senha.Id.ToString());
                 var r = await busca.ExecuteScalarAsync();
                 if (r != null && r != DBNull.Value) id = Convert.ToInt64(r);
             }
@@ -368,8 +366,10 @@ namespace GerenciadorDeSenhas.Repositorios
             cmd.Transaction = tx;
             if (id.HasValue)
             {
-                cmd.CommandText = $"UPDATE {_tabela} SET senha = @senha, descricao = @descricao, totp = @totp, etiquetas = @etiquetas, codigos_recuperacao = @codigos_recuperacao, excluido = @excluido, data_atualizacao = @data_atualizacao, data_exclusao = @data_exclusao, url = @url, categoria = @categoria, tipo = @tipo, campos_extras = @campos_extras, historico = @historico, favorito = @favorito, fixado = @fixado, guid_id = @guid_id WHERE id = @id";
+                cmd.CommandText = $"UPDATE {_tabela} SET usuario = @usuario, senha = @senha, dominio = @dominio, descricao = @descricao, totp = @totp, etiquetas = @etiquetas, codigos_recuperacao = @codigos_recuperacao, excluido = @excluido, data_atualizacao = @data_atualizacao, data_exclusao = @data_exclusao, url = @url, categoria = @categoria, tipo = @tipo, campos_extras = @campos_extras, historico = @historico, favorito = @favorito, fixado = @fixado WHERE id = @id";
+                Parametro(cmd, "@usuario", senha.Usuario);
                 Parametro(cmd, "@senha", senha.SenhaHash);
+                Parametro(cmd, "@dominio", senha.NomeServico);
                 Parametro(cmd, "@descricao", senha.Notas);
                 Parametro(cmd, "@totp", senha.TotpSegredo);
                 Parametro(cmd, "@etiquetas", SerializarEtiquetas(senha.Etiquetas));
@@ -384,7 +384,6 @@ namespace GerenciadorDeSenhas.Repositorios
                 Parametro(cmd, "@historico", SerializarHistorico(senha.Historico));
                 Parametro(cmd, "@favorito", SerializarBool(senha.Favorito));
                 Parametro(cmd, "@fixado", SerializarBool(senha.Fixado));
-                Parametro(cmd, "@guid_id", senha.Id.ToString());
                 Parametro(cmd, "@id", id.Value);
             }
             else

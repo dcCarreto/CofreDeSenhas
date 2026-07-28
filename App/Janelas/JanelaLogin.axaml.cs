@@ -24,6 +24,9 @@ namespace CofreDeSenhas.Janelas
         {
             _auth = auth;
             _aoAutenticar = aoAutenticar;
+
+            new ServicoMudancaSenhaMestra(_auth.PastaApp).RestaurarBackupOrfaoSeNecessario();
+
             _primeiroAcesso = !auth.ExisteSenhaMestra();
 
             InitializeComponent();

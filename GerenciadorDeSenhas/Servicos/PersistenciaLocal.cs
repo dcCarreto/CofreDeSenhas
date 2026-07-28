@@ -65,7 +65,7 @@ namespace GerenciadorDeSenhas.Servicos
             {
                 try
                 {
-                    await File.WriteAllTextAsync(_caminhoSenhas, criptografado);
+                    await EscritaAtomica.EscreverTextoAsync(_caminhoSenhas, criptografado);
                     break;
                 }
                 catch (IOException) when (tentativas > 1)
@@ -126,7 +126,7 @@ namespace GerenciadorDeSenhas.Servicos
                 var nomeBackup = $"senhas_backup_{timestamp}.json.enc";
                 var caminhoBackup = Path.Combine(_pastaBackup, nomeBackup);
 
-                await File.WriteAllTextAsync(caminhoBackup, criptografado);
+                await EscritaAtomica.EscreverTextoAsync(caminhoBackup, criptografado);
 
                 LimparBackupsAntigos(quantidadeMaxima);
             }

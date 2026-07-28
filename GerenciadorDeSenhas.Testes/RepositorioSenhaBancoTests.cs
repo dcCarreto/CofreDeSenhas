@@ -274,9 +274,10 @@ public class RepositorioSenhaBancoTests : IDisposable
     public async Task ExcluirDefinitivamentePorChave_ApagaALinhaDoBanco()
     {
         var repo = new RepositorioSenhaBanco(_cfg);
-        await repo.GravarPorChaveAsync(NovaSenha("x.com", "u", "p"));
+        var senha = NovaSenha("x.com", "u", "p");
+        await repo.GravarPorChaveAsync(senha);
 
-        await repo.ExcluirDefinitivamentePorChaveAsync("x.com", "u");
+        await repo.ExcluirDefinitivamentePorChaveAsync(senha.Id);
 
         Assert.Equal(0, await ContarLinhas("SELECT COUNT(*) FROM CofreDeSenhas"));
     }
@@ -285,24 +286,42 @@ public class RepositorioSenhaBancoTests : IDisposable
     public async Task GravarPorChave_InsereEDepoisAtualiza()
     {
         var repo = new RepositorioSenhaBanco(_cfg);
-        await repo.GravarPorChaveAsync(NovaSenha("site.com", "u", "v1"));
+        var senha = NovaSenha("site.com", "u", "v1");
+        await repo.GravarPorChaveAsync(senha);
         Assert.Single(await new RepositorioSenhaBanco(_cfg).ListarTodosAsync());
 
-        var atualizada = NovaSenha("site.com", "u", "v2");
-        await repo.GravarPorChaveAsync(atualizada);
+        senha.SenhaHash = _criptografia.Criptografar("v2");
+        await repo.GravarPorChaveAsync(senha);
 
         var todas = await new RepositorioSenhaBanco(_cfg).ListarTodosAsync();
         Assert.Single(todas);
-        Assert.Equal(atualizada.SenhaHash, todas[0].SenhaHash);
+        Assert.Equal(senha.SenhaHash, todas[0].SenhaHash);
+    }
+
+    [Fact]
+    public async Task GravarPorChave_DuasCredenciaisComMesmoDominioEUsuario_NaoSeSobrescrevem()
+    {
+        var repo = new RepositorioSenhaBanco(_cfg);
+        var primeira = NovaSenha("site.com", "u", "v1");
+        var segunda = NovaSenha("site.com", "u", "v2");
+
+        await repo.GravarPorChaveAsync(primeira);
+        await repo.GravarPorChaveAsync(segunda);
+
+        var todas = await new RepositorioSenhaBanco(_cfg).ListarTodosAsync();
+        Assert.Equal(2, todas.Count);
+        Assert.Contains(todas, s => s.Id == primeira.Id);
+        Assert.Contains(todas, s => s.Id == segunda.Id);
     }
 
     [Fact]
     public async Task ExcluirPorChave_FazExclusaoLogica()
     {
         var repo = new RepositorioSenhaBanco(_cfg);
-        await repo.GravarPorChaveAsync(NovaSenha("x.com", "u", "p"));
+        var senha = NovaSenha("x.com", "u", "p");
+        await repo.GravarPorChaveAsync(senha);
 
-        await repo.ExcluirPorChaveAsync("x.com", "u");
+        await repo.ExcluirPorChaveAsync(senha.Id);
 
         Assert.Empty(await new RepositorioSenhaBanco(_cfg).ListarTodosAsync());
     }
@@ -415,6 +434,7 @@ public class RepositorioSenhaBancoTests : IDisposable
         await repo.GravarPorChaveAsync(senha);
 
         var atualizada = NovaSenha("site.com", "u", "v2");
+        atualizada.Id = senha.Id;
         atualizada.NaLixeira = true;
         atualizada.DataExclusao = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         atualizada.DataAtualizacao = new DateTime(2026, 1, 2, 0, 0, 0, DateTimeKind.Utc);

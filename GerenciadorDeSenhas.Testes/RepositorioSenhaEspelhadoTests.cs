@@ -100,6 +100,7 @@ public class RepositorioSenhaEspelhadoTests : IDisposable
         var todas = await espelho.ListarTodosAsync();
 
         Assert.Equal(2, todas.Count(s => s.NomeServico == "github"));
+        Assert.Equal(2, await ContarLinhas("SELECT COUNT(*) FROM CofreDeSenhas"));
     }
 
     [Fact]
