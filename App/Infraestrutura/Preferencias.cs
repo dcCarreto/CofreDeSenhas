@@ -20,7 +20,10 @@ namespace CofreDeSenhas
     {
         public string Pasta { get; set; } = "";
         public string Salt { get; set; } = "";
+        public string? Kdf { get; set; }
         public int Iteracoes { get; set; }
+        public int? MemoriaKb { get; set; }
+        public int? Paralelismo { get; set; }
         public int FrequenciaMinutos { get; set; } = 15;
         public DateTime? UltimaSincronizacao { get; set; }
     }

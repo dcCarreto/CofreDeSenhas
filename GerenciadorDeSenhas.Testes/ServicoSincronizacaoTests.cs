@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using GerenciadorDeSenhas.Excecoes;
 using GerenciadorDeSenhas.Modelos;
 using GerenciadorDeSenhas.Servicos;
 using Xunit;
@@ -118,8 +119,9 @@ public class ServicoSincronizacaoTests : IDisposable
         var caminho = Path.Combine(_pastaTemp, "sync.dat");
         var salt = ServicoSincronizacao.GerarSalt();
         var itens = new List<SenhaExportada> { CriarItem(Guid.NewGuid(), DateTime.UtcNow) };
+        var padrao = ServicoSincronizacao.ParametrosPadrao();
 
-        await servico.EscreverAsync(caminho, salt, ServicoSincronizacao.Iteracoes, itens);
+        await servico.EscreverAsync(caminho, salt, padrao.Kdf, padrao.Iteracoes, padrao.MemoriaKb, padrao.Paralelismo, itens);
         var lidos = await servico.LerAsync(caminho);
 
         var item = Assert.Single(lidos);
@@ -134,15 +136,33 @@ public class ServicoSincronizacaoTests : IDisposable
         var chaveEscrita = RandomNumberGenerator.GetBytes(32);
         var chaveLeitura = RandomNumberGenerator.GetBytes(32);
         var caminho = Path.Combine(_pastaTemp, "sync.dat");
+        var padrao = ServicoSincronizacao.ParametrosPadrao();
 
         var servicoEscrita = new ServicoSincronizacao(new ServicoCriptografia(chaveEscrita));
-        await servicoEscrita.EscreverAsync(caminho, ServicoSincronizacao.GerarSalt(), ServicoSincronizacao.Iteracoes,
-            new List<SenhaExportada> { CriarItem(Guid.NewGuid(), DateTime.UtcNow) });
+        await servicoEscrita.EscreverAsync(caminho, ServicoSincronizacao.GerarSalt(), padrao.Kdf, padrao.Iteracoes,
+            padrao.MemoriaKb, padrao.Paralelismo, new List<SenhaExportada> { CriarItem(Guid.NewGuid(), DateTime.UtcNow) });
 
         var servicoLeitura = new ServicoSincronizacao(new ServicoCriptografia(chaveLeitura));
         var lidos = await servicoLeitura.LerAsync(caminho);
 
         Assert.Empty(lidos);
+    }
+
+    [Fact]
+    public async Task Escrever_ComCaminhoInvalido_LancaErroLocalizavelComCausaOriginal()
+    {
+        var arquivoConflitante = Path.Combine(_pastaTemp, "nao-e-uma-pasta");
+        await File.WriteAllTextAsync(arquivoConflitante, "conteudo");
+        var caminhoInvalido = Path.Combine(arquivoConflitante, "sub", "sincronizacao.dat");
+
+        var servico = new ServicoSincronizacao(new ServicoCriptografia(RandomNumberGenerator.GetBytes(32)));
+
+        var ex = await Assert.ThrowsAsync<ErroLocalizavel>(() =>
+            servico.EscreverAsync(caminhoInvalido, ServicoSincronizacao.GerarSalt(), null,
+                ServicoSincronizacao.Iteracoes, null, null, new List<SenhaExportada>()));
+
+        Assert.Equal("Sync.Error.WriteFailed", ex.Chave);
+        Assert.NotNull(ex.InnerException);
     }
 
     [Fact]
@@ -162,38 +182,76 @@ public class ServicoSincronizacaoTests : IDisposable
     }
 
     [Fact]
-    public async Task LerCabecalho_ArquivoExistente_RetornaSaltEIteracoes()
+    public async Task LerCabecalho_ArquivoExistente_RetornaSaltKdfEIteracoes()
     {
         var chave = RandomNumberGenerator.GetBytes(32);
         var servico = new ServicoSincronizacao(new ServicoCriptografia(chave));
         var caminho = Path.Combine(_pastaTemp, "sync.dat");
         var salt = ServicoSincronizacao.GerarSalt();
+        var padrao = ServicoSincronizacao.ParametrosPadrao();
 
-        await servico.EscreverAsync(caminho, salt, ServicoSincronizacao.Iteracoes, new List<SenhaExportada>());
+        await servico.EscreverAsync(caminho, salt, padrao.Kdf, padrao.Iteracoes, padrao.MemoriaKb, padrao.Paralelismo,
+            new List<SenhaExportada>());
 
         var cabecalho = await ServicoSincronizacao.LerCabecalhoAsync(caminho);
 
         Assert.NotNull(cabecalho);
         Assert.Equal(salt, cabecalho.Value.Salt);
-        Assert.Equal(ServicoSincronizacao.Iteracoes, cabecalho.Value.Iteracoes);
+        Assert.Equal(padrao.Kdf, cabecalho.Value.Kdf);
+        Assert.Equal(padrao.Iteracoes, cabecalho.Value.Iteracoes);
+        Assert.Equal(padrao.MemoriaKb, cabecalho.Value.MemoriaKb);
+        Assert.Equal(padrao.Paralelismo, cabecalho.Value.Paralelismo);
     }
 
     [Fact]
-    public void DerivarChave_ComMesmaSenhaESalt_ProduzChaveIgual()
+    public void ParametrosPadrao_UsaArgon2id()
+    {
+        var padrao = ServicoSincronizacao.ParametrosPadrao();
+
+        Assert.Equal(ServicoSincronizacao.KdfArgon2id, padrao.Kdf);
+    }
+
+    [Fact]
+    public void DerivarChave_Argon2id_ComMesmaSenhaESalt_ProduzChaveIgual()
     {
         var salt = ServicoSincronizacao.GerarSalt();
-        var chave1 = ServicoSincronizacao.DerivarChave("SenhaMestra@123", salt);
-        var chave2 = ServicoSincronizacao.DerivarChave("SenhaMestra@123", salt);
+        var padrao = ServicoSincronizacao.ParametrosPadrao();
+        var chave1 = ServicoSincronizacao.DerivarChave("SenhaMestra@123", salt, padrao.Kdf, padrao.Iteracoes, padrao.MemoriaKb, padrao.Paralelismo);
+        var chave2 = ServicoSincronizacao.DerivarChave("SenhaMestra@123", salt, padrao.Kdf, padrao.Iteracoes, padrao.MemoriaKb, padrao.Paralelismo);
 
         Assert.Equal(chave1, chave2);
     }
 
     [Fact]
-    public void DerivarChave_ComSaltsDiferentes_ProduzChavesDiferentes()
+    public void DerivarChave_Argon2id_ComSaltsDiferentes_ProduzChavesDiferentes()
     {
-        var chave1 = ServicoSincronizacao.DerivarChave("SenhaMestra@123", ServicoSincronizacao.GerarSalt());
-        var chave2 = ServicoSincronizacao.DerivarChave("SenhaMestra@123", ServicoSincronizacao.GerarSalt());
+        var padrao = ServicoSincronizacao.ParametrosPadrao();
+        var chave1 = ServicoSincronizacao.DerivarChave("SenhaMestra@123", ServicoSincronizacao.GerarSalt(), padrao.Kdf, padrao.Iteracoes, padrao.MemoriaKb, padrao.Paralelismo);
+        var chave2 = ServicoSincronizacao.DerivarChave("SenhaMestra@123", ServicoSincronizacao.GerarSalt(), padrao.Kdf, padrao.Iteracoes, padrao.MemoriaKb, padrao.Paralelismo);
 
         Assert.NotEqual(chave1, chave2);
+    }
+
+    [Fact]
+    public void DerivarChave_KdfNulo_UsaPbkdf2Legado()
+    {
+        var salt = ServicoSincronizacao.GerarSalt();
+
+        var chaveViaKdfNulo = ServicoSincronizacao.DerivarChave("SenhaMestra@123", salt, kdf: null, ServicoSincronizacao.Iteracoes);
+        var chaveEsperada = Rfc2898DeriveBytes.Pbkdf2("SenhaMestra@123", salt, ServicoSincronizacao.Iteracoes, HashAlgorithmName.SHA256, 32);
+
+        Assert.Equal(chaveEsperada, chaveViaKdfNulo);
+    }
+
+    [Fact]
+    public void DerivarChave_Argon2idEPbkdf2_ProduzemChavesDiferentes()
+    {
+        var salt = ServicoSincronizacao.GerarSalt();
+        var padrao = ServicoSincronizacao.ParametrosPadrao();
+
+        var chaveArgon2id = ServicoSincronizacao.DerivarChave("SenhaMestra@123", salt, padrao.Kdf, padrao.Iteracoes, padrao.MemoriaKb, padrao.Paralelismo);
+        var chavePbkdf2 = ServicoSincronizacao.DerivarChave("SenhaMestra@123", salt, kdf: null, ServicoSincronizacao.Iteracoes);
+
+        Assert.NotEqual(chaveArgon2id, chavePbkdf2);
     }
 }

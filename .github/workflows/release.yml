@@ -8,6 +8,14 @@ on:
 permissions:
   contents: write
 
+# Serializa execuções deste workflow: dois pushes rápidos em prod não devem
+# gerar duas releases publicando ao mesmo tempo. cancel-in-progress fica
+# desligado de propósito — uma execução já publicando artefatos não deve
+# ser interrompida no meio, a próxima só começa depois que essa terminar.
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   verificar-versao:
     name: Verificar se há uma versão nova para lançar

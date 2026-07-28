@@ -2,7 +2,9 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using GerenciadorDeSenhas.Excecoes;
 using GerenciadorDeSenhas.Modelos;
+using Konscious.Security.Cryptography;
 
 namespace GerenciadorDeSenhas.Servicos
 {
@@ -10,9 +12,13 @@ namespace GerenciadorDeSenhas.Servicos
     {
         public const string NomeArquivo = "sincronizacao.dat";
         public const int Iteracoes = 600_000;
+        public const string KdfArgon2id = "Argon2id";
 
         private const int SaltSize = 16;
         private const int KeySize = 32;
+        private const int TempoCustoAtual = 3;
+        private const int MemoriaKbAtual = 65536;
+        private const int ParalelismoAtual = 1;
 
         private static readonly JsonSerializerOptions OpcoesJson = new()
         {
@@ -30,10 +36,30 @@ namespace GerenciadorDeSenhas.Servicos
 
         public static byte[] GerarSalt() => RandomNumberGenerator.GetBytes(SaltSize);
 
-        public static byte[] DerivarChave(string senhaMestraPlaintext, byte[] salt, int iteracoes = Iteracoes) =>
-            Rfc2898DeriveBytes.Pbkdf2(senhaMestraPlaintext, salt, iteracoes, HashAlgorithmName.SHA256, KeySize);
+        public static (string Kdf, int Iteracoes, int MemoriaKb, int Paralelismo) ParametrosPadrao() =>
+            (KdfArgon2id, TempoCustoAtual, MemoriaKbAtual, ParalelismoAtual);
 
-        public static async Task<(byte[] Salt, int Iteracoes)?> LerCabecalhoAsync(string caminhoArquivo)
+        public static byte[] DerivarChave(string senhaMestraPlaintext, byte[] salt, string? kdf, int iteracoes,
+            int? memoriaKb = null, int? paralelismo = null) =>
+            string.Equals(kdf, KdfArgon2id, StringComparison.OrdinalIgnoreCase)
+                ? DerivarChaveArgon2id(senhaMestraPlaintext, salt, iteracoes,
+                    memoriaKb ?? MemoriaKbAtual, paralelismo ?? ParalelismoAtual)
+                : Rfc2898DeriveBytes.Pbkdf2(senhaMestraPlaintext, salt,
+                    iteracoes > 0 ? iteracoes : Iteracoes, HashAlgorithmName.SHA256, KeySize);
+
+        private static byte[] DerivarChaveArgon2id(string senha, byte[] salt, int tempoCusto, int memoriaKb, int paralelismo)
+        {
+            using var argon2 = new Argon2id(Encoding.UTF8.GetBytes(senha))
+            {
+                Salt = salt,
+                DegreeOfParallelism = paralelismo,
+                Iterations = tempoCusto,
+                MemorySize = memoriaKb
+            };
+            return argon2.GetBytes(KeySize);
+        }
+
+        public static async Task<(byte[] Salt, string? Kdf, int Iteracoes, int? MemoriaKb, int? Paralelismo)?> LerCabecalhoAsync(string caminhoArquivo)
         {
             if (!File.Exists(caminhoArquivo))
                 return null;
@@ -44,7 +70,8 @@ namespace GerenciadorDeSenhas.Servicos
                 if (envelope?.Salt == null)
                     return null;
 
-                return (Convert.FromBase64String(envelope.Salt), envelope.Iteracoes);
+                return (Convert.FromBase64String(envelope.Salt), envelope.Kdf, envelope.Iteracoes,
+                    envelope.MemoriaKb, envelope.Paralelismo);
             }
             catch
             {
@@ -72,7 +99,8 @@ namespace GerenciadorDeSenhas.Servicos
             }
         }
 
-        public async Task EscreverAsync(string caminhoArquivo, byte[] salt, int iteracoes, List<SenhaExportada> itens)
+        public async Task EscreverAsync(string caminhoArquivo, byte[] salt, string? kdf, int iteracoes,
+            int? memoriaKb, int? paralelismo, List<SenhaExportada> itens)
         {
             var json = JsonSerializer.Serialize(itens, OpcoesJson);
             var bytesCifrados = _criptografia.CriptografarBytes(Encoding.UTF8.GetBytes(json));
@@ -81,15 +109,25 @@ namespace GerenciadorDeSenhas.Servicos
             {
                 Versao = 1,
                 Salt = Convert.ToBase64String(salt),
+                Kdf = kdf,
                 Iteracoes = iteracoes,
+                MemoriaKb = memoriaKb,
+                Paralelismo = paralelismo,
                 Dados = Convert.ToBase64String(bytesCifrados)
             };
 
-            var dir = Path.GetDirectoryName(caminhoArquivo);
-            if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
-                Directory.CreateDirectory(dir);
+            try
+            {
+                var dir = Path.GetDirectoryName(caminhoArquivo);
+                if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+                    Directory.CreateDirectory(dir);
 
-            await File.WriteAllTextAsync(caminhoArquivo, JsonSerializer.Serialize(envelope));
+                await File.WriteAllTextAsync(caminhoArquivo, JsonSerializer.Serialize(envelope));
+            }
+            catch (Exception ex)
+            {
+                throw new ErroLocalizavel("Sync.Error.WriteFailed", ex);
+            }
         }
 
         public static List<SenhaExportada> MesclarListas(IReadOnlyList<SenhaExportada> locais, IReadOnlyList<SenhaExportada> remotos) =>
@@ -99,7 +137,10 @@ namespace GerenciadorDeSenhas.Servicos
         {
             public int Versao { get; set; }
             public string? Salt { get; set; }
+            public string? Kdf { get; set; }
             public int Iteracoes { get; set; }
+            public int? MemoriaKb { get; set; }
+            public int? Paralelismo { get; set; }
             public string? Dados { get; set; }
         }
     }

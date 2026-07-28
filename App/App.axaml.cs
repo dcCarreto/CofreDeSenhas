@@ -71,9 +71,12 @@ namespace CofreDeSenhas
                 var caminho = Path.Combine(perfil.Pasta, ServicoSincronizacao.NomeArquivo);
                 var cabecalho = await ServicoSincronizacao.LerCabecalhoAsync(caminho);
                 var salt = cabecalho?.Salt ?? Convert.FromBase64String(perfil.Salt);
+                var kdf = cabecalho?.Kdf ?? perfil.Kdf;
                 var iteracoes = cabecalho?.Iteracoes ?? (perfil.Iteracoes > 0 ? perfil.Iteracoes : ServicoSincronizacao.Iteracoes);
+                var memoriaKb = cabecalho?.MemoriaKb ?? perfil.MemoriaKb;
+                var paralelismo = cabecalho?.Paralelismo ?? perfil.Paralelismo;
 
-                var chaveSincronizacao = ServicoSincronizacao.DerivarChave(senhaMestraPlano, salt, iteracoes);
+                var chaveSincronizacao = ServicoSincronizacao.DerivarChave(senhaMestraPlano, salt, kdf, iteracoes, memoriaKb, paralelismo);
                 return new ServicoSincronizacao(new ServicoCriptografia(chaveSincronizacao));
             }
             catch

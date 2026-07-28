@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using GerenciadorDeSenhas.Excecoes;
 using GerenciadorDeSenhas.Modelos;
+using Konscious.Security.Cryptography;
 
 namespace GerenciadorDeSenhas.Servicos
 {
@@ -16,7 +17,12 @@ namespace GerenciadorDeSenhas.Servicos
         private const int KeySize = 32;
         private const int IvSize = 12;
         private const int TagSize = 16;
-        private const int Iteracoes = 200_000;
+        private const int IteracoesPbkdf2Legado = 200_000;
+
+        private const string KdfArgon2id = "Argon2id";
+        private const int TempoCustoAtual = 3;
+        private const int MemoriaKbAtual = 65536;
+        private const int ParalelismoAtual = 1;
 
         private static readonly JsonSerializerOptions OpcoesJson = new()
         {
@@ -39,7 +45,7 @@ namespace GerenciadorDeSenhas.Servicos
 
             var salt = RandomNumberGenerator.GetBytes(SaltSize);
             var iv = RandomNumberGenerator.GetBytes(IvSize);
-            var chave = DerivarChave(senhaExportacao, salt);
+            var chave = DerivarChaveArgon2id(senhaExportacao, salt, TempoCustoAtual, MemoriaKbAtual, ParalelismoAtual);
 
             var cifrado = new byte[textoBytes.Length];
             var tag = new byte[TagSize];
@@ -49,8 +55,10 @@ namespace GerenciadorDeSenhas.Servicos
             var envelope = new EnvelopeExportacao
             {
                 Versao = 1,
-                Kdf = "PBKDF2-SHA256",
-                Iteracoes = Iteracoes,
+                Kdf = KdfArgon2id,
+                Iteracoes = TempoCustoAtual,
+                MemoriaKb = MemoriaKbAtual,
+                Paralelismo = ParalelismoAtual,
                 Salt = Convert.ToBase64String(salt),
                 Iv = Convert.ToBase64String(iv),
                 Tag = Convert.ToBase64String(tag),
@@ -94,7 +102,11 @@ namespace GerenciadorDeSenhas.Servicos
                 throw new ErroLocalizavel("Export.Error.InvalidFile");
             }
 
-            var chave = DerivarChave(senhaExportacao, salt, envelope.Iteracoes);
+            var chave = string.Equals(envelope.Kdf, KdfArgon2id, StringComparison.OrdinalIgnoreCase)
+                ? DerivarChaveArgon2id(senhaExportacao, salt, envelope.Iteracoes,
+                    envelope.MemoriaKb ?? MemoriaKbAtual, envelope.Paralelismo ?? ParalelismoAtual)
+                : DerivarChavePbkdf2(senhaExportacao, salt,
+                    envelope.Iteracoes > 0 ? envelope.Iteracoes : IteracoesPbkdf2Legado);
             var textoBytes = new byte[cifrado.Length];
             try
             {
@@ -117,14 +129,28 @@ namespace GerenciadorDeSenhas.Servicos
             }
         }
 
-        private static byte[] DerivarChave(string senha, byte[] salt, int iteracoes = Iteracoes) =>
+        private static byte[] DerivarChavePbkdf2(string senha, byte[] salt, int iteracoes) =>
             Rfc2898DeriveBytes.Pbkdf2(senha, salt, iteracoes, HashAlgorithmName.SHA256, KeySize);
+
+        private static byte[] DerivarChaveArgon2id(string senha, byte[] salt, int tempoCusto, int memoriaKb, int paralelismo)
+        {
+            using var argon2 = new Argon2id(Encoding.UTF8.GetBytes(senha))
+            {
+                Salt = salt,
+                DegreeOfParallelism = paralelismo,
+                Iterations = tempoCusto,
+                MemorySize = memoriaKb
+            };
+            return argon2.GetBytes(KeySize);
+        }
 
         private sealed class EnvelopeExportacao
         {
             public int Versao { get; set; }
             public string? Kdf { get; set; }
             public int Iteracoes { get; set; }
+            public int? MemoriaKb { get; set; }
+            public int? Paralelismo { get; set; }
             public string? Salt { get; set; }
             public string? Iv { get; set; }
             public string? Tag { get; set; }

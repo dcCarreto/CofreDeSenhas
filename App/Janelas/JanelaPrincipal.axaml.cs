@@ -695,7 +695,8 @@ namespace CofreDeSenhas.Janelas
                 await _servicoSenha.PersistirAsync();
 
                 var salt = Convert.FromBase64String(perfil.Salt);
-                await _servicoSincronizacao.EscreverAsync(caminho, salt, perfil.Iteracoes, mescladas);
+                await _servicoSincronizacao.EscreverAsync(caminho, salt, perfil.Kdf, perfil.Iteracoes,
+                    perfil.MemoriaKb, perfil.Paralelismo, mescladas);
 
                 perfil.UltimaSincronizacao = DateTime.UtcNow;
                 Preferencias.Salvar();

@@ -1,3 +1,6 @@
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
 using GerenciadorDeSenhas.Excecoes;
 using GerenciadorDeSenhas.Modelos;
 using GerenciadorDeSenhas.Servicos;
@@ -92,5 +95,51 @@ public class ServicoExportacaoTests : IDisposable
     {
         await Assert.ThrowsAsync<ErroLocalizavel>(() =>
             _servico.ExportarAsync(Caminho(), Amostra(), senha));
+    }
+
+    [Fact]
+    public async Task Exportar_UsaArgon2idComoKdf()
+    {
+        await _servico.ExportarAsync(Caminho(), Amostra(), "SenhaExport@123");
+
+        var conteudo = await File.ReadAllTextAsync(Caminho());
+        using var doc = JsonDocument.Parse(conteudo);
+
+        Assert.Equal("Argon2id", doc.RootElement.GetProperty("Kdf").GetString());
+    }
+
+    [Fact]
+    public async Task Importar_ArquivoAntigoEmPbkdf2_AindaFunciona()
+    {
+        const string senha = "SenhaExport@123";
+        const int iteracoesLegado = 200_000;
+
+        var salt = RandomNumberGenerator.GetBytes(16);
+        var iv = RandomNumberGenerator.GetBytes(12);
+        var chave = Rfc2898DeriveBytes.Pbkdf2(senha, salt, iteracoesLegado, HashAlgorithmName.SHA256, 32);
+
+        var json = JsonSerializer.Serialize(Amostra());
+        var textoBytes = Encoding.UTF8.GetBytes(json);
+        var cifrado = new byte[textoBytes.Length];
+        var tag = new byte[16];
+        using (var aes = new AesGcm(chave, 16))
+            aes.Encrypt(iv, textoBytes, cifrado, tag);
+
+        var envelopeLegado = new
+        {
+            Versao = 1,
+            Kdf = "PBKDF2-SHA256",
+            Iteracoes = iteracoesLegado,
+            Salt = Convert.ToBase64String(salt),
+            Iv = Convert.ToBase64String(iv),
+            Tag = Convert.ToBase64String(tag),
+            Dados = Convert.ToBase64String(cifrado)
+        };
+        await File.WriteAllTextAsync(Caminho(), JsonSerializer.Serialize(envelopeLegado));
+
+        var importadas = await _servico.ImportarAsync(Caminho(), senha);
+
+        Assert.Equal(2, importadas.Count);
+        Assert.Contains(importadas, s => s.NomeServico == "GitHub" && s.Senha == "GitHub@Secreta123");
     }
 }

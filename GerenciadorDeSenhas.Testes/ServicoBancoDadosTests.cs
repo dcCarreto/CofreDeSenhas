@@ -1,3 +1,4 @@
+using GerenciadorDeSenhas.Excecoes;
 using GerenciadorDeSenhas.Modelos;
 using GerenciadorDeSenhas.Servicos;
 using Xunit;
@@ -24,6 +25,30 @@ public class ServicoBancoDadosTests : IDisposable
         await _bd.CriarTabelaAsync(_sqlite);
 
         Assert.True(await _bd.TabelaExisteAsync(_sqlite));
+    }
+
+    [Fact]
+    public async Task CriarTabela_QuandoJaExiste_LancaErroLocalizavelComCausaOriginal()
+    {
+        await _bd.CriarTabelaAsync(_sqlite);
+
+        var ex = await Assert.ThrowsAsync<ErroLocalizavel>(() => _bd.CriarTabelaAsync(_sqlite));
+
+        Assert.Equal("Db.Error.SchemaFailed", ex.Chave);
+        Assert.NotNull(ex.InnerException);
+    }
+
+    [Fact]
+    public async Task TestarConexao_ComDiretorioInexistente_LancaErroLocalizavelComCausaOriginal()
+    {
+        var caminhoInvalido = Path.Combine(
+            Path.GetTempPath(), "GS_BD_dir_inexistente_" + Guid.NewGuid().ToString("N"), "cofre.db");
+        var cfgInvalida = new ConexaoBanco { Tipo = TipoBanco.SQLite, Banco = caminhoInvalido };
+
+        var ex = await Assert.ThrowsAsync<ErroLocalizavel>(() => _bd.TestarConexaoAsync(cfgInvalida));
+
+        Assert.Equal("Db.Error.ConnectionFailed", ex.Chave);
+        Assert.NotNull(ex.InnerException);
     }
 
     [Theory]

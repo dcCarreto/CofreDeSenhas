@@ -1,4 +1,5 @@
 using System.Data.Common;
+using GerenciadorDeSenhas.Excecoes;
 using GerenciadorDeSenhas.Modelos;
 using Microsoft.Data.SqlClient;
 using Microsoft.Data.Sqlite;
@@ -81,9 +82,16 @@ namespace GerenciadorDeSenhas.Servicos
 
         private async Task<DbConnection> AbrirConexaoAsync(ConexaoBanco cfg)
         {
-            var con = CriarConexao(cfg);
-            await con.OpenAsync();
-            return con;
+            try
+            {
+                var con = CriarConexao(cfg);
+                await con.OpenAsync();
+                return con;
+            }
+            catch (Exception ex)
+            {
+                throw new ErroLocalizavel("Db.Error.ConnectionFailed", ex);
+            }
         }
 
         public async Task TestarConexaoAsync(ConexaoBanco cfg)
@@ -108,7 +116,14 @@ namespace GerenciadorDeSenhas.Servicos
 
             await using var cmd = con.CreateCommand();
             cmd.CommandText = Ddl(cfg.Tipo);
-            await cmd.ExecuteNonQueryAsync();
+            try
+            {
+                await cmd.ExecuteNonQueryAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new ErroLocalizavel("Db.Error.SchemaFailed", ex);
+            }
         }
 
         public async Task<IReadOnlySet<long>> GarantirColunasAsync(ConexaoBanco cfg)
@@ -183,7 +198,14 @@ namespace GerenciadorDeSenhas.Servicos
 
             await using var alterar = con.CreateCommand();
             alterar.CommandText = DdlAdicionarColuna(cfg.Tipo, coluna);
-            await alterar.ExecuteNonQueryAsync();
+            try
+            {
+                await alterar.ExecuteNonQueryAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new ErroLocalizavel("Db.Error.SchemaFailed", ex);
+            }
         }
 
         public static string ConsultaUltimoId(TipoBanco tipo) => tipo switch

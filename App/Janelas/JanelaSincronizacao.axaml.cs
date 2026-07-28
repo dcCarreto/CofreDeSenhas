@@ -114,17 +114,37 @@ namespace CofreDeSenhas.Janelas
             {
                 var caminho = Path.Combine(pasta, ServicoSincronizacao.NomeArquivo);
                 var cabecalho = await ServicoSincronizacao.LerCabecalhoAsync(caminho);
-                var salt = cabecalho?.Salt ?? ServicoSincronizacao.GerarSalt();
-                var iteracoes = cabecalho?.Iteracoes ?? ServicoSincronizacao.Iteracoes;
 
-                var chave = ServicoSincronizacao.DerivarChave(dlg.SenhaConfirmada, salt, iteracoes);
+                byte[] salt;
+                string? kdf;
+                int iteracoes;
+                int? memoriaKb;
+                int? paralelismo;
+                if (cabecalho.HasValue)
+                {
+                    (salt, kdf, iteracoes, memoriaKb, paralelismo) = cabecalho.Value;
+                }
+                else
+                {
+                    var padrao = ServicoSincronizacao.ParametrosPadrao();
+                    salt = ServicoSincronizacao.GerarSalt();
+                    kdf = padrao.Kdf;
+                    iteracoes = padrao.Iteracoes;
+                    memoriaKb = padrao.MemoriaKb;
+                    paralelismo = padrao.Paralelismo;
+                }
+
+                var chave = ServicoSincronizacao.DerivarChave(dlg.SenhaConfirmada, salt, kdf, iteracoes, memoriaKb, paralelismo);
                 var servico = new ServicoSincronizacao(new ServicoCriptografia(chave));
 
                 Preferencias.Sincronizacao = new PerfilSincronizacao
                 {
                     Pasta = pasta,
                     Salt = Convert.ToBase64String(salt),
+                    Kdf = kdf,
                     Iteracoes = iteracoes,
+                    MemoriaKb = memoriaKb,
+                    Paralelismo = paralelismo,
                     FrequenciaMinutos = 15
                 };
                 Preferencias.Salvar();

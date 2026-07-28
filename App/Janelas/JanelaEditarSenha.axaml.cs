@@ -600,9 +600,17 @@ namespace CofreDeSenhas.Janelas
             if (!confirmar || _servicoAnexos == null)
                 return;
 
-            _servicoAnexos.Remover(_senhaAtual, item.Id);
-            await _servicoSenha.PersistirAsync();
-            MontarAnexos();
+            try
+            {
+                _servicoAnexos.Remover(_senhaAtual, item.Id);
+                await _servicoSenha.PersistirAsync();
+                MontarAnexos();
+            }
+            catch (Exception ex)
+            {
+                await CaixaMensagem.MostrarAsync(this,
+                    Idioma.Formatar("Entry.AttachmentRemoveError", ErrosUi.MensagemAmigavel(ex)), Idioma.Texto("Common.Error"), TipoMensagem.Erro);
+            }
         }
 
         private void UsarSenhaAnterior(string senha)
