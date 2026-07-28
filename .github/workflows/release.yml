@@ -6,7 +6,7 @@ on:
       - prod
 
 permissions:
-  contents: write
+  contents: read
 
 # Serializa execuções deste workflow: dois pushes rápidos em prod não devem
 # gerar duas releases publicando ao mesmo tempo. cancel-in-progress fica
@@ -30,6 +30,12 @@ jobs:
       - name: Determinar versão
         id: versao
         run: |
+          ocorrencias=$(grep -c '<Version>' App/App.csproj || true)
+          if [ "$ocorrencias" -ne 1 ]; then
+            echo "Esperava exatamente uma tag <Version> em App/App.csproj, encontrei $ocorrencias." >&2
+            exit 1
+          fi
+
           versao=$(grep -oP '(?<=<Version>)[^<]+' App/App.csproj)
           if [ -z "$versao" ]; then
             echo "Não foi possível determinar a versão em App/App.csproj." >&2
@@ -47,6 +53,10 @@ jobs:
             echo "Versão v${{ steps.versao.outputs.versao }} é nova, vou lançar."
             echo "deve_lancar=true" >> "$GITHUB_OUTPUT"
           fi
+
+      - name: Verificar seção da versão no CHANGELOG.md
+        if: steps.check.outputs.deve_lancar == 'true'
+        run: python3 .github/scripts/montar_notas_release.py "${{ steps.versao.outputs.versao }}" --check-only
 
   testar:
     name: Compilar e testar antes de lançar

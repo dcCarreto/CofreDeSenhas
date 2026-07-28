@@ -62,8 +62,13 @@ def montar(versao: str) -> str:
 
 
 if __name__ == "__main__":
+    if len(sys.argv) == 3 and sys.argv[2] == "--check-only":
+        secao_do_changelog(sys.argv[1])
+        print(f"CHANGELOG.md tem uma seção para a versão {sys.argv[1]}.")
+        sys.exit(0)
+
     if len(sys.argv) != 2:
-        raise SystemExit("Uso: montar_notas_release.py <versao>")
+        raise SystemExit("Uso: montar_notas_release.py <versao> [--check-only]")
 
     notas = montar(sys.argv[1])
     (RAIZ / "release-notes.md").write_text(notas, encoding="utf-8")

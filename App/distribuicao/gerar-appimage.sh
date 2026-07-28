@@ -7,6 +7,11 @@ raiz="$(cd "$(dirname "$0")/../.." && pwd)"
 versao="${1:-}"
 
 if [ -z "$versao" ]; then
+    ocorrencias=$(grep -c '<Version>' "$raiz/App/App.csproj" || true)
+    if [ "$ocorrencias" -ne 1 ]; then
+        echo "Esperava exatamente uma tag <Version> em App/App.csproj, encontrei $ocorrencias. Informe a versão como argumento." >&2
+        exit 1
+    fi
     versao=$(grep -oP '(?<=<Version>)[^<]+' "$raiz/App/App.csproj")
 fi
 if [ -z "$versao" ]; then
