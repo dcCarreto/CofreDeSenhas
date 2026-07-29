@@ -127,6 +127,39 @@ public class ServicoRelatorioSegurancaTests
     }
 
     [Fact]
+    public void Gerar_ComCertificadoBancoNaoExigido_SinalizaNoRelatorioENaoContaComoSemProblemas()
+    {
+        var referencia = new DateTime(2026, 7, 2, 12, 0, 0, DateTimeKind.Utc);
+        var senha = CriarSenha("Banco", "user", "Senha@123456", referencia.AddDays(-10),
+            categoria: Categoria.Finance, url: "https://banco.com", totp: "JBSWY3DPEHPK3PXP");
+
+        var lista = new[] { senha };
+        var resultadoAuditoria = _auditoria.Auditar(lista, s => s.SenhaHash, referencia);
+
+        var relatorio = ServicoRelatorioSeguranca.Gerar(lista, resultadoAuditoria,
+            certificadoBancoNaoExigido: true);
+
+        Assert.True(relatorio.CertificadoBancoNaoExigido);
+        Assert.False(relatorio.SemProblemas);
+    }
+
+    [Fact]
+    public void Gerar_SemInformarCertificado_PadraoNaoSinalizaAviso()
+    {
+        var referencia = new DateTime(2026, 7, 2, 12, 0, 0, DateTimeKind.Utc);
+        var senha = CriarSenha("Banco", "user", "Senha@123456", referencia.AddDays(-10),
+            categoria: Categoria.Finance, url: "https://banco.com", totp: "JBSWY3DPEHPK3PXP");
+
+        var lista = new[] { senha };
+        var resultadoAuditoria = _auditoria.Auditar(lista, s => s.SenhaHash, referencia);
+
+        var relatorio = ServicoRelatorioSeguranca.Gerar(lista, resultadoAuditoria);
+
+        Assert.False(relatorio.CertificadoBancoNaoExigido);
+        Assert.True(relatorio.SemProblemas);
+    }
+
+    [Fact]
     public void Contagem_RetornaValorDaCategoriaCorrespondente()
     {
         var relatorio = new RelatorioSegurancaCofre

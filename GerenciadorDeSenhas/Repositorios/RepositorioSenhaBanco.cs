@@ -7,20 +7,26 @@ namespace GerenciadorDeSenhas.Repositorios
 {
     public class RepositorioSenhaBanco : IRepositorioSenha
     {
-        private const string ColunasInsert = "usuario, senha, dominio, descricao, totp, etiquetas, codigos_recuperacao, excluido, data_criacao, data_atualizacao, url, categoria, tipo, campos_extras, historico, favorito, fixado, guid_id";
-        private const string ParametrosInsert = "@usuario, @senha, @dominio, @descricao, @totp, @etiquetas, @codigos_recuperacao, @excluido, @data_criacao, @data_atualizacao, @url, @categoria, @tipo, @campos_extras, @historico, @favorito, @fixado, @guid_id";
+        private const string ColunasInsert = "usuario, senha, dominio, descricao, totp, etiquetas, codigos_recuperacao, excluido, data_criacao, data_atualizacao, url, categoria, tipo, campos_extras, historico, favorito, fixado, guid_id, hmac";
+        private const string ParametrosInsert = "@usuario, @senha, @dominio, @descricao, @totp, @etiquetas, @codigos_recuperacao, @excluido, @data_criacao, @data_atualizacao, @url, @categoria, @tipo, @campos_extras, @historico, @favorito, @fixado, @guid_id, @hmac";
 
         private readonly ConexaoBanco _cfg;
         private readonly ServicoBancoDados _bd = new();
         private readonly string _tabela = ServicoBancoDados.NomeTabela;
+        private readonly IServicoCriptografia? _integridade;
 
         private readonly Dictionary<Guid, long> _mapa = new();
         private List<Senha> _senhas = new();
         private bool _carregado;
 
-        public RepositorioSenhaBanco(ConexaoBanco cfg)
+        // Só populado quando o repositório recebe um IServicoCriptografia no construtor.
+        private readonly List<(Guid Id, string NomeServico)> _violacoesIntegridade = new();
+        public IReadOnlyList<(Guid Id, string NomeServico)> ViolacoesIntegridade => _violacoesIntegridade;
+
+        public RepositorioSenhaBanco(ConexaoBanco cfg, IServicoCriptografia? integridade = null)
         {
             _cfg = cfg ?? throw new ArgumentNullException(nameof(cfg));
+            _integridade = integridade;
         }
 
         private async Task<DbConnection> AbrirConexaoAsync()
@@ -38,11 +44,12 @@ namespace GerenciadorDeSenhas.Repositorios
 
             _senhas = new List<Senha>();
             _mapa.Clear();
+            _violacoesIntegridade.Clear();
 
             await using var con = await AbrirConexaoAsync();
 
             await using var cmd = con.CreateCommand();
-            cmd.CommandText = $"SELECT id, usuario, senha, dominio, descricao, totp, etiquetas, codigos_recuperacao, excluido, data_exclusao, data_criacao, data_atualizacao, data_ultima_copia_senha, data_ultima_copia_usuario, data_ultima_copia_totp, url, categoria, tipo, campos_extras, historico, favorito, fixado, guid_id FROM {_tabela}";
+            cmd.CommandText = $"SELECT id, usuario, senha, dominio, descricao, totp, etiquetas, codigos_recuperacao, excluido, data_exclusao, data_criacao, data_atualizacao, data_ultima_copia_senha, data_ultima_copia_usuario, data_ultima_copia_totp, url, categoria, tipo, campos_extras, historico, favorito, fixado, guid_id, hmac FROM {_tabela}";
 
             await using var leitor = await cmd.ExecuteReaderAsync();
             while (await leitor.ReadAsync())
@@ -72,6 +79,15 @@ namespace GerenciadorDeSenhas.Repositorios
                     DataUltimaCopiaUsuario = DesserializarData(leitor[ServicoBancoDados.ColunaDataUltimaCopiaUsuario]),
                     DataUltimaCopiaTotp = DesserializarData(leitor[ServicoBancoDados.ColunaDataUltimaCopiaTotp])
                 };
+
+                var hmacArmazenado = leitor[ServicoBancoDados.ColunaHmac] as string;
+                if (_integridade != null && !string.IsNullOrEmpty(hmacArmazenado) &&
+                    !_integridade.VerificarHmacIntegridade(CalcularAssinatura(senha), hmacArmazenado))
+                {
+                    _violacoesIntegridade.Add((senha.Id, senha.NomeServico));
+                    continue;
+                }
+
                 _senhas.Add(senha);
                 _mapa[senha.Id] = Convert.ToInt64(leitor["id"]);
             }
@@ -123,7 +139,7 @@ namespace GerenciadorDeSenhas.Repositorios
             await using var con = await AbrirConexaoAsync();
 
             await using var cmd = con.CreateCommand();
-            cmd.CommandText = $"UPDATE {_tabela} SET usuario = @usuario, senha = @senha, dominio = @dominio, descricao = @descricao, totp = @totp, etiquetas = @etiquetas, codigos_recuperacao = @codigos_recuperacao, data_atualizacao = @data_atualizacao, url = @url, categoria = @categoria, tipo = @tipo, campos_extras = @campos_extras, historico = @historico, favorito = @favorito, fixado = @fixado WHERE id = @id";
+            cmd.CommandText = $"UPDATE {_tabela} SET usuario = @usuario, senha = @senha, dominio = @dominio, descricao = @descricao, totp = @totp, etiquetas = @etiquetas, codigos_recuperacao = @codigos_recuperacao, data_atualizacao = @data_atualizacao, url = @url, categoria = @categoria, tipo = @tipo, campos_extras = @campos_extras, historico = @historico, favorito = @favorito, fixado = @fixado, hmac = @hmac WHERE id = @id";
             PreencherCampos(cmd, senha);
             Parametro(cmd, "@id", id);
             await cmd.ExecuteNonQueryAsync();
@@ -194,21 +210,22 @@ namespace GerenciadorDeSenhas.Repositorios
 
             var agora = DateTime.UtcNow;
 
-            await using var con = await AbrirConexaoAsync();
-
-            await using var cmd = con.CreateCommand();
-            cmd.CommandText = $"UPDATE {_tabela} SET excluido = @excluido, data_exclusao = @data_exclusao WHERE id = @id";
-            Parametro(cmd, "@excluido", true);
-            Parametro(cmd, "@data_exclusao", SerializarData(agora));
-            Parametro(cmd, "@id", idBanco);
-            await cmd.ExecuteNonQueryAsync();
-
             var senha = _senhas.FirstOrDefault(s => s.Id == id);
             if (senha != null)
             {
                 senha.NaLixeira = true;
                 senha.DataExclusao = agora;
             }
+
+            await using var con = await AbrirConexaoAsync();
+
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = $"UPDATE {_tabela} SET excluido = @excluido, data_exclusao = @data_exclusao, hmac = @hmac WHERE id = @id";
+            Parametro(cmd, "@excluido", true);
+            Parametro(cmd, "@data_exclusao", SerializarData(agora));
+            Parametro(cmd, "@hmac", CalcularHmacOuNull(senha));
+            Parametro(cmd, "@id", idBanco);
+            await cmd.ExecuteNonQueryAsync();
         }
 
         public async Task MoverTudoParaLixeiraAsync()
@@ -251,21 +268,22 @@ namespace GerenciadorDeSenhas.Repositorios
             if (!_mapa.TryGetValue(id, out var idBanco))
                 throw new InvalidOperationException($"Senha com ID {id} não encontrada");
 
-            await using var con = await AbrirConexaoAsync();
-
-            await using var cmd = con.CreateCommand();
-            cmd.CommandText = $"UPDATE {_tabela} SET excluido = @excluido, data_exclusao = @data_exclusao WHERE id = @id";
-            Parametro(cmd, "@excluido", false);
-            Parametro(cmd, "@data_exclusao", null);
-            Parametro(cmd, "@id", idBanco);
-            await cmd.ExecuteNonQueryAsync();
-
             var senha = _senhas.FirstOrDefault(s => s.Id == id);
             if (senha != null)
             {
                 senha.NaLixeira = false;
                 senha.DataExclusao = null;
             }
+
+            await using var con = await AbrirConexaoAsync();
+
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = $"UPDATE {_tabela} SET excluido = @excluido, data_exclusao = @data_exclusao, hmac = @hmac WHERE id = @id";
+            Parametro(cmd, "@excluido", false);
+            Parametro(cmd, "@data_exclusao", null);
+            Parametro(cmd, "@hmac", CalcularHmacOuNull(senha));
+            Parametro(cmd, "@id", idBanco);
+            await cmd.ExecuteNonQueryAsync();
         }
 
         public async Task RemoverDefinitivamenteAsync(Guid id)
@@ -319,32 +337,44 @@ namespace GerenciadorDeSenhas.Repositorios
             if (!_mapa.TryGetValue(guidAntigo, out var idInterno))
                 return;
 
+            var senha = _senhas.FirstOrDefault(s => s.Id == guidAntigo);
+            if (senha != null)
+                senha.Id = guidNovo;
+
             await using var con = await AbrirConexaoAsync();
             await using var cmd = con.CreateCommand();
-            cmd.CommandText = $"UPDATE {_tabela} SET guid_id = @guid_id WHERE id = @id";
+            cmd.CommandText = $"UPDATE {_tabela} SET guid_id = @guid_id, hmac = @hmac WHERE id = @id";
             Parametro(cmd, "@guid_id", guidNovo.ToString());
+            Parametro(cmd, "@hmac", CalcularHmacOuNull(senha));
             Parametro(cmd, "@id", idInterno);
             await cmd.ExecuteNonQueryAsync();
 
             _mapa.Remove(guidAntigo);
             _mapa[guidNovo] = idInterno;
-
-            var senha = _senhas.FirstOrDefault(s => s.Id == guidAntigo);
-            if (senha != null)
-                senha.Id = guidNovo;
         }
 
         public async Task ExcluirPorChaveAsync(Guid guidId)
         {
+            await CarregarSeNecessarioAsync();
+
             var agora = DateTime.UtcNow;
+
+            var senha = _senhas.FirstOrDefault(s => s.Id == guidId);
+            if (senha != null)
+            {
+                senha.NaLixeira = true;
+                senha.DataExclusao = agora;
+                senha.DataAtualizacao = agora;
+            }
 
             await using var con = await AbrirConexaoAsync();
 
             await using var cmd = con.CreateCommand();
-            cmd.CommandText = $"UPDATE {_tabela} SET excluido = @excluido, data_exclusao = @data_exclusao, data_atualizacao = @data_atualizacao WHERE guid_id = @guid_id";
+            cmd.CommandText = $"UPDATE {_tabela} SET excluido = @excluido, data_exclusao = @data_exclusao, data_atualizacao = @data_atualizacao, hmac = @hmac WHERE guid_id = @guid_id";
             Parametro(cmd, "@excluido", true);
             Parametro(cmd, "@data_exclusao", SerializarData(agora));
             Parametro(cmd, "@data_atualizacao", SerializarData(agora));
+            Parametro(cmd, "@hmac", CalcularHmacOuNull(senha));
             Parametro(cmd, "@guid_id", guidId.ToString());
             await cmd.ExecuteNonQueryAsync();
         }
@@ -375,7 +405,7 @@ namespace GerenciadorDeSenhas.Repositorios
             cmd.Transaction = tx;
             if (id.HasValue)
             {
-                cmd.CommandText = $"UPDATE {_tabela} SET usuario = @usuario, senha = @senha, dominio = @dominio, descricao = @descricao, totp = @totp, etiquetas = @etiquetas, codigos_recuperacao = @codigos_recuperacao, excluido = @excluido, data_atualizacao = @data_atualizacao, data_exclusao = @data_exclusao, url = @url, categoria = @categoria, tipo = @tipo, campos_extras = @campos_extras, historico = @historico, favorito = @favorito, fixado = @fixado WHERE id = @id";
+                cmd.CommandText = $"UPDATE {_tabela} SET usuario = @usuario, senha = @senha, dominio = @dominio, descricao = @descricao, totp = @totp, etiquetas = @etiquetas, codigos_recuperacao = @codigos_recuperacao, excluido = @excluido, data_atualizacao = @data_atualizacao, data_exclusao = @data_exclusao, url = @url, categoria = @categoria, tipo = @tipo, campos_extras = @campos_extras, historico = @historico, favorito = @favorito, fixado = @fixado, hmac = @hmac WHERE id = @id";
                 Parametro(cmd, "@usuario", senha.Usuario);
                 Parametro(cmd, "@senha", senha.SenhaHash);
                 Parametro(cmd, "@dominio", senha.NomeServico);
@@ -393,6 +423,7 @@ namespace GerenciadorDeSenhas.Repositorios
                 Parametro(cmd, "@historico", SerializarHistorico(senha.Historico));
                 Parametro(cmd, "@favorito", SerializarBool(senha.Favorito));
                 Parametro(cmd, "@fixado", SerializarBool(senha.Fixado));
+                Parametro(cmd, "@hmac", CalcularHmacOuNull(senha));
                 Parametro(cmd, "@id", id.Value);
             }
             else
@@ -423,7 +454,33 @@ namespace GerenciadorDeSenhas.Repositorios
             Parametro(cmd, "@favorito", SerializarBool(senha.Favorito));
             Parametro(cmd, "@fixado", SerializarBool(senha.Fixado));
             Parametro(cmd, "@guid_id", senha.Id.ToString());
+            Parametro(cmd, "@hmac", CalcularHmacOuNull(senha));
         }
+
+        private string? CalcularHmacOuNull(Senha? senha) =>
+            senha != null ? _integridade?.CalcularHmacIntegridade(CalcularAssinatura(senha)) : null;
+
+        private static string CalcularAssinatura(Senha senha) => JsonSerializer.Serialize(new
+        {
+            senha.Id,
+            senha.Usuario,
+            senha.NomeServico,
+            senha.SenhaHash,
+            senha.Url,
+            Categoria = (int)senha.Categoria,
+            senha.Etiquetas,
+            senha.Notas,
+            Tipo = (int)senha.Tipo,
+            senha.CamposExtras,
+            senha.TotpSegredo,
+            senha.Historico,
+            senha.CodigosRecuperacao,
+            senha.Favorito,
+            senha.Fixado,
+            senha.NaLixeira,
+            senha.DataCriacao,
+            senha.DataAtualizacao
+        });
 
         private static string? SerializarEtiquetas(List<string> etiquetas) =>
             etiquetas.Count == 0 ? null : JsonSerializer.Serialize(etiquetas);

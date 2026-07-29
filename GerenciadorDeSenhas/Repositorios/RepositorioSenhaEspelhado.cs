@@ -10,7 +10,10 @@ namespace GerenciadorDeSenhas.Repositorios
         private readonly bool _reconciliacaoJaRealizada;
         private Task? _sincronizacao;
 
+        private readonly List<ConflitoSincronizacao> _ultimosConflitos = new();
+
         public bool ReconciliacaoRealizadaNestaSessao { get; private set; }
+        public IReadOnlyList<ConflitoSincronizacao> UltimosConflitos => _ultimosConflitos;
 
         public RepositorioSenhaEspelhado(IRepositorioSenha local, RepositorioSenhaBanco banco, bool reconciliacaoJaRealizada = false)
         {
@@ -32,15 +35,36 @@ namespace GerenciadorDeSenhas.Repositorios
                 ReconciliacaoRealizadaNestaSessao = true;
             }
 
-            var mesclados = MesclaSincronizacao.Mesclar(locais, doBanco, s => s.Id, s => s.DataAtualizacao);
+            var agoraUtc = DateTime.UtcNow;
+            foreach (var (id, nomeServico) in _banco.ViolacoesIntegridade)
+                _ultimosConflitos.Add(new ConflitoSincronizacao
+                {
+                    SenhaId = id,
+                    NomeServico = nomeServico,
+                    Tipo = TipoConflitoSincronizacao.IntegridadeViolada,
+                    DetectadoEmUtc = agoraUtc
+                });
+
+            var mesclados = MesclaSincronizacao.MesclarSenhas(locais, doBanco);
             var locaisPorId = locais.ToDictionary(s => s.Id);
+            var doBancoPorId = doBanco.ToDictionary(s => s.Id);
 
             foreach (var item in mesclados)
             {
                 if (!locaisPorId.TryGetValue(item.Id, out var existenteLocal))
                     await _local.AdicionarAsync(item);
                 else if (!ReferenceEquals(existenteLocal, item))
+                {
                     await _local.AtualizarAsync(item);
+                    if (doBancoPorId.ContainsKey(item.Id))
+                        _ultimosConflitos.Add(new ConflitoSincronizacao
+                        {
+                            SenhaId = item.Id,
+                            NomeServico = item.NomeServico,
+                            Tipo = TipoConflitoSincronizacao.EdicaoConcorrente,
+                            DetectadoEmUtc = agoraUtc
+                        });
+                }
             }
 
             await _banco.GravarVariasPorChaveAsync(await _local.ListarTudoAsync());

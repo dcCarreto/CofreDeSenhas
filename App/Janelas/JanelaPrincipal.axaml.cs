@@ -33,6 +33,7 @@ namespace CofreDeSenhas.Janelas
         private readonly IServicoCriptografia? _criptografia;
         private readonly ServicoAnexos? _servicoAnexos;
         private IRepositorioSenha? _repositorioLocal;
+        private RepositorioSenhaEspelhado? _repositorioEspelhado;
         private ServicoSincronizacao? _servicoSincronizacao;
         private readonly ServicoDesbloqueioBiometrico _biometria = new();
         private readonly ServicoAuditoriaSenha _servicoAuditoria = new();
@@ -49,6 +50,8 @@ namespace CofreDeSenhas.Janelas
         private bool _falhaReconexaoAtual;
 
         private List<Senha> _senhasAtuais = new();
+        private List<Senha> _senhasFiltradasAtuais = new();
+        private readonly HashSet<Guid> _selecionados = new();
         private readonly List<LinhaSenha> _linhasSenha = new();
         private LinhaSenha? _linhaFocada;
         private readonly Dictionary<Guid, ItemAuditoriaSenha> _itensAuditoria = new();
@@ -861,6 +864,8 @@ namespace CofreDeSenhas.Janelas
             PainelLista.Children.Clear();
             _linhasSenha.Clear();
             _linhaFocada = null;
+            _selecionados.Clear();
+            AtualizarPainelAcoesLote();
 
             LblVazio.IsVisible = lista.Count == 0;
             TxtVazioMensagem.Text = Idioma.Texto("Vault.Empty");
@@ -879,6 +884,7 @@ namespace CofreDeSenhas.Janelas
                 linha.DefinirLargurasColunas(_larguraServico, _larguraUsuario, _larguraCategoria, _larguraData, _larguraAcoes);
                 linha.DefinirModoPrivacidade(_modoPrivacidade);
                 linha.SolicitouDetalhes += Linha_SolicitouDetalhes;
+                linha.SelecaoAlterada += Linha_SelecaoAlterada;
                 linha.GotFocus += (s, e) => _linhaFocada = linha;
 
                 var plain = ObterSenhaPlain(senha);
@@ -1312,6 +1318,7 @@ namespace CofreDeSenhas.Janelas
 
             filtradas = filtradas.OrderByDescending(s => s.Fixado).ToList();
 
+            _senhasFiltradasAtuais = filtradas;
             AtualizarLista(filtradas);
         }
 
@@ -2151,6 +2158,126 @@ namespace CofreDeSenhas.Janelas
             AtualizarContador();
         }
 
+        private void Linha_SelecaoAlterada(object? sender, Senha senha)
+        {
+            if (sender is not LinhaSenha linha)
+                return;
+
+            if (linha.Selecionada)
+                _selecionados.Add(senha.Id);
+            else
+                _selecionados.Remove(senha.Id);
+
+            AtualizarPainelAcoesLote();
+        }
+
+        private void AtualizarPainelAcoesLote()
+        {
+            PainelAcoesLote.IsVisible = _selecionados.Count > 0;
+            LblContagemSelecao.Text = Idioma.Plural(_selecionados.Count,
+                "Batch.CountSingular", "Batch.CountPlural");
+            PainelAcoesLoteBotoes.IsVisible = true;
+            PainelAcoesLoteEtiqueta.IsVisible = false;
+        }
+
+        private void LoteCancelarSelecao_Click(object? sender, RoutedEventArgs e)
+        {
+            foreach (var linha in _linhasSenha)
+                linha.DefinirSelecionada(false);
+            _selecionados.Clear();
+            AtualizarPainelAcoesLote();
+        }
+
+        private async void LoteFavoritar_Click(object? sender, RoutedEventArgs e)
+        {
+            var ids = _selecionados.ToList();
+            try
+            {
+                foreach (var id in ids)
+                    await _servicoSenha.MarcarComoFavoritoAsync(id);
+                await _servicoSenha.PersistirAsync();
+                await CarregarSenhasAsync();
+            }
+            catch (Exception ex)
+            {
+                await CaixaMensagem.MostrarAsync(this,
+                    Idioma.Formatar("Message.FavoriteError", ErrosUi.MensagemAmigavel(ex)),
+                    Idioma.Texto("Common.Error"), TipoMensagem.Erro);
+            }
+        }
+
+        private async void LoteMoverParaLixeira_Click(object? sender, RoutedEventArgs e)
+        {
+            var ids = _selecionados.ToList();
+
+            var confirmar = await CaixaMensagem.ConfirmarAsync(this,
+                Idioma.Formatar("Batch.TrashConfirm", ids.Count),
+                Idioma.Texto("Message.DeleteTitle"), TipoMensagem.Aviso);
+            if (!confirmar)
+                return;
+
+            try
+            {
+                foreach (var id in ids)
+                    await _servicoSenha.RemoverSenhaAsync(id);
+                await _servicoSenha.PersistirAsync();
+                await CarregarSenhasAsync();
+            }
+            catch (Exception ex)
+            {
+                await CaixaMensagem.MostrarAsync(this,
+                    Idioma.Formatar("Message.DeleteError", ErrosUi.MensagemAmigavel(ex)),
+                    Idioma.Texto("Common.Error"), TipoMensagem.Erro);
+            }
+        }
+
+        private void LoteAdicionarEtiqueta_Click(object? sender, RoutedEventArgs e)
+        {
+            PainelAcoesLoteBotoes.IsVisible = false;
+            PainelAcoesLoteEtiqueta.IsVisible = true;
+            TxtLoteEtiqueta.Text = "";
+            TxtLoteEtiqueta.Focus();
+        }
+
+        private void LoteCancelarEtiqueta_Click(object? sender, RoutedEventArgs e)
+        {
+            PainelAcoesLoteBotoes.IsVisible = true;
+            PainelAcoesLoteEtiqueta.IsVisible = false;
+        }
+
+        private async void LoteAplicarEtiqueta_Click(object? sender, RoutedEventArgs e)
+        {
+            var etiqueta = (TxtLoteEtiqueta.Text ?? "").Trim();
+            if (string.IsNullOrEmpty(etiqueta))
+                return;
+
+            var itens = _senhasAtuais.Where(s => _selecionados.Contains(s.Id)).ToList();
+            try
+            {
+                foreach (var item in itens)
+                {
+                    var plain = ObterSenhaPlain(item);
+                    if (plain == null)
+                        continue;
+
+                    var etiquetas = new List<string>(item.Etiquetas);
+                    if (!etiquetas.Contains(etiqueta, StringComparer.OrdinalIgnoreCase))
+                        etiquetas.Add(etiqueta);
+
+                    await _servicoSenha.AtualizarSenhaAsync(item.Id, item.NomeServico, item.Usuario, plain,
+                        item.Categoria, item.Url, item.Notas, etiquetas, item.Tipo, null);
+                }
+                await _servicoSenha.PersistirAsync();
+                await CarregarSenhasAsync();
+            }
+            catch (Exception ex)
+            {
+                await CaixaMensagem.MostrarAsync(this,
+                    Idioma.Formatar("Entry.UpdateError", ErrosUi.MensagemAmigavel(ex)),
+                    Idioma.Texto("Common.Error"), TipoMensagem.Erro);
+            }
+        }
+
         private async Task RenomearServicoAsync(Senha s, string novoNome)
         {
             try
@@ -2322,7 +2449,8 @@ namespace CofreDeSenhas.Janelas
             }
 
             ExecutarAuditoria();
-            var relatorio = ServicoRelatorioSeguranca.Gerar(_senhasAtuais, _resultadoAuditoria!, _vazamentosPorId);
+            var relatorio = ServicoRelatorioSeguranca.Gerar(_senhasAtuais, _resultadoAuditoria!, _vazamentosPorId,
+                CertificadoBancoNaoExigido());
             bool jaVerificouVazamentos = _vazamentosPorId.Count > 0;
 
             var dlg = new JanelaRelatorioSeguranca(relatorio, jaVerificouVazamentos, GerarRelatorioAtualizadoAsync);
@@ -2346,8 +2474,12 @@ namespace CofreDeSenhas.Janelas
         private async Task<RelatorioSegurancaCofre> GerarRelatorioAtualizadoAsync()
         {
             await VerificarVazamentosDoVaultAsync();
-            return ServicoRelatorioSeguranca.Gerar(_senhasAtuais, _resultadoAuditoria!, _vazamentosPorId);
+            return ServicoRelatorioSeguranca.Gerar(_senhasAtuais, _resultadoAuditoria!, _vazamentosPorId,
+                CertificadoBancoNaoExigido());
         }
+
+        private static bool CertificadoBancoNaoExigido() =>
+            Preferencias.UltimoBanco is { Conectado: true, ExigirCertificadoValido: false };
 
         private async Task VerificarVazamentosDoVaultAsync()
         {
@@ -2378,9 +2510,16 @@ namespace CofreDeSenhas.Janelas
                     return;
                 }
 
-                var dlg = new JanelaSenhaExportacao(modoExportar: true);
+                var totalFiltrado = _senhasFiltradasAtuais.Count(s => !s.NaLixeira);
+                var dlg = new JanelaSenhaExportacao(modoExportar: true, totalGeral: senhas.Count, totalFiltrado: totalFiltrado);
                 if (!await AbrirDialogoAsync<bool>(dlg))
                     return;
+
+                if (dlg.ExportarSomenteFiltrados)
+                {
+                    var idsFiltrados = new HashSet<Guid>(_senhasFiltradasAtuais.Where(s => !s.NaLixeira).Select(s => s.Id));
+                    senhas = senhas.Where(s => idsFiltrados.Contains(s.Id)).ToList();
+                }
 
                 var arquivo = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
                 {
@@ -2909,7 +3048,7 @@ namespace CofreDeSenhas.Janelas
         {
             try
             {
-                var repoBanco = new RepositorioSenhaBanco(cfg);
+                var repoBanco = new RepositorioSenhaBanco(cfg, _criptografia);
                 var espelho = _repositorioLocal != null
                     ? new RepositorioSenhaEspelhado(_repositorioLocal, repoBanco,
                         reconciliacaoJaRealizada: Preferencias.UltimoBanco?.ReconciliacaoInicialConcluida ?? false)
@@ -2920,6 +3059,7 @@ namespace CofreDeSenhas.Janelas
                 await servico.ListarTodosAsync();
 
                 _servicoSenha = servico;
+                _repositorioEspelhado = espelho;
                 _conectadoAoBanco = true;
 
                 if (persistir)
@@ -2957,6 +3097,7 @@ namespace CofreDeSenhas.Janelas
             catch (Exception ex)
             {
                 _servicoSenha = _servicoSenhaLocal;
+                _repositorioEspelhado = null;
                 _conectadoAoBanco = false;
                 AtualizarEstadoConexao(null, falhaReconexao: silencioso);
 
@@ -2991,6 +3132,7 @@ namespace CofreDeSenhas.Janelas
         private async void DesconectarBanco_Click(object? sender, RoutedEventArgs e)
         {
             _servicoSenha = _servicoSenhaLocal;
+            _repositorioEspelhado = null;
             _conectadoAoBanco = false;
 
             if (Preferencias.UltimoBanco != null)
@@ -3035,6 +3177,17 @@ namespace CofreDeSenhas.Janelas
 
             AutomationProperties.SetName(LblConexao,
                 $"{LblConexao.Text}. {Idioma.Texto("A11y.ConnectionStatus")}: {conexao}");
+
+            BtnConflitosSincronizacao.IsVisible = (_repositorioEspelhado?.UltimosConflitos.Count ?? 0) > 0;
+        }
+
+        private async void ConflitosSincronizacao_Click(object? sender, RoutedEventArgs e)
+        {
+            if (_repositorioEspelhado == null)
+                return;
+
+            var dlg = new JanelaConflitosSincronizacao(_repositorioEspelhado.UltimosConflitos);
+            await AbrirDialogoAsync<bool>(dlg);
         }
 
         private void Reiniciar()

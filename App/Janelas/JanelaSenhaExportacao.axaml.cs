@@ -9,12 +9,17 @@ namespace CofreDeSenhas.Janelas
     public partial class JanelaSenhaExportacao : Window
     {
         private readonly bool _modoExportar;
+        private readonly int _totalGeral;
+        private readonly int _totalFiltrado;
 
         public string SenhaInformada { get; private set; } = string.Empty;
+        public bool ExportarSomenteFiltrados { get; private set; }
 
-        public JanelaSenhaExportacao(bool modoExportar)
+        public JanelaSenhaExportacao(bool modoExportar, int totalGeral = 0, int totalFiltrado = 0)
         {
             _modoExportar = modoExportar;
+            _totalGeral = totalGeral;
+            _totalFiltrado = totalFiltrado;
 
             InitializeComponent();
             Icon = Recursos.IconeApp();
@@ -23,6 +28,7 @@ namespace CofreDeSenhas.Janelas
             AtualizarTextos();
             PainelConfirmar.IsVisible = modoExportar;
             Medidor.IsVisible = modoExportar;
+            ChkSomenteFiltrados.IsVisible = modoExportar && totalFiltrado > 0 && totalFiltrado < totalGeral;
             TxtSenha.TextChanged += (s, e) => Medidor.Avaliar(TxtSenha.Text);
             Idioma.Alterado += Idioma_Alterado;
             Closed += (s, e) => Idioma.Alterado -= Idioma_Alterado;
@@ -56,6 +62,9 @@ namespace CofreDeSenhas.Janelas
             AutomationProperties.SetName(TxtSenha, LblSenha.Text ?? "");
             AutomationProperties.SetName(LblInfo, LblInfo.Text ?? "");
             AutomationProperties.SetName(BtnPrincipal, BtnPrincipal.Content?.ToString() ?? "");
+
+            ChkSomenteFiltrados.Content = Idioma.Formatar("ExportDialog.OnlyFiltered", _totalFiltrado, _totalGeral);
+            AutomationProperties.SetName(ChkSomenteFiltrados, ChkSomenteFiltrados.Content?.ToString() ?? "");
         }
 
         private void Confirmar()
@@ -83,6 +92,7 @@ namespace CofreDeSenhas.Janelas
             }
 
             SenhaInformada = senha;
+            ExportarSomenteFiltrados = ChkSomenteFiltrados.IsChecked == true;
             Close(true);
         }
 

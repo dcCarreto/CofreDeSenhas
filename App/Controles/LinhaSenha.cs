@@ -64,9 +64,27 @@ namespace CofreDeSenhas.Controles
 
         private const string MascaraPrivacidade = "••••••••";
 
+        private bool _pointerSobre;
+
         public Senha Senha => _senha;
+        public bool Selecionada { get; private set; }
 
         public event EventHandler<Senha>? SolicitouDetalhes;
+        public event EventHandler<Senha>? SelecaoAlterada;
+
+        public void DefinirSelecionada(bool selecionada)
+        {
+            Selecionada = selecionada;
+            AtualizarFundo();
+            AutomationProperties.SetItemStatus(this, Idioma.Texto(selecionada ? "A11y.ToggleOn" : "A11y.ToggleOff"));
+        }
+
+        private void AtualizarFundo()
+        {
+            Background = Selecionada
+                ? Tema.Pincel(Tema.AccentLight)
+                : Tema.Pincel(_pointerSobre || IsFocused ? Tema.RowHover : Tema.CardBackground);
+        }
 
         public int NivelForca
         {
@@ -134,23 +152,25 @@ namespace CofreDeSenhas.Controles
 
             PointerEntered += (s, e) =>
             {
-                if (!IsFocused) Background = Tema.Pincel(Tema.RowHover);
+                _pointerSobre = true;
+                AtualizarFundo();
                 if (_acoes != null) _acoes.Opacity = 1;
             };
             PointerExited += (s, e) =>
             {
-                if (!IsFocused) Background = Tema.Pincel(Tema.CardBackground);
+                _pointerSobre = false;
+                AtualizarFundo();
                 if (_acoes != null) _acoes.Opacity = 0.55;
             };
             PointerReleased += Linha_PointerReleased;
             GotFocus += (s, e) =>
             {
-                Background = Tema.Pincel(Tema.RowHover);
+                AtualizarFundo();
                 if (_acoes != null) _acoes.Opacity = 1;
             };
             LostFocus += (s, e) =>
             {
-                Background = Tema.Pincel(Tema.CardBackground);
+                AtualizarFundo();
                 if (_acoes != null) _acoes.Opacity = 0.55;
             };
         }
@@ -284,6 +304,14 @@ namespace CofreDeSenhas.Controles
                  visual.FindAncestorOfType<TextBox>(true) != null ||
                  visual.FindAncestorOfType<TextBlock>(true) is { } texto && (texto == _lblServico || texto == _lblUsuario)))
             {
+                return;
+            }
+
+            if (e.KeyModifiers.HasFlag(KeyModifiers.Control))
+            {
+                DefinirSelecionada(!Selecionada);
+                SelecaoAlterada?.Invoke(this, _senha);
+                e.Handled = true;
                 return;
             }
 

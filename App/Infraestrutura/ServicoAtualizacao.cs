@@ -65,8 +65,20 @@ namespace CofreDeSenhas
 
         public static async Task<ResultadoAtualizacao> AtualizarAgoraAsync(string tag)
         {
-            if (!OperatingSystem.IsWindows())
+            if (!OperatingSystem.IsWindows() && !OperatingSystem.IsLinux())
                 return ResultadoAtualizacao.NaoSuportado();
+
+            // No Linux só dá pra fazer a troca em um clique rodando como AppImage: é o único
+            // pacote de arquivo único, análogo ao portátil do Windows. A variável $APPIMAGE
+            // (convenção do runtime do AppImage) aponta pro .AppImage de verdade — Environment.
+            // ProcessPath aponta pro ponto de montagem FUSE temporário, não serve aqui.
+            string? appImageAtual = null;
+            if (OperatingSystem.IsLinux())
+            {
+                appImageAtual = Environment.GetEnvironmentVariable("APPIMAGE");
+                if (string.IsNullOrEmpty(appImageAtual))
+                    return ResultadoAtualizacao.NaoSuportado();
+            }
 
             try
             {
@@ -76,14 +88,24 @@ namespace CofreDeSenhas
                 if (resposta?.Assets is not { Count: > 0 })
                     return ResultadoAtualizacao.Falha("Não foi possível obter os arquivos da versão.");
 
-                var instaladoViaSetup = File.Exists(Path.Combine(AppContext.BaseDirectory, "unins000.exe"));
-                if (!instaladoViaSetup && string.IsNullOrEmpty(Environment.ProcessPath))
-                    return ResultadoAtualizacao.Falha("Não foi possível localizar o executável atual.");
-
                 var versaoTexto = tag.TrimStart('v', 'V');
-                var nomeAtivo = instaladoViaSetup
-                    ? $"CofreDeSenhas-Setup-{versaoTexto}.exe"
-                    : $"CofreDeSenhas-{versaoTexto}-win-x64-portatil.exe";
+
+                var instaladoViaSetup = false;
+                string nomeAtivo;
+                if (appImageAtual != null)
+                {
+                    nomeAtivo = $"CofreDeSenhas-{versaoTexto}-x86_64.AppImage";
+                }
+                else
+                {
+                    instaladoViaSetup = File.Exists(Path.Combine(AppContext.BaseDirectory, "unins000.exe"));
+                    if (!instaladoViaSetup && string.IsNullOrEmpty(Environment.ProcessPath))
+                        return ResultadoAtualizacao.Falha("Não foi possível localizar o executável atual.");
+
+                    nomeAtivo = instaladoViaSetup
+                        ? $"CofreDeSenhas-Setup-{versaoTexto}.exe"
+                        : $"CofreDeSenhas-{versaoTexto}-win-x64-portatil.exe";
+                }
 
                 var ativo = resposta.Assets.Find(a => string.Equals(a.Name, nomeAtivo, StringComparison.OrdinalIgnoreCase));
                 var ativoChecksums = resposta.Assets.Find(a => string.Equals(a.Name, NomeChecksums, StringComparison.OrdinalIgnoreCase));
@@ -106,7 +128,9 @@ namespace CofreDeSenhas
                     return ResultadoAtualizacao.Falha("A verificação de integridade do arquivo baixado falhou.");
                 }
 
-                if (instaladoViaSetup)
+                if (appImageAtual != null)
+                    AtualizarAppImage(caminhoTemp, appImageAtual);
+                else if (instaladoViaSetup)
                     Process.Start(new ProcessStartInfo(caminhoTemp, "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART") { UseShellExecute = true });
                 else
                     AtualizarPortatil(caminhoTemp);
@@ -131,6 +155,26 @@ namespace CofreDeSenhas
             File.Move(caminhoNovoExe, exeAtual);
 
             Process.Start(new ProcessStartInfo(exeAtual) { UseShellExecute = true });
+        }
+
+        private static void AtualizarAppImage(string caminhoNovoAppImage, string appImageAtual)
+        {
+            if (OperatingSystem.IsLinux())
+            {
+                File.SetUnixFileMode(caminhoNovoAppImage,
+                    UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute |
+                    UnixFileMode.GroupRead | UnixFileMode.GroupExecute |
+                    UnixFileMode.OtherRead | UnixFileMode.OtherExecute);
+            }
+
+            var appImageAntigo = appImageAtual + ".old";
+            if (File.Exists(appImageAntigo))
+                File.Delete(appImageAntigo);
+
+            File.Move(appImageAtual, appImageAntigo);
+            File.Move(caminhoNovoAppImage, appImageAtual);
+
+            Process.Start(new ProcessStartInfo(appImageAtual) { UseShellExecute = false });
         }
 
         private static async Task BaixarArquivoAsync(HttpClient http, string url, string destino)

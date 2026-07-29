@@ -402,6 +402,13 @@
                     </StackPanel>
                     <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8"
                                 HorizontalAlignment="Right" VerticalAlignment="Center">
+                      <Button Name="BtnConflitosSincronizacao" Classes="icone" Width="20" Height="20" Padding="0"
+                              IsVisible="False"
+                              ToolTip.Tip="{DynamicResource Sync.ConflictsTooltip}"
+                              AutomationProperties.Name="{DynamicResource Sync.ConflictsTooltip}"
+                              Click="ConflitosSincronizacao_Click">
+                        <c:Icone Width="{StaticResource TamIconeRodape}" Height="{StaticResource TamIconeRodape}" Chave="IconeAviso" />
+                      </Button>
                       <c:Icone Width="{StaticResource TamIconeRodape}" Height="{StaticResource TamIconeRodape}"
                              Chave="IconeRecentes" />
                       <Ellipse Name="PontoConexao" Width="8" Height="8" Fill="{DynamicResource StatusLocal}" VerticalAlignment="Center" />
@@ -686,6 +693,48 @@
                               Content="{DynamicResource Vault.NewPassword}"
                               Click="NovaSenha_Click" />
                     </StackPanel>
+
+                    <Border Name="PainelAcoesLote"
+                            VerticalAlignment="Bottom" HorizontalAlignment="Center"
+                            Margin="0,0,0,16"
+                            CornerRadius="12"
+                            Background="{DynamicResource CardBackground}"
+                            BorderBrush="{DynamicResource CardBorder}"
+                            BorderThickness="1"
+                            BoxShadow="{StaticResource DialogShadow}"
+                            Padding="16,10"
+                            IsVisible="False">
+                      <StackPanel>
+                        <StackPanel Name="PainelAcoesLoteBotoes" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                          <TextBlock Name="LblContagemSelecao" FontSize="13" FontWeight="SemiBold"
+                                     Foreground="{DynamicResource TextPrimary}" VerticalAlignment="Center"
+                                     Margin="0,0,8,0" AutomationProperties.LiveSetting="Polite" />
+                          <Button Name="BtnLoteFavoritar" Classes="secundario" Height="34" FontSize="12.5"
+                                  Content="{DynamicResource Batch.Favorite}" Click="LoteFavoritar_Click" />
+                          <Button Name="BtnLoteEtiqueta" Classes="secundario" Height="34" FontSize="12.5"
+                                  Content="{DynamicResource Batch.AddTag}" Click="LoteAdicionarEtiqueta_Click" />
+                          <Button Name="BtnLoteLixeira" Classes="secundario" Height="34" FontSize="12.5"
+                                  Content="{DynamicResource Batch.Trash}" Click="LoteMoverParaLixeira_Click" />
+                          <Button Name="BtnLoteCancelar" Classes="icone" Width="34" Height="34"
+                                  ToolTip.Tip="{DynamicResource Batch.CancelSelection}"
+                                  AutomationProperties.Name="{DynamicResource Batch.CancelSelection}"
+                                  Click="LoteCancelarSelecao_Click">
+                            <c:Icone Width="{StaticResource TamIconeToolbar}" Height="{StaticResource TamIconeToolbar}" Chave="IconeFechar" />
+                          </Button>
+                        </StackPanel>
+
+                        <StackPanel Name="PainelAcoesLoteEtiqueta" Orientation="Horizontal" Spacing="8"
+                                    VerticalAlignment="Center" IsVisible="False">
+                          <TextBox Name="TxtLoteEtiqueta" Classes="campo" Width="200" Height="34"
+                                   Watermark="{DynamicResource Batch.AddTagWatermark}"
+                                   AutomationProperties.Name="{DynamicResource Batch.AddTagWatermark}" />
+                          <Button Name="BtnLoteEtiquetaAplicar" Classes="primario" Height="34" FontSize="12.5"
+                                  Content="{DynamicResource Common.Apply}" Click="LoteAplicarEtiqueta_Click" />
+                          <Button Name="BtnLoteEtiquetaCancelar" Classes="secundario" Height="34" FontSize="12.5"
+                                  Content="{DynamicResource Common.Cancel}" Click="LoteCancelarEtiqueta_Click" />
+                        </StackPanel>
+                      </StackPanel>
+                    </Border>
                   </Grid>
                 </DockPanel>
               </DockPanel>

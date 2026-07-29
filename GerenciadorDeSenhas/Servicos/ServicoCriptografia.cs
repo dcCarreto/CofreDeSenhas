@@ -8,8 +8,10 @@ namespace GerenciadorDeSenhas.Servicos
     {
         private const int TamanhoNonce = 12;
         private const int TamanhoTag = 16;
+        private static readonly byte[] InfoChaveHmac = Encoding.UTF8.GetBytes("CofreDeSenhas.IntegridadeBanco.v1");
 
         private readonly byte[] _chave;
+        private byte[]? _chaveHmac;
 
         public ServicoCriptografia(byte[] chave)
         {
@@ -65,6 +67,40 @@ namespace GerenciadorDeSenhas.Servicos
             return plaintext;
         }
 
-        public void ZerarChave() => CryptographicOperations.ZeroMemory(_chave);
+        public string CalcularHmacIntegridade(string dados)
+        {
+            using var hmac = new HMACSHA256(ChaveHmac());
+            return Convert.ToBase64String(hmac.ComputeHash(Encoding.UTF8.GetBytes(dados)));
+        }
+
+        public bool VerificarHmacIntegridade(string dados, string? hmacBase64)
+        {
+            if (string.IsNullOrEmpty(hmacBase64))
+                return false;
+
+            byte[] recebido;
+            try
+            {
+                recebido = Convert.FromBase64String(hmacBase64);
+            }
+            catch (FormatException)
+            {
+                return false;
+            }
+
+            using var hmac = new HMACSHA256(ChaveHmac());
+            var calculado = hmac.ComputeHash(Encoding.UTF8.GetBytes(dados));
+            return CryptographicOperations.FixedTimeEquals(calculado, recebido);
+        }
+
+        private byte[] ChaveHmac() =>
+            _chaveHmac ??= HKDF.DeriveKey(HashAlgorithmName.SHA256, _chave, 32, info: InfoChaveHmac);
+
+        public void ZerarChave()
+        {
+            CryptographicOperations.ZeroMemory(_chave);
+            if (_chaveHmac != null)
+                CryptographicOperations.ZeroMemory(_chaveHmac);
+        }
     }
 }

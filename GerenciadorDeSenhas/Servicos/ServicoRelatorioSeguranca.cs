@@ -14,7 +14,8 @@ namespace GerenciadorDeSenhas.Servicos
         private const int PontuacaoMaxima = 100;
 
         public static RelatorioSegurancaCofre Gerar(IReadOnlyCollection<Senha> senhas,
-            ResultadoAuditoriaCofre auditoria, IReadOnlyDictionary<Guid, int>? vazamentosPorId = null)
+            ResultadoAuditoriaCofre auditoria, IReadOnlyDictionary<Guid, int>? vazamentosPorId = null,
+            bool certificadoBancoNaoExigido = false)
         {
             if (senhas == null)
                 throw new ArgumentNullException(nameof(senhas));
@@ -42,7 +43,8 @@ namespace GerenciadorDeSenhas.Servicos
                 SemTotp = semTotp,
                 SemUrl = semUrl,
                 SemCategoria = semCategoria,
-                Pontuacao = pontuacao
+                Pontuacao = pontuacao,
+                CertificadoBancoNaoExigido = certificadoBancoNaoExigido
             };
         }
 

@@ -1,12 +1,12 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:c="using:CofreDeSenhas.Controles"
-        x:Class="CofreDeSenhas.Janelas.JanelaRelatorioSeguranca"
-        Title="{DynamicResource SecurityReport.Title}"
+        x:Class="CofreDeSenhas.Janelas.JanelaConflitosSincronizacao"
+        Title="{DynamicResource Sync.ConflictsTitle}"
         Width="480"
-        Height="660"
+        Height="560"
         MinWidth="420"
-        MinHeight="480"
+        MinHeight="380"
         CanResize="False"
         SystemDecorations="None"
         Background="Transparent"
@@ -27,7 +27,7 @@
               BorderThickness="0,0,0,1"
               PointerPressed="Arrastar">
         <Grid>
-          <TextBlock Text="{DynamicResource SecurityReport.Title}"
+          <TextBlock Text="{DynamicResource Sync.ConflictsTitle}"
                      Classes="titulo"
                      Foreground="{DynamicResource TextPrimary}"
                      VerticalAlignment="Center"
@@ -57,28 +57,10 @@
       </Border>
 
       <ScrollViewer>
-        <StackPanel Margin="24,18,24,16" Spacing="14">
-          <Border Background="{DynamicResource InputBackground}"
-                  BorderBrush="{DynamicResource InputBorder}" BorderThickness="1"
-                  CornerRadius="{StaticResource RadiusInput}" Padding="18,16">
-            <StackPanel Spacing="4" HorizontalAlignment="Center">
-              <TextBlock Name="LblPontuacao" FontSize="40" FontWeight="Bold" HorizontalAlignment="Center" />
-              <TextBlock Name="LblPontuacaoRotulo" FontSize="13" FontWeight="SemiBold" HorizontalAlignment="Center" />
-              <TextBlock Text="{DynamicResource SecurityReport.ScoreLabel}" FontSize="11"
-                         Foreground="{DynamicResource TextSecondary}" HorizontalAlignment="Center" />
-            </StackPanel>
-          </Border>
-
-          <TextBlock Name="LblTudoCerto" Text="{DynamicResource SecurityReport.AllGood}"
-                     FontSize="13" Foreground="{DynamicResource TextSecondary}" TextWrapping="Wrap"
-                     IsVisible="False" />
-
-          <StackPanel Name="PainelTendencia" Spacing="6" IsVisible="False">
-            <TextBlock Text="{DynamicResource SecurityReport.TrendLabel}" FontSize="11.5"
-                       Foreground="{DynamicResource TextSecondary}" />
-            <StackPanel Name="PainelBarrasTendencia" Orientation="Horizontal" Spacing="3"
-                        Height="40" VerticalAlignment="Bottom" />
-          </StackPanel>
+        <StackPanel Margin="24,18,24,16" Spacing="16">
+          <TextBlock Text="{DynamicResource Sync.ConflictsExplanation}"
+                     FontSize="11.5" Foreground="{DynamicResource TextSecondary}"
+                     TextWrapping="Wrap" />
 
           <StackPanel Name="PainelLinhas" Spacing="8" />
         </StackPanel>

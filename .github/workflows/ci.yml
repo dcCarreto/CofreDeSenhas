@@ -34,6 +34,8 @@ jobs:
         uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
         with:
           dotnet-version: '10.0.x'
+          cache: true
+          cache-dependency-path: '**/*.csproj'
 
       - name: Restaurar dependências
         run: dotnet restore CofreDeSenhas.sln
@@ -46,6 +48,34 @@ jobs:
         # containers de Postgres/MySQL/SQL Server) — sem eles, essa categoria falharia
         # por não achar nenhum motor real escutando em localhost.
         run: dotnet test CofreDeSenhas.sln -c Release --no-build --verbosity normal --filter "Category!=IntegracaoBanco" ${{ matrix.framework_arg }}
+
+  verificar-vulnerabilidades:
+    name: Verificar pacotes NuGet vulneráveis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: Configurar .NET
+        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
+        with:
+          dotnet-version: '10.0.x'
+          cache: true
+          cache-dependency-path: '**/*.csproj'
+
+      - name: Restaurar dependências
+        run: dotnet restore CofreDeSenhas.sln
+
+      - name: Verificar pacotes vulneráveis
+        # "dotnet list package --vulnerable" sempre sai com código 0, mesmo achando
+        # vulnerabilidade — só imprime um aviso. Grep na saída pra falhar de verdade.
+        run: |
+          saida=$(dotnet list CofreDeSenhas.sln package --vulnerable --include-transitive --no-restore)
+          echo "$saida"
+          if echo "$saida" | grep -qi "has the following vulnerable packages"; then
+            echo "Pacotes NuGet vulneráveis encontrados — veja a lista acima." >&2
+            exit 1
+          fi
 
   testar-bancos:
     name: Testar integração com Postgres/MySQL/SQL Server
@@ -100,6 +130,8 @@ jobs:
         uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
         with:
           dotnet-version: '10.0.x'
+          cache: true
+          cache-dependency-path: '**/*.csproj'
 
       - name: Restaurar dependências
         run: dotnet restore GerenciadorDeSenhas.Testes/GerenciadorDeSenhas.Testes.csproj

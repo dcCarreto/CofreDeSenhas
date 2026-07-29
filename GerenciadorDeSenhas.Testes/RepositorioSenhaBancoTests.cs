@@ -452,6 +452,77 @@ public class RepositorioSenhaBancoTests : IDisposable
         Assert.True(todas[0].Fixado);
     }
 
+    [Fact]
+    public async Task Adicionar_ComIntegridadeHabilitada_RecarregaSemViolacoes()
+    {
+        var repo = new RepositorioSenhaBanco(_cfg, _criptografia);
+        await repo.AdicionarAsync(NovaSenha("integro.com", "u", "s"));
+
+        var outro = new RepositorioSenhaBanco(_cfg, _criptografia);
+        var todas = await outro.ListarTodosAsync();
+
+        Assert.Single(todas);
+        Assert.Empty(outro.ViolacoesIntegridade);
+    }
+
+    [Fact]
+    public async Task CarregarSeNecessario_ComLinhaAdulteradaNoBanco_RejeitaERegistraViolacao()
+    {
+        var repo = new RepositorioSenhaBanco(_cfg, _criptografia);
+        var senha = NovaSenha("adulterado.com", "u", "s");
+        await repo.AdicionarAsync(senha);
+
+        await AlterarColunaDiretamenteAsync("dominio", "adulterado-por-outro-cliente.com");
+
+        var outro = new RepositorioSenhaBanco(_cfg, _criptografia);
+        var todas = await outro.ListarTodosAsync();
+
+        Assert.Empty(todas);
+        var violacao = Assert.Single(outro.ViolacoesIntegridade);
+        Assert.Equal(senha.Id, violacao.Id);
+    }
+
+    [Fact]
+    public async Task CarregarSeNecessario_SemIntegridadeConfigurada_IgnoraAdulteracao()
+    {
+        var repo = new RepositorioSenhaBanco(_cfg, _criptografia);
+        await repo.AdicionarAsync(NovaSenha("semverificacao.com", "u", "s"));
+
+        await AlterarColunaDiretamenteAsync("dominio", "adulterado.com");
+
+        var semIntegridade = new RepositorioSenhaBanco(_cfg);
+        var todas = await semIntegridade.ListarTodosAsync();
+
+        Assert.Single(todas);
+        Assert.Equal("adulterado.com", todas[0].NomeServico);
+    }
+
+    [Fact]
+    public async Task CarregarSeNecessario_ComLinhaLegadaSemHmac_NaoRejeita()
+    {
+        var repoLegado = new RepositorioSenhaBanco(_cfg);
+        await repoLegado.AdicionarAsync(NovaSenha("legado.com", "u", "s"));
+
+        var comIntegridade = new RepositorioSenhaBanco(_cfg, _criptografia);
+        var todas = await comIntegridade.ListarTodosAsync();
+
+        Assert.Single(todas);
+        Assert.Empty(comIntegridade.ViolacoesIntegridade);
+    }
+
+    private async Task AlterarColunaDiretamenteAsync(string coluna, string valor)
+    {
+        await using var con = _bd.CriarConexao(_cfg);
+        await con.OpenAsync();
+        await using var cmd = con.CreateCommand();
+        cmd.CommandText = $"UPDATE CofreDeSenhas SET {coluna} = @valor";
+        var p = cmd.CreateParameter();
+        p.ParameterName = "@valor";
+        p.Value = valor;
+        cmd.Parameters.Add(p);
+        await cmd.ExecuteNonQueryAsync();
+    }
+
     private async Task<long> ContarLinhas(string sql)
     {
         await using var con = _bd.CriarConexao(_cfg);

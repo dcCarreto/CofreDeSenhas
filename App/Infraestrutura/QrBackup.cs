@@ -30,6 +30,16 @@ namespace CofreDeSenhas
             if (arquivo == null)
                 return;
 
+            var provedorNuvem = DetectorPastaNuvem.DetectarProvedor(arquivo.Path.LocalPath);
+            if (provedorNuvem != null)
+            {
+                var continuar = await CaixaMensagem.ConfirmarAsync(dono,
+                    Idioma.Formatar("Qr.CloudFolderWarning", provedorNuvem),
+                    Idioma.Texto("Qr.BackupTitle"));
+                if (!continuar)
+                    return;
+            }
+
             try
             {
                 await File.WriteAllBytesAsync(arquivo.Path.LocalPath, GerarFolhaBackupPng(senhaMestra));

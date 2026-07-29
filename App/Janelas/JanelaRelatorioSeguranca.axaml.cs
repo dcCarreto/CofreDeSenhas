@@ -38,11 +38,14 @@ namespace CofreDeSenhas.Janelas
         private void AtualizarConteudo()
         {
             AtualizarPontuacao();
+            AtualizarTendencia();
             MontarLinhas();
         }
 
         private void AtualizarPontuacao()
         {
+            HistoricoPontuacaoSeguranca.RegistrarPontuacao(_relatorio.Pontuacao);
+
             LblPontuacao.Text = _relatorio.Pontuacao.ToString();
 
             var (chaveRotulo, cor) = _relatorio.Pontuacao switch
@@ -60,9 +63,45 @@ namespace CofreDeSenhas.Janelas
             LblTudoCerto.IsVisible = _relatorio.SemProblemas;
         }
 
+        private void AtualizarTendencia()
+        {
+            var pontos = HistoricoPontuacaoSeguranca.Carregar();
+            PainelBarrasTendencia.Children.Clear();
+
+            PainelTendencia.IsVisible = pontos.Count >= 2;
+            if (pontos.Count < 2)
+                return;
+
+            foreach (var ponto in pontos)
+            {
+                var cor = ponto.Pontuacao switch
+                {
+                    >= 90 => Tema.StrengthExcellent,
+                    >= 70 => Tema.StrengthStrong,
+                    >= 40 => Tema.StrengthMedium,
+                    _ => Tema.StrengthWeak
+                };
+
+                var barra = new Border
+                {
+                    Width = 6,
+                    Height = Math.Max(4, ponto.Pontuacao * 0.4),
+                    CornerRadius = new CornerRadius(2),
+                    Background = Tema.Pincel(cor),
+                    VerticalAlignment = VerticalAlignment.Bottom
+                };
+                ToolTip.SetTip(barra, $"{ponto.DataUtc.ToLocalTime().ToString("d", Idioma.CulturaAtual)}: {ponto.Pontuacao}");
+
+                PainelBarrasTendencia.Children.Add(barra);
+            }
+        }
+
         private void MontarLinhas()
         {
             PainelLinhas.Children.Clear();
+
+            if (_relatorio.CertificadoBancoNaoExigido)
+                PainelLinhas.Children.Add(CriarLinhaAviso(Idioma.Texto("SecurityReport.CertNotRequired")));
 
             PainelLinhas.Children.Add(CriarLinha(Idioma.Texto("SecurityReport.Weak"), _relatorio.Fracas, CategoriaRelatorioSeguranca.Fraca));
             PainelLinhas.Children.Add(CriarLinha(Idioma.Texto("SecurityReport.Repeated"), _relatorio.Repetidas, CategoriaRelatorioSeguranca.Repetida));
@@ -121,6 +160,40 @@ namespace CofreDeSenhas.Janelas
             }
 
             return borda;
+        }
+
+        private Control CriarLinhaAviso(string mensagem)
+        {
+            var icone = new TextBlock
+            {
+                Text = "⚠",
+                FontSize = 16,
+                Foreground = Tema.Pincel(Tema.StatusWarning),
+                VerticalAlignment = VerticalAlignment.Top,
+                Margin = new Thickness(0, 0, 10, 0)
+            };
+
+            var lblMensagem = new TextBlock
+            {
+                Text = mensagem,
+                FontSize = 13,
+                TextWrapping = TextWrapping.Wrap,
+                Foreground = Tema.Pincel(Tema.TextPrimary)
+            };
+
+            var linha = new StackPanel { Orientation = Orientation.Horizontal };
+            linha.Children.Add(icone);
+            linha.Children.Add(lblMensagem);
+
+            return new Border
+            {
+                Padding = new Thickness(14, 12),
+                CornerRadius = new CornerRadius(10),
+                Background = Tema.Pincel(Tema.CardBackground),
+                BorderBrush = Tema.Pincel(Tema.StatusWarning),
+                BorderThickness = new Thickness(1),
+                Child = linha
+            };
         }
 
         private Control CriarLinhaComprometida()

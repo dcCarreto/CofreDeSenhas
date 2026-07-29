@@ -1,5 +1,7 @@
+using Avalonia;
 using Avalonia.Automation;
 using Avalonia.Controls;
+using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -264,6 +266,78 @@ namespace App.Testes
             });
 
             Assert.Contains(ativos, s => s.Id == criada.Id);
+        }
+
+        [AvaloniaFact]
+        public async Task CtrlClicarDuasLinhas_MostraPainelDeAcoesEmLoteEFavoritarAplicaNasDuas()
+        {
+            var (servico, chave) = CriarServico();
+            await servico.CriarSenhaAsync("Servico Lote A", "usuario.a", "SenhaForte123!", Categoria.Personal);
+            await servico.CriarSenhaAsync("Servico Lote B", "usuario.b", "SenhaForte123!", Categoria.Personal);
+
+            var janela = new JanelaPrincipal(servico, chave);
+            janela.Show();
+            await TesteUtil.AguardarAsync(() =>
+                janela.GetVisualDescendants().OfType<LinhaSenha>().Count() == 2);
+
+            foreach (var linha in janela.GetVisualDescendants().OfType<LinhaSenha>().ToList())
+            {
+                var ponto = linha.TranslatePoint(new Point(2, 26), janela) ?? default;
+                janela.MouseDown(ponto, MouseButton.Left, RawInputModifiers.Control);
+                janela.MouseUp(ponto, MouseButton.Left, RawInputModifiers.Control);
+            }
+
+            await TesteUtil.AguardarAsync(() => janela.Encontrar<Border>("PainelAcoesLote").IsVisible);
+            Assert.Equal(Idioma.Plural(2, "Batch.CountSingular", "Batch.CountPlural"),
+                janela.Encontrar<TextBlock>("LblContagemSelecao").Text);
+
+            janela.Encontrar<Button>("BtnLoteFavoritar").RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+
+            List<Senha> todas = new();
+            await TesteUtil.AguardarAsync(() =>
+            {
+                todas = servico.ListarTodosAsync().GetAwaiter().GetResult();
+                return todas.Count(s => s.Favorito) == 2;
+            });
+
+            Assert.Equal(2, todas.Count(s => s.Favorito));
+        }
+
+        [AvaloniaFact]
+        public async Task LoteAdicionarEtiqueta_AplicaAEtiquetaNosItensSelecionados()
+        {
+            var (servico, chave, criptografia) = CriarServicoComCriptografia();
+            await servico.CriarSenhaAsync("Servico Etiqueta A", "usuario.a", "SenhaForte123!", Categoria.Personal);
+            await servico.CriarSenhaAsync("Servico Etiqueta B", "usuario.b", "SenhaForte123!", Categoria.Personal);
+
+            var janela = new JanelaPrincipal(servico, chave, criptografia);
+            janela.Show();
+            await TesteUtil.AguardarAsync(() =>
+                janela.GetVisualDescendants().OfType<LinhaSenha>().Count() == 2);
+
+            foreach (var linha in janela.GetVisualDescendants().OfType<LinhaSenha>().ToList())
+            {
+                var ponto = linha.TranslatePoint(new Point(2, 26), janela) ?? default;
+                janela.MouseDown(ponto, MouseButton.Left, RawInputModifiers.Control);
+                janela.MouseUp(ponto, MouseButton.Left, RawInputModifiers.Control);
+            }
+
+            await TesteUtil.AguardarAsync(() => janela.Encontrar<Border>("PainelAcoesLote").IsVisible);
+
+            janela.Encontrar<Button>("BtnLoteEtiqueta").RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            await TesteUtil.AguardarAsync(() => janela.Encontrar<StackPanel>("PainelAcoesLoteEtiqueta").IsVisible);
+
+            janela.Encontrar<TextBox>("TxtLoteEtiqueta").Text = "urgente";
+            janela.Encontrar<Button>("BtnLoteEtiquetaAplicar").RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+
+            List<Senha> todas = new();
+            await TesteUtil.AguardarAsync(() =>
+            {
+                todas = servico.ListarTodosAsync().GetAwaiter().GetResult();
+                return todas.Count(s => s.Etiquetas.Contains("urgente")) == 2;
+            });
+
+            Assert.Equal(2, todas.Count(s => s.Etiquetas.Contains("urgente")));
         }
     }
 }

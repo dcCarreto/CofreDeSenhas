@@ -30,6 +30,7 @@ namespace GerenciadorDeSenhas.Servicos
         public const string ColunaFavorito = "favorito";
         public const string ColunaFixado = "fixado";
         public const string ColunaGuidId = "guid_id";
+        public const string ColunaHmac = "hmac";
 
         public DbConnection CriarConexao(ConexaoBanco cfg) => cfg.Tipo switch
         {
@@ -148,6 +149,7 @@ namespace GerenciadorDeSenhas.Servicos
             await GarantirColunaAsync(con, cfg.Tipo, ColunaFavorito);
             await GarantirColunaAsync(con, cfg.Tipo, ColunaFixado);
             await GarantirColunaAsync(con, cfg.Tipo, ColunaGuidId);
+            await GarantirColunaAsync(con, cfg.Tipo, ColunaHmac);
 
             return await PreencherGuidsFaltantesAsync(con);
         }

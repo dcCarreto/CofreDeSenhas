@@ -131,7 +131,7 @@ namespace GerenciadorDeSenhas.Servicos
         }
 
         public static List<SenhaExportada> MesclarListas(IReadOnlyList<SenhaExportada> locais, IReadOnlyList<SenhaExportada> remotos) =>
-            MesclaSincronizacao.Mesclar(locais, remotos, item => item.Id, item => item.DataAtualizacao);
+            MesclaSincronizacao.MesclarSenhasExportadas(locais, remotos);
 
         private sealed class EnvelopeSincronizacao
         {

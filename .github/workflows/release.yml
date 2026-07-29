@@ -71,6 +71,8 @@ jobs:
         uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
         with:
           dotnet-version: '10.0.x'
+          cache: true
+          cache-dependency-path: '**/*.csproj'
 
       - name: Restaurar dependências
         run: dotnet restore CofreDeSenhas.sln
@@ -99,6 +101,8 @@ jobs:
         uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
         with:
           dotnet-version: '10.0.x'
+          cache: true
+          cache-dependency-path: '**/*.csproj'
 
       - name: Garantir Inno Setup instalado
         shell: pwsh
@@ -144,6 +148,8 @@ jobs:
         uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
         with:
           dotnet-version: '10.0.x'
+          cache: true
+          cache-dependency-path: '**/*.csproj'
 
       - name: Publicar (linux-x64, autocontido)
         run: |
@@ -188,6 +194,33 @@ jobs:
         with:
           path: artefatos
           merge-multiple: true
+
+      - name: Configurar .NET
+        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
+        with:
+          dotnet-version: '10.0.x'
+          cache: true
+          cache-dependency-path: '**/*.csproj'
+
+      - name: Gerar SBOM (CycloneDX)
+        run: |
+          mkdir -p dist
+          dotnet tool install --global CycloneDX --version 6.2.0
+          dotnet-CycloneDX CofreDeSenhas.sln -o dist -sn CofreDeSenhas \
+            -sv "${{ needs.verificar-versao.outputs.versao }}" -F Json \
+            -fn "CofreDeSenhas-${{ needs.verificar-versao.outputs.versao }}-sbom.json"
+
+      - name: Gerar manifests winget
+        # Só monta os YAML prontos para o mantenedor copiar num fork de microsoft/winget-pkgs
+        # e abrir o PR manualmente — submissão automática num repositório de terceiros fica
+        # fora do escopo deste pipeline. Roda antes do CHECKSUMS.txt de propósito, pra esse
+        # zip também entrar na lista de checksums publicada.
+        run: |
+          versao="${{ needs.verificar-versao.outputs.versao }}"
+          sha256_instalador=$(sha256sum "artefatos/CofreDeSenhas-Setup-$versao.exe" | cut -d' ' -f1)
+          python3 .github/scripts/gerar_manifesto_winget.py "$versao" "$sha256_instalador" winget-manifests
+          mkdir -p dist
+          (cd winget-manifests && zip -r "../dist/winget-manifests-$versao.zip" manifests)
 
       - name: Gerar CHECKSUMS.txt
         run: |

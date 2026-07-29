@@ -62,6 +62,8 @@
                    AutomationProperties.LiveSetting="Polite"
                    Margin="0,0,0,12" />
 
+        <CheckBox Name="ChkSomenteFiltrados" IsVisible="False" Margin="0,0,0,12" />
+
         <TextBlock Name="LblSenha" Classes="legenda" />
         <TextBox Name="TxtSenha" Classes="campo revealPasswordButton" PasswordChar="●" Margin="0,0,0,10"
                  AutomationProperties.HelpText="{DynamicResource A11y.PasswordFieldHelp}"

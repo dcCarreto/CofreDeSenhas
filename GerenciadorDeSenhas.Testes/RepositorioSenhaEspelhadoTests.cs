@@ -29,7 +29,7 @@ public class RepositorioSenhaEspelhadoTests : IDisposable
     }
 
     private RepositorioSenha NovoLocal() => new(new PersistenciaEmMemoria(), _chave);
-    private RepositorioSenhaBanco NovoBanco() => new(_cfg);
+    private RepositorioSenhaBanco NovoBanco() => new(_cfg, _cripto);
 
     private Senha Nova(string dominio, string usuario, string plaintext) => new()
     {
@@ -244,6 +244,105 @@ public class RepositorioSenhaEspelhadoTests : IDisposable
 
         Assert.Empty(await local.ListarLixeiraAsync());
         Assert.Equal(1, await ContarLinhas("SELECT COUNT(*) FROM CofreDeSenhas"));
+    }
+
+    [Fact]
+    public async Task Mesclar_EtiquetasDivergentesNosDoisLados_UneEmVezDeDescartarAsDoLado()
+    {
+        var id = Guid.NewGuid();
+        var agora = DateTime.UtcNow;
+
+        var itemLocal = NovaComId(id, "servico", "u", "conteudo", agora.AddMinutes(-10));
+        itemLocal.Etiquetas.Add("etiqueta-local");
+        var local = NovoLocal();
+        await local.AdicionarAsync(itemLocal);
+
+        var itemBanco = NovaComId(id, "servico", "u", "conteudo-novo", agora);
+        itemBanco.Etiquetas.Add("etiqueta-remota");
+        var banco = NovoBanco();
+        await banco.AdicionarAsync(itemBanco);
+
+        var espelho = new RepositorioSenhaEspelhado(local, banco, reconciliacaoJaRealizada: true);
+        var todas = await espelho.ListarTodosAsync();
+
+        var item = Assert.Single(todas);
+        Assert.Contains("etiqueta-local", item.Etiquetas);
+        Assert.Contains("etiqueta-remota", item.Etiquetas);
+    }
+
+    [Fact]
+    public async Task Mesclar_HistoricoDivergenteNosDoisLados_UneAsEntradas()
+    {
+        var id = Guid.NewGuid();
+        var agora = DateTime.UtcNow;
+
+        var itemLocal = NovaComId(id, "servico", "u", "conteudo", agora.AddMinutes(-10));
+        itemLocal.Historico.Add(new HistoricoSenha { SenhaHash = "hash-local", DataAlteracao = agora.AddDays(-5) });
+        var local = NovoLocal();
+        await local.AdicionarAsync(itemLocal);
+
+        var itemBanco = NovaComId(id, "servico", "u", "conteudo-novo", agora);
+        itemBanco.Historico.Add(new HistoricoSenha { SenhaHash = "hash-remoto", DataAlteracao = agora.AddDays(-2) });
+        var banco = NovoBanco();
+        await banco.AdicionarAsync(itemBanco);
+
+        var espelho = new RepositorioSenhaEspelhado(local, banco, reconciliacaoJaRealizada: true);
+        var todas = await espelho.ListarTodosAsync();
+
+        var item = Assert.Single(todas);
+        Assert.Contains(item.Historico, h => h.SenhaHash == "hash-local");
+        Assert.Contains(item.Historico, h => h.SenhaHash == "hash-remoto");
+    }
+
+    [Fact]
+    public async Task Mesclar_ComEdicaoConcorrente_RegistraConflitoEmUltimosConflitos()
+    {
+        var id = Guid.NewGuid();
+        var agora = DateTime.UtcNow;
+
+        var local = NovoLocal();
+        await local.AdicionarAsync(NovaComId(id, "servico", "u", "antiga", agora.AddMinutes(-10)));
+
+        var banco = NovoBanco();
+        await banco.AdicionarAsync(NovaComId(id, "servico", "u", "nova", agora));
+
+        var espelho = new RepositorioSenhaEspelhado(local, banco, reconciliacaoJaRealizada: true);
+        await espelho.ListarTodosAsync();
+
+        var conflito = Assert.Single(espelho.UltimosConflitos);
+        Assert.Equal(id, conflito.SenhaId);
+        Assert.Equal(TipoConflitoSincronizacao.EdicaoConcorrente, conflito.Tipo);
+    }
+
+    [Fact]
+    public async Task Mesclar_ComLinhaAdulteradaNoBanco_RegistraViolacaoDeIntegridadeERejeitaODado()
+    {
+        var id = Guid.NewGuid();
+        var senha = NovaComId(id, "confiavel.com", "u", "conteudo", DateTime.UtcNow);
+
+        var banco = NovoBanco();
+        await banco.AdicionarAsync(senha);
+
+        await using (var con = _bd.CriarConexao(_cfg))
+        {
+            await con.OpenAsync();
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = "UPDATE CofreDeSenhas SET dominio = @valor";
+            var p = cmd.CreateParameter();
+            p.ParameterName = "@valor";
+            p.Value = "adulterado-por-outro-cliente.com";
+            cmd.Parameters.Add(p);
+            await cmd.ExecuteNonQueryAsync();
+        }
+
+        var local = NovoLocal();
+        var espelho = new RepositorioSenhaEspelhado(local, NovoBanco(), reconciliacaoJaRealizada: true);
+        var todas = await espelho.ListarTodosAsync();
+
+        Assert.Empty(todas);
+        var conflito = Assert.Single(espelho.UltimosConflitos);
+        Assert.Equal(id, conflito.SenhaId);
+        Assert.Equal(TipoConflitoSincronizacao.IntegridadeViolada, conflito.Tipo);
     }
 
     private async Task<long> ContarLinhas(string sql)
