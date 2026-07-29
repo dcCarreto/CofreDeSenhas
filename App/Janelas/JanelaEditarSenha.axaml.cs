@@ -62,6 +62,8 @@ namespace CofreDeSenhas.Janelas
                 Idioma.Alterado -= Idioma_Alterado;
             };
             AtualizarPreviewTotp();
+
+            Opened += (s, e) => TxtNomeServico.Focus();
         }
 
         private string TotpAtualPlain()

@@ -18,6 +18,8 @@ namespace CofreDeSenhas.Janelas
             MontarLinhas();
 
             this.FecharComEsc();
+
+            Opened += (s, e) => BtnFechar.Focus();
         }
 
         private void MontarLinhas()

@@ -42,4 +42,79 @@ jobs:
         run: dotnet build CofreDeSenhas.sln -c Release --no-restore ${{ matrix.framework_arg }}
 
       - name: Executar testes
-        run: dotnet test CofreDeSenhas.sln -c Release --no-build --verbosity normal ${{ matrix.framework_arg }}
+        # IntegracaoBanco fica de fora aqui (roda só no job testar-bancos, contra os
+        # containers de Postgres/MySQL/SQL Server) — sem eles, essa categoria falharia
+        # por não achar nenhum motor real escutando em localhost.
+        run: dotnet test CofreDeSenhas.sln -c Release --no-build --verbosity normal --filter "Category!=IntegracaoBanco" ${{ matrix.framework_arg }}
+
+  testar-bancos:
+    name: Testar integração com Postgres/MySQL/SQL Server
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: cofretest
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: cofretest
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+      mssql:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: "Y"
+          MSSQL_SA_PASSWORD: "CofreDeSenhas!Teste123"
+        ports:
+          - 1433:1433
+        options: >-
+          --health-cmd "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P 'CofreDeSenhas!Teste123' -Q 'SELECT 1'"
+          --health-interval 10s
+          --health-timeout 10s
+          --health-retries 10
+          --health-start-period 30s
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: Configurar .NET
+        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restaurar dependências
+        run: dotnet restore GerenciadorDeSenhas.Testes/GerenciadorDeSenhas.Testes.csproj
+
+      - name: Rodar testes de integração de banco
+        # Alguns retries: mesmo com --health-cmd configurado nos três containers, a
+        # primeira tentativa de login pode ainda pegar o banco terminando de
+        # inicializar (principalmente o SQL Server, cujo healthcheck depende do
+        # caminho do sqlcmd dentro da imagem, mais frágil que os outros dois).
+        run: |
+          for tentativa in 1 2 3; do
+            if dotnet test GerenciadorDeSenhas.Testes/GerenciadorDeSenhas.Testes.csproj -c Release --filter "Category=IntegracaoBanco" --verbosity normal; then
+              exit 0
+            fi
+            echo "Tentativa $tentativa falhou, aguardando os bancos terminarem de inicializar..."
+            sleep 15
+          done
+          exit 1

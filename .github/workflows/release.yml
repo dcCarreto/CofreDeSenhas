@@ -82,7 +82,9 @@ jobs:
         run: dotnet build CofreDeSenhas.sln -c Release --no-restore --framework net10.0
 
       - name: Executar testes
-        run: dotnet test CofreDeSenhas.sln -c Release --no-build --verbosity normal --framework net10.0
+        # IntegracaoBanco fica de fora do gate de release: precisa dos containers de
+        # Postgres/MySQL/SQL Server que só existem no job testar-bancos do ci.yml.
+        run: dotnet test CofreDeSenhas.sln -c Release --no-build --verbosity normal --filter "Category!=IntegracaoBanco" --framework net10.0
 
   build-windows:
     name: Gerar artefatos do Windows

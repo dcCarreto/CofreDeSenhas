@@ -128,32 +128,32 @@ namespace GerenciadorDeSenhas.Servicos
 
         public async Task<IReadOnlySet<long>> GarantirColunasAsync(ConexaoBanco cfg)
         {
-            await GarantirColunaAsync(cfg, ColunaDescricao);
-            await GarantirColunaAsync(cfg, ColunaTotp);
-            await GarantirColunaAsync(cfg, ColunaEtiquetas);
-            await GarantirColunaAsync(cfg, ColunaDataExclusao);
-            await GarantirColunaAsync(cfg, ColunaCodigosRecuperacao);
-            await GarantirColunaAsync(cfg, ColunaDataCriacao);
-            await GarantirColunaAsync(cfg, ColunaDataAtualizacao);
-            await GarantirColunaAsync(cfg, ColunaDataUltimaCopiaSenha);
-            await GarantirColunaAsync(cfg, ColunaDataUltimaCopiaUsuario);
-            await GarantirColunaAsync(cfg, ColunaDataUltimaCopiaTotp);
-            await GarantirColunaAsync(cfg, ColunaUrl);
-            await GarantirColunaAsync(cfg, ColunaCategoria);
-            await GarantirColunaAsync(cfg, ColunaTipo);
-            await GarantirColunaAsync(cfg, ColunaCamposExtras);
-            await GarantirColunaAsync(cfg, ColunaHistorico);
-            await GarantirColunaAsync(cfg, ColunaFavorito);
-            await GarantirColunaAsync(cfg, ColunaFixado);
-            await GarantirColunaAsync(cfg, ColunaGuidId);
-
-            return await PreencherGuidsFaltantesAsync(cfg);
-        }
-
-        private async Task<IReadOnlySet<long>> PreencherGuidsFaltantesAsync(ConexaoBanco cfg)
-        {
             await using var con = await AbrirConexaoAsync(cfg);
 
+            await GarantirColunaAsync(con, cfg.Tipo, ColunaDescricao);
+            await GarantirColunaAsync(con, cfg.Tipo, ColunaTotp);
+            await GarantirColunaAsync(con, cfg.Tipo, ColunaEtiquetas);
+            await GarantirColunaAsync(con, cfg.Tipo, ColunaDataExclusao);
+            await GarantirColunaAsync(con, cfg.Tipo, ColunaCodigosRecuperacao);
+            await GarantirColunaAsync(con, cfg.Tipo, ColunaDataCriacao);
+            await GarantirColunaAsync(con, cfg.Tipo, ColunaDataAtualizacao);
+            await GarantirColunaAsync(con, cfg.Tipo, ColunaDataUltimaCopiaSenha);
+            await GarantirColunaAsync(con, cfg.Tipo, ColunaDataUltimaCopiaUsuario);
+            await GarantirColunaAsync(con, cfg.Tipo, ColunaDataUltimaCopiaTotp);
+            await GarantirColunaAsync(con, cfg.Tipo, ColunaUrl);
+            await GarantirColunaAsync(con, cfg.Tipo, ColunaCategoria);
+            await GarantirColunaAsync(con, cfg.Tipo, ColunaTipo);
+            await GarantirColunaAsync(con, cfg.Tipo, ColunaCamposExtras);
+            await GarantirColunaAsync(con, cfg.Tipo, ColunaHistorico);
+            await GarantirColunaAsync(con, cfg.Tipo, ColunaFavorito);
+            await GarantirColunaAsync(con, cfg.Tipo, ColunaFixado);
+            await GarantirColunaAsync(con, cfg.Tipo, ColunaGuidId);
+
+            return await PreencherGuidsFaltantesAsync(con);
+        }
+
+        private async Task<IReadOnlySet<long>> PreencherGuidsFaltantesAsync(DbConnection con)
+        {
             var pendentes = new List<long>();
             await using (var busca = con.CreateCommand())
             {
@@ -184,28 +184,36 @@ namespace GerenciadorDeSenhas.Servicos
             return pendentes.ToHashSet();
         }
 
-        private async Task GarantirColunaAsync(ConexaoBanco cfg, string coluna)
+        private async Task GarantirColunaAsync(DbConnection con, TipoBanco tipo, string coluna)
         {
-            await using var con = await AbrirConexaoAsync(cfg);
-
-            await using (var verifica = con.CreateCommand())
-            {
-                verifica.CommandText = ConsultaColunaExiste(cfg.Tipo, coluna);
-                var resultado = await verifica.ExecuteScalarAsync();
-                if (resultado != null && resultado != DBNull.Value && Convert.ToInt64(resultado) > 0)
-                    return;
-            }
+            if (await ColunaExisteAsync(con, tipo, coluna))
+                return;
 
             await using var alterar = con.CreateCommand();
-            alterar.CommandText = DdlAdicionarColuna(cfg.Tipo, coluna);
+            alterar.CommandText = DdlAdicionarColuna(tipo, coluna);
             try
             {
                 await alterar.ExecuteNonQueryAsync();
             }
             catch (Exception ex)
             {
+                // Outro cliente pode ter adicionado a mesma coluna entre a checagem
+                // acima e este ALTER TABLE (dois clientes inicializando o schema ao
+                // mesmo tempo); se a coluna já existe agora, o resultado é o mesmo
+                // que se este ALTER tivesse funcionado — não é um erro de verdade.
+                if (await ColunaExisteAsync(con, tipo, coluna))
+                    return;
+
                 throw new ErroLocalizavel("Db.Error.SchemaFailed", ex);
             }
+        }
+
+        private static async Task<bool> ColunaExisteAsync(DbConnection con, TipoBanco tipo, string coluna)
+        {
+            await using var verifica = con.CreateCommand();
+            verifica.CommandText = ConsultaColunaExiste(tipo, coluna);
+            var resultado = await verifica.ExecuteScalarAsync();
+            return resultado != null && resultado != DBNull.Value && Convert.ToInt64(resultado) > 0;
         }
 
         public static string ConsultaUltimoId(TipoBanco tipo) => tipo switch

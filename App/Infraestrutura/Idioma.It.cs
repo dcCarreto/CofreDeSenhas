@@ -402,6 +402,7 @@ namespace CofreDeSenhas
             ("Message.CsvDuplicates", "{0} erano già presenti nella cassaforte."),
             ("Message.CsvSecurity", "Per sicurezza, elimina il file CSV - conserva le password in testo semplice."),
             ("Import.Progress", "Importazione di {0} di {1}…"),
+            ("Export.Progress", "Esportazione di {0} di {1}…"),
             ("Row.FavoriteRemove", "Rimuovi dai preferiti"), ("Row.FavoriteAdd", "Aggiungi ai preferiti"),
             ("Row.PinEntry", "Fissa in alto"), ("Row.UnpinEntry", "Rimuovi fissaggio"),
             ("Row.CopyUser", "Copia utente"), ("Row.EditService", "Modifica servizio"),

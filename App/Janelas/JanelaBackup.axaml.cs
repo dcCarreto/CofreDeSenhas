@@ -45,6 +45,8 @@ namespace CofreDeSenhas.Janelas
             AtualizarListaBackups(permiteRestaurar);
 
             this.FecharComEsc();
+
+            Opened += (s, e) => CmbFrequencia.Focus();
         }
 
         private void MontarFrequencia()

@@ -31,6 +31,8 @@ namespace CofreDeSenhas.Janelas
             AtualizarConteudo();
 
             this.FecharComEsc();
+
+            Opened += (s, e) => BtnFechar.Focus();
         }
 
         private void AtualizarConteudo()

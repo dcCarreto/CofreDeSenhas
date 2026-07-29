@@ -931,7 +931,7 @@
               </DockPanel>
             </Border>
 
-            <Border Name="PainelProgressoImportacao"
+            <Border Name="PainelProgresso"
                     Grid.ColumnSpan="2"
                     Width="360"
                     HorizontalAlignment="Center"
@@ -944,12 +944,12 @@
                     Padding="24"
                     IsVisible="False">
               <StackPanel Spacing="12">
-                <TextBlock Name="LblProgressoImportacao"
+                <TextBlock Name="LblProgresso"
                            FontSize="14"
                            Foreground="{DynamicResource TextPrimary}"
                            HorizontalAlignment="Center"
                            AutomationProperties.LiveSetting="Polite" />
-                <ProgressBar Name="BarraProgressoImportacao"
+                <ProgressBar Name="BarraProgresso"
                              Minimum="0" Maximum="100" Value="0"
                              Height="8" />
               </StackPanel>

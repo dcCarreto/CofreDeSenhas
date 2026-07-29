@@ -22,6 +22,12 @@ namespace CofreDeSenhas.Janelas
             MontarGrade();
 
             this.FecharComEsc();
+
+            Opened += (s, e) =>
+            {
+                if (Grade.Children.Count > 0)
+                    Grade.Children[0].Focus();
+            };
         }
 
         private void MontarGrade()

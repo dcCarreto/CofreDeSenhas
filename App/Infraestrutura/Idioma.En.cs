@@ -455,6 +455,7 @@ namespace CofreDeSenhas
             ("Message.CsvDuplicates", "{0} already existed in the vault."),
             ("Message.CsvSecurity", "For security, delete the CSV file - it stores passwords in plain text."),
             ("Import.Progress", "Importing {0} of {1}…"),
+            ("Export.Progress", "Exporting {0} of {1}…"),
             ("Row.FavoriteRemove", "Remove from favorites"),
             ("Row.FavoriteAdd", "Add to favorites"),
             ("Row.PinEntry", "Pin to top"),

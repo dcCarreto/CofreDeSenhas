@@ -2396,33 +2396,49 @@ namespace CofreDeSenhas.Janelas
                 if (arquivo == null)
                     return;
 
-                var itens = new List<SenhaExportada>();
-                foreach (var s in senhas)
+                Scrim.Mostrar(this);
+                MostrarProgresso("Export.Progress");
+                List<SenhaExportada> itens;
+                try
                 {
-                    var plain = ObterSenhaPlain(s);
-                    if (plain == null) continue;
-                    itens.Add(new SenhaExportada
+                    itens = new List<SenhaExportada>();
+                    for (int i = 0; i < senhas.Count; i++)
                     {
-                        NomeServico = s.NomeServico,
-                        Usuario = s.Usuario,
-                        Senha = plain,
-                        Url = s.Url,
-                        Categoria = s.Categoria,
-                        Etiquetas = s.Etiquetas.ToList(),
-                        Notas = s.Notas,
-                        Tipo = s.Tipo,
-                        CamposExtras = ObterCamposExtrasPlain(s),
-                        TotpSegredo = ObterTotpPlain(s),
-                        Historico = ObterHistoricoPlain(s),
-                        CodigosRecuperacao = ObterCodigosRecuperacaoPlain(s),
-                        Anexos = await ObterAnexosExportadosAsync(s),
-                        Favorito = s.Favorito,
-                        DataCriacao = s.DataCriacao,
-                        DataAtualizacao = s.DataAtualizacao
-                    });
-                }
+                        var s = senhas[i];
+                        var plain = ObterSenhaPlain(s);
+                        if (plain != null)
+                        {
+                            itens.Add(new SenhaExportada
+                            {
+                                NomeServico = s.NomeServico,
+                                Usuario = s.Usuario,
+                                Senha = plain,
+                                Url = s.Url,
+                                Categoria = s.Categoria,
+                                Etiquetas = s.Etiquetas.ToList(),
+                                Notas = s.Notas,
+                                Tipo = s.Tipo,
+                                CamposExtras = ObterCamposExtrasPlain(s),
+                                TotpSegredo = ObterTotpPlain(s),
+                                Historico = ObterHistoricoPlain(s),
+                                CodigosRecuperacao = ObterCodigosRecuperacaoPlain(s),
+                                Anexos = await ObterAnexosExportadosAsync(s),
+                                Favorito = s.Favorito,
+                                DataCriacao = s.DataCriacao,
+                                DataAtualizacao = s.DataAtualizacao
+                            });
+                        }
 
-                await _servicoExportacao.ExportarAsync(arquivo.Path.LocalPath, itens, dlg.SenhaInformada);
+                        AtualizarProgresso("Export.Progress", i + 1, senhas.Count);
+                    }
+
+                    await _servicoExportacao.ExportarAsync(arquivo.Path.LocalPath, itens, dlg.SenhaInformada);
+                }
+                finally
+                {
+                    EsconderProgresso();
+                    Scrim.Ocultar(this);
+                }
 
                 await CaixaMensagem.MostrarAsync(this,
                     Idioma.Formatar("Message.ExportSuccess", itens.Count),
@@ -2557,7 +2573,7 @@ namespace CofreDeSenhas.Janelas
             }
         }
 
-        private async Task<(int adicionadas, int invalidas, int duplicadas)> AplicarImportacaoAsync(
+        internal async Task<(int adicionadas, int invalidas, int duplicadas)> AplicarImportacaoAsync(
             List<SenhaExportada> itens, Action<int, int>? aoProgredir = null)
         {
             var existentes = await _servicoSenha.ListarTodosAsync();
@@ -2580,18 +2596,31 @@ namespace CofreDeSenhas.Janelas
                 }
                 else
                 {
-                    var totp = _totp.SegredoValido(item.TotpSegredo) ? item.TotpSegredo : null;
-                    var nova = await _servicoSenha.CriarSenhaAsync(
-                        item.NomeServico, item.Usuario, item.Senha, item.Categoria, item.Url, item.Notas, totp, item.Etiquetas,
-                        item.Tipo, item.CamposExtras);
-                    if (item.Favorito)
-                        await _servicoSenha.MarcarComoFavoritoAsync(nova.Id);
-                    RestaurarHistorico(nova, item.Historico);
-                    if (item.CodigosRecuperacao is { Count: > 0 })
-                        await _servicoSenha.AdicionarCodigosRecuperacaoAsync(nova.Id,
-                            item.CodigosRecuperacao.Select(c => (c.Codigo, c.Usado)));
-                    await RestaurarAnexosAsync(nova, item.Anexos);
-                    adicionadas++;
+                    Senha? nova = null;
+                    try
+                    {
+                        var totp = _totp.SegredoValido(item.TotpSegredo) ? item.TotpSegredo : null;
+                        nova = await _servicoSenha.CriarSenhaAsync(
+                            item.NomeServico, item.Usuario, item.Senha, item.Categoria, item.Url, item.Notas, totp, item.Etiquetas,
+                            item.Tipo, item.CamposExtras);
+                    }
+                    catch (ErroLocalizavel)
+                    {
+                        chaves.Remove(item.NomeServico + " " + item.Usuario);
+                        invalidas++;
+                    }
+
+                    if (nova != null)
+                    {
+                        if (item.Favorito)
+                            await _servicoSenha.MarcarComoFavoritoAsync(nova.Id);
+                        RestaurarHistorico(nova, item.Historico);
+                        if (item.CodigosRecuperacao is { Count: > 0 })
+                            await _servicoSenha.AdicionarCodigosRecuperacaoAsync(nova.Id,
+                                item.CodigosRecuperacao.Select(c => (c.Codigo, c.Usado)));
+                        await RestaurarAnexosAsync(nova, item.Anexos);
+                        adicionadas++;
+                    }
                 }
 
                 processadas++;
@@ -2604,35 +2633,35 @@ namespace CofreDeSenhas.Janelas
             return (adicionadas, invalidas, duplicadas);
         }
 
-        private void MostrarProgressoImportacao()
+        private void MostrarProgresso(string chaveMensagem)
         {
-            BarraProgressoImportacao.Value = 0;
-            LblProgressoImportacao.Text = Idioma.Formatar("Import.Progress", 0, 0);
-            PainelProgressoImportacao.IsVisible = true;
+            BarraProgresso.Value = 0;
+            LblProgresso.Text = Idioma.Formatar(chaveMensagem, 0, 0);
+            PainelProgresso.IsVisible = true;
         }
 
-        private void AtualizarProgressoImportacao(int processadas, int total)
+        private void AtualizarProgresso(string chaveMensagem, int processadas, int total)
         {
             Dispatcher.UIThread.Post(() =>
             {
-                BarraProgressoImportacao.Value = total == 0 ? 0 : processadas * 100.0 / total;
-                LblProgressoImportacao.Text = Idioma.Formatar("Import.Progress", processadas, total);
+                BarraProgresso.Value = total == 0 ? 0 : processadas * 100.0 / total;
+                LblProgresso.Text = Idioma.Formatar(chaveMensagem, processadas, total);
             });
         }
 
-        private void EsconderProgressoImportacao() => PainelProgressoImportacao.IsVisible = false;
+        private void EsconderProgresso() => PainelProgresso.IsVisible = false;
 
         private async Task<(int adicionadas, int invalidas, int duplicadas)> ImportarComProgressoAsync(List<SenhaExportada> itens)
         {
             Scrim.Mostrar(this);
-            MostrarProgressoImportacao();
+            MostrarProgresso("Import.Progress");
             try
             {
-                return await AplicarImportacaoAsync(itens, AtualizarProgressoImportacao);
+                return await AplicarImportacaoAsync(itens, (processadas, total) => AtualizarProgresso("Import.Progress", processadas, total));
             }
             finally
             {
-                EsconderProgressoImportacao();
+                EsconderProgresso();
                 Scrim.Ocultar(this);
             }
         }

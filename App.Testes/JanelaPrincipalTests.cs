@@ -198,5 +198,72 @@ namespace App.Testes
                 Preferencias.FrequenciaBackup = frequenciaOriginal;
             }
         }
+
+        [AvaloniaFact]
+        public async Task AplicarImportacaoAsync_ComCampoMuitoLongo_ContaComoInvalidaSemAbortarOResto()
+        {
+            var (servico, chave) = CriarServico();
+            var janela = new JanelaPrincipal(servico, chave);
+            janela.Show();
+            await TesteUtil.AguardarAsync(() => false, tentativas: 5);
+
+            var itens = new List<SenhaExportada>
+            {
+                new()
+                {
+                    NomeServico = new string('a', 200),
+                    Usuario = "usuario.invalido",
+                    Senha = "SenhaForte123!",
+                    Categoria = Categoria.Personal
+                },
+                new()
+                {
+                    NomeServico = "Servico Valido",
+                    Usuario = "usuario.valido",
+                    Senha = "SenhaForte456!",
+                    Categoria = Categoria.Personal
+                }
+            };
+
+            var (adicionadas, invalidas, duplicadas) = await janela.AplicarImportacaoAsync(itens);
+
+            Assert.Equal(1, adicionadas);
+            Assert.Equal(1, invalidas);
+            Assert.Equal(0, duplicadas);
+
+            var todas = await servico.ListarTodosAsync();
+            var unica = Assert.Single(todas);
+            Assert.Equal("Servico Valido", unica.NomeServico);
+        }
+
+        [AvaloniaFact]
+        public async Task NavegarParaLixeira_MostraItemExcluidoEPermiteRestaurar()
+        {
+            var (servico, chave) = CriarServico();
+            var criada = await servico.CriarSenhaAsync("Servico Excluido", "usuario.excluido", "SenhaForte123!", Categoria.Personal);
+            await servico.RemoverSenhaAsync(criada.Id);
+            await servico.PersistirAsync();
+
+            var janela = new JanelaPrincipal(servico, chave);
+            janela.Show();
+            await TesteUtil.AguardarAsync(() => false, tentativas: 5);
+
+            janela.Encontrar<Button>("BtnNavLixeira").RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+
+            await TesteUtil.AguardarAsync(() =>
+                janela.GetVisualDescendants().OfType<TextBlock>().Any(t => t.Text == "Servico Excluido"));
+
+            var botaoRestaurar = janela.BotaoPorTexto(Idioma.Texto("Trash.Restore"));
+            botaoRestaurar.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+
+            List<Senha> ativos = new();
+            await TesteUtil.AguardarAsync(() =>
+            {
+                ativos = servico.ListarTodosAsync().GetAwaiter().GetResult();
+                return ativos.Any(s => s.Id == criada.Id);
+            });
+
+            Assert.Contains(ativos, s => s.Id == criada.Id);
+        }
     }
 }

@@ -34,7 +34,8 @@
                      AutomationProperties.HeadingLevel="1"
                      Margin="24,0,60,0"
                      TextTrimming="CharacterEllipsis" />
-          <Button Classes="fechar-dialogo"
+          <Button Name="BtnFechar"
+                  Classes="fechar-dialogo"
                   AutomationProperties.Name="{DynamicResource Access.Close}"
                   HorizontalAlignment="Right" VerticalAlignment="Center"
                   Margin="0,0,14,0"

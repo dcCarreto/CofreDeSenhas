@@ -33,7 +33,7 @@ namespace CofreDeSenhas
 
     internal sealed class ServicoDesbloqueioBiometrico
     {
-        private const int VersaoAtual = 2;
+        internal const int VersaoAtual = 2;
         private const string NomeCredencial = "CofreDeSenhas.WindowsHello";
         private const int TamanhoDesafio = 32;
         private const int TamanhoNonce = 12;
@@ -232,7 +232,7 @@ namespace CofreDeSenhas
             }
         }
 
-        private static bool RegistroValido(RegistroBiometrico? registro) =>
+        internal static bool RegistroValido(RegistroBiometrico? registro) =>
             registro is { Versao: VersaoAtual } &&
             !string.IsNullOrWhiteSpace(registro.Credencial) &&
             !string.IsNullOrWhiteSpace(registro.Desafio) &&
@@ -240,8 +240,11 @@ namespace CofreDeSenhas
             !string.IsNullOrWhiteSpace(registro.Tag) &&
             !string.IsNullOrWhiteSpace(registro.ChaveCifrada);
 
-#if WINDOWS
-        private static RegistroBiometrico EnvelopeChave(byte[] chaveMestra, byte[] desafio, byte[] assinatura)
+        // Envelope/versionamento puros (sem dependência de WinRT/hardware): ficam fora do
+        // #if WINDOWS de propósito, pra dar pra testar em qualquer SO sem chave de
+        // segurança física — só quem assina o desafio (AssinarAsync, abaixo) depende
+        // de verdade da API do Windows Hello.
+        internal static RegistroBiometrico EnvelopeChave(byte[] chaveMestra, byte[] desafio, byte[] assinatura)
         {
             var chaveEnvelope = DerivarChaveEnvelope(assinatura);
             CryptographicOperations.ZeroMemory(assinatura);
@@ -272,7 +275,7 @@ namespace CofreDeSenhas
             };
         }
 
-        private static byte[]? AbrirEnvelope(RegistroBiometrico registro, byte[] assinatura)
+        internal static byte[]? AbrirEnvelope(RegistroBiometrico registro, byte[] assinatura)
         {
             var chaveEnvelope = DerivarChaveEnvelope(assinatura);
             CryptographicOperations.ZeroMemory(assinatura);
@@ -301,6 +304,7 @@ namespace CofreDeSenhas
 
         private static byte[] DerivarChaveEnvelope(byte[] assinatura) => SHA256.HashData(assinatura);
 
+#if WINDOWS
         private static async Task<(KeyCredentialStatus Status, byte[]? Assinatura)> AssinarAsync(
             KeyCredential credencial, byte[] desafio)
         {
@@ -336,7 +340,7 @@ namespace CofreDeSenhas
         private static Task ExcluirCredencialAsync() => Task.CompletedTask;
 #endif
 
-        private sealed class RegistroBiometrico
+        internal sealed class RegistroBiometrico
         {
             public int Versao { get; set; }
             public string? Credencial { get; set; }
