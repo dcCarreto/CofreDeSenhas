@@ -110,6 +110,17 @@ namespace GerenciadorDeSenhas.Repositorios
                 PreencherCampos(cmd, senha);
                 id = Convert.ToInt64(await cmd.ExecuteScalarAsync());
             }
+            else if (_cfg.Tipo == TipoBanco.SqlServer)
+            {
+                // OUTPUT INSERTED.id em vez de SCOPE_IDENTITY() numa consulta separada: o id
+                // sai atômico do próprio INSERT, sem depender de estado de sessão — SCOPE_
+                // IDENTITY() chegou a devolver DBNull sob concorrência real (connection
+                // pooling do driver), mesmo com o INSERT e a consulta na mesma conexão.
+                await using var cmd = con.CreateCommand();
+                cmd.CommandText = $"INSERT INTO {_tabela} ({ColunasInsert}) OUTPUT INSERTED.id VALUES ({ParametrosInsert})";
+                PreencherCampos(cmd, senha);
+                id = Convert.ToInt64(await cmd.ExecuteScalarAsync());
+            }
             else
             {
                 await using (var cmd = con.CreateCommand())

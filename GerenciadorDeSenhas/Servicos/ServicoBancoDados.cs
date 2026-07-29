@@ -218,11 +218,13 @@ namespace GerenciadorDeSenhas.Servicos
             return resultado != null && resultado != DBNull.Value && Convert.ToInt64(resultado) > 0;
         }
 
+        // SqlServer não usa esta consulta: AdicionarAsync lê o id via OUTPUT INSERTED.id,
+        // atômico com o próprio INSERT — SCOPE_IDENTITY() numa consulta separada chegou a
+        // devolver DBNull sob concorrência real.
         public static string ConsultaUltimoId(TipoBanco tipo) => tipo switch
         {
             TipoBanco.SQLite => "SELECT last_insert_rowid()",
             TipoBanco.MySQL => "SELECT LAST_INSERT_ID()",
-            TipoBanco.SqlServer => "SELECT CAST(SCOPE_IDENTITY() AS INT)",
             _ => throw new NotSupportedException($"Sem consulta de último id para {tipo}")
         };
 
