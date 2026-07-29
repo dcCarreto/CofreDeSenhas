@@ -81,7 +81,10 @@ jobs:
         # App.Testes é multi-target (inclui net10.0-windows... para o código exclusivo do
         # Windows Hello); este job roda em ubuntu-latest, então fica restrito à TFM sem
         # sufixo de SO — o binário -windows nunca deve ser carregado fora do Windows.
-        run: dotnet build CofreDeSenhas.sln -c Release --no-restore --framework net10.0
+        # -m:1 desliga o paralelismo de projetos do MSBuild — em runner Linux real, dois nós
+        # de build podem escrever GerenciadorDeSenhas.deps.json ao mesmo tempo (referenciado
+        # por vários projetos da solução) e o GenerateDepsFile falha com arquivo em uso.
+        run: dotnet build CofreDeSenhas.sln -c Release --no-restore -m:1 --framework net10.0
 
       - name: Executar testes
         # IntegracaoBanco fica de fora do gate de release: precisa dos containers de

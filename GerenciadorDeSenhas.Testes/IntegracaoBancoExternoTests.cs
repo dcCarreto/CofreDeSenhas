@@ -5,11 +5,20 @@ using Xunit;
 
 namespace GerenciadorDeSenhas.Testes;
 
+[CollectionDefinition("IntegracaoBanco", DisableParallelization = true)]
+public class ColecaoIntegracaoBanco { }
+
 // Roda contra Postgres/MySQL/SQL Server de verdade, não SQLite — por isso exige os
 // service containers do job "testar-bancos" em .github/workflows/ci.yml (localhost,
 // credenciais fixas de teste, sem segredo real nenhum aqui). Fora desse job, o filtro
 // --filter "Category!=IntegracaoBanco" nos outros jobs mantém esta classe de fora,
 // já que os motores não vão estar disponíveis em localhost ali.
+//
+// Todos os métodos usam a mesma tabela física (ServicoBancoDados.NomeTabela) sem
+// nenhum isolamento entre si — [Collection] com DisableParallelization força esses
+// testes a rodar em sequência; sem isso, um teste dropando/recriando a tabela no meio
+// do INSERT+SCOPE_IDENTITY() de outro corrompia a leitura do id no SQL Server.
+[Collection("IntegracaoBanco")]
 [Trait("Category", "IntegracaoBanco")]
 public class IntegracaoBancoExternoTests
 {

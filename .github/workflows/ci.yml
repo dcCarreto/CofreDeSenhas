@@ -41,7 +41,12 @@ jobs:
         run: dotnet restore CofreDeSenhas.sln
 
       - name: Compilar
-        run: dotnet build CofreDeSenhas.sln -c Release --no-restore ${{ matrix.framework_arg }}
+        # -m:1 desliga o paralelismo de projetos do MSBuild: GerenciadorDeSenhas.csproj é
+        # referenciado por vários projetos da solução, e build em paralelo pode fazer dois
+        # nós do MSBuild escreverem GerenciadorDeSenhas.deps.json ao mesmo tempo — só deu
+        # pra reproduzir em runner Linux real (GenerateDepsFile falhando com IOException de
+        # arquivo em uso); Windows tolera a mesma corrida.
+        run: dotnet build CofreDeSenhas.sln -c Release --no-restore -m:1 ${{ matrix.framework_arg }}
 
       - name: Executar testes
         # IntegracaoBanco fica de fora aqui (roda só no job testar-bancos, contra os
