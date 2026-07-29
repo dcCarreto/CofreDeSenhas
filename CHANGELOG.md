@@ -6,6 +6,82 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+## [2.2.0] - 2026-07-29
+
+Leva adiante uma auditoria de código completa: bugs críticos, altos, médios
+e baixos corrigidos, lacunas fechadas e um conjunto de ideias futuras do
+roadmap implementadas — com peso forte em segurança, principalmente na
+sincronização com banco de dados externo.
+
+### Segurança
+- Troca de senha mestra agora recifra o cofre inteiro: campos extras,
+  códigos de recuperação e anexos, que antes ficavam cifrados com a chave
+  antiga depois de trocar a senha mestra.
+- Troca de senha mestra e salvamento local passam a gravar de forma
+  atômica (arquivo temporário + substituição), eliminando o risco de
+  arquivo corrompido por uma queda de energia no meio da escrita; se isso
+  acontecer mesmo assim, o cofre se recupera sozinho no próximo login.
+- Duas credenciais com o mesmo domínio e usuário não se sobrescrevem mais
+  ao sincronizar com um banco de dados externo compartilhado por vários
+  dispositivos.
+- Modo privacidade (Ctrl+H) não permite mais reabrir o painel de detalhes
+  com a senha em texto claro enquanto está ativo; também parou de vazar o
+  serviço, o usuário e as etiquetas reais por leitor de tela e tooltip.
+- Nova opção "Exigir certificado válido do servidor" na tela de conexão a
+  banco de dados (desligada por padrão, para não quebrar bancos locais com
+  certificado autoassinado); quando desligada, fica sinalizada no
+  relatório de segurança do cofre.
+- HMAC de integridade para os dados vindos de um banco de dados externo:
+  uma linha adulterada por alguém com acesso de escrita direto ao banco
+  (sem a chave mestra) é detectada e rejeitada na sincronização, em vez de
+  aceita como "mais recente".
+- Argon2id (o mesmo usado no cofre local) passou a ser usado também na
+  exportação `.gsenhas` e na sincronização por pasta compartilhada, que
+  antes ainda usavam PBKDF2-SHA256; arquivos já existentes continuam
+  sendo lidos normalmente.
+- Aviso ao salvar o QR code de backup da senha mestra dentro de uma pasta
+  sincronizada com a nuvem (OneDrive, Dropbox, Google Drive, iCloud
+  Drive) — o QR code contém a senha mestra em forma reconstruível.
+- Cadeia de build: pacotes NuGet verificados contra vulnerabilidades
+  conhecidas a cada push; SBOM (Software Bill of Materials) publicado em
+  cada release; Dependabot mantendo as GitHub Actions fixadas por hash
+  atualizadas automaticamente.
+
+### Adicionado
+- Ações em lote na lista de credenciais: selecionar várias (Ctrl+clique)
+  para favoritar, adicionar uma etiqueta ou mover para a lixeira de uma
+  vez só.
+- Log de conflitos de sincronização: mostra o que foi atualizado por
+  outro dispositivo ou rejeitado por falha de integridade na última
+  sincronização com o banco.
+- Tendência da pontuação de segurança do cofre ao longo do tempo, no
+  relatório de segurança.
+- Exportação seletiva: exportar só os itens filtrados na lista atual, em
+  vez do cofre inteiro sempre.
+- Etiquetas e histórico de senha passam a somar as mudanças dos dois
+  lados ao sincronizar (com banco de dados ou por pasta), em vez de o
+  lado mais recente substituir tudo.
+- Atualização em um clique passou a funcionar no Linux também (via
+  AppImage), não só no Windows.
+- Importação de CSV/JSON não aborta mais o lote inteiro por causa de um
+  campo inválido numa linha — conta só aquela linha como inválida e
+  segue com o resto.
+- Barra de progresso na exportação, como já existia na importação.
+- Foco inicial em vários diálogos que abriam sem nada selecionado por
+  teclado.
+
+### Corrigido
+- Mensagens de erro cruas de conexão a banco de dados e de sincronização
+  por pasta agora aparecem traduzidas, sem detalhe técnico exposto.
+- `GarantirColunasAsync` deixou de abrir uma conexão nova por coluna ao
+  inicializar o schema do banco (18 conexões viravam 1), e passou a
+  tolerar dois clientes inicializando o schema ao mesmo tempo.
+- Remover um anexo que falha agora mostra um erro amigável em vez de
+  travar a tela silenciosamente.
+- `release.yml` só publica depois de build e testes passarem, com
+  verificação de versão e de seção do `CHANGELOG.md` falhando rápido
+  antes de gastar os builds do Windows e do Linux.
+
 ## [2.1.1] - 2026-07-23
 
 Sem mudança de funcionalidade para quem usa o cofre — esta versão existe pra
@@ -443,7 +519,8 @@ gerenciador de senhas seguro e completo.
 - PBKDF2-SHA256 (100k iterações) para a senha mestra; verificador one-way em `auth.dat`.
 - Comparações em tempo constante; arquivos sensíveis isolados em `%APPDATA%`.
 
-[Não lançado]: https://github.com/dcCarreto/CofreDeSenhas/compare/v2.1.1...HEAD
+[Não lançado]: https://github.com/dcCarreto/CofreDeSenhas/compare/v2.2.0...HEAD
+[2.2.0]: https://github.com/dcCarreto/CofreDeSenhas/compare/v2.1.1...v2.2.0
 [2.1.1]: https://github.com/dcCarreto/CofreDeSenhas/compare/v2.1.0...v2.1.1
 [2.1.0]: https://github.com/dcCarreto/CofreDeSenhas/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/dcCarreto/CofreDeSenhas/compare/v1.0.0...v2.0.0

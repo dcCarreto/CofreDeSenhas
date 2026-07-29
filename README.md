@@ -11,7 +11,7 @@ plataformas.
 ![Licença](https://img.shields.io/badge/licen%C3%A7a-MIT-blue)
 ![Plataforma](https://img.shields.io/badge/plataforma-Windows%2010%2F11%20%7C%20Linux-0078D6)
 ![.NET](https://img.shields.io/badge/.NET-10-512BD4)
-![Versão](https://img.shields.io/badge/vers%C3%A3o-2.1.1-success)
+![Versão](https://img.shields.io/badge/vers%C3%A3o-2.2.0-success)
 
 Este é um projeto de código aberto e software livre, distribuído sob a licença
 MIT. Você pode usá-lo, estudá-lo, modificá-lo e compartilhá-lo livremente.
