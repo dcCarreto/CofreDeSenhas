@@ -147,10 +147,14 @@ caractere:
   excluir em definitivo ou esvaziar tudo de uma vez, sempre com confirmação
   antes de qualquer exclusão definitiva.
 - Indicador de força por senha armazenada.
+- Ações em lote: selecionar várias credenciais de uma vez (`Ctrl`+clique em
+  cada linha) libera uma barra com atalhos para favoritar, adicionar uma
+  etiqueta ou mover todas para a lixeira de uma só vez.
 - Relatório de segurança do cofre: pontuação geral (0 a 100) calculada a partir
   de senhas fracas, repetidas, antigas e comprometidas, além de contas sem
   autenticação em duas etapas, sem URL ou sem categoria. Cada linha do relatório
-  pode ser clicada para filtrar a lista principal por aquele problema. A
+  pode ser clicada para filtrar a lista principal por aquele problema, e um
+  pequeno gráfico mostra a tendência da pontuação nos últimos dias. A
   verificação de vazamento (Have I Been Pwned, por k-anonymity) é disparada pela
   própria tela e continua opcional; o restante é sempre calculado localmente.
 - Histórico de senhas por credencial: a cada troca, a senha anterior é guardada
@@ -216,14 +220,20 @@ cofre, tudo calculado localmente e sem enviar nada para fora:
   e confirmação antes de substituir o cofre atual. Os backups permanecem
   sempre cifrados.
 - Exportação e importação do cofre em um arquivo portável (`.gsenhas`), protegido
-  por uma senha de exportação independente da senha mestra.
+  por uma senha de exportação independente da senha mestra. Com um filtro
+  ativo na lista (busca, categoria, etiqueta ou favoritos), a tela de
+  exportação oferece exportar só os itens filtrados em vez do cofre inteiro.
 - Importação de arquivos CSV de outros gerenciadores (Bitwarden, LastPass,
   1Password, Chrome/Edge, Firefox, KeePass, Dashlane, NordPass e formatos
   genéricos), com detecção automática de delimitador e mapeamento das colunas
-  pelo cabeçalho, preservando segredos TOTP e favoritos.
+  pelo cabeçalho, preservando segredos TOTP e favoritos. Um campo inválido
+  numa linha conta só aquela linha como inválida, sem abortar o restante do
+  lote.
 - Geração opcional de um QR code de backup da senha mestra, oferecido na criação
   do cofre e a cada alteração da senha mestra. O QR code mostra uma versão em
   senha-frase da senha mestra, e não a senha original caractere a caractere.
+  Salvar o arquivo dentro de uma pasta sincronizada com a nuvem (OneDrive,
+  Dropbox, Google Drive, iCloud Drive) mostra um aviso extra antes de gravar.
 
 ### Sincronização entre dispositivos (pasta compartilhada)
 
@@ -233,12 +243,15 @@ cofre, tudo calculado localmente e sem enviar nada para fora:
   escreve um arquivo cifrado ali dentro, sem falar diretamente com nenhum
   provedor.
 - A chave de sincronização deriva da própria senha mestra (mesma senha em
-  todos os dispositivos), e os dados saem cifrados com AES-256-GCM antes de
-  qualquer gravação: o provedor de nuvem nunca vê texto puro.
+  todos os dispositivos), e os dados saem cifrados com AES-256-GCM (chave
+  derivada por Argon2id) antes de qualquer gravação: o provedor de nuvem
+  nunca vê texto puro.
 - Sincroniza ao desbloquear, em intervalo configurável (5 a 60 minutos) ou sob
-  demanda; sem pasta acessível, o cofre continua funcionando 100% local.
-  Conflitos usam a edição mais recente por credencial inteira, incluindo
-  exclusão e restauração da lixeira. Anexos ainda não sincronizam por essa via.
+  demanda; sem pasta acessível, o cofre continua funcionando 100% local. A
+  maioria dos campos usa a edição mais recente por credencial inteira,
+  incluindo exclusão e restauração da lixeira; etiquetas e histórico de senha
+  são exceção e somam as mudanças dos dois lados em vez de um substituir o
+  outro. Anexos ainda não sincronizam por essa via.
 - Pensada para sincronizar os seus próprios dispositivos sem manter um banco de
   dados — para compartilhar o cofre com outras pessoas de confiança ou
   hospedar você mesmo o armazenamento, use a conexão a banco de dados externo,
@@ -256,7 +269,9 @@ cofre, tudo calculado localmente e sem enviar nada para fora:
   credencial: em conflito, vale a edição mais recente — não mais "o cofre
   local sempre prevalece".
 - A partir daí os dois ficam espelhados: cada criação, edição ou exclusão é
-  gravada tanto no cofre local quanto no banco.
+  gravada tanto no cofre local quanto no banco. Como na sincronização por
+  pasta, etiquetas e histórico de senha somam as mudanças dos dois lados em
+  vez de a credencial inteira ser substituída.
 - Detecção da tabela `CofreDeSenhas`, com a opção de criá-la caso não exista, e
   migração leve que adiciona colunas novas a tabelas já existentes — incluindo,
   hoje, URL, categoria, tipo de credencial e campos extras, histórico de
@@ -264,7 +279,17 @@ cofre, tudo calculado localmente e sem enviar nada para fora:
   pela pasta cifrada.
 - A senha é sempre gravada de forma cifrada, nunca em texto puro; nome de
   serviço, usuário, notas e etiquetas ficam em texto puro nas colunas
-  correspondentes (ver [modelo de ameaça](THREAT_MODEL.md)).
+  correspondentes (ver [modelo de ameaça](THREAT_MODEL.md)). Cada credencial
+  também leva um HMAC de integridade: uma linha alterada diretamente no banco
+  por fora do aplicativo é detectada e rejeitada na próxima sincronização, em
+  vez de aceita como "mais recente".
+- Conexão sempre cifrada em trânsito (TLS); a opção "Exigir certificado válido
+  do servidor" na tela de conexão liga a validação contra uma autoridade
+  confiável (desligada por padrão, para não quebrar banco local com
+  certificado autoassinado).
+- Log de conflitos de sincronização: um indicador ao lado do status de conexão
+  (só aparece quando há algo a mostrar) lista o que foi atualizado por outro
+  dispositivo ou rejeitado por falha de integridade na última sincronização.
 - O último perfil de conexão é lembrado para agilizar reconexões; a senha do
   servidor de banco nunca é gravada em disco.
 
@@ -310,15 +335,18 @@ Windows Hello:
 - O item "Verificar atualizações" no menu de configurações (ligado por padrão)
   consulta a release mais recente do GitHub a cada abertura do cofre. Havendo
   versão nova, a barra inferior mostra um botão "Atualizar agora".
-- O botão baixa o instalador (ou o executável portátil, conforme como o cofre
-  está rodando), confere o hash SHA256 contra o `CHECKSUMS.txt` da própria
-  release e, só se bater, aplica a atualização sozinho: instala em modo
-  silencioso ou troca o executável portátil no lugar, fecha o cofre e reabre a
-  versão nova automaticamente — sem instalador para rodar na mão.
+- No Windows, o botão baixa o instalador (ou o executável portátil, conforme
+  como o cofre está rodando); no Linux, funciona rodando como **AppImage**
+  (baixa o `.AppImage` novo). Em ambos os casos, confere o hash SHA256 contra
+  o `CHECKSUMS.txt` da própria release e, só se bater, aplica a atualização
+  sozinho: instala em modo silencioso, troca o executável portátil ou o
+  AppImage no lugar, fecha o cofre e reabre a versão nova automaticamente —
+  sem instalador para rodar na mão.
 - Qualquer falha (sem internet, checksum não bate, arquivo não encontrado) ou
-  fora do Windows cai de volta no comportamento antigo, abrindo a página de
-  releases no navegador. A consulta e o download são leitura pública da API do
-  GitHub, sem enviar nenhum dado além disso.
+  fora de um desses dois cenários (por exemplo, rodando do `.tar.gz`
+  extraído no Linux, sem ser via AppImage) cai de volta no comportamento
+  antigo, abrindo a página de releases no navegador. A consulta e o download
+  são leitura pública da API do GitHub, sem enviar nenhum dado além disso.
 
 ## Modelo de segurança
 
@@ -327,13 +355,15 @@ Windows Hello:
 | Criptografia do cofre | AES-256-GCM, garantindo confidencialidade e integridade/autenticidade |
 | Derivação de chave | Argon2id (64 MiB de memória, 3 iterações, paralelismo 1), o padrão atual recomendado por resistir melhor a ataques por GPU/ASIC, com salt aleatório de 128 bits. Cofres ainda em PBKDF2-SHA256 (de versões anteriores) são migrados de forma transparente no próximo desbloqueio por senha mestra, com backup e rollback seguro |
 | Senha mestra | Nunca é armazenada. O arquivo de autenticação guarda apenas o salt e um verificador (hash SHA-256 da chave derivada) |
-| Exportação | AES-256-GCM com chave derivada por PBKDF2-SHA256 (200.000 iterações) a partir de uma senha de exportação separada |
+| Exportação e sincronização por pasta | AES-256-GCM com chave derivada por Argon2id (64 MiB, 3 iterações, paralelismo 1 — os mesmos parâmetros do cofre local) a partir de uma senha separada. Arquivos gerados antes dessa versão, ainda em PBKDF2-SHA256 (200.000 iterações), continuam sendo lidos normalmente, sem migração forçada — diferente do cofre local, esses arquivos podem ser abertos por outro dispositivo/instalação que ainda não atualizou |
 | Comparações sensíveis | Realizadas em tempo constante, evitando ataques de temporização |
 | Verificação de vazamento | Have I Been Pwned por k-anonymity: apenas os 5 primeiros caracteres do hash SHA-1 da senha deixam a máquina |
 | Ícones dos serviços | Fallback local por iniciais por padrão; a busca de favicons na internet é opcional, desligada por padrão e exige consentimento. Quando ativada, apenas o domínio de cada serviço é enviado ao serviço de ícones do Google (nunca senha, usuário ou nota), e os ícones ficam em cache no disco |
 | Códigos TOTP | A chave 2FA é guardada cifrada (AES-256-GCM) como a senha; os códigos são calculados localmente (RFC 6238) e nada é enviado à rede |
 | Histórico de senhas | Cada senha anterior é guardada cifrada (AES-256-GCM) como a senha atual e re-cifrada ao alterar a senha mestra; permanece somente no cofre e na exportação |
-| Cofre em banco de dados | Quando conectado a um banco externo, a coluna de senha guarda apenas o texto cifrado (AES-256-GCM); a senha do servidor de banco não é gravada em disco |
+| Cofre em banco de dados | Quando conectado a um banco externo, a coluna de senha guarda apenas o texto cifrado (AES-256-GCM); a senha do servidor de banco não é gravada em disco. Nome de serviço, usuário, notas e etiquetas ficam em texto puro nas colunas correspondentes (ver [modelo de ameaça](THREAT_MODEL.md)) |
+| Conexão a banco de dados | Sempre cifrada em trânsito (TLS). Por padrão aceita certificado autoassinado, comum em banco local/LAN; a opção "Exigir certificado válido do servidor" na tela de conexão liga a validação contra uma autoridade confiável, recomendado para banco fora da rede local |
+| Integridade do banco externo | HMAC-SHA256 (chaveado por uma subchave derivada da senha mestra via HKDF, independente da chave de cifra) assina cada credencial antes de gravar num banco externo; uma linha adulterada por quem tem acesso de escrita direto ao banco, mas não a senha mestra, é detectada e rejeitada na sincronização em vez de aceita como "mais recente" |
 | Windows Hello | Opcional no Windows. A chave do cofre é cifrada (AES-256-GCM) com uma chave derivada da assinatura de uma credencial do Windows Hello (chave privada no TPM); o envelope em `biometria.dat` só pode ser aberto após a autenticação biométrica |
 | Higiene de memória | A chave mestra e sua cópia interna são apagadas da memória (`CryptographicOperations.ZeroMemory`) ao bloquear ou fechar o cofre; o painel de detalhes e as linhas reveladas da lista não retêm a senha em texto claro além do necessário |
 | Local dos dados | Pasta do usuário (`%APPDATA%\GerenciadorSenhas\` no Windows, `~/.config/GerenciadorSenhas/` no Linux), fora do repositório |
@@ -373,6 +403,12 @@ No Windows:
 4. Se preferir não instalar nada, o executável autocontido `CofreDeSenhas.exe`
    (sem instalador) também fica disponível na página da release — é só
    baixar e executar.
+
+Cada release gera também os manifests necessários para publicação no
+`winget` (gerenciador de pacotes do Windows), como um passo em direção a
+`winget install` — a submissão a `microsoft/winget-pkgs` ainda não foi
+feita, então por enquanto o instalador da página de releases continua sendo
+a forma de instalar.
 
 Para desinstalar, use "Aplicativos e recursos" do Windows (ou o atalho
 "Desinstalar Cofre de Senhas" no menu iniciar). O cofre em

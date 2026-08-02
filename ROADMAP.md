@@ -525,6 +525,128 @@ reflita de verdade o que mudou.
   do `CHANGELOG.md`; as notas já publicadas das releases 2.1.0 e 2.1.1
   foram corrigidas via API com o mesmo conteúdo que o script gera agora.
 
+### Versão 2.2.0
+
+Auditoria de código completa em cima da 2.1.1: bugs críticos, altos, médios e
+baixos corrigidos, lacunas fechadas entre cofre local/pasta de
+sincronização/banco de dados, e um conjunto de ideias futuras do roadmap
+implementadas — com peso forte em segurança, principalmente na sincronização
+com banco de dados externo.
+
+#### Segurança
+
+- Troca de senha mestra corrigida para recifrar o cofre inteiro: campos
+  extras, códigos de recuperação e anexos ficavam cifrados com a chave
+  antiga depois de trocar a senha mestra, um bug crítico que só afetava
+  quem já tinha esses dados preenchidos antes da troca.
+- Escrita atômica (arquivo temporário + substituição) na troca de senha
+  mestra e no salvamento local, eliminando o risco de arquivo corrompido
+  por queda de energia no meio da escrita; se acontecer mesmo assim, o
+  cofre se recupera sozinho a partir do backup órfão no login seguinte.
+- Corrigido bug em que duas credenciais com o mesmo domínio e usuário se
+  sobrescreviam ao sincronizar com um banco de dados externo compartilhado
+  por vários dispositivos, e outro em que uma exclusão era revertida para
+  "não excluída" quando dois dispositivos espelhados no mesmo banco
+  sincronizavam em sequência.
+- Modo privacidade (`Ctrl+H`) corrigido para não permitir mais reabrir o
+  painel de detalhes com a senha em texto claro enquanto ativo, e para não
+  vazar mais o serviço, o usuário e as etiquetas reais por leitor de tela e
+  tooltip da lista.
+- Nova opção "Exigir certificado válido do servidor" na tela de conexão a
+  banco de dados: desligada por padrão (a conexão continua sempre cifrada,
+  mas aceita certificado autoassinado, comum em banco local/LAN); ligada,
+  exige um certificado validado por autoridade confiável, recomendado para
+  banco fora da rede local. Quando desligada, fica sinalizada no relatório
+  de segurança do cofre como um lembrete, não um bloqueio.
+- HMAC de integridade (chaveado por uma subchave derivada da própria senha
+  mestra via HKDF, independente da chave de cifra AES-GCM) para os dados
+  vindos de um banco de dados externo: uma linha adulterada por alguém com
+  acesso de escrita direto ao banco — sem a chave mestra — é detectada e
+  rejeitada na sincronização, em vez de aceita como "mais recente" só por
+  ter uma data de atualização mais nova. Ver [modelo de ameaça](THREAT_MODEL.md)
+  para o que isso muda (e o que continua igual) no cenário de banco
+  externo compartilhado.
+- Argon2id (o mesmo já usado no cofre local desde a repaginação de
+  segurança anterior) passou a ser usado também na exportação `.gsenhas` e
+  na sincronização por pasta compartilhada, que ainda usavam PBKDF2-SHA256;
+  arquivos já existentes continuam sendo lidos normalmente no KDF com que
+  foram criados, sem migração forçada (diferente do cofre local, esses
+  arquivos podem ser lidos por outro dispositivo/instalação que ainda não
+  atualizou).
+- Aviso ao salvar o QR code de backup da senha mestra dentro de uma pasta
+  sincronizada com a nuvem (OneDrive, Dropbox, Google Drive, iCloud Drive)
+  — o QR code contém a senha mestra em forma reconstruível, e uma pasta de
+  nuvem é exatamente o tipo de lugar onde ele não deveria parar.
+- Mensagens de erro cruas de conexão a banco de dados e de sincronização
+  por pasta passaram a aparecer traduzidas, sem detalhe técnico exposto.
+- Cadeia de build: pacotes NuGet verificados contra vulnerabilidades
+  conhecidas a cada push (o job falha se achar alguma); SBOM (Software
+  Bill of Materials, formato CycloneDX) publicado em cada release; Dependabot
+  mantendo as GitHub Actions fixadas por hash (desde a 2.1.1) atualizadas
+  automaticamente, já que hash fixo não recebe patch sozinho como uma tag
+  flutuante receberia.
+
+#### Sincronização e banco de dados
+
+- Etiquetas e histórico de senha passam a somar as mudanças dos dois lados
+  ao sincronizar (com banco de dados ou por pasta compartilhada), em vez de
+  o lado com a edição mais recente substituir a credencial inteira — os
+  demais campos continuam resolvidos por "edição mais recente vence", só
+  essas duas listas aditivas passaram a se unir.
+- Log de conflitos de sincronização: um novo indicador ao lado do status de
+  conexão (só aparece quando há algo a mostrar) abre uma tela simples
+  listando o que foi atualizado por outro dispositivo na última
+  sincronização com o banco, e também qualquer linha rejeitada por falha
+  na verificação de integridade (HMAC).
+- `GarantirColunasAsync` deixou de abrir uma conexão nova por coluna ao
+  inicializar ou migrar o schema do banco (18 conexões viravam 1), e
+  passou a tolerar dois clientes inicializando o schema ao mesmo tempo em
+  vez de um deles falhar.
+- Corrigida a leitura do id de uma linha recém-inserida no SQL Server:
+  trocado `SELECT SCOPE_IDENTITY()` numa consulta separada (que podia
+  voltar nulo sob concorrência real, achado só depois de rodar contra um
+  SQL Server de verdade pela primeira vez) por `OUTPUT INSERTED.id` direto
+  no próprio `INSERT`, o mesmo padrão atômico que o PostgreSQL já usava
+  com `RETURNING id`.
+
+#### Organização e produtividade
+
+- Ações em lote na lista de credenciais: selecionar várias de uma vez
+  (`Ctrl`+clique em cada linha) libera uma barra com atalhos para
+  favoritar, adicionar uma etiqueta ou mover todas para a lixeira de uma
+  vez só, em vez de repetir a ação item por item.
+- Tendência da pontuação de segurança do cofre ao longo do tempo: o
+  relatório de segurança passou a guardar um histórico local (um ponto por
+  dia, até 90 dias) e mostrar um pequeno gráfico de barras da evolução da
+  pontuação, além do valor atual.
+- Exportação seletiva: com um filtro de busca, categoria, etiqueta ou
+  favoritos ativo na lista, a tela de exportação oferece exportar só os
+  itens filtrados em vez do cofre inteiro sempre.
+- Importação de CSV/JSON deixou de abortar o lote inteiro por causa de um
+  campo inválido numa única linha — agora conta só aquela linha como
+  inválida (com contador próprio) e segue importando o resto.
+- Barra de progresso na exportação, reaproveitando o mesmo painel que a
+  importação já tinha ganhado antes, já que o passo mais lento (ler e
+  decifrar anexo por anexo) é comum aos dois.
+- Foco inicial ajustado em diálogos que abriam sem nada selecionado por
+  teclado (edição de credencial, atalhos de teclado, relatório de
+  segurança, seleção de banco, backup).
+
+#### Distribuição
+
+- Atualização em um clique passou a funcionar no Linux também, via
+  AppImage — antes só o Windows tinha essa opção, e no Linux a única forma
+  de atualizar era baixar manualmente na página de releases. Usa a
+  variável de ambiente `$APPIMAGE` (convenção do próprio runtime do
+  AppImage) para localizar o arquivo de verdade a substituir, já que o
+  caminho do processo em execução aponta para o ponto de montagem
+  temporário, não para o `.AppImage` original.
+- Manifests para o `winget` (gerenciador de pacotes do Windows) passaram a
+  ser gerados automaticamente a cada release, prontos para submissão a
+  `microsoft/winget-pkgs` — a submissão em si (abrir o PR no repositório
+  de terceiros) continua manual, fora do alcance do pipeline deste
+  projeto.
+
 ## Em andamento
 
 ### Extensão de navegador

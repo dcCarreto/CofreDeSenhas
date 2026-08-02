@@ -78,6 +78,36 @@ distinção campo a campo. Por isso o banco de dados externo é pensado como um 
 self-hosted/compartilhado, sob controle de quem já confia no ambiente onde o banco roda, e
 não como mais um dispositivo pessoal simétrico como a pasta de sincronização.
 
+**O que mudou:** cada credencial agora carrega um HMAC-SHA256, calculado sobre todos os
+campos relevantes (inclusive os que ficam em texto puro) e chaveado por uma subchave
+derivada da senha mestra via HKDF — independente da chave usada pela cifra AES-GCM, para
+não reaproveitar a mesma chave em dois primitivos diferentes. Isso cobre a lacuna de
+**integridade** que existia antes: alguém com acesso de escrita ao banco, mas sem a senha
+mestra, não conseguia forjar a senha em si (cifrada), mas conseguia alterar nome de
+serviço, usuário, notas, etiquetas ou a própria data de atualização sem ser percebido — e,
+pior, uma data de atualização forjada mais recente fazia esse dado adulterado "vencer" o
+merge e se propagar para todos os outros dispositivos espelhados. Hoje, qualquer linha cujo
+HMAC não bate com o conteúdo é rejeitada na sincronização (fica de fora do merge, o
+dispositivo local continua com sua própria versão) em vez de aceita. Uma violação detectada
+fica registrada e visível na tela de log de conflitos de sincronização do aplicativo.
+
+**O que não mudou:** o HMAC garante integridade, não confidencialidade. Um administrador do
+banco (ou qualquer pessoa com acesso de leitura direto às linhas) continua conseguindo
+**ler** nome de serviço, usuário, notas e etiquetas em texto puro — só não consegue mais
+**alterar** esses campos sem ser detectado. Linhas gravadas por uma instalação anterior a
+essa mudança, sem HMAC nenhum na coluna, são tratadas como confiáveis (não como violação) —
+rejeitar todo dado legado quebraria a leitura de um banco compartilhado por dispositivos
+ainda não atualizados; a próxima gravação naquela linha, feita por qualquer dispositivo já
+atualizado, passa a assiná-la.
+
+Também nesta versão: a conexão ao banco pode exigir certificado de servidor validado por
+uma autoridade confiável (opção "Exigir certificado válido do servidor", desligada por
+padrão) em vez de aceitar qualquer certificado autoassinado — reduz a superfície para um
+ataque de intermediário (man-in-the-middle) contra quem conecta a um banco fora da rede
+local. Desligada (o padrão), a conexão continua sempre cifrada em trânsito (TLS), só sem
+validar a identidade do servidor — o relatório de segurança do cofre sinaliza quando essa
+opção está desligada, como lembrete, não bloqueio.
+
 ### Desbloqueio biométrico (Windows Hello)
 
 É opcional, por dispositivo — cada máquina tem seu próprio vínculo biométrico
