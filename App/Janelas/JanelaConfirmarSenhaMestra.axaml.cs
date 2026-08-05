@@ -9,11 +9,13 @@ namespace CofreDeSenhas.Janelas
     public partial class JanelaConfirmarSenhaMestra : Window
     {
         private readonly AutenticacaoMestra _auth = new();
+        private readonly Func<string, bool>? _validador;
 
         public string SenhaConfirmada { get; private set; } = string.Empty;
 
-        public JanelaConfirmarSenhaMestra(string? titulo = null, string? instrucao = null, string? textoBotao = null)
+        public JanelaConfirmarSenhaMestra(string? titulo = null, string? instrucao = null, string? textoBotao = null, Func<string, bool>? validador = null)
         {
+            _validador = validador;
             InitializeComponent();
             Icon = Recursos.IconeApp();
             Acessibilidade.Vincular(this);
@@ -48,7 +50,8 @@ namespace CofreDeSenhas.Janelas
                 return;
             }
 
-            if (_auth.Autenticar(senha) == null)
+            var valida = _validador?.Invoke(senha) ?? (_auth.Autenticar(senha) != null);
+            if (!valida)
             {
                 MostrarErro(Idioma.Texto("Qr.ErrorMasterIncorrect"));
                 return;

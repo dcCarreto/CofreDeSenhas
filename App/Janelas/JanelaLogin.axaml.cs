@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using Avalonia;
 using Avalonia.Automation;
 using Avalonia.Controls;
@@ -6,6 +7,8 @@ using Avalonia.Interactivity;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using CofreDeSenhas.Controles;
+using GerenciadorDeSenhas.Modelos;
+using GerenciadorDeSenhas.Repositorios;
 using GerenciadorDeSenhas.Servicos;
 
 namespace CofreDeSenhas.Janelas
@@ -47,6 +50,7 @@ namespace CofreDeSenhas.Janelas
             PainelConfirmar.IsVisible = _primeiroAcesso;
             Medidor.IsVisible = _primeiroAcesso;
             LblPrimeiroAcessoAviso.IsVisible = _primeiroAcesso;
+            BtnRestaurarBanco.IsVisible = _primeiroAcesso;
             TxtSenha.TextChanged += (s, e) =>
             {
                 if (_primeiroAcesso) Medidor.Avaliar(TxtSenha.Text);
@@ -122,6 +126,100 @@ namespace CofreDeSenhas.Janelas
                 await DesbloquearComBiometriaAsync();
         }
 
+        private async void RestaurarBanco_Click(object? sender, RoutedEventArgs e) => await RestaurarDeBancoAsync();
+
+        private async Task RestaurarDeBancoAsync()
+        {
+            LblErro.Text = "";
+
+            var seletor = new JanelaSelecionarBanco();
+            if (!await AbrirDialogoAsync<bool>(seletor) || seletor.Selecionado is not { } tipo)
+                return;
+
+            var dlgConexao = new JanelaConexaoBanco(tipo, modoRestauracao: true);
+            if (!await AbrirDialogoAsync<bool>(dlgConexao) || dlgConexao.Conexao is not { } cfg)
+                return;
+
+            var bd = new ServicoBancoDados();
+            AuthBanco? auth;
+            try
+            {
+                auth = await bd.LerAuthAsync(cfg);
+            }
+            catch (Exception ex)
+            {
+                MostrarErro(ErrosUi.MensagemAmigavel(ex));
+                return;
+            }
+
+            if (auth == null)
+            {
+                MostrarErro(Idioma.Texto("Db.RestoreNoAuthPublished"));
+                return;
+            }
+
+            var dlgSenha = new JanelaConfirmarSenhaMestra(
+                titulo: Idioma.Texto("Login.RestoreTitle"),
+                instrucao: Idioma.Texto("Login.RestoreInstruction"),
+                textoBotao: Idioma.Texto("Login.RestoreConfirm"),
+                validador: senha => CryptographicOperations.FixedTimeEquals(
+                    SHA256.HashData(AutenticacaoMestra.DerivarChaveDeParametros(
+                        senha, auth.Salt, auth.Kdf, auth.Custo, auth.MemoriaKb, auth.Paralelismo)),
+                    auth.Verificador));
+            if (!await AbrirDialogoAsync<bool>(dlgSenha))
+                return;
+
+            var senhaConfirmada = dlgSenha.SenhaConfirmada;
+            var chave = AutenticacaoMestra.DerivarChaveDeParametros(
+                senhaConfirmada, auth.Salt, auth.Kdf, auth.Custo, auth.MemoriaKb, auth.Paralelismo);
+
+            try
+            {
+                var cripto = new ServicoCriptografia(chave);
+                var lista = await new RepositorioSenhaBanco(cfg, cripto).ListarTudoAsync();
+
+                _auth.GravarAutenticacaoRestaurada(auth.Salt, auth.Verificador, auth.Kdf, auth.Custo, auth.MemoriaKb, auth.Paralelismo);
+                await new PersistenciaLocal(cripto, _auth.PastaApp).SalvarSenhasAsync(lista, chave);
+
+                Preferencias.UltimoBanco = new PerfilBanco
+                {
+                    Tipo = cfg.Tipo,
+                    Host = cfg.Host,
+                    Porta = cfg.Porta,
+                    Banco = cfg.Banco,
+                    Usuario = cfg.Usuario,
+                    SenhaCifrada = cfg.Tipo == TipoBanco.SQLite || string.IsNullOrEmpty(cfg.SenhaServidor)
+                        ? null
+                        : cripto.Criptografar(cfg.SenhaServidor),
+                    Conectado = true,
+                    ReconciliacaoInicialConcluida = true,
+                    ExigirCertificadoValido = cfg.ExigirCertificadoValido
+                };
+                Preferencias.Salvar();
+            }
+            catch (Exception ex)
+            {
+                CryptographicOperations.ZeroMemory(chave);
+                MostrarErro(ErrosUi.MensagemAmigavel(ex));
+                return;
+            }
+
+            _aoAutenticar(chave, senhaConfirmada);
+        }
+
+        private async Task<T> AbrirDialogoAsync<T>(Window dialogo)
+        {
+            Scrim.Mostrar(this);
+            try
+            {
+                return await dialogo.ShowDialog<T>(this);
+            }
+            finally
+            {
+                Scrim.Ocultar(this);
+            }
+        }
+
         private void Idioma_Alterado(object? sender, SelectionChangedEventArgs e)
         {
             if (CmbIdioma.SelectedItem is not IdiomaDisponivel idioma ||
@@ -161,6 +259,7 @@ namespace CofreDeSenhas.Janelas
             AutomationProperties.SetHelpText(TxtConfirmar, Idioma.Texto("A11y.PasswordFieldHelp"));
             AutomationProperties.SetLiveSetting(LblErro, AutomationLiveSetting.Assertive);
             AutomationProperties.SetName(BtnPrincipal, BtnPrincipal.Content?.ToString() ?? "");
+            AutomationProperties.SetName(BtnRestaurarBanco, BtnRestaurarBanco.Content?.ToString() ?? "");
             AtualizarTextoBiometria();
         }
 

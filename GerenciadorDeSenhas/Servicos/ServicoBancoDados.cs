@@ -11,6 +11,7 @@ namespace GerenciadorDeSenhas.Servicos
     public class ServicoBancoDados
     {
         public const string NomeTabela = "CofreDeSenhas";
+        public const string NomeTabelaAuth = "CofreDeSenhasAuth";
 
         public const string ColunaDescricao = "descricao";
         public const string ColunaTotp = "totp";
@@ -186,6 +187,96 @@ namespace GerenciadorDeSenhas.Servicos
             return pendentes.ToHashSet();
         }
 
+        public async Task<bool> TabelaAuthExisteAsync(ConexaoBanco cfg)
+        {
+            await using var con = await AbrirConexaoAsync(cfg);
+
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = ConsultaExistenciaTabela(cfg.Tipo, NomeTabelaAuth);
+
+            var resultado = await cmd.ExecuteScalarAsync();
+            return resultado != null && resultado != DBNull.Value && Convert.ToInt64(resultado) > 0;
+        }
+
+        public async Task CriarTabelaAuthAsync(ConexaoBanco cfg)
+        {
+            await using var con = await AbrirConexaoAsync(cfg);
+
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = DdlAuth(cfg.Tipo);
+            try
+            {
+                await cmd.ExecuteNonQueryAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new ErroLocalizavel("Db.Error.SchemaFailed", ex);
+            }
+        }
+
+        public async Task<AuthBanco?> LerAuthAsync(ConexaoBanco cfg)
+        {
+            await using var con = await AbrirConexaoAsync(cfg);
+
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = $"SELECT salt, verificador, kdf, custo, memoria_kb, paralelismo FROM {NomeTabelaAuth} WHERE id = 1";
+
+            try
+            {
+                await using var leitor = await cmd.ExecuteReaderAsync();
+                if (!await leitor.ReadAsync())
+                    return null;
+
+                return new AuthBanco(
+                    Convert.FromBase64String((string)leitor[0]),
+                    Convert.FromBase64String((string)leitor[1]),
+                    Convert.ToByte(leitor[2]),
+                    Convert.ToInt32(leitor[3]),
+                    Convert.ToInt32(leitor[4]),
+                    Convert.ToInt32(leitor[5]));
+            }
+            catch (DbException)
+            {
+                // Tabela ainda não existe neste banco.
+                return null;
+            }
+        }
+
+        public async Task PublicarAuthAsync(ConexaoBanco cfg, AuthBanco dados)
+        {
+            await using var con = await AbrirConexaoAsync(cfg);
+
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = $@"INSERT INTO {NomeTabelaAuth} (id, salt, verificador, kdf, custo, memoria_kb, paralelismo)
+                VALUES (1, @salt, @verificador, @kdf, @custo, @memoriaKb, @paralelismo)";
+
+            AdicionarParametro(cmd, "@salt", Convert.ToBase64String(dados.Salt));
+            AdicionarParametro(cmd, "@verificador", Convert.ToBase64String(dados.Verificador));
+            AdicionarParametro(cmd, "@kdf", dados.Kdf);
+            AdicionarParametro(cmd, "@custo", dados.Custo);
+            AdicionarParametro(cmd, "@memoriaKb", dados.MemoriaKb);
+            AdicionarParametro(cmd, "@paralelismo", dados.Paralelismo);
+
+            try
+            {
+                await cmd.ExecuteNonQueryAsync();
+            }
+            catch (DbException)
+            {
+                // Outro dispositivo publicou a linha id=1 entre a checagem de
+                // existência da tabela e este INSERT — a linha já está lá, que é
+                // exatamente o estado desejado.
+            }
+        }
+
+        private static void AdicionarParametro(DbCommand cmd, string nome, object valor)
+        {
+            var p = cmd.CreateParameter();
+            p.ParameterName = nome;
+            p.Value = valor;
+            cmd.Parameters.Add(p);
+        }
+
         private async Task GarantirColunaAsync(DbConnection con, TipoBanco tipo, string coluna)
         {
             if (await ColunaExisteAsync(con, tipo, coluna))
@@ -228,19 +319,21 @@ namespace GerenciadorDeSenhas.Servicos
             _ => throw new NotSupportedException($"Sem consulta de último id para {tipo}")
         };
 
-        private static string ConsultaExistencia(TipoBanco tipo) => tipo switch
+        private static string ConsultaExistencia(TipoBanco tipo) => ConsultaExistenciaTabela(tipo, NomeTabela);
+
+        private static string ConsultaExistenciaTabela(TipoBanco tipo, string nomeTabela) => tipo switch
         {
             TipoBanco.SQLite =>
-                $"SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = '{NomeTabela}'",
+                $"SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = '{nomeTabela}'",
 
             TipoBanco.PostgreSQL =>
-                $"SELECT COUNT(*) FROM information_schema.tables WHERE lower(table_name) = lower('{NomeTabela}')",
+                $"SELECT COUNT(*) FROM information_schema.tables WHERE lower(table_name) = lower('{nomeTabela}')",
 
             TipoBanco.MySQL =>
-                $"SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = '{NomeTabela}'",
+                $"SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = '{nomeTabela}'",
 
             TipoBanco.SqlServer =>
-                $"SELECT COUNT(*) FROM sys.tables WHERE name = '{NomeTabela}'",
+                $"SELECT COUNT(*) FROM sys.tables WHERE name = '{nomeTabela}'",
 
             _ => throw new NotSupportedException($"Banco não suportado: {tipo}")
         };
@@ -323,6 +416,59 @@ namespace GerenciadorDeSenhas.Servicos
                     etiquetas NVARCHAR(MAX),
                     codigos_recuperacao NVARCHAR(MAX),
                     excluido BIT NOT NULL DEFAULT 0
+                )",
+
+            _ => throw new NotSupportedException($"Banco não suportado: {tipo}")
+        };
+
+        // Linha única (id sempre 1): metadados de derivação de chave (salt, KDF,
+        // verificador) publicados por um dispositivo já autenticado, pra permitir
+        // restaurar o cofre local a partir do banco caso o dispositivo o perca.
+        // Sem autoincrement/serial — o id nunca é gerado, sempre inserido como 1.
+        private static string DdlAuth(TipoBanco tipo) => tipo switch
+        {
+            TipoBanco.SQLite =>
+                $@"CREATE TABLE {NomeTabelaAuth} (
+                    id INTEGER PRIMARY KEY,
+                    salt TEXT NOT NULL,
+                    verificador TEXT NOT NULL,
+                    kdf INTEGER NOT NULL,
+                    custo INTEGER NOT NULL,
+                    memoria_kb INTEGER NOT NULL,
+                    paralelismo INTEGER NOT NULL
+                )",
+
+            TipoBanco.PostgreSQL =>
+                $@"CREATE TABLE {NomeTabelaAuth} (
+                    id INTEGER PRIMARY KEY,
+                    salt TEXT NOT NULL,
+                    verificador TEXT NOT NULL,
+                    kdf INTEGER NOT NULL,
+                    custo INTEGER NOT NULL,
+                    memoria_kb INTEGER NOT NULL,
+                    paralelismo INTEGER NOT NULL
+                )",
+
+            TipoBanco.MySQL =>
+                $@"CREATE TABLE {NomeTabelaAuth} (
+                    id INT PRIMARY KEY,
+                    salt TEXT NOT NULL,
+                    verificador TEXT NOT NULL,
+                    kdf INTEGER NOT NULL,
+                    custo INTEGER NOT NULL,
+                    memoria_kb INTEGER NOT NULL,
+                    paralelismo INTEGER NOT NULL
+                )",
+
+            TipoBanco.SqlServer =>
+                $@"CREATE TABLE {NomeTabelaAuth} (
+                    id INT PRIMARY KEY,
+                    salt NVARCHAR(MAX) NOT NULL,
+                    verificador NVARCHAR(MAX) NOT NULL,
+                    kdf INTEGER NOT NULL,
+                    custo INTEGER NOT NULL,
+                    memoria_kb INTEGER NOT NULL,
+                    paralelismo INTEGER NOT NULL
                 )",
 
             _ => throw new NotSupportedException($"Banco não suportado: {tipo}")

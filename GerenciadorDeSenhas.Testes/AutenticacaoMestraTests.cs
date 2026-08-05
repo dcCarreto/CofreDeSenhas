@@ -245,6 +245,87 @@ public class AutenticacaoMestraTests : IDisposable
         Assert.False(_auth.KdfDesatualizado());
     }
 
+    [Fact]
+    public void TentarLerParametros_SemArquivo_RetornaFalse()
+    {
+        var achou = _auth.TentarLerParametros(out _, out _, out _, out _, out _, out _);
+
+        Assert.False(achou);
+    }
+
+    [Fact]
+    public void TentarLerParametros_ComSenhaCriada_DevolveVerificadorQueBateComAChave()
+    {
+        var chave = _auth.CriarSenhaMestra("SenhaMestra@123");
+
+        var achou = _auth.TentarLerParametros(out _, out var verificador, out var kdf, out _, out _, out _);
+
+        Assert.True(achou);
+        Assert.Equal((byte)1, kdf);
+        Assert.Equal(SHA256.HashData(chave), verificador);
+    }
+
+    [Fact]
+    public void DerivarChaveDeParametros_ComParametrosPublicadosPorEsteDispositivo_ReproduzAMesmaChave()
+    {
+        var chave = _auth.CriarSenhaMestra("SenhaMestra@123");
+        _auth.TentarLerParametros(out var salt, out _, out var kdf, out var custo, out var memoriaKb, out var paralelismo);
+
+        var chaveReproduzida = AutenticacaoMestra.DerivarChaveDeParametros("SenhaMestra@123", salt, kdf, custo, memoriaKb, paralelismo);
+
+        Assert.Equal(chave, chaveReproduzida);
+    }
+
+    [Fact]
+    public void GravarAutenticacaoRestaurada_EmDispositivoQuePerdeuOCofre_PermiteAutenticarDeNovoComAMesmaSenha()
+    {
+        // Simula o cenário de restauração: um dispositivo "original" cria a senha mestra
+        // e publicaria esses parâmetros no banco; um dispositivo "novo" (sem auth.dat
+        // nenhum) recebe esses mesmos parâmetros do banco e os grava localmente.
+        var original = new AutenticacaoMestra(_pasta);
+        var chaveOriginal = original.CriarSenhaMestra("SenhaMestra@123");
+        original.TentarLerParametros(out var salt, out var verificador, out var kdf, out var custo, out var memoriaKb, out var paralelismo);
+
+        var pastaNova = Path.Combine(Path.GetTempPath(), "GS_Auth_" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(pastaNova);
+        try
+        {
+            var dispositivoNovo = new AutenticacaoMestra(pastaNova);
+            Assert.False(dispositivoNovo.ExisteSenhaMestra());
+
+            dispositivoNovo.GravarAutenticacaoRestaurada(salt, verificador, kdf, custo, memoriaKb, paralelismo);
+
+            var chaveRestaurada = dispositivoNovo.Autenticar("SenhaMestra@123");
+            Assert.NotNull(chaveRestaurada);
+            Assert.Equal(chaveOriginal, chaveRestaurada);
+        }
+        finally
+        {
+            try { Directory.Delete(pastaNova, recursive: true); } catch { }
+        }
+    }
+
+    [Fact]
+    public void GravarAutenticacaoRestaurada_ComSenhaErrada_NaoAutentica()
+    {
+        _auth.CriarSenhaMestra("SenhaMestra@123");
+        _auth.TentarLerParametros(out var salt, out var verificador, out var kdf, out var custo, out var memoriaKb, out var paralelismo);
+
+        var pastaNova = Path.Combine(Path.GetTempPath(), "GS_Auth_" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(pastaNova);
+        try
+        {
+            var dispositivoNovo = new AutenticacaoMestra(pastaNova);
+            dispositivoNovo.GravarAutenticacaoRestaurada(salt, verificador, kdf, custo, memoriaKb, paralelismo);
+
+            Assert.Null(dispositivoNovo.Autenticar("SenhaErrada@999"));
+        }
+        finally
+        {
+            try { Directory.Delete(pastaNova, recursive: true); } catch { }
+        }
+    }
+
     private static void EscreverAuthFormatoAntigo(string pasta, string senha, int iteracoesLegado)
     {
         var salt = RandomNumberGenerator.GetBytes(16);

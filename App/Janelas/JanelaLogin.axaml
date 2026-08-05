@@ -135,6 +135,15 @@
                        TextWrapping="Wrap"
                        IsVisible="False"
                        Margin="0,8,0,0" />
+
+            <Button Name="BtnRestaurarBanco"
+                    Classes="secundario"
+                    TabIndex="6"
+                    HorizontalAlignment="Stretch"
+                    Margin="0,10,0,0"
+                    IsVisible="False"
+                    Content="{DynamicResource Login.RestoreFromDatabase}"
+                    Click="RestaurarBanco_Click" />
           </StackPanel>
           </ScrollViewer>
 
@@ -144,7 +153,7 @@
                   HorizontalAlignment="Left"
                   VerticalAlignment="Top"
                   Margin="20,20,0,0"
-                  TabIndex="6"
+                  TabIndex="7"
                   ToolTip.Tip="{DynamicResource Access.Title}"
                   AutomationProperties.Name="{DynamicResource Access.Title}">
             <c:Icone Width="{StaticResource TamIconeToolbar}" Height="{StaticResource TamIconeToolbar}"
@@ -176,7 +185,7 @@
                   HorizontalAlignment="Right"
                   VerticalAlignment="Top"
                   Margin="0,20,20,0"
-                  TabIndex="7"
+                  TabIndex="8"
                   Click="Fechar_Click">
             <c:Icone Width="{StaticResource TamIconeToolbar}" Height="{StaticResource TamIconeToolbar}" Chave="IconeFechar" />
           </Button>

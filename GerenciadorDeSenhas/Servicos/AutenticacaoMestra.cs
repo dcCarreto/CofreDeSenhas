@@ -135,6 +135,57 @@ namespace GerenciadorDeSenhas.Servicos
             }
         }
 
+        public bool TentarLerParametros(out byte[] salt, out byte[] verificador, out byte kdf, out int custo, out int memoriaKb, out int paralelismo)
+        {
+            salt = Array.Empty<byte>();
+            verificador = Array.Empty<byte>();
+            kdf = KdfPbkdf2;
+            custo = 0;
+            memoriaKb = 0;
+            paralelismo = 0;
+
+            if (!File.Exists(_caminhoAuth))
+                return false;
+
+            try
+            {
+                if (!LerDadosAutenticacao(out salt, out verificador, out var parametros))
+                    return false;
+
+                kdf = parametros.Kdf;
+                custo = parametros.CustoPrimario;
+                memoriaKb = parametros.MemoriaKb;
+                paralelismo = parametros.Paralelismo;
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public static byte[] DerivarChaveDeParametros(string senha, byte[] salt, byte kdf, int custo, int memoriaKb, int paralelismo) =>
+            DerivarChave(senha, salt, new ParametrosKdf(kdf, custo, memoriaKb, paralelismo));
+
+        public void GravarAutenticacaoRestaurada(byte[] salt, byte[] verificador, byte kdf, int custo, int memoriaKb, int paralelismo)
+        {
+            var dados = new byte[SaltSize + VerificadorSize + sizeof(int) + 1 + sizeof(int) + sizeof(int)];
+            var offset = 0;
+            Buffer.BlockCopy(salt, 0, dados, offset, SaltSize);
+            offset += SaltSize;
+            Buffer.BlockCopy(verificador, 0, dados, offset, VerificadorSize);
+            offset += VerificadorSize;
+            BitConverter.GetBytes(custo).CopyTo(dados, offset);
+            offset += sizeof(int);
+            dados[offset] = kdf;
+            offset += 1;
+            BitConverter.GetBytes(memoriaKb).CopyTo(dados, offset);
+            offset += sizeof(int);
+            BitConverter.GetBytes(paralelismo).CopyTo(dados, offset);
+
+            EscritaAtomica.EscreverTexto(_caminhoAuth, Convert.ToBase64String(dados));
+        }
+
         private bool LerDadosAutenticacao(out byte[] salt, out byte[] verificador, out ParametrosKdf parametros)
         {
             salt = Array.Empty<byte>();

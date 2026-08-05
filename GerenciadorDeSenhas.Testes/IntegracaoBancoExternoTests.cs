@@ -58,6 +58,15 @@ public class IntegracaoBancoExternoTests
         await cmd.ExecuteNonQueryAsync();
     }
 
+    private static async Task LimparTabelaAuthAsync(ServicoBancoDados bd, ConexaoBanco cfg)
+    {
+        await using var con = bd.CriarConexao(cfg);
+        await con.OpenAsync();
+        await using var cmd = con.CreateCommand();
+        cmd.CommandText = $"DROP TABLE IF EXISTS {ServicoBancoDados.NomeTabelaAuth}";
+        await cmd.ExecuteNonQueryAsync();
+    }
+
     [Theory]
     [MemberData(nameof(Motores))]
     public async Task CriarTabelaEGarantirColunas_FuncionaContraOMotorReal(TipoBanco tipo)
@@ -143,5 +152,68 @@ public class IntegracaoBancoExternoTests
         Assert.Equal(2, todas.Count);
         Assert.Contains(todas, s => s.Id == primeira.Id);
         Assert.Contains(todas, s => s.Id == segunda.Id);
+    }
+
+    [Theory]
+    [MemberData(nameof(Motores))]
+    public async Task TabelaAuth_AntesDePublicar_LerAuthRetornaNull(TipoBanco tipo)
+    {
+        var cfg = Conexao(tipo);
+        var bd = new ServicoBancoDados();
+        await LimparTabelaAuthAsync(bd, cfg);
+
+        Assert.False(await bd.TabelaAuthExisteAsync(cfg));
+        Assert.Null(await bd.LerAuthAsync(cfg));
+    }
+
+    [Theory]
+    [MemberData(nameof(Motores))]
+    public async Task TabelaAuth_PublicarELer_DevolveExatamenteOQueFoiPublicadoNoMotorReal(TipoBanco tipo)
+    {
+        var cfg = Conexao(tipo);
+        var bd = new ServicoBancoDados();
+        await LimparTabelaAuthAsync(bd, cfg);
+        await bd.CriarTabelaAuthAsync(cfg);
+
+        var publicado = new AuthBanco(
+            Salt: new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 },
+            Verificador: Enumerable.Range(0, 32).Select(i => (byte)i).ToArray(),
+            Kdf: 1,
+            Custo: 3,
+            MemoriaKb: 65536,
+            Paralelismo: 1);
+        await bd.PublicarAuthAsync(cfg, publicado);
+
+        var lido = await bd.LerAuthAsync(cfg);
+
+        Assert.NotNull(lido);
+        Assert.Equal(publicado.Salt, lido!.Salt);
+        Assert.Equal(publicado.Verificador, lido.Verificador);
+        Assert.Equal(publicado.Kdf, lido.Kdf);
+        Assert.Equal(publicado.Custo, lido.Custo);
+        Assert.Equal(publicado.MemoriaKb, lido.MemoriaKb);
+        Assert.Equal(publicado.Paralelismo, lido.Paralelismo);
+    }
+
+    [Theory]
+    [MemberData(nameof(Motores))]
+    public async Task TabelaAuth_PublicarDuasVezes_NaoSobrescreveEContinuaComOPrimeiroPublicado(TipoBanco tipo)
+    {
+        // Simula dois dispositivos diferentes tentando publicar ao mesmo tempo: quem
+        // chegou primeiro define o salt/verificador canônico do banco, o segundo não
+        // deve conseguir trocar por cima.
+        var cfg = Conexao(tipo);
+        var bd = new ServicoBancoDados();
+        await LimparTabelaAuthAsync(bd, cfg);
+        await bd.CriarTabelaAuthAsync(cfg);
+
+        var primeiro = new AuthBanco(new byte[16], new byte[32], 1, 3, 65536, 1);
+        var segundo = new AuthBanco(Enumerable.Repeat((byte)9, 16).ToArray(), new byte[32], 1, 3, 65536, 1);
+
+        await bd.PublicarAuthAsync(cfg, primeiro);
+        await bd.PublicarAuthAsync(cfg, segundo);
+
+        var lido = await bd.LerAuthAsync(cfg);
+        Assert.Equal(primeiro.Salt, lido!.Salt);
     }
 }

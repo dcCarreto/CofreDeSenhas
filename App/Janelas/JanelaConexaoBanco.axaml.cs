@@ -15,6 +15,7 @@ namespace CofreDeSenhas.Janelas
     public partial class JanelaConexaoBanco : Window
     {
         private readonly TipoBanco _tipo;
+        private readonly bool _modoRestauracao;
         private readonly ServicoBancoDados _bd = new();
 
         private TextBox? _txtArquivo;
@@ -27,9 +28,10 @@ namespace CofreDeSenhas.Janelas
 
         public ConexaoBanco? Conexao { get; private set; }
 
-        public JanelaConexaoBanco(TipoBanco tipo)
+        public JanelaConexaoBanco(TipoBanco tipo, bool modoRestauracao = false)
         {
             _tipo = tipo;
+            _modoRestauracao = modoRestauracao;
 
             InitializeComponent();
             Icon = Recursos.IconeApp();
@@ -224,6 +226,12 @@ namespace CofreDeSenhas.Janelas
 
                     if (!await _bd.TabelaExisteAsync(cfg))
                     {
+                        if (_modoRestauracao)
+                        {
+                            MostrarErro(Idioma.Texto("Db.RestoreTableMissing"));
+                            return;
+                        }
+
                         var criar = await CaixaMensagem.ConfirmarAsync(this,
                             Idioma.Formatar("Db.TableMissing", ServicoBancoDados.NomeTabela),
                             Idioma.Texto("Db.CreateTableTitle"));

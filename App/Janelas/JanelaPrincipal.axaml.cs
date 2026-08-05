@@ -3057,6 +3057,7 @@ namespace CofreDeSenhas.Janelas
                 var servico = new ServicoSenha(repoAtivo, _criptografia!);
 
                 await servico.ListarTodosAsync();
+                await PublicarAuthNoBancoSeNecessarioAsync(cfg);
 
                 _servicoSenha = servico;
                 _repositorioEspelhado = espelho;
@@ -3105,6 +3106,28 @@ namespace CofreDeSenhas.Janelas
                     await CaixaMensagem.MostrarAsync(this,
                         Idioma.Formatar("Db.ConnectError", ErrosUi.MensagemAmigavel(ex)),
                         Idioma.Texto("Common.Error"), TipoMensagem.Erro);
+            }
+        }
+
+        private static async Task PublicarAuthNoBancoSeNecessarioAsync(ConexaoBanco cfg)
+        {
+            try
+            {
+                var bd = new ServicoBancoDados();
+                if (await bd.TabelaAuthExisteAsync(cfg))
+                    return;
+
+                if (!new AutenticacaoMestra().TentarLerParametros(out var salt, out var verificador, out var kdf, out var custo, out var memoriaKb, out var paralelismo))
+                    return;
+
+                await bd.CriarTabelaAuthAsync(cfg);
+                await bd.PublicarAuthAsync(cfg, new AuthBanco(salt, verificador, kdf, custo, memoriaKb, paralelismo));
+            }
+            catch
+            {
+                // Melhor esforço: se a publicação falhar, a conexão/espelhamento normal
+                // continua funcionando do mesmo jeito de sempre, só a restauração a
+                // partir deste banco fica indisponível até uma tentativa futura funcionar.
             }
         }
 
