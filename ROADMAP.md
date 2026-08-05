@@ -647,20 +647,6 @@ com banco de dados externo.
   de terceiros) continua manual, fora do alcance do pipeline deste
   projeto.
 
-## Em andamento
-
-### Extensão de navegador
-
-Em desenvolvimento no branch `feature/chromiumExt`:
-
-- Comunicação local segura entre extensão e aplicativo via Native Messaging,
-  com host dedicado — o cofre nunca é exposto diretamente ao navegador.
-- Preenchimento de login somente sob ação explícita do usuário (clique).
-- Exige o cofre desbloqueado; sem cofre aberto, nada é preenchido.
-- Alvo inicial em navegadores Chromium (Chrome e Edge); Firefox avaliado em
-  seguida.
-- Recurso opcional: o aplicativo continua completo sem a extensão.
-
 ## Planejado
 
 Ideias e melhorias consideradas para versões futuras, agrupadas por prioridade:
@@ -748,6 +734,14 @@ criptografia anterior) e de uma camada inteira de métodos de busca/contagem em
 
 ## Fora de escopo por enquanto
 
+- Extensão de navegador. Chegou a ter um protótipo funcional (Native
+  Messaging, host dedicado em `CofreDeSenhas.Nucleo`/`Bridge`/`Agent`,
+  preenchimento só sob clique, testado de ponta a ponta), mas foi abandonada:
+  o cofre é pensado como armazenamento, não como integração com o navegador
+  — manter um segundo processo de fundo, registro de host nativo no sistema
+  e superfície de ataque extra (Native Messaging, DOM da extensão) foge
+  desse escopo. O código ficou no branch `feature/chromiumExt`, sem
+  intenção de mesclar.
 - IA integrada ao núcleo do cofre.
 - Assistente educativo embutido no aplicativo (reavaliado: conteúdo educativo
   ficará na documentação, fora do app).
@@ -762,9 +756,8 @@ criptografia anterior) e de uma camada inteira de métodos de busca/contagem em
 
 ## Ordem sugerida de execução
 
-1. Conclusão da extensão de navegador (em andamento).
-2. macOS.
-3. Aplicativo móvel.
+1. macOS.
+2. Aplicativo móvel.
 
 ## Como sugerir
 
