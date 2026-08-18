@@ -108,6 +108,18 @@ local. Desligada (o padrão), a conexão continua sempre cifrada em trânsito (T
 validar a identidade do servidor — o relatório de segurança do cofre sinaliza quando essa
 opção está desligada, como lembrete, não bloqueio.
 
+**Também nesta versão:** conectar o cofre a um banco externo publica automaticamente, numa
+tabela separada (`CofreDeSenhasAuth`), o mesmo salt e verificador da senha mestra que antes
+só existiam em `auth.dat` local — feito para viabilizar a função "Restaurar de um banco de
+dados" ao configurar um dispositivo novo a partir de um banco já em uso. Isso amplia a
+superfície do administrador do banco: além dos campos em texto puro já descritos acima, ele
+passa a ter acesso ao material necessário para tentar quebrar a senha mestra offline (ataque
+de força bruta/dicionário contra o verificador, sem precisar de mais nada do dispositivo
+local) — algo que antes exigia acesso ao dispositivo dono do cofre. O verificador nunca
+permite decifrar o conteúdo do cofre diretamente, só confirmar se uma tentativa de senha
+está correta; o risco real depende da força da senha mestra escolhida e dos parâmetros de
+custo (Argon2id/PBKDF2) usados na derivação, os mesmos que já protegiam `auth.dat` local.
+
 ### Desbloqueio biométrico (Windows Hello)
 
 É opcional, por dispositivo — cada máquina tem seu próprio vínculo biométrico

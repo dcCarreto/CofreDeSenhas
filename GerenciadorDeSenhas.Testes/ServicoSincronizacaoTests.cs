@@ -1,4 +1,6 @@
 using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
 using GerenciadorDeSenhas.Excecoes;
 using GerenciadorDeSenhas.Modelos;
 using GerenciadorDeSenhas.Servicos;
@@ -12,21 +14,10 @@ public class ServicoSincronizacaoTests : IDisposable
 
     public ServicoSincronizacaoTests()
     {
-        _pastaTemp = Path.Combine(Path.GetTempPath(), "GS_Sync_" + Guid.NewGuid().ToString("N"));
-        Directory.CreateDirectory(_pastaTemp);
+        _pastaTemp = PastaTemporariaTeste.Criar("GS_Sync");
     }
 
-    public void Dispose()
-    {
-        try
-        {
-            if (Directory.Exists(_pastaTemp))
-                Directory.Delete(_pastaTemp, recursive: true);
-        }
-        catch
-        {
-        }
-    }
+    public void Dispose() => PastaTemporariaTeste.Apagar(_pastaTemp);
 
     private static SenhaExportada CriarItem(Guid id, DateTime dataAtualizacao, string nomeServico = "Gmail") => new()
     {
@@ -63,6 +54,23 @@ public class ServicoSincronizacaoTests : IDisposable
 
         var item = Assert.Single(resultado);
         Assert.Equal("Local", item.NomeServico);
+    }
+
+    [Fact]
+    public void MesclarListas_CodigosRecuperacaoDivergentesNosDoisLados_UneEmVezDeDescartar()
+    {
+        var id = Guid.NewGuid();
+        var local = CriarItem(id, new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc), "Local");
+        local.CodigosRecuperacao.Add(new CodigoRecuperacaoExportado { Codigo = "codigo-local" });
+
+        var remoto = CriarItem(id, new DateTime(2026, 1, 2, 0, 0, 0, DateTimeKind.Utc), "Remoto");
+        remoto.CodigosRecuperacao.Add(new CodigoRecuperacaoExportado { Codigo = "codigo-remoto" });
+
+        var resultado = ServicoSincronizacao.MesclarListas(new[] { local }, new[] { remoto });
+
+        var item = Assert.Single(resultado);
+        Assert.Contains(item.CodigosRecuperacao, c => c.Codigo == "codigo-local");
+        Assert.Contains(item.CodigosRecuperacao, c => c.Codigo == "codigo-remoto");
     }
 
     [Fact]
@@ -166,12 +174,70 @@ public class ServicoSincronizacaoTests : IDisposable
     }
 
     [Fact]
+    public async Task Escrever_QuandoDestinoNaoPodeSerSubstituido_NaoDeixaArquivoTmpOrfao()
+    {
+        var caminho = Path.Combine(_pastaTemp, "sincronizacao.dat");
+        // Ocupa o caminho de destino com um diretório, forçando o passo final da
+        // escrita atômica (File.Move) a falhar depois que o .tmp já foi criado.
+        Directory.CreateDirectory(caminho);
+
+        var servico = new ServicoSincronizacao(new ServicoCriptografia(RandomNumberGenerator.GetBytes(32)));
+
+        await Assert.ThrowsAsync<ErroLocalizavel>(() =>
+            servico.EscreverAsync(caminho, ServicoSincronizacao.GerarSalt(), null,
+                ServicoSincronizacao.Iteracoes, null, null, new List<SenhaExportada>()));
+
+        Assert.Empty(Directory.GetFiles(_pastaTemp, "*.tmp"));
+    }
+
+    [Fact]
     public async Task Ler_ArquivoInexistente_RetornaListaVazia()
     {
         var servico = new ServicoSincronizacao(new ServicoCriptografia(RandomNumberGenerator.GetBytes(32)));
         var lidos = await servico.LerAsync(Path.Combine(_pastaTemp, "nao-existe.dat"));
 
         Assert.Empty(lidos);
+    }
+
+    [Fact]
+    public async Task LerAsync_ComCamposNulosExplicitosNoJson_SanitizaEmVezDePropagarNull()
+    {
+        // EscreverAsync nunca produz "Etiquetas": null (OpcoesJson omite o campo em
+        // vez de escrever null) — mas um sincronizacao.dat escrito por outra versão
+        // do app, ou corrompido, pode chegar assim mesmo. Forja isso na mão, no
+        // mesmo formato de envelope que EscreverAsync produz.
+        var chave = RandomNumberGenerator.GetBytes(32);
+        var criptografia = new ServicoCriptografia(chave);
+        var servico = new ServicoSincronizacao(criptografia);
+
+        var jsonComCamposNulos = "[{\"Id\":\"" + Guid.NewGuid() + "\",\"NomeServico\":\"Gmail\",\"Usuario\":\"u\"," +
+            "\"Senha\":\"s\",\"Etiquetas\":null,\"Historico\":null,\"CodigosRecuperacao\":null,\"CamposExtras\":null,\"Anexos\":null}]";
+        var bytesCifrados = criptografia.CriptografarBytes(Encoding.UTF8.GetBytes(jsonComCamposNulos));
+
+        var envelopeJson = JsonSerializer.Serialize(new
+        {
+            Versao = 1,
+            Salt = Convert.ToBase64String(ServicoSincronizacao.GerarSalt()),
+            Kdf = (string?)null,
+            Iteracoes = 0,
+            MemoriaKb = (int?)null,
+            Paralelismo = (int?)null,
+            Dados = Convert.ToBase64String(bytesCifrados)
+        });
+
+        var caminho = Path.Combine(_pastaTemp, "sincronizacao.dat");
+        await File.WriteAllTextAsync(caminho, envelopeJson);
+
+        var lidos = await servico.LerAsync(caminho);
+
+        var item = Assert.Single(lidos);
+        Assert.NotNull(item.Etiquetas);
+        Assert.Empty(item.Etiquetas);
+        Assert.NotNull(item.Historico);
+        Assert.Empty(item.Historico);
+        Assert.NotNull(item.CodigosRecuperacao);
+        Assert.NotNull(item.CamposExtras);
+        Assert.NotNull(item.Anexos);
     }
 
     [Fact]

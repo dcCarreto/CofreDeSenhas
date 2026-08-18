@@ -80,6 +80,7 @@ namespace CofreDeSenhas
                     return ResultadoAtualizacao.NaoSuportado();
             }
 
+            string? caminhoTemp = null;
             try
             {
                 using var httpMeta = CriarHttpClient(TimeSpan.FromSeconds(15));
@@ -117,7 +118,7 @@ namespace CofreDeSenhas
                 if (hashEsperado == null)
                     return ResultadoAtualizacao.Falha("Não foi possível verificar a integridade do arquivo.");
 
-                var caminhoTemp = Path.Combine(Path.GetTempPath(), nomeAtivo);
+                caminhoTemp = Path.Combine(Path.GetTempPath(), nomeAtivo);
                 using (var httpDownload = CriarHttpClient(TimeSpan.FromMinutes(3)))
                     await BaixarArquivoAsync(httpDownload, ativo.UrlDownload, caminhoTemp);
 
@@ -139,6 +140,10 @@ namespace CofreDeSenhas
             }
             catch (Exception ex)
             {
+                if (caminhoTemp != null && File.Exists(caminhoTemp))
+                {
+                    try { File.Delete(caminhoTemp); } catch { }
+                }
                 return ResultadoAtualizacao.Falha(ex.Message);
             }
         }
@@ -152,7 +157,15 @@ namespace CofreDeSenhas
                 File.Delete(exeAntigo);
 
             File.Move(exeAtual, exeAntigo);
-            File.Move(caminhoNovoExe, exeAtual);
+            try
+            {
+                File.Move(caminhoNovoExe, exeAtual);
+            }
+            catch
+            {
+                File.Move(exeAntigo, exeAtual);
+                throw;
+            }
 
             Process.Start(new ProcessStartInfo(exeAtual) { UseShellExecute = true });
         }
@@ -172,7 +185,15 @@ namespace CofreDeSenhas
                 File.Delete(appImageAntigo);
 
             File.Move(appImageAtual, appImageAntigo);
-            File.Move(caminhoNovoAppImage, appImageAtual);
+            try
+            {
+                File.Move(caminhoNovoAppImage, appImageAtual);
+            }
+            catch
+            {
+                File.Move(appImageAntigo, appImageAtual);
+                throw;
+            }
 
             Process.Start(new ProcessStartInfo(appImageAtual) { UseShellExecute = false });
         }

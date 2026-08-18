@@ -115,6 +115,10 @@ namespace CofreDeSenhas.Janelas
 
         private async void Salvar_Click(object? sender, RoutedEventArgs e)
         {
+            var botao = sender as Button;
+            if (botao != null)
+                botao.IsEnabled = false;
+
             try
             {
                 if (string.IsNullOrWhiteSpace(TxtNomeServico.Text) ||
@@ -136,7 +140,7 @@ namespace CofreDeSenhas.Janelas
                     return;
                 }
 
-                var (categoria, etiquetas) = LerCategoriaEEtiquetas();
+                var (categoria, etiquetas) = CategoriasUI.LerCategoriaEEtiquetas(CmbCategoria.SelectedIndex, TxtEtiquetas.Text);
                 var tipo = TemplatesCredencial.ObterTipo(CmbTipo.SelectedIndex);
                 await _servicoSenha.CriarSenhaAsync(
                     TxtNomeServico.Text!,
@@ -157,6 +161,11 @@ namespace CofreDeSenhas.Janelas
             {
                 await CaixaMensagem.MostrarAsync(this,
                     Idioma.Formatar("Entry.CreateError", ErrosUi.MensagemAmigavel(ex)), Idioma.Texto("Common.Error"), TipoMensagem.Erro);
+            }
+            finally
+            {
+                if (botao != null)
+                    botao.IsEnabled = true;
             }
         }
 
@@ -186,24 +195,6 @@ namespace CofreDeSenhas.Janelas
                 PainelTotp.IsVisible = false;
                 _timerTotp.Parar();
             }
-        }
-
-        private (Categoria categoria, List<string> etiquetas) LerCategoriaEEtiquetas()
-        {
-            var categoria = (Categoria)Math.Max(0, CmbCategoria.SelectedIndex);
-            var etiquetas = Etiquetas.Analisar(TxtEtiquetas.Text);
-
-            if (categoria == Categoria.Other)
-            {
-                var indice = etiquetas.FindIndex(e => CategoriasUI.TentarObterCategoria(e, out _));
-                if (indice >= 0)
-                {
-                    CategoriasUI.TentarObterCategoria(etiquetas[indice], out categoria);
-                    etiquetas.RemoveAt(indice);
-                }
-            }
-
-            return (categoria, etiquetas);
         }
     }
 }

@@ -12,15 +12,11 @@ public class AutenticacaoMestraTests : IDisposable
 
     public AutenticacaoMestraTests()
     {
-        _pasta = Path.Combine(Path.GetTempPath(), "GS_Auth_" + Guid.NewGuid().ToString("N"));
-        Directory.CreateDirectory(_pasta);
+        _pasta = PastaTemporariaTeste.Criar("GS_Auth");
         _auth = new AutenticacaoMestra(_pasta);
     }
 
-    public void Dispose()
-    {
-        try { if (Directory.Exists(_pasta)) Directory.Delete(_pasta, recursive: true); } catch { }
-    }
+    public void Dispose() => PastaTemporariaTeste.Apagar(_pasta);
 
     [Fact]
     public void ExisteSenhaMestra_SemArquivo_RetornaFalse()
@@ -150,8 +146,7 @@ public class AutenticacaoMestraTests : IDisposable
     [Fact]
     public void CriarSenhaMestra_MesmaSenhaEmCofresDiferentes_GeraChavesDiferentes()
     {
-        var pasta2 = Path.Combine(Path.GetTempPath(), "GS_Auth_" + Guid.NewGuid().ToString("N"));
-        Directory.CreateDirectory(pasta2);
+        var pasta2 = PastaTemporariaTeste.Criar("GS_Auth");
         try
         {
             var auth2 = new AutenticacaoMestra(pasta2);
@@ -163,7 +158,7 @@ public class AutenticacaoMestraTests : IDisposable
         }
         finally
         {
-            try { Directory.Delete(pasta2, recursive: true); } catch { }
+            PastaTemporariaTeste.Apagar(pasta2);
         }
     }
 
@@ -286,8 +281,7 @@ public class AutenticacaoMestraTests : IDisposable
         var chaveOriginal = original.CriarSenhaMestra("SenhaMestra@123");
         original.TentarLerParametros(out var salt, out var verificador, out var kdf, out var custo, out var memoriaKb, out var paralelismo);
 
-        var pastaNova = Path.Combine(Path.GetTempPath(), "GS_Auth_" + Guid.NewGuid().ToString("N"));
-        Directory.CreateDirectory(pastaNova);
+        var pastaNova = PastaTemporariaTeste.Criar("GS_Auth");
         try
         {
             var dispositivoNovo = new AutenticacaoMestra(pastaNova);
@@ -301,7 +295,7 @@ public class AutenticacaoMestraTests : IDisposable
         }
         finally
         {
-            try { Directory.Delete(pastaNova, recursive: true); } catch { }
+            PastaTemporariaTeste.Apagar(pastaNova);
         }
     }
 
@@ -311,8 +305,7 @@ public class AutenticacaoMestraTests : IDisposable
         _auth.CriarSenhaMestra("SenhaMestra@123");
         _auth.TentarLerParametros(out var salt, out var verificador, out var kdf, out var custo, out var memoriaKb, out var paralelismo);
 
-        var pastaNova = Path.Combine(Path.GetTempPath(), "GS_Auth_" + Guid.NewGuid().ToString("N"));
-        Directory.CreateDirectory(pastaNova);
+        var pastaNova = PastaTemporariaTeste.Criar("GS_Auth");
         try
         {
             var dispositivoNovo = new AutenticacaoMestra(pastaNova);
@@ -322,7 +315,7 @@ public class AutenticacaoMestraTests : IDisposable
         }
         finally
         {
-            try { Directory.Delete(pastaNova, recursive: true); } catch { }
+            PastaTemporariaTeste.Apagar(pastaNova);
         }
     }
 

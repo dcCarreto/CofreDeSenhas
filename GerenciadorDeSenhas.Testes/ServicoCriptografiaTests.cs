@@ -30,6 +30,14 @@ public class ServicoCriptografiaTests
     }
 
     [Fact]
+    public void DescriptografarBytes_ComDadosMenoresQueNonceMaisTag_LancaCryptographicException()
+    {
+        var dadosCurtos = new byte[10];
+
+        Assert.Throws<CryptographicException>(() => _servico.DescriptografarBytes(dadosCurtos));
+    }
+
+    [Fact]
     public void Descriptografar_ComCiphertextValido_RetornaPlaintextOriginal()
     {
         var original = "MinhaSenh@123";
@@ -103,6 +111,52 @@ public class ServicoCriptografiaTests
 
         _servico.ZerarChave();
 
-        Assert.ThrowsAny<CryptographicException>(() => _servico.Descriptografar(cifrado));
+        Assert.Throws<ObjectDisposedException>(() => _servico.Descriptografar(cifrado));
+    }
+
+    [Fact]
+    public void Criptografar_AposZerarChave_LancaObjectDisposedEmVezDeCifrarComChaveZerada()
+    {
+        _servico.ZerarChave();
+
+        Assert.Throws<ObjectDisposedException>(() => _servico.Criptografar("dados sensíveis"));
+    }
+
+    [Fact]
+    public void CalcularHmacIntegridade_AposZerarChave_LancaObjectDisposedException()
+    {
+        _servico.ZerarChave();
+
+        Assert.Throws<ObjectDisposedException>(() => _servico.CalcularHmacIntegridade("dados"));
+    }
+
+    [Fact]
+    public void VerificarHmacIntegridade_ComHmacCalculadoParaOsMesmosDados_RetornaTrue()
+    {
+        var hmac = _servico.CalcularHmacIntegridade("dados-do-registro");
+
+        Assert.True(_servico.VerificarHmacIntegridade("dados-do-registro", hmac));
+    }
+
+    [Fact]
+    public void VerificarHmacIntegridade_ComDadosAlterados_RetornaFalse()
+    {
+        var hmac = _servico.CalcularHmacIntegridade("dados-do-registro");
+
+        Assert.False(_servico.VerificarHmacIntegridade("dados-adulterados", hmac));
+    }
+
+    [Fact]
+    public void VerificarHmacIntegridade_ComHmacQueNaoEhBase64Valido_RetornaFalseSemLancar()
+    {
+        Assert.False(_servico.VerificarHmacIntegridade("dados-do-registro", "@@@nao-e-base64@@@"));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    public void VerificarHmacIntegridade_ComHmacNuloOuVazio_RetornaFalse(string? hmacBase64)
+    {
+        Assert.False(_servico.VerificarHmacIntegridade("dados-do-registro", hmacBase64));
     }
 }

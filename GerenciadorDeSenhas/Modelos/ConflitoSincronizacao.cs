@@ -3,7 +3,8 @@ namespace GerenciadorDeSenhas.Modelos
     public enum TipoConflitoSincronizacao
     {
         EdicaoConcorrente,
-        IntegridadeViolada
+        IntegridadeViolada,
+        IntegridadeAusente
     }
 
     public sealed class ConflitoSincronizacao

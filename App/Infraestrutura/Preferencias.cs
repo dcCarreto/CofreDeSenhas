@@ -110,7 +110,10 @@ namespace CofreDeSenhas
                     }
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                Diagnostico.Registrar(ex, "Preferencias.Carregar");
+            }
         }
 
         public static void Salvar()
@@ -121,7 +124,10 @@ namespace CofreDeSenhas
                 if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
                 File.WriteAllText(_caminho, JsonSerializer.Serialize(new Dados { UltimoBanco = UltimoBanco, MinutosBloqueio = MinutosBloqueio, Idioma = Idioma, Daltonismo = Daltonismo, AltoContraste = AltoContraste, EscalaInterface = EscalaInterface, ReduzirAnimacoes = ReduzirAnimacoes, LeitorTela = LeitorTela, IconesOnline = IconesOnline, SegundosLimpezaClipboard = SegundosLimpezaClipboard, FrequenciaBackup = FrequenciaBackup, MaximoBackups = MaximoBackups, RegistrarHistoricoUso = RegistrarHistoricoUso, VerificarAtualizacoes = VerificarAtualizacoes, VersaoDispensada = VersaoDispensada, Sincronizacao = Sincronizacao }));
             }
-            catch { }
+            catch (Exception ex)
+            {
+                Diagnostico.Registrar(ex, "Preferencias.Salvar");
+            }
         }
     }
 }

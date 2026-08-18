@@ -1,3 +1,4 @@
+using System.Threading;
 using GerenciadorDeSenhas.Excecoes;
 using GerenciadorDeSenhas.Modelos;
 
@@ -23,6 +24,18 @@ namespace GerenciadorDeSenhas.Servicos
 
         private readonly IServicoCriptografia _criptografia;
         private readonly string _pastaAnexos;
+        private readonly List<string> _avisos = new();
+
+        // Serializa a checagem-e-escrita do limite total do cofre: sem isto, duas
+        // chamadas concorrentes a AdicionarAsync (dois anexos grandes soltados quase
+        // juntos) podiam ambas passar da checagem de TamanhoTotalAtual() antes de
+        // qualquer uma escrever, ultrapassando os 100MB.
+        private readonly SemaphoreSlim _travaEscrita = new(1, 1);
+
+        // Falhas ao apagar o arquivo cifrado de um anexo (bloqueado por antivírus,
+        // permissão negada) — a referência já foi removida do cofre mesmo assim, mas
+        // fica registrado aqui em vez de simplesmente desaparecer sem rastro nenhum.
+        public IReadOnlyList<string> UltimosAvisos => _avisos;
 
         public ServicoAnexos(IServicoCriptografia criptografia, string? pastaApp = null)
         {
@@ -55,21 +68,29 @@ namespace GerenciadorDeSenhas.Servicos
             if (conteudo.Length > TamanhoMaximoPorAnexo)
                 throw new LimiteAnexoExcedidoException("Attachment.Error.FileTooLarge", TamanhoMaximoPorAnexo / 1024 / 1024);
 
-            if (senha.Anexos.Count >= QuantidadeMaximaPorCredencial)
-                throw new LimiteAnexoExcedidoException("Attachment.Error.MaxPerCredential", QuantidadeMaximaPorCredencial);
+            await _travaEscrita.WaitAsync();
+            try
+            {
+                if (senha.Anexos.Count >= QuantidadeMaximaPorCredencial)
+                    throw new LimiteAnexoExcedidoException("Attachment.Error.MaxPerCredential", QuantidadeMaximaPorCredencial);
 
-            if (TamanhoTotalAtual() + conteudo.Length > TamanhoMaximoTotalCofre)
-                throw new LimiteAnexoExcedidoException("Attachment.Error.VaultLimit", TamanhoMaximoTotalCofre / 1024 / 1024);
+                if (TamanhoTotalAtual() + conteudo.Length > TamanhoMaximoTotalCofre)
+                    throw new LimiteAnexoExcedidoException("Attachment.Error.VaultLimit", TamanhoMaximoTotalCofre / 1024 / 1024);
 
-            if (!Directory.Exists(_pastaAnexos))
-                Directory.CreateDirectory(_pastaAnexos);
+                if (!Directory.Exists(_pastaAnexos))
+                    Directory.CreateDirectory(_pastaAnexos);
 
-            var anexo = new AnexoSenha { NomeArquivo = nomeArquivo.Trim(), TamanhoBytes = conteudo.Length };
-            var cifrado = _criptografia.CriptografarBytes(conteudo);
-            await EscritaAtomica.EscreverBytesAsync(CaminhoArquivo(anexo.Id), cifrado);
+                var anexo = new AnexoSenha { NomeArquivo = nomeArquivo.Trim(), TamanhoBytes = conteudo.Length };
+                var cifrado = _criptografia.CriptografarBytes(conteudo);
+                await EscritaAtomica.EscreverBytesAsync(CaminhoArquivo(anexo.Id), cifrado);
 
-            senha.Anexos.Add(anexo);
-            return anexo;
+                senha.Anexos.Add(anexo);
+                return anexo;
+            }
+            finally
+            {
+                _travaEscrita.Release();
+            }
         }
 
         public async Task<byte[]> LerAsync(AnexoSenha anexo)
@@ -104,16 +125,42 @@ namespace GerenciadorDeSenhas.Servicos
         {
             if (senha == null) throw new ArgumentNullException(nameof(senha));
 
+            _avisos.Clear();
             senha.Anexos.RemoveAll(a => a.Id == anexoId);
-            try { File.Delete(CaminhoArquivo(anexoId)); } catch { }
+            try { File.Delete(CaminhoArquivo(anexoId)); }
+            catch (Exception ex) { _avisos.Add($"Não foi possível apagar o arquivo cifrado do anexo {anexoId}: {ex.Message}"); }
         }
 
         public void RemoverTodos(Senha senha)
         {
             if (senha == null) throw new ArgumentNullException(nameof(senha));
 
+            _avisos.Clear();
+            RemoverTodosSemLimparAvisos(senha);
+        }
+
+        // Sobrecarga em lote pra quem precisa remover os anexos de várias credenciais
+        // como uma operação só (ex.: esvaziar a lixeira inteira) — limpa _avisos uma
+        // única vez no início e acumula os avisos de todos os itens processados. Sem
+        // isto, chamar RemoverTodos(Senha) num loop externo perdia os avisos de cada
+        // item anterior a cada nova chamada (só o último item processado sobrevivia),
+        // já que RemoverTodos(Senha) limpa _avisos a cada chamada.
+        public void RemoverTodos(IEnumerable<Senha> senhas)
+        {
+            if (senhas == null) throw new ArgumentNullException(nameof(senhas));
+
+            _avisos.Clear();
+            foreach (var senha in senhas)
+                RemoverTodosSemLimparAvisos(senha);
+        }
+
+        private void RemoverTodosSemLimparAvisos(Senha senha)
+        {
             foreach (var anexo in senha.Anexos)
-                try { File.Delete(CaminhoArquivo(anexo.Id)); } catch { }
+            {
+                try { File.Delete(CaminhoArquivo(anexo.Id)); }
+                catch (Exception ex) { _avisos.Add($"Não foi possível apagar o arquivo cifrado do anexo {anexo.Id}: {ex.Message}"); }
+            }
 
             senha.Anexos.Clear();
         }

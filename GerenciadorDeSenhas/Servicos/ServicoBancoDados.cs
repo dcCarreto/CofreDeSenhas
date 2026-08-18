@@ -166,10 +166,16 @@ namespace GerenciadorDeSenhas.Servicos
                     pendentes.Add(Convert.ToInt64(leitor[0]));
             }
 
+            var resolvidosAgora = new HashSet<long>();
             foreach (var id in pendentes)
             {
                 await using var cmd = con.CreateCommand();
-                cmd.CommandText = $"UPDATE {NomeTabela} SET {ColunaGuidId} = @guid WHERE id = @id";
+                // WHERE ... AND guid_id IS NULL: guarda otimista contra a corrida de
+                // dois dispositivos preenchendo o mesmo banco legado (sem guid_id) ao
+                // mesmo tempo — se outro já escreveu primeiro nesta linha, esta UPDATE
+                // vira no-op em vez de sobrescrever o guid_id que o outro dispositivo
+                // já assumiu como definitivo, o que invalidaria a reconciliação dele.
+                cmd.CommandText = $"UPDATE {NomeTabela} SET {ColunaGuidId} = @guid WHERE id = @id AND {ColunaGuidId} IS NULL";
 
                 var guidParam = cmd.CreateParameter();
                 guidParam.ParameterName = "@guid";
@@ -181,10 +187,12 @@ namespace GerenciadorDeSenhas.Servicos
                 idParam.Value = id;
                 cmd.Parameters.Add(idParam);
 
-                await cmd.ExecuteNonQueryAsync();
+                var linhasAfetadas = await cmd.ExecuteNonQueryAsync();
+                if (linhasAfetadas > 0)
+                    resolvidosAgora.Add(id);
             }
 
-            return pendentes.ToHashSet();
+            return resolvidosAgora;
         }
 
         public async Task<bool> TabelaAuthExisteAsync(ConexaoBanco cfg)
@@ -216,6 +224,9 @@ namespace GerenciadorDeSenhas.Servicos
 
         public async Task<AuthBanco?> LerAuthAsync(ConexaoBanco cfg)
         {
+            if (!await TabelaAuthExisteAsync(cfg))
+                return null;
+
             await using var con = await AbrirConexaoAsync(cfg);
 
             await using var cmd = con.CreateCommand();
@@ -235,10 +246,9 @@ namespace GerenciadorDeSenhas.Servicos
                     Convert.ToInt32(leitor[4]),
                     Convert.ToInt32(leitor[5]));
             }
-            catch (DbException)
+            catch (DbException ex)
             {
-                // Tabela ainda não existe neste banco.
-                return null;
+                throw new ErroLocalizavel("Db.Error.SchemaFailed", ex);
             }
         }
 
@@ -261,13 +271,47 @@ namespace GerenciadorDeSenhas.Servicos
             {
                 await cmd.ExecuteNonQueryAsync();
             }
-            catch (DbException)
+            catch (DbException ex) when (ViolacaoDeChaveDuplicada(ex))
             {
-                // Outro dispositivo publicou a linha id=1 entre a checagem de
-                // existência da tabela e este INSERT — a linha já está lá, que é
-                // exatamente o estado desejado.
+                // A linha id=1 já existe — outro dispositivo publicou primeiro, ou este
+                // é o mesmo dispositivo republicando após trocar a senha mestra (o único
+                // jeito de propagar salt/verificador/kdf novos para quem tenta "Restaurar
+                // de um banco de dados" depois). Nos dois casos, o dado mais recente é o
+                // que deve prevalecer — UPDATE em vez de descartar silenciosamente.
+                await using var atualizar = con.CreateCommand();
+                atualizar.CommandText = $@"UPDATE {NomeTabelaAuth}
+                    SET salt = @salt, verificador = @verificador, kdf = @kdf, custo = @custo, memoria_kb = @memoriaKb, paralelismo = @paralelismo
+                    WHERE id = 1";
+                AdicionarParametro(atualizar, "@salt", Convert.ToBase64String(dados.Salt));
+                AdicionarParametro(atualizar, "@verificador", Convert.ToBase64String(dados.Verificador));
+                AdicionarParametro(atualizar, "@kdf", dados.Kdf);
+                AdicionarParametro(atualizar, "@custo", dados.Custo);
+                AdicionarParametro(atualizar, "@memoriaKb", dados.MemoriaKb);
+                AdicionarParametro(atualizar, "@paralelismo", dados.Paralelismo);
+
+                try
+                {
+                    await atualizar.ExecuteNonQueryAsync();
+                }
+                catch (DbException exAtualizar)
+                {
+                    throw new ErroLocalizavel("Db.Error.SchemaFailed", exAtualizar);
+                }
+            }
+            catch (DbException ex)
+            {
+                throw new ErroLocalizavel("Db.Error.SchemaFailed", ex);
             }
         }
+
+        private static bool ViolacaoDeChaveDuplicada(DbException ex) => ex switch
+        {
+            Npgsql.PostgresException pg => pg.SqlState == "23505",
+            Microsoft.Data.SqlClient.SqlException sql => sql.Number is 2627 or 2601,
+            MySqlConnector.MySqlException my => my.Number == 1062,
+            Microsoft.Data.Sqlite.SqliteException lite => lite.SqliteExtendedErrorCode == 1555 || lite.SqliteErrorCode == 19,
+            _ => false
+        };
 
         private static void AdicionarParametro(DbCommand cmd, string nome, object valor)
         {

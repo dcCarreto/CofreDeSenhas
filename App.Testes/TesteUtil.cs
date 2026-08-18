@@ -8,11 +8,42 @@ namespace App.Testes
 {
     internal static class TesteUtil
     {
+        private static readonly List<string> _pastasCriadas = new();
+        private static bool _limpezaRegistrada;
+
         public static string CriarPastaTemporaria()
         {
             var pasta = Path.Combine(Path.GetTempPath(), "CofreDeSenhasTestes", Guid.NewGuid().ToString("N"));
             Directory.CreateDirectory(pasta);
+
+            // Nenhum teste chama uma contraparte "Apagar" pra essas pastas (diferente
+            // de PastaTemporariaTeste em GerenciadorDeSenhas.Testes) — sem isto, elas
+            // acumulam indefinidamente em %TEMP%\CofreDeSenhasTestes a cada execução.
+            // Registrar a limpeza aqui, uma vez por processo, cobre todo mundo que já
+            // chama este método sem precisar tocar em cada teste.
+            lock (_pastasCriadas)
+            {
+                _pastasCriadas.Add(pasta);
+                if (!_limpezaRegistrada)
+                {
+                    _limpezaRegistrada = true;
+                    AppDomain.CurrentDomain.ProcessExit += (_, _) => LimparPastasCriadas();
+                }
+            }
+
             return pasta;
+        }
+
+        private static void LimparPastasCriadas()
+        {
+            List<string> pastas;
+            lock (_pastasCriadas)
+                pastas = new List<string>(_pastasCriadas);
+
+            foreach (var pasta in pastas)
+            {
+                try { if (Directory.Exists(pasta)) Directory.Delete(pasta, recursive: true); } catch { }
+            }
         }
 
         public static T Encontrar<T>(this Window janela, string nome) where T : Control =>

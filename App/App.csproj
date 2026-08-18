@@ -23,6 +23,11 @@
     <NoWarn>$(NoWarn);AVLN3001</NoWarn>
   </PropertyGroup>
 
+  <!-- Habilita o código exclusivo do Windows Hello (#if WINDOWS) só na TFM -windows -->
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-windows10.0.19041.0'">
+    <DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
     <AvaloniaResource Include="Ativos\**" />
   </ItemGroup>

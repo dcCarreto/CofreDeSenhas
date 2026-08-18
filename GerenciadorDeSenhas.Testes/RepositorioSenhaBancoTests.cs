@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using GerenciadorDeSenhas.Modelos;
 using GerenciadorDeSenhas.Repositorios;
 using GerenciadorDeSenhas.Servicos;
+using Microsoft.Data.Sqlite;
 using Xunit;
 
 namespace GerenciadorDeSenhas.Testes;
@@ -42,6 +43,97 @@ public class RepositorioSenhaBancoTests : IDisposable
         await repo.AdicionarAsync(NovaSenha("gmail.com", "user@gmail.com", "segredo"));
 
         Assert.Single(await repo.ListarTodosAsync());
+    }
+
+    [Fact]
+    public async Task Atualizar_PreservaEstadoDeLixeiraEntreInstancias()
+    {
+        var repo = new RepositorioSenhaBanco(_cfg);
+        var senha = NovaSenha("gmail.com", "user@gmail.com", "segredo");
+        await repo.AdicionarAsync(senha);
+
+        senha.NaLixeira = true;
+        senha.DataExclusao = DateTime.UtcNow;
+        await repo.AtualizarAsync(senha);
+
+        var outro = new RepositorioSenhaBanco(_cfg);
+        var carregada = (await outro.ListarTudoAsync()).Single();
+
+        Assert.True(carregada.NaLixeira);
+        Assert.NotNull(carregada.DataExclusao);
+    }
+
+    [Fact]
+    public async Task Remover_AtualizaDataAtualizacaoEntreInstancias()
+    {
+        var repo = new RepositorioSenhaBanco(_cfg);
+        var senha = NovaSenha("gmail.com", "user@gmail.com", "segredo");
+        await repo.AdicionarAsync(senha);
+        var dataOriginal = senha.DataAtualizacao;
+
+        await Task.Delay(50);
+        await repo.RemoverAsync(senha.Id);
+
+        var outro = new RepositorioSenhaBanco(_cfg);
+        var carregada = (await outro.ListarLixeiraAsync()).Single();
+
+        Assert.True(carregada.DataAtualizacao > dataOriginal);
+    }
+
+    [Fact]
+    public async Task Remover_QuandoEscritaNoBancoFalha_NaoDeixaCacheEmMemoriaDivergente()
+    {
+        var repo = new RepositorioSenhaBanco(_cfg);
+        var senha = NovaSenha("gmail.com", "user@gmail.com", "segredo");
+        await repo.AdicionarAsync(senha);
+
+        // Derruba a tabela por baixo do repositório já carregado, forçando o
+        // UPDATE de RemoverAsync a falhar depois que o cache já teria sido mutado.
+        await using (var con = _bd.CriarConexao(_cfg))
+        {
+            await con.OpenAsync();
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = $"DROP TABLE {ServicoBancoDados.NomeTabela}";
+            await cmd.ExecuteNonQueryAsync();
+        }
+
+        await Assert.ThrowsAnyAsync<Exception>(() => repo.RemoverAsync(senha.Id));
+
+        var cache = (await repo.ListarTodosAsync()).Single();
+        Assert.False(cache.NaLixeira);
+        Assert.Null(cache.DataExclusao);
+    }
+
+    [Fact]
+    public async Task Restaurar_AtualizaDataAtualizacaoEntreInstancias()
+    {
+        var repo = new RepositorioSenhaBanco(_cfg);
+        var senha = NovaSenha("gmail.com", "user@gmail.com", "segredo");
+        await repo.AdicionarAsync(senha);
+        await repo.RemoverAsync(senha.Id);
+
+        var dataAposRemover = (await new RepositorioSenhaBanco(_cfg).ListarLixeiraAsync()).Single().DataAtualizacao;
+
+        await Task.Delay(50);
+        await repo.RestaurarAsync(senha.Id);
+
+        var outro = new RepositorioSenhaBanco(_cfg);
+        var carregada = (await outro.ListarTodosAsync()).Single();
+
+        Assert.True(carregada.DataAtualizacao > dataAposRemover);
+    }
+
+    [Fact]
+    public async Task Adicionar_ComIdJaExistente_LancaExcecao()
+    {
+        var repo = new RepositorioSenhaBanco(_cfg);
+        var senha = NovaSenha("gmail.com", "user@gmail.com", "segredo");
+        await repo.AdicionarAsync(senha);
+
+        var duplicada = NovaSenha("outro.com", "u2@outro.com", "s2");
+        duplicada.Id = senha.Id;
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => repo.AdicionarAsync(duplicada));
     }
 
     [Fact]
@@ -241,7 +333,7 @@ public class RepositorioSenhaBancoTests : IDisposable
     }
 
     [Fact]
-    public async Task RemoverDefinitivamente_ApagaALinhaDoBanco()
+    public async Task RemoverDefinitivamente_EsvaziaALinhaEmVezDeApagarParaNaoRessuscitarEmOutroDispositivo()
     {
         var repo = new RepositorioSenhaBanco(_cfg);
         var senha = NovaSenha("site.com", "u", "s");
@@ -251,7 +343,11 @@ public class RepositorioSenhaBancoTests : IDisposable
         await repo.RemoverDefinitivamenteAsync(senha.Id);
 
         Assert.Empty(await repo.ListarLixeiraAsync());
-        Assert.Equal(0, await ContarLinhas("SELECT COUNT(*) FROM CofreDeSenhas"));
+        // A linha continua existindo (não é DELETE) — só assim outro dispositivo que
+        // ainda tem a cópia local desse GUID reconhece a exclusão na sincronização em
+        // vez de reinserir a credencial como se fosse nova.
+        Assert.Equal(1, await ContarLinhas("SELECT COUNT(*) FROM CofreDeSenhas"));
+        Assert.Equal(1, await ContarLinhas("SELECT COUNT(*) FROM CofreDeSenhas WHERE dominio = '' AND usuario = '' AND senha = '' AND excluido = 1"));
     }
 
     [Fact]
@@ -266,12 +362,14 @@ public class RepositorioSenhaBancoTests : IDisposable
 
         await repo.EsvaziarLixeiraAsync();
 
-        Assert.Equal(1, await ContarLinhas("SELECT COUNT(*) FROM CofreDeSenhas"));
+        Assert.Equal(2, await ContarLinhas("SELECT COUNT(*) FROM CofreDeSenhas"));
+        Assert.Equal(1, await ContarLinhas("SELECT COUNT(*) FROM CofreDeSenhas WHERE dominio = 'ativa.com'"));
+        Assert.Equal(1, await ContarLinhas("SELECT COUNT(*) FROM CofreDeSenhas WHERE dominio = '' AND excluido = 1"));
         Assert.Single(await repo.ListarTodosAsync());
     }
 
     [Fact]
-    public async Task ExcluirDefinitivamentePorChave_ApagaALinhaDoBanco()
+    public async Task ExcluirDefinitivamentePorChave_EsvaziaALinhaEmVezDeApagar()
     {
         var repo = new RepositorioSenhaBanco(_cfg);
         var senha = NovaSenha("x.com", "u", "p");
@@ -279,7 +377,11 @@ public class RepositorioSenhaBancoTests : IDisposable
 
         await repo.ExcluirDefinitivamentePorChaveAsync(senha.Id);
 
-        Assert.Equal(0, await ContarLinhas("SELECT COUNT(*) FROM CofreDeSenhas"));
+        Assert.Equal(1, await ContarLinhas("SELECT COUNT(*) FROM CofreDeSenhas"));
+        Assert.Equal(1, await ContarLinhas("SELECT COUNT(*) FROM CofreDeSenhas WHERE dominio = '' AND usuario = '' AND senha = '' AND excluido = 1"));
+
+        var outro = new RepositorioSenhaBanco(_cfg);
+        Assert.Empty(await outro.ListarTodosAsync());
     }
 
     [Fact]
@@ -463,6 +565,7 @@ public class RepositorioSenhaBancoTests : IDisposable
 
         Assert.Single(todas);
         Assert.Empty(outro.ViolacoesIntegridade);
+        Assert.Empty(outro.SemVerificacaoIntegridade);
     }
 
     [Fact]
@@ -498,19 +601,40 @@ public class RepositorioSenhaBancoTests : IDisposable
     }
 
     [Fact]
-    public async Task CarregarSeNecessario_ComLinhaLegadaSemHmac_NaoRejeita()
+    public async Task CarregarSeNecessario_ComLinhaLegadaSemHmac_NaoRejeitaMasSinalizaComoNaoVerificada()
     {
         var repoLegado = new RepositorioSenhaBanco(_cfg);
-        await repoLegado.AdicionarAsync(NovaSenha("legado.com", "u", "s"));
+        var senha = NovaSenha("legado.com", "u", "s");
+        await repoLegado.AdicionarAsync(senha);
 
         var comIntegridade = new RepositorioSenhaBanco(_cfg, _criptografia);
         var todas = await comIntegridade.ListarTodosAsync();
 
         Assert.Single(todas);
         Assert.Empty(comIntegridade.ViolacoesIntegridade);
+        var naoVerificada = Assert.Single(comIntegridade.SemVerificacaoIntegridade);
+        Assert.Equal(senha.Id, naoVerificada.Id);
     }
 
-    private async Task AlterarColunaDiretamenteAsync(string coluna, string valor)
+    [Fact]
+    public async Task CarregarSeNecessario_ComHmacRemovidoAposGravado_NaoAceitaEmSilencio()
+    {
+        var repo = new RepositorioSenhaBanco(_cfg, _criptografia);
+        var senha = NovaSenha("hmac-apagado.com", "u", "s");
+        await repo.AdicionarAsync(senha);
+
+        await AlterarColunaDiretamenteAsync("hmac", null);
+
+        var outro = new RepositorioSenhaBanco(_cfg, _criptografia);
+        var todas = await outro.ListarTodosAsync();
+
+        Assert.Single(todas);
+        Assert.Empty(outro.ViolacoesIntegridade);
+        var naoVerificada = Assert.Single(outro.SemVerificacaoIntegridade);
+        Assert.Equal(senha.Id, naoVerificada.Id);
+    }
+
+    private async Task AlterarColunaDiretamenteAsync(string coluna, string? valor)
     {
         await using var con = _bd.CriarConexao(_cfg);
         await con.OpenAsync();
@@ -518,7 +642,7 @@ public class RepositorioSenhaBancoTests : IDisposable
         cmd.CommandText = $"UPDATE CofreDeSenhas SET {coluna} = @valor";
         var p = cmd.CreateParameter();
         p.ParameterName = "@valor";
-        p.Value = valor;
+        p.Value = (object?)valor ?? DBNull.Value;
         cmd.Parameters.Add(p);
         await cmd.ExecuteNonQueryAsync();
     }
@@ -534,6 +658,15 @@ public class RepositorioSenhaBancoTests : IDisposable
 
     public void Dispose()
     {
+        // Microsoft.Data.Sqlite mantém conexões em pool por padrão — sem isto, um
+        // handle de uma operação anterior no mesmo arquivo pode continuar aberto
+        // mesmo depois do "await using" que a criou, fazendo o Delete falhar
+        // silenciosamente (engolido pelo catch) e o arquivo .db ficar pra trás.
+        // ClearPool (não ClearAllPools) escopa a limpeza só à connection string deste
+        // arquivo — a versão "All" derruba conexões de outras classes de teste rodando
+        // em paralelo no mesmo processo.
+        using (var con = new SqliteConnection(new SqliteConnectionStringBuilder { DataSource = _arquivo }.ConnectionString))
+            SqliteConnection.ClearPool(con);
         try { if (File.Exists(_arquivo)) File.Delete(_arquivo); } catch { }
     }
 }

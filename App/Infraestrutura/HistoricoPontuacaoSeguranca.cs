@@ -30,8 +30,9 @@ namespace CofreDeSenhas
                 var pontos = JsonSerializer.Deserialize<List<PontoPontuacaoSeguranca>>(File.ReadAllText(Caminho));
                 return pontos ?? new List<PontoPontuacaoSeguranca>();
             }
-            catch
+            catch (Exception ex)
             {
+                Diagnostico.Registrar(ex, "HistoricoPontuacaoSeguranca.Carregar");
                 return new List<PontoPontuacaoSeguranca>();
             }
         }
@@ -59,8 +60,9 @@ namespace CofreDeSenhas
 
                 File.WriteAllText(caminho, JsonSerializer.Serialize(pontos));
             }
-            catch
+            catch (Exception ex)
             {
+                Diagnostico.Registrar(ex, "HistoricoPontuacaoSeguranca.RegistrarPontuacao");
             }
         }
     }

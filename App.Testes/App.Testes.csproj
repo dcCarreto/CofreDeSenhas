@@ -8,6 +8,11 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
+  <!-- Espelha o gate de App.csproj: só assim o teste consegue exercitar o ramo #if WINDOWS -->
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-windows10.0.19041.0'">
+    <DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="6.0.4" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />

@@ -6,6 +6,50 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+### Adicionado
+- Restaurar o cofre local a partir de um banco de dados conectado: ao abrir o
+  app pela primeira vez num dispositivo novo, é possível digitar a senha
+  mestra já em uso e trazer o cofre inteiro de um banco de dados externo já
+  compartilhado, em vez de recriar as credenciais do zero.
+
+### Segurança
+- A tabela de autenticação publicada num banco de dados externo (necessária
+  para viabilizar a restauração acima) carrega o mesmo salt e verificador da
+  senha mestra que antes só existiam localmente — ver
+  [THREAT_MODEL.md](THREAT_MODEL.md) para o que isso muda no modelo de
+  ameaça.
+- Trocar a senha mestra passa a recifrar e republicar o cofre inteiro no
+  banco de dados conectado e na pasta de sincronização, não só localmente —
+  antes disso, o próprio dispositivo que trocou a senha ficava sem
+  conseguir sincronizar de volta com a chave antiga ainda esperada do outro
+  lado, e "Restaurar de um banco de dados" num dispositivo novo ficava
+  travado no salt/verificador antigos para sempre.
+- Excluir definitivamente um item agora grava uma "tumba" também na
+  sincronização por pasta (só existia para banco de dados) — sem isso, o
+  próximo ciclo de sincronização podia trazer de volta um item que tinha
+  acabado de ser apagado para sempre.
+- Uma linha vinda do banco de dados com HMAC de integridade inválido
+  (possível adulteração) deixa de ser sobrescrita automaticamente pela
+  sincronização antes que o conflito apareça para alguém revisar.
+
+### Corrigido
+- Corrida entre conectar e desconectar de um banco de dados podia
+  reconectar o cofre por cima de uma escolha mais recente do usuário.
+- Uma falha temporária de rede na primeira sincronização com o banco
+  travava o cofre inteiro (nem listar, nem editar funcionavam) até
+  reiniciar o app.
+- Sincronização automática em segundo plano podia sobrescrever
+  silenciosamente uma edição em andamento no painel de detalhes; agora
+  pede confirmação quando o item mudou por fora enquanto o painel estava
+  aberto.
+- Diversos pontos de reentrância por clique duplo/repetido (login,
+  bloqueio do cofre, painel de detalhes, ativar/desativar sincronização)
+  que podiam disparar a mesma ação mais de uma vez ou derrubar um ciclo de
+  sincronização em andamento.
+- Limpeza dos backups da troca de senha mestra deixou de depender de
+  heurística e passou a usar um marcador de conclusão, evitando reverter
+  por engano uma troca que já tinha dado certo.
+
 ## [2.2.0] - 2026-07-29
 
 Leva adiante uma auditoria de código completa: bugs críticos, altos, médios

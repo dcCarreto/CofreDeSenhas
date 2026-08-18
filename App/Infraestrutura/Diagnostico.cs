@@ -21,13 +21,24 @@ namespace CofreDeSenhas
                     File.Delete(caminho);
 
                 var prefixoContexto = contexto != null ? $" [{contexto}]" : "";
-                var causa = ex.InnerException != null ? $" | Causa: {ex.InnerException.GetType().Name}: {ex.InnerException.Message}" : "";
-                var linha = $"{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}Z{prefixoContexto} {ex.GetType().Name}: {ex.Message}{causa}{Environment.NewLine}";
+                var causa = ex.InnerException != null ? $" | Causa: {ex.InnerException.GetType().Name}: {Redigir(ex.InnerException.Message)}" : "";
+                var linha = $"{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}Z{prefixoContexto} {ex.GetType().Name}: {Redigir(ex.Message)}{causa}{Environment.NewLine}";
                 File.AppendAllText(caminho, linha);
             }
             catch
             {
             }
+        }
+
+        // Evita gravar o caminho do perfil do Windows (que carrega o nome de usuário
+        // do SO) quando ele aparece em mensagens de exceção de I/O, ex.: "Could not
+        // find file 'C:\Users\alguem\AppData\...\senhas.json.enc'".
+        internal static string Redigir(string mensagem)
+        {
+            var perfil = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            return string.IsNullOrEmpty(perfil)
+                ? mensagem
+                : mensagem.Replace(perfil, "%USERPROFILE%", StringComparison.OrdinalIgnoreCase);
         }
     }
 }

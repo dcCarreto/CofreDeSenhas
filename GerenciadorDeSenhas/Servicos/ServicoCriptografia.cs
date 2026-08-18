@@ -12,6 +12,7 @@ namespace GerenciadorDeSenhas.Servicos
 
         private readonly byte[] _chave;
         private byte[]? _chaveHmac;
+        private bool _zerada;
 
         public ServicoCriptografia(byte[] chave)
         {
@@ -28,6 +29,8 @@ namespace GerenciadorDeSenhas.Servicos
 
         public byte[] CriptografarBytes(byte[] plaintext)
         {
+            VerificarNaoZerada();
+
             var iv = new byte[TamanhoNonce];
             using (var rng = RandomNumberGenerator.Create())
                 rng.GetBytes(iv);
@@ -50,6 +53,11 @@ namespace GerenciadorDeSenhas.Servicos
 
         public byte[] DescriptografarBytes(byte[] data)
         {
+            VerificarNaoZerada();
+
+            if (data.Length < TamanhoNonce + TamanhoTag)
+                throw new CryptographicException("Dados cifrados corrompidos ou incompletos.");
+
             var iv = new byte[TamanhoNonce];
             var encrypted = new byte[data.Length - iv.Length - TamanhoTag];
             var tag = new byte[TamanhoTag];
@@ -69,12 +77,16 @@ namespace GerenciadorDeSenhas.Servicos
 
         public string CalcularHmacIntegridade(string dados)
         {
+            VerificarNaoZerada();
+
             using var hmac = new HMACSHA256(ChaveHmac());
             return Convert.ToBase64String(hmac.ComputeHash(Encoding.UTF8.GetBytes(dados)));
         }
 
         public bool VerificarHmacIntegridade(string dados, string? hmacBase64)
         {
+            VerificarNaoZerada();
+
             if (string.IsNullOrEmpty(hmacBase64))
                 return false;
 
@@ -101,6 +113,13 @@ namespace GerenciadorDeSenhas.Servicos
             CryptographicOperations.ZeroMemory(_chave);
             if (_chaveHmac != null)
                 CryptographicOperations.ZeroMemory(_chaveHmac);
+            _zerada = true;
+        }
+
+        private void VerificarNaoZerada()
+        {
+            if (_zerada)
+                throw new ObjectDisposedException(nameof(ServicoCriptografia), "A chave já foi zerada e não pode mais ser usada.");
         }
     }
 }

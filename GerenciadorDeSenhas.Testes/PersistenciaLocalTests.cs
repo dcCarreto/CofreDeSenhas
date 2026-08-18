@@ -21,14 +21,29 @@ public class PersistenciaLocalTests : IDisposable
         using (var rng = RandomNumberGenerator.Create())
             rng.GetBytes(_chave);
 
-        _pastaTemp = Path.Combine(Path.GetTempPath(), "GS_Persist_" + Guid.NewGuid().ToString("N"));
-        Directory.CreateDirectory(_pastaTemp);
+        _pastaTemp = PastaTemporariaTeste.Criar("GS_Persist");
 
         _criptografia = new ServicoCriptografia(_chave);
         _persistencia = new PersistenciaLocal(_criptografia, _pastaTemp);
 
         _caminhoSenhas = Path.Combine(_pastaTemp, "senhas.json.enc");
         _pastaBackup = Path.Combine(_pastaTemp, "backups");
+    }
+
+    [Fact]
+    public async Task SalvarSenhasAsync_QuandoDestinoNaoPodeSerEscrito_LancaErroLocalizavel()
+    {
+        // Ocupa o caminho do arquivo do cofre com um diretório, forçando o passo
+        // final da escrita atômica (File.Move) a falhar com IOException.
+        Directory.CreateDirectory(_caminhoSenhas);
+
+        var ex = await Assert.ThrowsAsync<ErroLocalizavel>(
+            () => _persistencia.SalvarSenhasAsync(new List<Senha>(), _chave));
+
+        Assert.Equal("Vault.Error.IOFailure", ex.Chave);
+
+        // A escrita atômica não pode deixar arquivo .tmp órfão pra trás quando falha.
+        Assert.Empty(Directory.GetFiles(_pastaTemp, "*.tmp"));
     }
 
     [Fact]
@@ -273,15 +288,5 @@ public class PersistenciaLocalTests : IDisposable
         Assert.Equal("Vault.Error.WrongKeyOrCorrupt", ex.Chave);
     }
 
-    public void Dispose()
-    {
-        try
-        {
-            if (Directory.Exists(_pastaTemp))
-                Directory.Delete(_pastaTemp, recursive: true);
-        }
-        catch
-        {
-        }
-    }
+    public void Dispose() => PastaTemporariaTeste.Apagar(_pastaTemp);
 }

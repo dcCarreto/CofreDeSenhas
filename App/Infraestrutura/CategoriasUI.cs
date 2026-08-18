@@ -1,4 +1,5 @@
 using GerenciadorDeSenhas.Modelos;
+using GerenciadorDeSenhas.Servicos;
 
 namespace CofreDeSenhas
 {
@@ -34,6 +35,29 @@ namespace CofreDeSenhas
             }
 
             return false;
+        }
+
+        public static (Categoria Categoria, List<string> Etiquetas) LerCategoriaEEtiquetas(int categoriaIndex, string? etiquetasTexto)
+        {
+            var categoria = (Categoria)Math.Max(0, categoriaIndex);
+            var etiquetas = Etiquetas.Analisar(etiquetasTexto);
+
+            if (categoria == Categoria.Other)
+            {
+                // "!= Categoria.Other" evita reclassificar pra a categoria que já era —
+                // sem isto, uma etiqueta cujo texto batesse com a tradução de "Other"
+                // em qualquer idioma suportado (mesmo não sendo o idioma atual) era
+                // engolida silenciosamente, já que TentarObterCategoria varre todos os
+                // idiomas de uma vez.
+                var indice = etiquetas.FindIndex(e => TentarObterCategoria(e, out var candidata) && candidata != Categoria.Other);
+                if (indice >= 0)
+                {
+                    TentarObterCategoria(etiquetas[indice], out categoria);
+                    etiquetas.RemoveAt(indice);
+                }
+            }
+
+            return (categoria, etiquetas);
         }
     }
 }

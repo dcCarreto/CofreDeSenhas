@@ -2,7 +2,6 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:c="using:CofreDeSenhas.Controles"
         x:Class="CofreDeSenhas.Janelas.JanelaConfirmarSenhaMestra"
-        Title="Confirmar senha mestra"
         Width="440"
         SizeToContent="Height"
         CanResize="False"
@@ -65,7 +64,7 @@
                    Margin="0,0,0,12" />
 
         <TextBlock Text="{DynamicResource Login.MasterPassword}" Classes="legenda" />
-        <TextBox Name="TxtSenha" Classes="campo revealPasswordButton" PasswordChar="●" Margin="0,0,0,8"
+        <TextBox Name="TxtSenha" Classes="campo" PasswordChar="●" Margin="0,0,0,8"
                  AutomationProperties.Name="{DynamicResource Login.MasterPassword}"
                  AutomationProperties.HelpText="{DynamicResource A11y.PasswordFieldHelp}"
                  AutomationProperties.IsRequiredForForm="True" />

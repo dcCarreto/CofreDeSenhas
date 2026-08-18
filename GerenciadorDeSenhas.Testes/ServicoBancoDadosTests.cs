@@ -1,6 +1,7 @@
 using GerenciadorDeSenhas.Excecoes;
 using GerenciadorDeSenhas.Modelos;
 using GerenciadorDeSenhas.Servicos;
+using Microsoft.Data.Sqlite;
 using Xunit;
 
 namespace GerenciadorDeSenhas.Testes;
@@ -291,6 +292,122 @@ public class ServicoBancoDadosTests : IDisposable
         Assert.Single(segundaChamada);
     }
 
+    [Fact]
+    public async Task GarantirColunas_DuasChamadasConcorrentesNaMesmaLinha_ConvergemParaUmUnicoGuid()
+    {
+        await _bd.CriarTabelaAsync(_sqlite);
+        await _bd.GarantirColunasAsync(_sqlite);
+
+        long idInserido;
+        await using (var con = _bd.CriarConexao(_sqlite))
+        {
+            await con.OpenAsync();
+            await using (var cmd = con.CreateCommand())
+            {
+                cmd.CommandText = "INSERT INTO CofreDeSenhas (usuario, senha, dominio) VALUES ('u', 's', 'corrida.com')";
+                await cmd.ExecuteNonQueryAsync();
+            }
+            await using var busca = con.CreateCommand();
+            busca.CommandText = "SELECT last_insert_rowid()";
+            idInserido = Convert.ToInt64(await busca.ExecuteScalarAsync());
+        }
+
+        // Simula dois dispositivos chamando GarantirColunasAsync quase ao mesmo tempo
+        // sobre a mesma linha legada (guid_id NULL) — sem a guarda otimista (WHERE
+        // guid_id IS NULL na UPDATE), os dois gerariam um GUID diferente e o UPDATE
+        // que rodasse por último decidiria a identidade "oficial" sem o outro
+        // dispositivo saber, invalidando a reconciliação que ele já tinha feito.
+        var bdA = new ServicoBancoDados();
+        var bdB = new ServicoBancoDados();
+        var resultados = await Task.WhenAll(bdA.GarantirColunasAsync(_sqlite), bdB.GarantirColunasAsync(_sqlite));
+
+        // Só uma das duas chamadas pode ter de fato atribuído o guid — a outra vira
+        // no-op e não deve reivindicar a linha no próprio retorno.
+        var totalAssumido = resultados.Count(r => r.Contains(idInserido));
+        Assert.Equal(1, totalAssumido);
+
+        await using var conFinal = _bd.CriarConexao(_sqlite);
+        await conFinal.OpenAsync();
+        await using var cmdFinal = conFinal.CreateCommand();
+        cmdFinal.CommandText = "SELECT guid_id FROM CofreDeSenhas WHERE id = @id";
+        var p = cmdFinal.CreateParameter();
+        p.ParameterName = "@id";
+        p.Value = idInserido;
+        cmdFinal.Parameters.Add(p);
+        var guidTexto = (string?)await cmdFinal.ExecuteScalarAsync();
+
+        Assert.NotNull(guidTexto);
+        Assert.True(Guid.TryParse(guidTexto, out _));
+    }
+
+    [Fact]
+    public async Task PublicarAuth_SemTabelaCriada_LancaErroLocalizavelEmVezDeEngolirSilenciosamente()
+    {
+        var dados = new AuthBanco(new byte[16], new byte[32], 1, 3, 65536, 1);
+
+        var ex = await Assert.ThrowsAsync<ErroLocalizavel>(() => _bd.PublicarAuthAsync(_sqlite, dados));
+
+        Assert.Equal("Db.Error.SchemaFailed", ex.Chave);
+        Assert.NotNull(ex.InnerException);
+    }
+
+    [Fact]
+    public async Task LerAuth_SemTabelaCriada_RetornaNulo()
+    {
+        Assert.False(await _bd.TabelaAuthExisteAsync(_sqlite));
+
+        Assert.Null(await _bd.LerAuthAsync(_sqlite));
+    }
+
+    [Fact]
+    public async Task LerAuth_ComTabelaExistenteMasEsquemaQuebrado_LancaErroLocalizavelEmVezDeTratarComoTabelaInexistente()
+    {
+        await _bd.CriarTabelaAuthAsync(_sqlite);
+
+        // Tabela existe (TabelaAuthExisteAsync deve continuar enxergando isso), mas
+        // uma coluna que o SELECT espera foi perdida — simula corrupção de esquema
+        // real, diferente de "tabela nunca chegou a ser criada".
+        await using (var con = _bd.CriarConexao(_sqlite))
+        {
+            await con.OpenAsync();
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = $"ALTER TABLE {ServicoBancoDados.NomeTabelaAuth} DROP COLUMN salt";
+            await cmd.ExecuteNonQueryAsync();
+        }
+
+        Assert.True(await _bd.TabelaAuthExisteAsync(_sqlite));
+
+        var ex = await Assert.ThrowsAsync<ErroLocalizavel>(() => _bd.LerAuthAsync(_sqlite));
+
+        Assert.Equal("Db.Error.SchemaFailed", ex.Chave);
+        Assert.NotNull(ex.InnerException);
+    }
+
+    [Fact]
+    public async Task PublicarAuth_ChamadoDuasVezes_SegundaChamadaAtualizaOPrimeiroPublicado()
+    {
+        // Antes, a segunda chamada era ignorada silenciosamente (assumia que só podia
+        // ser outro dispositivo publicando a mesma coisa). Isso é o que impedia trocar
+        // a senha mestra de propagar salt/verificador novos para um banco já conectado
+        // — a linha id=1 nunca mudava depois da primeira publicação. Precisa ser um
+        // upsert de verdade: o dado mais recente prevalece.
+        await _bd.CriarTabelaAuthAsync(_sqlite);
+
+        var primeiro = new AuthBanco(Enumerable.Repeat((byte)1, 16).ToArray(), new byte[32], 1, 3, 65536, 1);
+        var segundo = new AuthBanco(Enumerable.Repeat((byte)9, 16).ToArray(), Enumerable.Repeat((byte)7, 32).ToArray(), 0, 5, 131072, 2);
+
+        await _bd.PublicarAuthAsync(_sqlite, primeiro);
+        await _bd.PublicarAuthAsync(_sqlite, segundo);
+
+        var lido = await _bd.LerAuthAsync(_sqlite);
+        Assert.Equal(segundo.Salt, lido!.Salt);
+        Assert.Equal(segundo.Verificador, lido.Verificador);
+        Assert.Equal(segundo.Kdf, lido.Kdf);
+        Assert.Equal(segundo.Custo, lido.Custo);
+        Assert.Equal(segundo.MemoriaKb, lido.MemoriaKb);
+        Assert.Equal(segundo.Paralelismo, lido.Paralelismo);
+    }
+
     private async Task<bool> ColunaExiste(string coluna)
     {
         await using var con = _bd.CriarConexao(_sqlite);
@@ -302,6 +419,10 @@ public class ServicoBancoDadosTests : IDisposable
 
     public void Dispose()
     {
+        // ClearPool escopado à connection string deste arquivo — ClearAllPools
+        // derrubaria conexões de outras classes de teste rodando em paralelo.
+        using (var con = new SqliteConnection(new SqliteConnectionStringBuilder { DataSource = _arquivo }.ConnectionString))
+            SqliteConnection.ClearPool(con);
         try { if (File.Exists(_arquivo)) File.Delete(_arquivo); } catch { }
     }
 }

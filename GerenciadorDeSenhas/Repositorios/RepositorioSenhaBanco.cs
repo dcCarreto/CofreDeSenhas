@@ -23,6 +23,13 @@ namespace GerenciadorDeSenhas.Repositorios
         private readonly List<(Guid Id, string NomeServico)> _violacoesIntegridade = new();
         public IReadOnlyList<(Guid Id, string NomeServico)> ViolacoesIntegridade => _violacoesIntegridade;
 
+        // Linhas sem hmac gravado: tanto dado legado de antes deste recurso existir
+        // quanto uma linha adulterada cujo hmac foi apagado por quem não tem a chave
+        // pra recalculá-lo direito — as duas situações são indistinguíveis pelos dados
+        // isolados, então não dá pra tratar como "confiável" nem descartar em silêncio.
+        private readonly List<(Guid Id, string NomeServico)> _semVerificacaoIntegridade = new();
+        public IReadOnlyList<(Guid Id, string NomeServico)> SemVerificacaoIntegridade => _semVerificacaoIntegridade;
+
         public RepositorioSenhaBanco(ConexaoBanco cfg, IServicoCriptografia? integridade = null)
         {
             _cfg = cfg ?? throw new ArgumentNullException(nameof(cfg));
@@ -45,6 +52,7 @@ namespace GerenciadorDeSenhas.Repositorios
             _senhas = new List<Senha>();
             _mapa.Clear();
             _violacoesIntegridade.Clear();
+            _semVerificacaoIntegridade.Clear();
 
             await using var con = await AbrirConexaoAsync();
 
@@ -81,11 +89,17 @@ namespace GerenciadorDeSenhas.Repositorios
                 };
 
                 var hmacArmazenado = leitor[ServicoBancoDados.ColunaHmac] as string;
-                if (_integridade != null && !string.IsNullOrEmpty(hmacArmazenado) &&
-                    !_integridade.VerificarHmacIntegridade(CalcularAssinatura(senha), hmacArmazenado))
+                if (_integridade != null)
                 {
-                    _violacoesIntegridade.Add((senha.Id, senha.NomeServico));
-                    continue;
+                    if (string.IsNullOrEmpty(hmacArmazenado))
+                    {
+                        _semVerificacaoIntegridade.Add((senha.Id, senha.NomeServico));
+                    }
+                    else if (!_integridade.VerificarHmacIntegridade(CalcularAssinatura(senha), hmacArmazenado))
+                    {
+                        _violacoesIntegridade.Add((senha.Id, senha.NomeServico));
+                        continue;
+                    }
                 }
 
                 _senhas.Add(senha);
@@ -99,6 +113,9 @@ namespace GerenciadorDeSenhas.Repositorios
         {
             if (senha == null) throw new ArgumentNullException(nameof(senha));
             await CarregarSeNecessarioAsync();
+
+            if (_mapa.ContainsKey(senha.Id))
+                throw new InvalidOperationException($"Senha com ID {senha.Id} já existe");
 
             await using var con = await AbrirConexaoAsync();
 
@@ -150,7 +167,7 @@ namespace GerenciadorDeSenhas.Repositorios
             await using var con = await AbrirConexaoAsync();
 
             await using var cmd = con.CreateCommand();
-            cmd.CommandText = $"UPDATE {_tabela} SET usuario = @usuario, senha = @senha, dominio = @dominio, descricao = @descricao, totp = @totp, etiquetas = @etiquetas, codigos_recuperacao = @codigos_recuperacao, data_atualizacao = @data_atualizacao, url = @url, categoria = @categoria, tipo = @tipo, campos_extras = @campos_extras, historico = @historico, favorito = @favorito, fixado = @fixado, hmac = @hmac WHERE id = @id";
+            cmd.CommandText = $"UPDATE {_tabela} SET usuario = @usuario, senha = @senha, dominio = @dominio, descricao = @descricao, totp = @totp, etiquetas = @etiquetas, codigos_recuperacao = @codigos_recuperacao, excluido = @excluido, data_exclusao = @data_exclusao, data_criacao = @data_criacao, data_atualizacao = @data_atualizacao, url = @url, categoria = @categoria, tipo = @tipo, campos_extras = @campos_extras, historico = @historico, favorito = @favorito, fixado = @fixado, hmac = @hmac WHERE id = @id";
             PreencherCampos(cmd, senha);
             Parametro(cmd, "@id", id);
             await cmd.ExecuteNonQueryAsync();
@@ -172,6 +189,9 @@ namespace GerenciadorDeSenhas.Repositorios
                 existente.Historico = senha.Historico;
                 existente.Favorito = senha.Favorito;
                 existente.Fixado = senha.Fixado;
+                existente.NaLixeira = senha.NaLixeira;
+                existente.DataExclusao = senha.DataExclusao;
+                existente.DataCriacao = senha.DataCriacao;
                 existente.DataAtualizacao = senha.DataAtualizacao;
             }
         }
@@ -179,9 +199,6 @@ namespace GerenciadorDeSenhas.Repositorios
         public async Task RegistrarCopiaAsync(Guid id, TipoCampoCopiado campo)
         {
             await CarregarSeNecessarioAsync();
-
-            if (!_mapa.TryGetValue(id, out var idBanco))
-                throw new InvalidOperationException($"Senha com ID {id} não encontrada");
 
             var coluna = campo switch
             {
@@ -192,12 +209,16 @@ namespace GerenciadorDeSenhas.Repositorios
             };
             var agora = DateTime.UtcNow;
 
+            // Usa guid_id em vez do id interno via _mapa: um registro gravado nesta
+            // mesma sessão por GravarPorChaveAsync/GravarVariasPorChaveAsync (caminho
+            // usado por RepositorioSenhaEspelhado) nunca passa por CarregarSeNecessarioAsync
+            // de novo, então _mapa não teria a entrada mesmo com a linha já existindo.
             await using var con = await AbrirConexaoAsync();
 
             await using var cmd = con.CreateCommand();
-            cmd.CommandText = $"UPDATE {_tabela} SET {coluna} = @valor WHERE id = @id";
+            cmd.CommandText = $"UPDATE {_tabela} SET {coluna} = @valor WHERE guid_id = @guid_id";
             Parametro(cmd, "@valor", SerializarData(agora));
-            Parametro(cmd, "@id", idBanco);
+            Parametro(cmd, "@guid_id", id.ToString());
             await cmd.ExecuteNonQueryAsync();
 
             var senha = _senhas.FirstOrDefault(s => s.Id == id);
@@ -222,21 +243,40 @@ namespace GerenciadorDeSenhas.Repositorios
             var agora = DateTime.UtcNow;
 
             var senha = _senhas.FirstOrDefault(s => s.Id == id);
+            var naLixeiraAnterior = senha?.NaLixeira;
+            var dataExclusaoAnterior = senha?.DataExclusao;
+            var dataAtualizacaoAnterior = senha?.DataAtualizacao;
+
             if (senha != null)
             {
                 senha.NaLixeira = true;
                 senha.DataExclusao = agora;
+                senha.DataAtualizacao = agora;
             }
 
-            await using var con = await AbrirConexaoAsync();
+            try
+            {
+                await using var con = await AbrirConexaoAsync();
 
-            await using var cmd = con.CreateCommand();
-            cmd.CommandText = $"UPDATE {_tabela} SET excluido = @excluido, data_exclusao = @data_exclusao, hmac = @hmac WHERE id = @id";
-            Parametro(cmd, "@excluido", true);
-            Parametro(cmd, "@data_exclusao", SerializarData(agora));
-            Parametro(cmd, "@hmac", CalcularHmacOuNull(senha));
-            Parametro(cmd, "@id", idBanco);
-            await cmd.ExecuteNonQueryAsync();
+                await using var cmd = con.CreateCommand();
+                cmd.CommandText = $"UPDATE {_tabela} SET excluido = @excluido, data_exclusao = @data_exclusao, data_atualizacao = @data_atualizacao, hmac = @hmac WHERE id = @id";
+                Parametro(cmd, "@excluido", true);
+                Parametro(cmd, "@data_exclusao", SerializarData(agora));
+                Parametro(cmd, "@data_atualizacao", SerializarData(agora));
+                Parametro(cmd, "@hmac", CalcularHmacOuNull(senha));
+                Parametro(cmd, "@id", idBanco);
+                await cmd.ExecuteNonQueryAsync();
+            }
+            catch
+            {
+                if (senha != null)
+                {
+                    senha.NaLixeira = naLixeiraAnterior!.Value;
+                    senha.DataExclusao = dataExclusaoAnterior;
+                    senha.DataAtualizacao = dataAtualizacaoAnterior!.Value;
+                }
+                throw;
+            }
         }
 
         public async Task MoverTudoParaLixeiraAsync()
@@ -279,37 +319,54 @@ namespace GerenciadorDeSenhas.Repositorios
             if (!_mapa.TryGetValue(id, out var idBanco))
                 throw new InvalidOperationException($"Senha com ID {id} não encontrada");
 
+            var agora = DateTime.UtcNow;
+
             var senha = _senhas.FirstOrDefault(s => s.Id == id);
+            var naLixeiraAnterior = senha?.NaLixeira;
+            var dataExclusaoAnterior = senha?.DataExclusao;
+            var dataAtualizacaoAnterior = senha?.DataAtualizacao;
+
             if (senha != null)
             {
                 senha.NaLixeira = false;
                 senha.DataExclusao = null;
+                senha.DataAtualizacao = agora;
             }
 
-            await using var con = await AbrirConexaoAsync();
+            try
+            {
+                await using var con = await AbrirConexaoAsync();
 
-            await using var cmd = con.CreateCommand();
-            cmd.CommandText = $"UPDATE {_tabela} SET excluido = @excluido, data_exclusao = @data_exclusao, hmac = @hmac WHERE id = @id";
-            Parametro(cmd, "@excluido", false);
-            Parametro(cmd, "@data_exclusao", null);
-            Parametro(cmd, "@hmac", CalcularHmacOuNull(senha));
-            Parametro(cmd, "@id", idBanco);
-            await cmd.ExecuteNonQueryAsync();
+                await using var cmd = con.CreateCommand();
+                cmd.CommandText = $"UPDATE {_tabela} SET excluido = @excluido, data_exclusao = @data_exclusao, data_atualizacao = @data_atualizacao, hmac = @hmac WHERE id = @id";
+                Parametro(cmd, "@excluido", false);
+                Parametro(cmd, "@data_exclusao", null);
+                Parametro(cmd, "@data_atualizacao", SerializarData(agora));
+                Parametro(cmd, "@hmac", CalcularHmacOuNull(senha));
+                Parametro(cmd, "@id", idBanco);
+                await cmd.ExecuteNonQueryAsync();
+            }
+            catch
+            {
+                if (senha != null)
+                {
+                    senha.NaLixeira = naLixeiraAnterior!.Value;
+                    senha.DataExclusao = dataExclusaoAnterior;
+                    senha.DataAtualizacao = dataAtualizacaoAnterior!.Value;
+                }
+                throw;
+            }
         }
 
         public async Task RemoverDefinitivamenteAsync(Guid id)
         {
             await CarregarSeNecessarioAsync();
 
-            if (!_mapa.TryGetValue(id, out var idBanco))
+            if (!_mapa.ContainsKey(id))
                 return;
 
             await using var con = await AbrirConexaoAsync();
-
-            await using var cmd = con.CreateCommand();
-            cmd.CommandText = $"DELETE FROM {_tabela} WHERE id = @id";
-            Parametro(cmd, "@id", idBanco);
-            await cmd.ExecuteNonQueryAsync();
+            await EsvaziarLinhaAsync(con, id);
 
             _senhas.RemoveAll(s => s.Id == id);
             _mapa.Remove(id);
@@ -352,13 +409,22 @@ namespace GerenciadorDeSenhas.Repositorios
             if (senha != null)
                 senha.Id = guidNovo;
 
-            await using var con = await AbrirConexaoAsync();
-            await using var cmd = con.CreateCommand();
-            cmd.CommandText = $"UPDATE {_tabela} SET guid_id = @guid_id, hmac = @hmac WHERE id = @id";
-            Parametro(cmd, "@guid_id", guidNovo.ToString());
-            Parametro(cmd, "@hmac", CalcularHmacOuNull(senha));
-            Parametro(cmd, "@id", idInterno);
-            await cmd.ExecuteNonQueryAsync();
+            try
+            {
+                await using var con = await AbrirConexaoAsync();
+                await using var cmd = con.CreateCommand();
+                cmd.CommandText = $"UPDATE {_tabela} SET guid_id = @guid_id, hmac = @hmac WHERE id = @id";
+                Parametro(cmd, "@guid_id", guidNovo.ToString());
+                Parametro(cmd, "@hmac", CalcularHmacOuNull(senha));
+                Parametro(cmd, "@id", idInterno);
+                await cmd.ExecuteNonQueryAsync();
+            }
+            catch
+            {
+                if (senha != null)
+                    senha.Id = guidAntigo;
+                throw;
+            }
 
             _mapa.Remove(guidAntigo);
             _mapa[guidNovo] = idInterno;
@@ -371,6 +437,10 @@ namespace GerenciadorDeSenhas.Repositorios
             var agora = DateTime.UtcNow;
 
             var senha = _senhas.FirstOrDefault(s => s.Id == guidId);
+            var naLixeiraAnterior = senha?.NaLixeira;
+            var dataExclusaoAnterior = senha?.DataExclusao;
+            var dataAtualizacaoAnterior = senha?.DataAtualizacao;
+
             if (senha != null)
             {
                 senha.NaLixeira = true;
@@ -378,24 +448,79 @@ namespace GerenciadorDeSenhas.Repositorios
                 senha.DataAtualizacao = agora;
             }
 
-            await using var con = await AbrirConexaoAsync();
+            try
+            {
+                await using var con = await AbrirConexaoAsync();
 
-            await using var cmd = con.CreateCommand();
-            cmd.CommandText = $"UPDATE {_tabela} SET excluido = @excluido, data_exclusao = @data_exclusao, data_atualizacao = @data_atualizacao, hmac = @hmac WHERE guid_id = @guid_id";
-            Parametro(cmd, "@excluido", true);
-            Parametro(cmd, "@data_exclusao", SerializarData(agora));
-            Parametro(cmd, "@data_atualizacao", SerializarData(agora));
-            Parametro(cmd, "@hmac", CalcularHmacOuNull(senha));
-            Parametro(cmd, "@guid_id", guidId.ToString());
-            await cmd.ExecuteNonQueryAsync();
+                await using var cmd = con.CreateCommand();
+                cmd.CommandText = $"UPDATE {_tabela} SET excluido = @excluido, data_exclusao = @data_exclusao, data_atualizacao = @data_atualizacao, hmac = @hmac WHERE guid_id = @guid_id";
+                Parametro(cmd, "@excluido", true);
+                Parametro(cmd, "@data_exclusao", SerializarData(agora));
+                Parametro(cmd, "@data_atualizacao", SerializarData(agora));
+                Parametro(cmd, "@hmac", CalcularHmacOuNull(senha));
+                Parametro(cmd, "@guid_id", guidId.ToString());
+                await cmd.ExecuteNonQueryAsync();
+            }
+            catch
+            {
+                if (senha != null)
+                {
+                    senha.NaLixeira = naLixeiraAnterior!.Value;
+                    senha.DataExclusao = dataExclusaoAnterior;
+                    senha.DataAtualizacao = dataAtualizacaoAnterior!.Value;
+                }
+                throw;
+            }
         }
 
         public async Task ExcluirDefinitivamentePorChaveAsync(Guid guidId)
         {
             await using var con = await AbrirConexaoAsync();
+            await EsvaziarLinhaAsync(con, guidId);
+        }
+
+        // DELETE físico permitiria que outro dispositivo ainda com a cópia local desse
+        // GUID "ressuscitasse" a credencial na próxima sincronização (a linha some do
+        // banco, mas MesclarSenhas vê o item só-local como novo e o reinsere). Em vez
+        // disso, a linha vira uma tumba: todo o conteúdo sensível é apagado, mas o
+        // guid_id e o excluido=true permanecem, com data_atualizacao recente o
+        // suficiente pra vencer a mesclagem contra a cópia local desatualizada.
+        private async Task EsvaziarLinhaAsync(DbConnection con, Guid guidId)
+        {
+            var agora = DateTime.UtcNow;
+            var tumba = new Senha
+            {
+                Id = guidId,
+                NomeServico = "",
+                Usuario = "",
+                SenhaHash = "",
+                NaLixeira = true,
+                DataExclusao = agora,
+                DataCriacao = agora,
+                DataAtualizacao = agora
+            };
 
             await using var cmd = con.CreateCommand();
-            cmd.CommandText = $"DELETE FROM {_tabela} WHERE guid_id = @guid_id";
+            cmd.CommandText = $"UPDATE {_tabela} SET usuario = @usuario, senha = @senha, dominio = @dominio, descricao = @descricao, totp = @totp, etiquetas = @etiquetas, codigos_recuperacao = @codigos_recuperacao, excluido = @excluido, data_exclusao = @data_exclusao, data_criacao = @data_criacao, data_atualizacao = @data_atualizacao, url = @url, categoria = @categoria, tipo = @tipo, campos_extras = @campos_extras, historico = @historico, favorito = @favorito, fixado = @fixado, hmac = @hmac WHERE guid_id = @guid_id";
+            Parametro(cmd, "@usuario", tumba.Usuario);
+            Parametro(cmd, "@senha", tumba.SenhaHash);
+            Parametro(cmd, "@dominio", tumba.NomeServico);
+            Parametro(cmd, "@descricao", null);
+            Parametro(cmd, "@totp", null);
+            Parametro(cmd, "@etiquetas", null);
+            Parametro(cmd, "@codigos_recuperacao", null);
+            Parametro(cmd, "@excluido", true);
+            Parametro(cmd, "@data_exclusao", SerializarData(tumba.DataExclusao));
+            Parametro(cmd, "@data_criacao", SerializarData(tumba.DataCriacao));
+            Parametro(cmd, "@data_atualizacao", SerializarData(tumba.DataAtualizacao));
+            Parametro(cmd, "@url", null);
+            Parametro(cmd, "@categoria", SerializarInt(0));
+            Parametro(cmd, "@tipo", SerializarInt(0));
+            Parametro(cmd, "@campos_extras", null);
+            Parametro(cmd, "@historico", null);
+            Parametro(cmd, "@favorito", SerializarBool(false));
+            Parametro(cmd, "@fixado", SerializarBool(false));
+            Parametro(cmd, "@hmac", CalcularHmacOuNull(tumba));
             Parametro(cmd, "@guid_id", guidId.ToString());
             await cmd.ExecuteNonQueryAsync();
         }
@@ -455,6 +580,7 @@ namespace GerenciadorDeSenhas.Repositorios
             Parametro(cmd, "@etiquetas", SerializarEtiquetas(senha.Etiquetas));
             Parametro(cmd, "@codigos_recuperacao", SerializarCodigosRecuperacao(senha.CodigosRecuperacao));
             Parametro(cmd, "@excluido", senha.NaLixeira);
+            Parametro(cmd, "@data_exclusao", SerializarData(senha.DataExclusao));
             Parametro(cmd, "@data_criacao", SerializarData(senha.DataCriacao));
             Parametro(cmd, "@data_atualizacao", SerializarData(senha.DataAtualizacao));
             Parametro(cmd, "@url", senha.Url);

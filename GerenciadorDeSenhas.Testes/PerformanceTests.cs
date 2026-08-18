@@ -10,20 +10,22 @@ namespace GerenciadorDeSenhas.Testes;
 
 public class PerformanceTests : IDisposable
 {
+    // Margens largas de propósito: isto é um alarme contra regressão grosseira
+    // (ex.: um loop O(n²) introduzido por acidente), não um SLA de performance.
+    // Não apertar com base em uma máquina rápida específica.
+    private const long LimiteCriarMs = 15000;
+    private const long LimiteCarregarMs = 5000;
+
     private readonly string _pasta;
     private readonly ITestOutputHelper _saida;
 
     public PerformanceTests(ITestOutputHelper saida)
     {
         _saida = saida;
-        _pasta = Path.Combine(Path.GetTempPath(), "GS_Perf_" + Guid.NewGuid().ToString("N"));
-        Directory.CreateDirectory(_pasta);
+        _pasta = PastaTemporariaTeste.Criar("GS_Perf");
     }
 
-    public void Dispose()
-    {
-        try { if (Directory.Exists(_pasta)) Directory.Delete(_pasta, recursive: true); } catch { }
-    }
+    public void Dispose() => PastaTemporariaTeste.Apagar(_pasta);
 
     private (IServicoSenha servico, IServicoCriptografia cripto) MontarCofre(byte[] chave)
     {
@@ -61,7 +63,7 @@ public class PerformanceTests : IDisposable
         var indice = int.Parse(amostra.NomeServico.Replace("Servico", ""));
         Assert.Equal($"Senha@Forte{indice}", cripto2.Descriptografar(amostra.SenhaHash));
 
-        Assert.True(swCriar.ElapsedMilliseconds < 15000, $"Criação/persistência demorou {swCriar.ElapsedMilliseconds} ms");
-        Assert.True(swCarregar.ElapsedMilliseconds < 5000, $"Recarga demorou {swCarregar.ElapsedMilliseconds} ms");
+        Assert.True(swCriar.ElapsedMilliseconds < LimiteCriarMs, $"Criação/persistência demorou {swCriar.ElapsedMilliseconds} ms");
+        Assert.True(swCarregar.ElapsedMilliseconds < LimiteCarregarMs, $"Recarga demorou {swCarregar.ElapsedMilliseconds} ms");
     }
 }

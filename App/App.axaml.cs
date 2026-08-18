@@ -13,6 +13,7 @@ namespace CofreDeSenhas
         private TrayIcon? _bandeja;
         private NativeMenuItem? _itemAbrirBandeja;
         private NativeMenuItem? _itemSairBandeja;
+        private bool _bloqueando;
 
         public override void Initialize() => AvaloniaXamlLoader.Load(this);
 
@@ -79,32 +80,46 @@ namespace CofreDeSenhas
                 var chaveSincronizacao = ServicoSincronizacao.DerivarChave(senhaMestraPlano, salt, kdf, iteracoes, memoriaKb, paralelismo);
                 return new ServicoSincronizacao(new ServicoCriptografia(chaveSincronizacao));
             }
-            catch
+            catch (Exception ex)
             {
+                Diagnostico.Registrar(ex, "PrepararSincronizacao");
                 return null;
             }
         }
 
         private async void Bloquear(IClassicDesktopStyleApplicationLifetime desktop)
         {
-            if (desktop.MainWindow is not JanelaPrincipal cofre)
+            // desktop.MainWindow só é reatribuído perto do fim (depois do await de
+            // limpeza do clipboard) — sem essa trava, acionar bloquear duas vezes
+            // rápido (atalho + botão, ou duplo clique) passa os dois pelo guard acima
+            // enquanto MainWindow ainda é o cofre antigo, criando duas JanelaLogin
+            // simultâneas.
+            if (_bloqueando || desktop.MainWindow is not JanelaPrincipal cofre)
                 return;
 
-            var clipboard = TopLevel.GetTopLevel(cofre)?.Clipboard;
-            if (clipboard != null)
+            _bloqueando = true;
+            try
             {
-                try { await clipboard.SetTextAsync(string.Empty); } catch { }
+                var clipboard = TopLevel.GetTopLevel(cofre)?.Clipboard;
+                if (clipboard != null)
+                {
+                    try { await clipboard.SetTextAsync(string.Empty); } catch { }
+                }
+
+                foreach (var janela in desktop.Windows.ToArray())
+                    if (janela != cofre)
+                        janela.Close();
+
+                var login = new JanelaLogin(new AutenticacaoMestra(),
+                    (chave, senhaPlano) => AbrirCofre(desktop, chave, senhaPlano));
+                desktop.MainWindow = login;
+                login.Show();
+                cofre.Close();
             }
-
-            foreach (var janela in desktop.Windows.ToArray())
-                if (janela != cofre)
-                    janela.Close();
-
-            var login = new JanelaLogin(new AutenticacaoMestra(),
-                (chave, senhaPlano) => AbrirCofre(desktop, chave, senhaPlano));
-            desktop.MainWindow = login;
-            login.Show();
-            cofre.Close();
+            finally
+            {
+                _bloqueando = false;
+            }
         }
 
         private void ConfigurarBandeja(IClassicDesktopStyleApplicationLifetime desktop)
@@ -142,8 +157,9 @@ namespace CofreDeSenhas
                 AtualizarTextosBandeja();
                 _bandeja.IsVisible = true;
             }
-            catch
+            catch (Exception ex)
             {
+                Diagnostico.Registrar(ex, "ConfigurarBandeja");
                 _bandeja = null;
             }
         }

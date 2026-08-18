@@ -20,8 +20,7 @@ public class RepositorioSenhaTests : IDisposable
         using (var rng = RandomNumberGenerator.Create())
             rng.GetBytes(_chave);
 
-        _pastaTemp = Path.Combine(Path.GetTempPath(), "GS_Repo_" + Guid.NewGuid().ToString("N"));
-        Directory.CreateDirectory(_pastaTemp);
+        _pastaTemp = PastaTemporariaTeste.Criar("GS_Repo");
 
         _criptografia = new ServicoCriptografia(_chave);
         _persistencia = new PersistenciaLocal(_criptografia, _pastaTemp);
@@ -351,15 +350,5 @@ public class RepositorioSenhaTests : IDisposable
         Assert.Equal("Ativa", restantes[0].NomeServico);
     }
 
-    public void Dispose()
-    {
-        try
-        {
-            if (Directory.Exists(_pastaTemp))
-                Directory.Delete(_pastaTemp, recursive: true);
-        }
-        catch
-        {
-        }
-    }
+    public void Dispose() => PastaTemporariaTeste.Apagar(_pastaTemp);
 }

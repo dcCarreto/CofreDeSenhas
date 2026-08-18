@@ -156,7 +156,19 @@ namespace CofreDeSenhas.Janelas
             if (contagem > 0)
             {
                 AutomationProperties.SetName(borda, Idioma.Formatar("SecurityReport.RowAutomationName", rotulo, contagem));
-                borda.PointerReleased += (s, e) => SelecionarCategoria(categoria);
+                borda.PointerReleased += (s, e) =>
+                {
+                    if (e.InitialPressMouseButton == MouseButton.Left)
+                        SelecionarCategoria(categoria);
+                };
+                borda.KeyDown += (s, e) =>
+                {
+                    if (e.Key is not (Key.Enter or Key.Space))
+                        return;
+
+                    SelecionarCategoria(categoria);
+                    e.Handled = true;
+                };
             }
 
             return borda;

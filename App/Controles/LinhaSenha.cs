@@ -20,8 +20,8 @@ namespace CofreDeSenhas.Controles
         private readonly Senha _senha;
         private readonly Func<Senha, string?> _obterSenhaPlain;
         private readonly Func<Senha, string?> _obterTotpPlain;
-        private readonly Action<Senha> _onFavoritar;
-        private readonly Action<Senha> _onFixar;
+        private readonly Func<Senha, Task> _onFavoritar;
+        private readonly Func<Senha, Task> _onFixar;
         private readonly Action<Senha> _onEditar;
         private readonly Func<Senha, Task> _onExcluir;
         private readonly Func<Senha, string, Task> _onRenomearServico;
@@ -61,6 +61,8 @@ namespace CofreDeSenhas.Controles
         private Button _btnFixar = null!;
         private Button? _btnTotp;
         private DispatcherTimer? _timerFeedbackUsuario;
+        private DispatcherTimer? _timerFeedbackSenha;
+        private DispatcherTimer? _timerFeedbackTotp;
 
         private const string MascaraPrivacidade = "••••••••";
 
@@ -115,6 +117,9 @@ namespace CofreDeSenhas.Controles
             _revelada = false;
             _btnOlho.IsEnabled = !ativo;
 
+            if (ativo && _editandoServico)
+                CancelarEdicaoServico();
+
             RestaurarUsuarioOculto();
             AtualizarTextoServico();
             AtualizarTextoCategoria();
@@ -122,7 +127,7 @@ namespace CofreDeSenhas.Controles
         }
 
         public LinhaSenha(Senha senha, Func<Senha, string?> obterSenhaPlain,
-            Func<Senha, string?> obterTotpPlain, Action<Senha> onFavoritar, Action<Senha> onFixar, Action<Senha> onEditar,
+            Func<Senha, string?> obterTotpPlain, Func<Senha, Task> onFavoritar, Func<Senha, Task> onFixar, Action<Senha> onEditar,
             Func<Senha, Task> onExcluir, Func<Senha, string, Task> onRenomearServico,
             Func<Senha, TipoCampoCopiado, Task>? onRegistrarCopia = null)
         {
@@ -154,25 +159,37 @@ namespace CofreDeSenhas.Controles
             {
                 _pointerSobre = true;
                 AtualizarFundo();
-                if (_acoes != null) _acoes.Opacity = 1;
+                AtualizarOpacidadeAcoes();
             };
             PointerExited += (s, e) =>
             {
                 _pointerSobre = false;
                 AtualizarFundo();
-                if (_acoes != null) _acoes.Opacity = 0.55;
+                AtualizarOpacidadeAcoes();
             };
             PointerReleased += Linha_PointerReleased;
             GotFocus += (s, e) =>
             {
                 AtualizarFundo();
-                if (_acoes != null) _acoes.Opacity = 1;
+                AtualizarOpacidadeAcoes();
             };
             LostFocus += (s, e) =>
             {
                 AtualizarFundo();
-                if (_acoes != null) _acoes.Opacity = 0.55;
+                AtualizarOpacidadeAcoes();
             };
+            DetachedFromVisualTree += (s, e) =>
+            {
+                _timerFeedbackUsuario?.Stop();
+                _timerFeedbackSenha?.Stop();
+                _timerFeedbackTotp?.Stop();
+            };
+        }
+
+        private void AtualizarOpacidadeAcoes()
+        {
+            if (_acoes != null)
+                _acoes.Opacity = _pointerSobre || IsFocused ? 1 : 0.55;
         }
 
         private Grid MontarLayout()
@@ -199,7 +216,12 @@ namespace CofreDeSenhas.Controles
             ToolTip.SetTip(estrela, dicaEstrela);
             AutomationProperties.SetName(estrela, dicaEstrela);
             AutomationProperties.SetItemStatus(estrela, Idioma.Texto(_senha.Favorito ? "A11y.ToggleOn" : "A11y.ToggleOff"));
-            estrela.Click += (s, e) => _onFavoritar(_senha);
+            estrela.Click += async (s, e) =>
+            {
+                estrela.IsEnabled = false;
+                try { await _onFavoritar(_senha); }
+                finally { estrela.IsEnabled = true; }
+            };
             Grid.SetColumn(estrela, 0);
             _grid.Children.Add(estrela);
 
@@ -227,13 +249,16 @@ namespace CofreDeSenhas.Controles
                 if (e.Key is Key.Enter or Key.Space)
                 {
                     e.Handled = true;
-                    await CopiarUsuarioAsync();
+                    await CopiarCelulaUsuarioAsync();
                 }
             };
             _lblUsuario.PointerPressed += async (s, e) =>
             {
+                if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+                    return;
+
                 e.Handled = true;
-                await CopiarUsuarioAsync();
+                await CopiarCelulaUsuarioAsync();
             };
             Grid.SetColumn(_lblUsuario, 3);
             _grid.Children.Add(_lblUsuario);
@@ -257,7 +282,12 @@ namespace CofreDeSenhas.Controles
             var dicaFixar = Idioma.Texto(_senha.Fixado ? "Row.UnpinEntry" : "Row.PinEntry");
             ToolTip.SetTip(_btnFixar, dicaFixar);
             AutomationProperties.SetName(_btnFixar, dicaFixar);
-            _btnFixar.Click += (s, e) => _onFixar(_senha);
+            _btnFixar.Click += async (s, e) =>
+            {
+                _btnFixar.IsEnabled = false;
+                try { await _onFixar(_senha); }
+                finally { _btnFixar.IsEnabled = true; }
+            };
 
             var btnEditar = CriarBotaoAcaoImagem("IconeEditar", Idioma.Texto("Row.EditEntry"));
             btnEditar.Click += (s, e) => _onEditar(_senha);
@@ -918,7 +948,9 @@ namespace CofreDeSenhas.Controles
             DefinirIconeImagem(_btnOlho, "IconeOcultar");
             ToolTip.SetTip(_btnOlho, Idioma.Texto("Row.HidePassword"));
             AutomationProperties.SetName(_btnOlho, Idioma.Texto("Row.HidePassword"));
-            AutomationProperties.SetName(_lblUsuario, Idioma.Texto("A11y.PasswordVisible"));
+            ToolTip.SetTip(_lblUsuario, Idioma.Texto("Row.CopyPassword"));
+            AutomationProperties.SetName(_lblUsuario,
+                $"{Idioma.Texto("A11y.PasswordVisible")} — {Idioma.Texto("Row.CopyPassword")}");
         }
 
         private void RestaurarUsuarioOculto()
@@ -930,9 +962,12 @@ namespace CofreDeSenhas.Controles
             DefinirIconeImagem(_btnOlho, "IconeRevelar");
             ToolTip.SetTip(_btnOlho, Idioma.Texto("Row.RevealPassword"));
             AutomationProperties.SetName(_btnOlho, Idioma.Texto("Row.RevealPassword"));
+            ToolTip.SetTip(_lblUsuario, Idioma.Texto("Row.CopyUser"));
             var usuarioAcessivel = _modoPrivacidade ? MascaraPrivacidade : _senha.Usuario;
             AutomationProperties.SetName(_lblUsuario, $"{usuarioAcessivel} — {Idioma.Texto("Row.CopyUser")}");
         }
+
+        private Task CopiarCelulaUsuarioAsync() => _revelada ? CopiarAsync() : CopiarUsuarioAsync();
 
         private Task RegistrarCopiaSeHabilitadoAsync(TipoCampoCopiado campo) =>
             _onRegistrarCopia != null && Preferencias.RegistrarHistoricoUso
@@ -945,7 +980,9 @@ namespace CofreDeSenhas.Controles
             if (string.IsNullOrEmpty(plain)) return;
 
             var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
-            var vaiLimpar = await AreaTransferenciaFeedback.CopiarComAvisoAsync(clipboard, plain, this, Idioma.Texto("Row.CopyPassword"));
+            var (copiado, vaiLimpar) = await AreaTransferenciaFeedback.CopiarComAvisoAsync(clipboard, plain, this, Idioma.Texto("Row.CopyPassword"));
+            if (!copiado) return;
+
             await RegistrarCopiaSeHabilitadoAsync(TipoCampoCopiado.Senha);
 
             DefinirIconeImagem(_btnCopiar, "IconeCheck", Tema.Pincel(Tema.StrengthStrong));
@@ -957,8 +994,9 @@ namespace CofreDeSenhas.Controles
                 AutomationProperties.SetName(_btnCopiar, mensagem);
             }
 
-            var t = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
-            t.Tick += (s, e) =>
+            _timerFeedbackSenha?.Stop();
+            _timerFeedbackSenha = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+            _timerFeedbackSenha.Tick += (s, e) =>
             {
                 DefinirIconeImagem(_btnCopiar, "IconeCopiar");
                 if (vaiLimpar)
@@ -966,9 +1004,10 @@ namespace CofreDeSenhas.Controles
                     ToolTip.SetTip(_btnCopiar, Idioma.Texto("Row.CopyPassword"));
                     AutomationProperties.SetName(_btnCopiar, Idioma.Texto("Row.CopyPassword"));
                 }
-                t.Stop();
+                _timerFeedbackSenha?.Stop();
+                _timerFeedbackSenha = null;
             };
-            t.Start();
+            _timerFeedbackSenha.Start();
         }
 
         private async Task CopiarCodigoTotpAsync()
@@ -993,13 +1032,15 @@ namespace CofreDeSenhas.Controles
 
             DefinirIconeImagem(_btnTotp, "IconeCheck", Tema.Pincel(Tema.StrengthStrong));
             Acessibilidade.Anunciar(this, Idioma.Formatar("A11y.Copied", Idioma.Texto("Row.CopyTotp")));
-            var t = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
-            t.Tick += (s, e) =>
+            _timerFeedbackTotp?.Stop();
+            _timerFeedbackTotp = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+            _timerFeedbackTotp.Tick += (s, e) =>
             {
                 DefinirIconeImagem(_btnTotp, "IconeTotp");
-                t.Stop();
+                _timerFeedbackTotp?.Stop();
+                _timerFeedbackTotp = null;
             };
-            t.Start();
+            _timerFeedbackTotp.Start();
         }
 
         internal async Task CopiarUsuarioAsync()

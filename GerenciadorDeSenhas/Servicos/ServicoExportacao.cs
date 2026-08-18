@@ -66,7 +66,7 @@ namespace GerenciadorDeSenhas.Servicos
             };
 
             var conteudo = JsonSerializer.Serialize(envelope, new JsonSerializerOptions { WriteIndented = true });
-            await File.WriteAllTextAsync(caminhoArquivo, conteudo);
+            await EscritaAtomica.EscreverTextoAsync(caminhoArquivo, conteudo);
         }
 
         public async Task<List<SenhaExportada>> ImportarAsync(string caminhoArquivo, string senhaExportacao)
@@ -102,11 +102,22 @@ namespace GerenciadorDeSenhas.Servicos
                 throw new ErroLocalizavel("Export.Error.InvalidFile");
             }
 
-            var chave = string.Equals(envelope.Kdf, KdfArgon2id, StringComparison.OrdinalIgnoreCase)
-                ? DerivarChaveArgon2id(senhaExportacao, salt, envelope.Iteracoes,
-                    envelope.MemoriaKb ?? MemoriaKbAtual, envelope.Paralelismo ?? ParalelismoAtual)
-                : DerivarChavePbkdf2(senhaExportacao, salt,
-                    envelope.Iteracoes > 0 ? envelope.Iteracoes : IteracoesPbkdf2Legado);
+            byte[] chave;
+            try
+            {
+                chave = string.Equals(envelope.Kdf, KdfArgon2id, StringComparison.OrdinalIgnoreCase)
+                    ? DerivarChaveArgon2id(senhaExportacao, salt,
+                        envelope.Iteracoes > 0 ? envelope.Iteracoes : TempoCustoAtual,
+                        envelope.MemoriaKb is > 0 ? envelope.MemoriaKb.Value : MemoriaKbAtual,
+                        envelope.Paralelismo is > 0 ? envelope.Paralelismo.Value : ParalelismoAtual)
+                    : DerivarChavePbkdf2(senhaExportacao, salt,
+                        envelope.Iteracoes > 0 ? envelope.Iteracoes : IteracoesPbkdf2Legado);
+            }
+            catch
+            {
+                throw new ErroLocalizavel("Export.Error.InvalidFile");
+            }
+
             var textoBytes = new byte[cifrado.Length];
             try
             {

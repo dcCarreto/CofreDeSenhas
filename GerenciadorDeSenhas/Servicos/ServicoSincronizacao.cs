@@ -91,12 +91,35 @@ namespace GerenciadorDeSenhas.Servicos
                     return new List<SenhaExportada>();
 
                 var bytesPlain = _criptografia.DescriptografarBytes(Convert.FromBase64String(envelope.Dados));
-                return JsonSerializer.Deserialize<List<SenhaExportada>>(bytesPlain) ?? new List<SenhaExportada>();
+                var itens = JsonSerializer.Deserialize<List<SenhaExportada>>(bytesPlain) ?? new List<SenhaExportada>();
+                foreach (var item in itens)
+                    Sanitizar(item);
+                return itens;
             }
             catch
             {
                 return new List<SenhaExportada>();
             }
+        }
+
+        // System.Text.Json sobrescreve uma propriedade com null se a chave estiver
+        // presente no JSON com valor null, mesmo com um inicializador "= new()" no
+        // tipo — um sincronizacao.dat escrito por outra versão do app, ou corrompido,
+        // pode chegar assim. Sem isto, uma lista nula estoura mais adiante em
+        // MesclaSincronizacao (new List<T>(vencedora) com vencedora nula) ou em
+        // ServicoSenha.AplicarSincronizadoAsync (.Where sobre lista nula) — e como o
+        // arquivo remoto continua do jeito que está, todo sync futuro falharia do
+        // mesmo jeito.
+        private static void Sanitizar(SenhaExportada item)
+        {
+            item.NomeServico ??= "";
+            item.Usuario ??= "";
+            item.Senha ??= "";
+            item.Etiquetas ??= new();
+            item.CamposExtras ??= new();
+            item.Historico ??= new();
+            item.CodigosRecuperacao ??= new();
+            item.Anexos ??= new();
         }
 
         public async Task EscreverAsync(string caminhoArquivo, byte[] salt, string? kdf, int iteracoes,
@@ -122,7 +145,7 @@ namespace GerenciadorDeSenhas.Servicos
                 if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
                     Directory.CreateDirectory(dir);
 
-                await File.WriteAllTextAsync(caminhoArquivo, JsonSerializer.Serialize(envelope));
+                await EscritaAtomica.EscreverTextoAsync(caminhoArquivo, JsonSerializer.Serialize(envelope));
             }
             catch (Exception ex)
             {

@@ -22,6 +22,7 @@ namespace CofreDeSenhas.Janelas
 
         private BiometriaModo _modoBiometria = BiometriaModo.Desbloquear;
         private int _tentativas;
+        private DispatcherTimer? _timerBloqueioTentativas;
 
         public JanelaLogin(AutenticacaoMestra auth, Action<byte[], string?> aoAutenticar)
         {
@@ -64,6 +65,7 @@ namespace CofreDeSenhas.Janelas
             {
                 Idioma.Alterado -= IdiomaGlobal_Alterado;
                 Acessibilidade.Alterado -= Acessibilidade_Alterado;
+                _timerBloqueioTentativas?.Stop();
             };
 
             KeyDown += (s, e) =>
@@ -169,17 +171,41 @@ namespace CofreDeSenhas.Janelas
             if (!await AbrirDialogoAsync<bool>(dlgSenha))
                 return;
 
-            var senhaConfirmada = dlgSenha.SenhaConfirmada;
+            await RestaurarComChaveDerivadaAsync(cfg, auth, dlgSenha.SenhaConfirmada);
+        }
+
+        // internal só pra teste exercitar a restauração de fato (derivar chave,
+        // backup/rollback, gravar cofre local, gravar auth.dat) sem precisar dirigir
+        // os três diálogos encadeados que a precedem (seletor de banco, conexão,
+        // confirmação de senha mestra contra o verificador do banco) — ver
+        // App.Testes (InternalsVisibleTo).
+        internal async Task RestaurarComChaveDerivadaAsync(ConexaoBanco cfg, AuthBanco auth, string senhaConfirmada)
+        {
             var chave = AutenticacaoMestra.DerivarChaveDeParametros(
                 senhaConfirmada, auth.Salt, auth.Kdf, auth.Custo, auth.MemoriaKb, auth.Paralelismo);
+
+            // Mesmo cuidado de backup/rollback que ServicoMudancaSenhaMestra.AlterarAsync já
+            // usa pra troca de senha mestra: sem isso, se SalvarSenhasAsync falhar depois do
+            // auth.dat já ter sido sobrescrito, o cofre local fica cifrado com a chave antiga
+            // mas exigindo a senha nova pra autenticar — inutilizado, sem chance de recuperar.
+            var authPath = Path.Combine(_auth.PastaApp, "auth.dat");
+            var vaultPath = Path.Combine(_auth.PastaApp, "senhas.json.enc");
+            var authBak = authPath + ".bak";
+            var vaultBak = vaultPath + ".bak";
+            if (File.Exists(authPath)) File.Copy(authPath, authBak, overwrite: true);
+            if (File.Exists(vaultPath)) File.Copy(vaultPath, vaultBak, overwrite: true);
 
             try
             {
                 var cripto = new ServicoCriptografia(chave);
                 var lista = await new RepositorioSenhaBanco(cfg, cripto).ListarTudoAsync();
 
-                _auth.GravarAutenticacaoRestaurada(auth.Salt, auth.Verificador, auth.Kdf, auth.Custo, auth.MemoriaKb, auth.Paralelismo);
+                // Cofre primeiro, auth.dat depois: se SalvarSenhasAsync falhar, o
+                // dispositivo continua sem auth.dat (permanece "primeiro acesso" e
+                // dá pra tentar restaurar de novo) em vez de ficar com uma senha
+                // mestra nova válida apontando pra um cofre local vazio.
                 await new PersistenciaLocal(cripto, _auth.PastaApp).SalvarSenhasAsync(lista, chave);
+                _auth.GravarAutenticacaoRestaurada(auth.Salt, auth.Verificador, auth.Kdf, auth.Custo, auth.MemoriaKb, auth.Paralelismo);
 
                 Preferencias.UltimoBanco = new PerfilBanco
                 {
@@ -199,9 +225,21 @@ namespace CofreDeSenhas.Janelas
             }
             catch (Exception ex)
             {
+                try
+                {
+                    if (File.Exists(authBak)) File.Copy(authBak, authPath, overwrite: true);
+                    if (File.Exists(vaultBak)) File.Copy(vaultBak, vaultPath, overwrite: true);
+                }
+                catch { }
+
                 CryptographicOperations.ZeroMemory(chave);
                 MostrarErro(ErrosUi.MensagemAmigavel(ex));
                 return;
+            }
+            finally
+            {
+                try { if (File.Exists(authBak)) File.Delete(authBak); } catch { }
+                try { if (File.Exists(vaultBak)) File.Delete(vaultBak); } catch { }
             }
 
             _aoAutenticar(chave, senhaConfirmada);
@@ -265,75 +303,103 @@ namespace CofreDeSenhas.Janelas
 
         private async Task ConfirmarAsync()
         {
+            // Sem isto, um segundo Enter/clique entregue enquanto o primeiro ainda está
+            // num dos awaits abaixo (QrBackup, biometria, migração de KDF) reexecuta o
+            // método concorrentemente e chama _aoAutenticar duas vezes — que abre duas
+            // JanelaPrincipal independentes sobre o mesmo cofre em disco. O KeyDown de
+            // Enter já respeita BtnPrincipal.IsEnabled; esta checagem cobre também
+            // Principal_Click, que não checava antes de chamar este método.
+            if (!BtnPrincipal.IsEnabled)
+                return;
+
             LblErro.Text = "";
             var senha = TxtSenha.Text ?? "";
+            BtnPrincipal.IsEnabled = false;
 
-            if (_primeiroAcesso)
+            // Fica true nos caminhos que já vão autenticar (a janela fecha logo em
+            // seguida, reabilitar não serve pra nada) ou que deliberadamente mantêm o
+            // botão travado por um tempo (bloqueio de 5 tentativas) — nesses casos o
+            // finally não deve reabilitar.
+            var manterDesabilitado = false;
+
+            try
             {
-                if (senha.Length < AutenticacaoMestra.TamanhoMinimoSenha)
+                if (_primeiroAcesso)
                 {
-                    MostrarErro(Idioma.Texto("Login.Error.PasswordLength"));
-                    return;
-                }
-                if (senha != (TxtConfirmar.Text ?? ""))
-                {
-                    MostrarErro(Idioma.Texto("Login.Error.PasswordMismatch"));
-                    return;
-                }
-
-                byte[] chave;
-                try
-                {
-                    chave = _auth.CriarSenhaMestra(senha);
-                }
-                catch (Exception ex)
-                {
-                    MostrarErro(ErrosUi.MensagemAmigavel(ex));
-                    return;
-                }
-
-                await QrBackup.OferecerSalvarAsync(this, senha);
-                await OferecerBiometriaAsync(chave);
-                _aoAutenticar(chave, senha);
-            }
-            else
-            {
-                if (string.IsNullOrEmpty(senha))
-                {
-                    MostrarErro(Idioma.Texto("Login.Error.MasterPasswordRequired"));
-                    return;
-                }
-
-                var chave = _auth.Autenticar(senha);
-                if (chave != null)
-                {
-                    var chaveMigrada = await MigrarKdfSeNecessarioAsync(senha);
-                    _aoAutenticar(chaveMigrada ?? chave, senha);
-                    return;
-                }
-
-                _tentativas++;
-                if (_tentativas >= 5)
-                {
-                    MostrarErro(Idioma.Texto("Login.Error.TooManyAttempts"));
-                    BtnPrincipal.IsEnabled = false;
-                    var t = new DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
-                    t.Tick += (s, ev) =>
+                    if (senha.Length < AutenticacaoMestra.TamanhoMinimoSenha)
                     {
-                        BtnPrincipal.IsEnabled = true;
-                        _tentativas = 0;
-                        LblErro.Text = "";
-                        t.Stop();
-                    };
-                    t.Start();
+                        MostrarErro(Idioma.Texto("Login.Error.PasswordLength"));
+                        return;
+                    }
+                    if (senha != (TxtConfirmar.Text ?? ""))
+                    {
+                        MostrarErro(Idioma.Texto("Login.Error.PasswordMismatch"));
+                        return;
+                    }
+
+                    byte[] chave;
+                    try
+                    {
+                        chave = _auth.CriarSenhaMestra(senha);
+                    }
+                    catch (Exception ex)
+                    {
+                        MostrarErro(ErrosUi.MensagemAmigavel(ex));
+                        return;
+                    }
+
+                    await QrBackup.OferecerSalvarAsync(this, senha);
+                    await OferecerBiometriaAsync(chave);
+                    manterDesabilitado = true;
+                    _aoAutenticar(chave, senha);
                 }
                 else
                 {
-                    MostrarErro(Idioma.Formatar("Login.Error.WrongPassword", _tentativas));
-                }
+                    if (string.IsNullOrEmpty(senha))
+                    {
+                        MostrarErro(Idioma.Texto("Login.Error.MasterPasswordRequired"));
+                        return;
+                    }
 
-                TxtSenha.SelectAll();
-                TxtSenha.Focus();
+                    var chave = _auth.Autenticar(senha);
+                    if (chave != null)
+                    {
+                        var chaveMigrada = await MigrarKdfSeNecessarioAsync(senha);
+                        manterDesabilitado = true;
+                        _aoAutenticar(chaveMigrada ?? chave, senha);
+                        return;
+                    }
+
+                    _tentativas++;
+                    if (_tentativas >= 5)
+                    {
+                        MostrarErro(Idioma.Texto("Login.Error.TooManyAttempts"));
+                        manterDesabilitado = true;
+                        _timerBloqueioTentativas?.Stop();
+                        var t = new DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
+                        t.Tick += (s, ev) =>
+                        {
+                            BtnPrincipal.IsEnabled = true;
+                            _tentativas = 0;
+                            LblErro.Text = "";
+                            t.Stop();
+                        };
+                        _timerBloqueioTentativas = t;
+                        t.Start();
+                    }
+                    else
+                    {
+                        MostrarErro(Idioma.Formatar("Login.Error.WrongPassword", _tentativas));
+                    }
+
+                    TxtSenha.SelectAll();
+                    TxtSenha.Focus();
+                }
+            }
+            finally
+            {
+                if (!manterDesabilitado)
+                    BtnPrincipal.IsEnabled = true;
             }
         }
 
@@ -341,24 +407,31 @@ namespace CofreDeSenhas.Janelas
         {
             try
             {
-                var novaChave = await new ServicoMudancaSenhaMestra(_auth.PastaApp)
-                    .MigrarKdfSeNecessarioAsync(senha);
+                var servico = new ServicoMudancaSenhaMestra(_auth.PastaApp);
+                var novaChave = await servico.MigrarKdfSeNecessarioAsync(senha);
                 if (novaChave == null)
                     return null;
 
+                var mensagem = "";
                 if (_biometria.EstaHabilitado)
                 {
                     await _biometria.DesabilitarAsync();
-                    await CaixaMensagem.MostrarAsync(this,
-                        Idioma.Texto("Biometric.DisabledAfterKdfUpgrade"),
-                        Idioma.Texto("Biometric.Title"),
-                        TipoMensagem.Info);
+                    mensagem = Idioma.Texto("Biometric.DisabledAfterKdfUpgrade");
                 }
+                if (servico.UltimosAvisos.Count > 0)
+                    mensagem += (mensagem.Length > 0 ? "\n\n" : "") + Idioma.Texto("Master.ItemsDiscardedWarning");
+
+                if (mensagem.Length > 0)
+                    await CaixaMensagem.MostrarAsync(this,
+                        mensagem,
+                        Idioma.Texto("Master.KdfUpgradeTitle"),
+                        TipoMensagem.Info);
 
                 return novaChave;
             }
-            catch
+            catch (Exception ex)
             {
+                Diagnostico.Registrar(ex, "MigrarKdfSeNecessario");
                 return null;
             }
         }

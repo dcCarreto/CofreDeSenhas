@@ -56,23 +56,38 @@ namespace GerenciadorDeSenhas.Servicos
             if (chave == null)
                 throw new ArgumentNullException(nameof(chave));
 
-            var json = JsonSerializer.Serialize(senhas, OpcoesJson);
-
-            var criptografado = _criptografia.Criptografar(json);
-
-            int tentativas = TentativasEscrita;
-            while (tentativas > 0)
+            try
             {
-                try
+                var json = JsonSerializer.Serialize(senhas, OpcoesJson);
+
+                var criptografado = _criptografia.Criptografar(json);
+
+                int tentativas = TentativasEscrita;
+                while (tentativas > 0)
                 {
-                    await EscritaAtomica.EscreverTextoAsync(_caminhoSenhas, criptografado);
-                    break;
+                    try
+                    {
+                        await EscritaAtomica.EscreverTextoAsync(_caminhoSenhas, criptografado);
+                        break;
+                    }
+                    catch (IOException) when (tentativas > 1)
+                    {
+                        tentativas--;
+                        await Task.Delay(EsperaEntreTentativas);
+                    }
                 }
-                catch (IOException) when (tentativas > 1)
-                {
-                    tentativas--;
-                    await Task.Delay(EsperaEntreTentativas);
-                }
+            }
+            catch (CryptographicException ex)
+            {
+                throw new ErroLocalizavel("Vault.Error.WrongKeyOrCorrupt", ex);
+            }
+            catch (JsonException ex)
+            {
+                throw new ErroLocalizavel("Vault.Error.CorruptData", ex);
+            }
+            catch (Exception ex)
+            {
+                throw new ErroLocalizavel("Vault.Error.IOFailure", ex);
             }
         }
 

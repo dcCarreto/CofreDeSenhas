@@ -19,6 +19,7 @@ namespace CofreDeSenhas.Controles
 
         private readonly ServicoGeracaoSenha _servicoGeracaoSenha = new();
         private readonly List<string> _senhasGeradas = new();
+        private readonly List<DispatcherTimer> _timersFeedbackCopia = new();
 
         private string _senhaGerada = "";
         private bool _mostrarSenha = true;
@@ -37,7 +38,13 @@ namespace CofreDeSenhas.Controles
             SliderPalavras.ValueChanged += (s, e) => LblPalavrasValor.Text = SliderPalavras.Value.ToString();
             CmbModoGerador.SelectionChanged += ModoGerador_Alterado;
             Idioma.Alterado += Idioma_Alterado;
-            DetachedFromVisualTree += (s, e) => Idioma.Alterado -= Idioma_Alterado;
+            DetachedFromVisualTree += (s, e) =>
+            {
+                Idioma.Alterado -= Idioma_Alterado;
+                foreach (var timer in _timersFeedbackCopia)
+                    timer.Stop();
+                _timersFeedbackCopia.Clear();
+            };
 
             AtualizarTextos();
             CmbModoGerador.SelectedIndex = 0;
@@ -112,12 +119,14 @@ namespace CofreDeSenhas.Controles
             var modo = Math.Max(0, CmbModoGerador.SelectedIndex);
             var separador = Math.Max(0, CmbSeparadorFrase.SelectedIndex);
 
+            CmbModoGerador.SelectionChanged -= ModoGerador_Alterado;
             CmbModoGerador.ItemsSource = new[]
             {
                 Idioma.Texto("Generator.Mode.Password"),
                 Idioma.Texto("Generator.Mode.Passphrase")
             };
             CmbModoGerador.SelectedIndex = modo;
+            CmbModoGerador.SelectionChanged += ModoGerador_Alterado;
 
             CmbSeparadorFrase.ItemsSource = new[] { "-", "_", ".", Idioma.Texto("Generator.Separator.Space") };
             CmbSeparadorFrase.SelectedIndex = separador;
@@ -221,6 +230,14 @@ namespace CofreDeSenhas.Controles
 
         private void AtualizarListaSenhasGeradas()
         {
+            // Sem isto, gerar um novo lote deixava os timers de feedback do lote
+            // anterior órfãos — se um deles ainda estivesse na janela de 1s quando os
+            // itens antigos fossem descartados, ele disparava mexendo num botão que
+            // não está mais na árvore visual.
+            foreach (var timer in _timersFeedbackCopia)
+                timer.Stop();
+            _timersFeedbackCopia.Clear();
+
             PainelGeradas.Children.Clear();
             PainelGeradas.IsVisible = false;
 
@@ -284,18 +301,29 @@ namespace CofreDeSenhas.Controles
             btnCopiar.Margin = new Thickness(0, 0, 5, 0);
             AutomationProperties.SetName(btnCopiar, Idioma.Texto("A11y.CopyGenerated"));
             AutomationProperties.SetHelpText(btnCopiar, Idioma.Texto("A11y.GeneratedPasswordHelp"));
+            DispatcherTimer? timerFeedback = null;
             btnCopiar.Click += async (s, e) =>
             {
-                await AreaTransferenciaFeedback.CopiarComAvisoAsync(AreaTransferencia, senha, this, ItemGeradoNome);
+                var (copiado, _) = await AreaTransferenciaFeedback.CopiarComAvisoAsync(AreaTransferencia, senha, this, ItemGeradoNome);
+                if (!copiado) return;
+
                 btnCopiar.Content = Recursos.ImagemIcone("IconeCheck", 20, Tema.Pincel(Tema.StrengthStrong));
 
-                var t = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
-                t.Tick += (ss, ee) =>
+                if (timerFeedback != null)
+                {
+                    timerFeedback.Stop();
+                    _timersFeedbackCopia.Remove(timerFeedback);
+                }
+                timerFeedback = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+                timerFeedback.Tick += (ss, ee) =>
                 {
                     btnCopiar.Content = Recursos.ImagemIcone("IconeCopiar", 20);
-                    t.Stop();
+                    timerFeedback.Stop();
+                    _timersFeedbackCopia.Remove(timerFeedback);
+                    timerFeedback = null;
                 };
-                t.Start();
+                _timersFeedbackCopia.Add(timerFeedback);
+                timerFeedback.Start();
             };
 
             var grid = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto") };
@@ -336,7 +364,8 @@ namespace CofreDeSenhas.Controles
             if (string.IsNullOrEmpty(_senhaGerada) || AreaTransferencia == null)
                 return;
 
-            var vaiLimpar = await AreaTransferenciaFeedback.CopiarComAvisoAsync(AreaTransferencia, _senhaGerada, this, ItemGeradoNome);
+            var (copiado, vaiLimpar) = await AreaTransferenciaFeedback.CopiarComAvisoAsync(AreaTransferencia, _senhaGerada, this, ItemGeradoNome);
+            if (!copiado) return;
 
             int segundos = Preferencias.SegundosLimpezaClipboard;
             string mensagem = vaiLimpar

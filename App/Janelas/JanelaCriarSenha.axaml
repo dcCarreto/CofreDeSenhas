@@ -73,7 +73,7 @@
                  AutomationProperties.IsRequiredForForm="True" />
 
         <TextBlock Name="LblSenha" Text="{DynamicResource Entry.Password}" Classes="legenda" />
-        <TextBox Name="TxtSenha" Classes="campo revealPasswordButton" PasswordChar="●" Margin="0,0,0,14"
+        <TextBox Name="TxtSenha" Classes="campo" PasswordChar="●" Margin="0,0,0,14"
                  AutomationProperties.Name="{DynamicResource Entry.Password}"
                  AutomationProperties.HelpText="{DynamicResource A11y.PasswordFieldHelp}"
                  AutomationProperties.IsRequiredForForm="True" />

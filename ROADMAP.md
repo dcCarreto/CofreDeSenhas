@@ -647,6 +647,18 @@ com banco de dados externo.
   de terceiros) continua manual, fora do alcance do pipeline deste
   projeto.
 
+### Não lançado
+
+- Restaurar o cofre local a partir de um banco de dados conectado: num
+  dispositivo novo, sem cofre local ainda, a tela de primeiro uso oferece
+  "Restaurar de um banco de dados" — digitando a senha mestra já em uso, o
+  cofre inteiro é trazido do banco em vez de recriado do zero. Viabilizado
+  por uma tabela de autenticação (`CofreDeSenhasAuth`) publicada
+  automaticamente ao conectar a um banco externo, carregando o mesmo salt e
+  verificador da senha mestra que antes só existiam em `auth.dat` local —
+  ver [modelo de ameaça](THREAT_MODEL.md) para o que isso muda no cenário
+  de banco externo compartilhado.
+
 ## Planejado
 
 Ideias e melhorias consideradas para versões futuras, agrupadas por prioridade:

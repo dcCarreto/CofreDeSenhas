@@ -11,6 +11,9 @@ namespace GerenciadorDeSenhas.Servicos
         private readonly IRepositorioSenha _repositorio;
         private readonly IServicoCriptografia _criptografia;
         private readonly ServicoTotp _totp = new();
+        private readonly List<string> _avisos = new();
+
+        public IReadOnlyList<string> UltimosAvisos => _avisos;
 
         public ServicoSenha(IRepositorioSenha repositorio, IServicoCriptografia criptografia)
         {
@@ -55,6 +58,7 @@ namespace GerenciadorDeSenhas.Servicos
 
             var senha = await ObterOuFalharAsync(id);
 
+            _avisos.Clear();
             RegistrarHistoricoSeMudou(senha, senhaPlaintext);
 
             senha.NomeServico = nomeServico;
@@ -162,8 +166,9 @@ namespace GerenciadorDeSenhas.Servicos
             {
                 senhaAnterior = _criptografia.Descriptografar(senha.SenhaHash);
             }
-            catch
+            catch (Exception ex)
             {
+                _avisos.Add($"Não foi possível registrar o histórico de \"{senha.NomeServico}\": a senha anterior está corrompida ({ex.Message}).");
                 return;
             }
 
@@ -182,8 +187,7 @@ namespace GerenciadorDeSenhas.Servicos
 
         public async Task RemoverSenhaAsync(Guid id)
         {
-            var senha = await ObterOuFalharAsync(id);
-
+            await ObterOuFalharAsync(id);
             await _repositorio.RemoverAsync(id);
         }
 
@@ -260,6 +264,19 @@ namespace GerenciadorDeSenhas.Servicos
 
         public async Task AplicarSincronizadoAsync(SenhaExportada item)
         {
+            // Tumba de exclusão definitiva vinda de outro dispositivo (ver
+            // JanelaPrincipal.PublicarTumbasNaPastaDeSincronizacaoAsync) — remove por
+            // completo em vez de aplicar como uma edição normal, senão o item fica
+            // sentado na lixeira local como uma cópia em branco em vez de simplesmente
+            // sumir, que é o que "excluído definitivamente em outro dispositivo"
+            // deveria significar aqui. RemoverDefinitivamenteAsync já é no-op se o
+            // item nunca existiu localmente.
+            if (MesclaSincronizacao.EhTumbaDeExclusaoDefinitiva(item))
+            {
+                await _repositorio.RemoverDefinitivamenteAsync(item.Id);
+                return;
+            }
+
             var historico = item.Historico
                 .Where(h => !string.IsNullOrEmpty(h.Senha))
                 .Select(h => new HistoricoSenha

@@ -71,8 +71,7 @@ public class SegurancaTests
     [Fact]
     public async Task CarregarSenhas_ComArquivoAdulterado_FalhaEmVezDeRetornarLixo()
     {
-        var pasta = Path.Combine(Path.GetTempPath(), "GS_Seg_" + Guid.NewGuid().ToString("N"));
-        Directory.CreateDirectory(pasta);
+        var pasta = PastaTemporariaTeste.Criar("GS_Seg");
         try
         {
             var chave = NovaChave();
@@ -92,7 +91,7 @@ public class SegurancaTests
         }
         finally
         {
-            try { Directory.Delete(pasta, recursive: true); } catch { }
+            PastaTemporariaTeste.Apagar(pasta);
         }
     }
 

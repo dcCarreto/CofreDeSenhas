@@ -20,11 +20,9 @@ namespace CofreDeSenhas.Janelas
             Icon = Recursos.IconeApp();
             Acessibilidade.Vincular(this);
 
+            Title = titulo ?? Idioma.Texto("Qr.RegenerateTitle");
             if (titulo != null)
-            {
-                Title = titulo;
                 LblTitulo.Text = titulo;
-            }
             if (instrucao != null)
                 LblInstrucao.Text = instrucao;
             if (textoBotao != null)

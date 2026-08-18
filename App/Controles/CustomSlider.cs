@@ -96,6 +96,12 @@ namespace CofreDeSenhas.Controles
             base.OnPointerReleased(e);
         }
 
+        protected override void OnPointerCaptureLost(PointerCaptureLostEventArgs e)
+        {
+            _dragging = false;
+            base.OnPointerCaptureLost(e);
+        }
+
         protected override void OnKeyDown(KeyEventArgs e)
         {
             switch (e.Key)

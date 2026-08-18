@@ -197,23 +197,32 @@ public class IntegracaoBancoExternoTests
 
     [Theory]
     [MemberData(nameof(Motores))]
-    public async Task TabelaAuth_PublicarDuasVezes_NaoSobrescreveEContinuaComOPrimeiroPublicado(TipoBanco tipo)
+    public async Task TabelaAuth_PublicarDuasVezes_SegundaChamadaAtualizaOPrimeiroPublicado(TipoBanco tipo)
     {
-        // Simula dois dispositivos diferentes tentando publicar ao mesmo tempo: quem
-        // chegou primeiro define o salt/verificador canônico do banco, o segundo não
-        // deve conseguir trocar por cima.
+        // PublicarAuthAsync é um upsert de propósito (ver ServicoBancoDados.cs): o
+        // dado mais recente prevalece. É o que permite trocar a senha mestra com o
+        // banco já conectado republicar salt/verificador novos por cima do que já
+        // estava lá — sem isso, a troca nunca se propagaria pro banco depois da
+        // primeira conexão. Mesmo cenário e mesma expectativa de
+        // ServicoBancoDadosTests.PublicarAuth_ChamadoDuasVezes_SegundaChamadaAtualizaOPrimeiroPublicado,
+        // só que aqui contra os motores reais em vez de SQLite local.
         var cfg = Conexao(tipo);
         var bd = new ServicoBancoDados();
         await LimparTabelaAuthAsync(bd, cfg);
         await bd.CriarTabelaAuthAsync(cfg);
 
         var primeiro = new AuthBanco(new byte[16], new byte[32], 1, 3, 65536, 1);
-        var segundo = new AuthBanco(Enumerable.Repeat((byte)9, 16).ToArray(), new byte[32], 1, 3, 65536, 1);
+        var segundo = new AuthBanco(Enumerable.Repeat((byte)9, 16).ToArray(), Enumerable.Repeat((byte)7, 32).ToArray(), 0, 5, 131072, 2);
 
         await bd.PublicarAuthAsync(cfg, primeiro);
         await bd.PublicarAuthAsync(cfg, segundo);
 
         var lido = await bd.LerAuthAsync(cfg);
-        Assert.Equal(primeiro.Salt, lido!.Salt);
+        Assert.Equal(segundo.Salt, lido!.Salt);
+        Assert.Equal(segundo.Verificador, lido.Verificador);
+        Assert.Equal(segundo.Kdf, lido.Kdf);
+        Assert.Equal(segundo.Custo, lido.Custo);
+        Assert.Equal(segundo.MemoriaKb, lido.MemoriaKb);
+        Assert.Equal(segundo.Paralelismo, lido.Paralelismo);
     }
 }

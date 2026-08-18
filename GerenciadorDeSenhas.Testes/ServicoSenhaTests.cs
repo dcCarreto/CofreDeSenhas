@@ -22,8 +22,7 @@ public class ServicoSenhaTests : IDisposable
         using (var rng = RandomNumberGenerator.Create())
             rng.GetBytes(_chave);
 
-        _pastaTemp = Path.Combine(Path.GetTempPath(), "GS_Servico_" + Guid.NewGuid().ToString("N"));
-        Directory.CreateDirectory(_pastaTemp);
+        _pastaTemp = PastaTemporariaTeste.Criar("GS_Servico");
 
         _criptografia = new ServicoCriptografia(_chave);
         _persistencia = new PersistenciaLocal(_criptografia, _pastaTemp);
@@ -31,17 +30,7 @@ public class ServicoSenhaTests : IDisposable
         _servico = new ServicoSenha(_repositorio, _criptografia);
     }
 
-    public void Dispose()
-    {
-        try
-        {
-            if (Directory.Exists(_pastaTemp))
-                Directory.Delete(_pastaTemp, recursive: true);
-        }
-        catch
-        {
-        }
-    }
+    public void Dispose() => PastaTemporariaTeste.Apagar(_pastaTemp);
 
     private async Task<Senha?> ObterAsync(Guid id) =>
         (await _servico.ListarTodosAsync()).FirstOrDefault(s => s.Id == id);
@@ -76,6 +65,36 @@ public class ServicoSenhaTests : IDisposable
 
         Assert.NotNull(atualizada);
         Assert.Equal("novo@gmail.com", atualizada.Usuario);
+    }
+
+    [Fact]
+    public async Task AtualizarSenhaAsync_ComSenhaAnteriorCorrompida_NaoFalhaMasRegistraAviso()
+    {
+        var senha = await _servico.CriarSenhaAsync(
+            "Gmail", "user@gmail.com", "Senha@123456", Categoria.Personal);
+        await _servico.PersistirAsync();
+
+        var senhas = await _persistencia.CarregarSenhasAsync(_chave);
+        var item = senhas.Single(s => s.Id == senha.Id);
+        item.SenhaHash = "@@@nao-e-base64@@@";
+        await _persistencia.SalvarSenhasAsync(senhas, _chave);
+
+        var repoFresco = new RepositorioSenha(_persistencia, _chave);
+        var servicoConcreto = new ServicoSenha(repoFresco, _criptografia);
+
+        await servicoConcreto.AtualizarSenhaAsync(
+            senha.Id, "Gmail", "novo@gmail.com", "NovaSenha@789", Categoria.Personal);
+
+        Assert.NotEmpty(servicoConcreto.UltimosAvisos);
+        var atualizada = (await repoFresco.ListarTodosAsync()).Single(s => s.Id == senha.Id);
+        Assert.Equal("novo@gmail.com", atualizada.Usuario);
+
+        var outraSenha = await servicoConcreto.CriarSenhaAsync(
+            "GitHub", "dev@git.com", "SenhaOriginal@1", Categoria.Work);
+        await servicoConcreto.AtualizarSenhaAsync(
+            outraSenha.Id, "GitHub", "dev@git.com", "SenhaNova@2", Categoria.Work);
+
+        Assert.Empty(servicoConcreto.UltimosAvisos);
     }
 
     [Fact]
@@ -308,6 +327,50 @@ public class ServicoSenhaTests : IDisposable
         var itemLixeira = Assert.Single(lixeira);
         Assert.Equal(senha.Id, itemLixeira.Id);
         Assert.Equal(dataExclusao, itemLixeira.DataExclusao);
+    }
+
+    [Fact]
+    public async Task AplicarSincronizadoAsync_ComTumbaDeExclusaoDefinitiva_RemovePorCompletoEmVezDeDeixarNaLixeira()
+    {
+        // Tumba publicada por outro dispositivo depois de uma exclusão definitiva
+        // (JanelaPrincipal.PublicarTumbasNaPastaDeSincronizacaoAsync) — precisa sumir
+        // por completo, não virar uma cópia em branco sentada na lixeira local.
+        var senha = await _servico.CriarSenhaAsync(
+            "Gmail", "user@gmail.com", "Senha@123456", Categoria.Personal);
+
+        var tumba = new SenhaExportada
+        {
+            Id = senha.Id,
+            NomeServico = "",
+            Usuario = "",
+            Senha = "",
+            NaLixeira = true,
+            DataAtualizacao = DateTime.UtcNow.AddMinutes(1)
+        };
+
+        await _servico.AplicarSincronizadoAsync(tumba);
+
+        Assert.Null(await ObterAsync(senha.Id));
+        Assert.Empty(await _servico.ListarLixeiraAsync());
+    }
+
+    [Fact]
+    public async Task AplicarSincronizadoAsync_ComTumbaParaIdQueNuncaExistiuLocalmente_NaoFazNada()
+    {
+        var tumba = new SenhaExportada
+        {
+            Id = Guid.NewGuid(),
+            NomeServico = "",
+            Usuario = "",
+            Senha = "",
+            NaLixeira = true,
+            DataAtualizacao = DateTime.UtcNow
+        };
+
+        await _servico.AplicarSincronizadoAsync(tumba);
+
+        Assert.Empty(await _servico.ListarTodosAsync());
+        Assert.Empty(await _servico.ListarLixeiraAsync());
     }
 
     [Fact]

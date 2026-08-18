@@ -1,6 +1,7 @@
 using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.VisualTree;
 
 namespace CofreDeSenhas
 {
@@ -11,8 +12,16 @@ namespace CofreDeSenhas
             rotulo.Text = mensagem;
             AutomationProperties.SetName(rotulo, mensagem);
 
+            // Limpa qualquer destaque de erro anterior antes de aplicar o atual — evita
+            // borda vermelha "presa" num campo que já não é mais o problema.
+            foreach (var campo in janela.GetVisualDescendants().OfType<TextBox>())
+                campo.Classes.Remove("erro");
+
             if (!string.IsNullOrWhiteSpace(mensagem))
+            {
+                focoAposErro?.Classes.Add("erro");
                 Acessibilidade.Anunciar(janela, mensagem, assertivo: true);
+            }
 
             if (focoAposErro != null)
             {

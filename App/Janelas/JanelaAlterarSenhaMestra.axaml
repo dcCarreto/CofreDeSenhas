@@ -57,19 +57,19 @@
 
       <StackPanel Margin="24,18,24,16" Spacing="4">
         <TextBlock Text="{DynamicResource Master.CurrentPassword}" Classes="legenda" />
-        <TextBox Name="TxtAtual" Classes="campo revealPasswordButton" PasswordChar="●" Margin="0,0,0,10"
+        <TextBox Name="TxtAtual" Classes="campo" PasswordChar="●" Margin="0,0,0,10"
                  AutomationProperties.Name="{DynamicResource Master.CurrentPassword}"
                  AutomationProperties.HelpText="{DynamicResource A11y.PasswordFieldHelp}"
                  AutomationProperties.IsRequiredForForm="True" />
 
         <TextBlock Text="{DynamicResource Master.NewPassword}" Classes="legenda" />
-        <TextBox Name="TxtNova" Classes="campo revealPasswordButton" PasswordChar="●" Margin="0,0,0,10"
+        <TextBox Name="TxtNova" Classes="campo" PasswordChar="●" Margin="0,0,0,10"
                  AutomationProperties.Name="{DynamicResource Master.NewPassword}"
                  AutomationProperties.HelpText="{DynamicResource A11y.PasswordFieldHelp}"
                  AutomationProperties.IsRequiredForForm="True" />
 
         <TextBlock Text="{DynamicResource Master.ConfirmNewPassword}" Classes="legenda" />
-        <TextBox Name="TxtConfirmar" Classes="campo revealPasswordButton" PasswordChar="●" Margin="0,0,0,10"
+        <TextBox Name="TxtConfirmar" Classes="campo" PasswordChar="●" Margin="0,0,0,10"
                  AutomationProperties.Name="{DynamicResource Master.ConfirmNewPassword}"
                  AutomationProperties.HelpText="{DynamicResource A11y.PasswordFieldHelp}"
                  AutomationProperties.IsRequiredForForm="True" />

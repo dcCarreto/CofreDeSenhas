@@ -1,5 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
+using Avalonia.Input;
+using Avalonia.VisualTree;
 using CofreDeSenhas;
 using CofreDeSenhas.Janelas;
 using GerenciadorDeSenhas.Modelos;
@@ -84,6 +86,36 @@ namespace App.Testes
             {
                 HistoricoPontuacaoSeguranca.CaminhoOverride = caminhoOriginal;
             }
+        }
+
+        [AvaloniaFact]
+        public async Task LinhaComContagem_ComEnterNoTeclado_SelecionaACategoria()
+        {
+            var chave = new AutenticacaoMestra(TesteUtil.CriarPastaTemporaria()).CriarSenhaMestra("SenhaDeTeste123!");
+            var criptografia = new ServicoCriptografia(chave);
+            var persistencia = new PersistenciaLocal(criptografia, TesteUtil.CriarPastaTemporaria());
+            var repositorio = new RepositorioSenha(persistencia, chave);
+            var servico = new ServicoSenha(repositorio, criptografia);
+
+            await servico.CriarSenhaAsync("Forum", "usuario", "abc123", Categoria.Personal);
+            var senhas = await servico.ListarTodosAsync();
+
+            var auditoria = new ServicoAuditoriaSenha().Auditar(senhas, s => criptografia.Descriptografar(s.SenhaHash));
+            var relatorio = ServicoRelatorioSeguranca.Gerar(senhas, auditoria);
+            Assert.True(relatorio.Fracas > 0);
+
+            var janela = new JanelaRelatorioSeguranca(relatorio, vazamentosVerificados: false,
+                reverificarVazamentos: () => Task.FromResult(relatorio));
+            janela.Show();
+            await TesteUtil.AguardarAsync(() => false, tentativas: 5);
+
+            var nomeAutomacao = Idioma.Formatar("SecurityReport.RowAutomationName", Idioma.Texto("SecurityReport.Weak"), relatorio.Fracas);
+            var linhaFracas = janela.GetVisualDescendants().OfType<Border>()
+                .First(b => Avalonia.Automation.AutomationProperties.GetName(b) == nomeAutomacao);
+
+            linhaFracas.RaiseEvent(new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Enter });
+
+            Assert.Equal(CategoriaRelatorioSeguranca.Fraca, janela.CategoriaSelecionada);
         }
     }
 }

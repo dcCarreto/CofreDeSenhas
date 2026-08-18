@@ -34,6 +34,7 @@ namespace CofreDeSenhas.Janelas
             var (chaveTipo, cor) = conflito.Tipo switch
             {
                 TipoConflitoSincronizacao.IntegridadeViolada => ("Sync.ConflictType.IntegrityViolated", Tema.StatusWarning),
+                TipoConflitoSincronizacao.IntegridadeAusente => ("Sync.ConflictType.IntegrityMissing", Tema.StatusWarning),
                 _ => ("Sync.ConflictType.ConcurrentEdit", Tema.TextSecondary)
             };
 
@@ -71,7 +72,7 @@ namespace CofreDeSenhas.Janelas
                 Padding = new Thickness(14, 12),
                 CornerRadius = new CornerRadius(10),
                 Background = Tema.Pincel(Tema.CardBackground),
-                BorderBrush = Tema.Pincel(conflito.Tipo == TipoConflitoSincronizacao.IntegridadeViolada ? Tema.StatusWarning : Tema.InputBorder),
+                BorderBrush = Tema.Pincel(conflito.Tipo is TipoConflitoSincronizacao.IntegridadeViolada or TipoConflitoSincronizacao.IntegridadeAusente ? Tema.StatusWarning : Tema.InputBorder),
                 BorderThickness = new Thickness(1),
                 Child = painel
             };

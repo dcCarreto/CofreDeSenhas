@@ -13,14 +13,10 @@ public class IntegracaoCofreTests : IDisposable
 
     public IntegracaoCofreTests()
     {
-        _pasta = Path.Combine(Path.GetTempPath(), "GS_Integ_" + Guid.NewGuid().ToString("N"));
-        Directory.CreateDirectory(_pasta);
+        _pasta = PastaTemporariaTeste.Criar("GS_Integ");
     }
 
-    public void Dispose()
-    {
-        try { if (Directory.Exists(_pasta)) Directory.Delete(_pasta, recursive: true); } catch { }
-    }
+    public void Dispose() => PastaTemporariaTeste.Apagar(_pasta);
 
     private (IServicoSenha servico, IServicoCriptografia cripto) MontarCofre(byte[] chave)
     {

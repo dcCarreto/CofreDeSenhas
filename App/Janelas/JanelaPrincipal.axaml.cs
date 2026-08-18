@@ -44,8 +44,26 @@ namespace CofreDeSenhas.Janelas
         private readonly Action? _aoBloquear;
         private readonly MonitorInatividade _monitor;
         private readonly DispatcherTimer _timerSincronizacao;
+        private DispatcherTimer? _timerFeedbackSenhaDetalhes;
         private bool _sincronizando;
         private bool _conectadoAoBanco;
+        // internal só pra teste conseguir semear um ponto de espera controlável (via
+        // TaskCompletionSource) antes de chamar ConectarAsync — cria um yield real e
+        // determinístico logo no início de ConectarAposAsync (seu primeiro await),
+        // que uma corrida via timing puro com E/S local não consegue garantir. Ver
+        // App.Testes (InternalsVisibleTo).
+        internal Task _tarefaConexaoAtual = Task.CompletedTask;
+        // Incrementado a cada nova tentativa de conexão e a cada desconexão manual —
+        // deixa ConectarAposAsync saber, depois dos awaits, se ainda é a tentativa
+        // mais recente antes de aplicar o resultado. Sem isto, desconectar (ou trocar
+        // pra outro banco) enquanto uma conexão anterior ainda está em voo não
+        // impedia essa conexão abandonada de terminar depois e reconectar o cofre por
+        // cima da escolha mais recente do usuário.
+        // internal só pra teste conseguir simular de forma determinística "uma
+        // desconexão aconteceu enquanto uma conexão anterior ainda estava em voo" —
+        // com SQLite local a E/S real termina rápido demais pra forçar essa corrida
+        // de forma confiável só com timing. Ver App.Testes (InternalsVisibleTo).
+        internal int _geracaoConexao;
         private string? _descricaoConexaoAtual;
         private bool _falhaReconexaoAtual;
 
@@ -71,7 +89,25 @@ namespace CofreDeSenhas.Janelas
         private List<Senha> _itensLixeira = new();
         private Senha? _senhaDetalhe;
         private string _senhaDetalhePlain = "";
+        // Baseline imutável pra detectar edição de senha, capturada uma vez em
+        // AbrirDetalhes e nunca mais tocada — diferente de _senhaDetalhePlain, que
+        // RevelarSenhaDetalhes_Click atualiza a cada vez que a senha é ocultada de
+        // novo (pra carregar a edição feita enquanto estava visível). Usar
+        // _senhaDetalhePlain como as duas coisas ao mesmo tempo fazia uma edição
+        // revelada-editada-ocultada virar a nova "baseline", escondendo a alteração
+        // de DetalhesTemAlteracoesNaoSalvas.
+        private string _senhaDetalheOriginal = "";
+        // Captura DataAtualizacao no momento em que o painel abre, pra Salvar poder
+        // detectar se uma sincronização automática silenciosa (que roda em segundo
+        // plano e nunca toca no painel de detalhes aberto) alterou este mesmo item
+        // por trás do usuário enquanto ele editava — sem isto, Salvar sobrescreveria
+        // em silêncio o que acabou de chegar de outro dispositivo.
+        private DateTime _senhaDetalheDataAtualizacaoAoAbrir;
         private bool _senhaDetalheVisivel;
+        // internal só pra teste simular "uma operação já está em andamento" sem
+        // depender de flagrar uma corrida real — ver App.Testes (InternalsVisibleTo).
+        internal bool _detalhesOperacaoEmAndamento;
+        private (string Servico, string Usuario, string Url, string Notas, string Etiquetas, int Categoria)? _snapshotDetalhes;
         private readonly TotpPreview.Temporizador _timerTotpDetalhe = new();
         private const int PeriodoTotpDetalhe = 30;
         private double _larguraServico = 140;
@@ -153,6 +189,7 @@ namespace CofreDeSenhas.Janelas
             {
                 _monitor.Encerrar();
                 _timerSincronizacao.Stop();
+                _timerFeedbackSenhaDetalhes?.Stop();
                 Idioma.Alterado -= IdiomaGlobal_Alterado;
                 Acessibilidade.Alterado -= Acessibilidade_Alterado;
                 FecharDetalhes();
@@ -210,9 +247,13 @@ namespace CofreDeSenhas.Janelas
 
         private void BloquearAgora_Click(object? sender, RoutedEventArgs e) => _aoBloquear?.Invoke();
 
-        private void Privacidade_Click(object? sender, RoutedEventArgs e)
+        private async void Privacidade_Click(object? sender, RoutedEventArgs e)
         {
-            _modoPrivacidade = !_modoPrivacidade;
+            var vaiAtivar = !_modoPrivacidade;
+            if (vaiAtivar && !await ConfirmarDescarteDetalhesAsync())
+                return;
+
+            _modoPrivacidade = vaiAtivar;
 
             if (_modoPrivacidade)
                 FecharDetalhes();
@@ -311,6 +352,7 @@ namespace CofreDeSenhas.Janelas
                 bool maximizada = WindowState == WindowState.Maximized;
                 Moldura.CornerRadius = new CornerRadius(maximizada ? 0 : 10);
                 BtnMaximizar.Content = IconeJanela(maximizada ? "IconeRestaurar" : "IconeMaximizar");
+                AutomationProperties.SetName(BtnMaximizar, Idioma.Texto(maximizada ? "Access.Restore" : "Access.Maximize"));
             }
         }
 
@@ -528,7 +570,10 @@ namespace CofreDeSenhas.Janelas
             FiltrarSenhas();
 
             if (!_atualizando)
+            {
                 LblBtnAtualizarAgora.Text = Idioma.Texto("Update.Now");
+                AutomationProperties.SetName(BtnAtualizarAgora, LblBtnAtualizarAgora.Text);
+            }
             if (_versaoDisponivel != null)
                 LblAtualizacaoDisponivel.Text = Idioma.Formatar("Update.Available", _versaoDisponivel);
         }
@@ -642,7 +687,9 @@ namespace CofreDeSenhas.Janelas
 
             var dlg = new JanelaSincronizacao(_servicoSincronizacao,
                 servico => _servicoSincronizacao = servico,
-                () => SincronizarAsync(silencioso: false));
+                () => SincronizarAsync(silencioso: false),
+                () => _sincronizando,
+                janela => AbrirDialogoAsync<bool>(janela));
 
             await AbrirDialogoAsync<bool>(dlg);
             AjustarTimerSincronizacao();
@@ -658,37 +705,7 @@ namespace CofreDeSenhas.Janelas
             {
                 var caminho = Path.Combine(perfil.Pasta, ServicoSincronizacao.NomeArquivo);
 
-                var locais = new List<SenhaExportada>();
-                var todasLocais = (await _servicoSenha.ListarTodosAsync()).Concat(await _servicoSenha.ListarLixeiraAsync());
-                foreach (var s in todasLocais)
-                {
-                    var plain = ObterSenhaPlain(s);
-                    if (plain == null)
-                        continue;
-
-                    locais.Add(new SenhaExportada
-                    {
-                        Id = s.Id,
-                        NomeServico = s.NomeServico,
-                        Usuario = s.Usuario,
-                        Senha = plain,
-                        Url = s.Url,
-                        Categoria = s.Categoria,
-                        Etiquetas = s.Etiquetas.ToList(),
-                        Notas = s.Notas,
-                        Tipo = s.Tipo,
-                        CamposExtras = ObterCamposExtrasPlain(s),
-                        TotpSegredo = ObterTotpPlain(s),
-                        Historico = ObterHistoricoPlain(s),
-                        CodigosRecuperacao = ObterCodigosRecuperacaoPlain(s),
-                        Favorito = s.Favorito,
-                        Fixado = s.Fixado,
-                        NaLixeira = s.NaLixeira,
-                        DataExclusao = s.DataExclusao,
-                        DataCriacao = s.DataCriacao,
-                        DataAtualizacao = s.DataAtualizacao
-                    });
-                }
+                var locais = await ConstruirListaExportavelAsync();
 
                 var remotas = await _servicoSincronizacao.LerAsync(caminho);
                 var mescladas = ServicoSincronizacao.MesclarListas(locais, remotas);
@@ -704,11 +721,18 @@ namespace CofreDeSenhas.Janelas
                 perfil.UltimaSincronizacao = DateTime.UtcNow;
                 Preferencias.Salvar();
 
-                await CarregarSenhasAsync();
+                await CarregarSenhasAsync(silencioso);
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                // Sem isto, uma pasta de sincronização com dado que quebra o merge
+                // (ex.: sincronizacao.dat corrompido por outra versão do app) falha do
+                // mesmo jeito silenciosamente em toda tentativa futura, sem nenhum
+                // rastro pra investigar — silencioso=true (sync automática) já não
+                // mostra diálogo nenhum ao usuário.
+                Diagnostico.Registrar(ex, "Sincronizar");
+
                 if (!silencioso)
                     await CaixaMensagem.MostrarAsync(this,
                         Idioma.Texto("Sync.Error"), Idioma.Texto("Common.Error"), TipoMensagem.Erro);
@@ -720,6 +744,42 @@ namespace CofreDeSenhas.Janelas
             }
         }
 
+        private async Task<List<SenhaExportada>> ConstruirListaExportavelAsync()
+        {
+            var locais = new List<SenhaExportada>();
+            var todasLocais = (await _servicoSenha.ListarTodosAsync()).Concat(await _servicoSenha.ListarLixeiraAsync());
+            foreach (var s in todasLocais)
+            {
+                var plain = ObterSenhaPlain(s);
+                if (plain == null)
+                    continue;
+
+                locais.Add(new SenhaExportada
+                {
+                    Id = s.Id,
+                    NomeServico = s.NomeServico,
+                    Usuario = s.Usuario,
+                    Senha = plain,
+                    Url = s.Url,
+                    Categoria = s.Categoria,
+                    Etiquetas = s.Etiquetas.ToList(),
+                    Notas = s.Notas,
+                    Tipo = s.Tipo,
+                    CamposExtras = ObterCamposExtrasPlain(s),
+                    TotpSegredo = ObterTotpPlain(s),
+                    Historico = ObterHistoricoPlain(s),
+                    CodigosRecuperacao = ObterCodigosRecuperacaoPlain(s),
+                    Favorito = s.Favorito,
+                    Fixado = s.Fixado,
+                    NaLixeira = s.NaLixeira,
+                    DataExclusao = s.DataExclusao,
+                    DataCriacao = s.DataCriacao,
+                    DataAtualizacao = s.DataAtualizacao
+                });
+            }
+            return locais;
+        }
+
         private async void AtualizarAgora_Click(object? sender, RoutedEventArgs e)
         {
             if (string.IsNullOrEmpty(_versaoDisponivel) || _atualizando)
@@ -728,6 +788,7 @@ namespace CofreDeSenhas.Janelas
             _atualizando = true;
             BtnAtualizarAgora.IsEnabled = false;
             LblBtnAtualizarAgora.Text = Idioma.Texto("Update.Downloading");
+            AutomationProperties.SetName(BtnAtualizarAgora, LblBtnAtualizarAgora.Text);
             try
             {
                 var resultado = await ServicoAtualizacao.AtualizarAgoraAsync(_versaoDisponivel);
@@ -737,7 +798,10 @@ namespace CofreDeSenhas.Janelas
                         (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.Shutdown();
                         return;
                     case ResultadoAtualizacaoTipo.Falha:
-                        await CaixaMensagem.MostrarAsync(this, Idioma.Texto("Update.Failed"), Idioma.Texto("Common.Error"), TipoMensagem.Erro);
+                        var mensagemFalha = string.IsNullOrEmpty(resultado.Mensagem)
+                            ? Idioma.Texto("Update.Failed")
+                            : Idioma.Texto("Update.Failed") + "\n\n" + resultado.Mensagem;
+                        await CaixaMensagem.MostrarAsync(this, mensagemFalha, Idioma.Texto("Common.Error"), TipoMensagem.Erro);
                         AbrirPaginaReleases();
                         break;
                     case ResultadoAtualizacaoTipo.NaoSuportado:
@@ -750,6 +814,7 @@ namespace CofreDeSenhas.Janelas
                 _atualizando = false;
                 BtnAtualizarAgora.IsEnabled = true;
                 LblBtnAtualizarAgora.Text = Idioma.Texto("Update.Now");
+                AutomationProperties.SetName(BtnAtualizarAgora, LblBtnAtualizarAgora.Text);
             }
         }
 
@@ -806,18 +871,22 @@ namespace CofreDeSenhas.Janelas
         private async Task<T> AbrirDialogoAsync<T>(Window dialogo)
         {
             Scrim.Mostrar(this);
+            _monitor.Vincular(dialogo);
             try
             {
                 return await dialogo.ShowDialog<T>(this);
             }
             finally
             {
+                _monitor.Desvincular(dialogo);
                 Scrim.Ocultar(this);
             }
         }
 
         private async void Gerador_SolicitouSalvar(object? sender, string senha)
         {
+            if (_naLixeira) return;
+
             var dlg = new JanelaCriarSenha(_servicoSenha, senha);
             if (await AbrirDialogoAsync<bool>(dlg))
             {
@@ -828,12 +897,16 @@ namespace CofreDeSenhas.Janelas
 
         private async void NovaSenha_Click(object? sender, RoutedEventArgs e)
         {
+            if (_naLixeira) return;
+
             var dlg = new JanelaCriarSenha(_servicoSenha);
             if (await AbrirDialogoAsync<bool>(dlg))
                 await CarregarSenhasAsync();
         }
 
-        private async Task CarregarSenhasAsync()
+        // internal só pra teste poder forçar um refresh de _senhasAtuais sem precisar
+        // passar por um fluxo de UI completo — ver App.Testes (InternalsVisibleTo).
+        internal async Task CarregarSenhasAsync(bool silencioso = false)
         {
             try
             {
@@ -853,9 +926,10 @@ namespace CofreDeSenhas.Janelas
             }
             catch (Exception ex)
             {
-                await CaixaMensagem.MostrarAsync(this,
-                    Idioma.Formatar("Message.LoadError", ErrosUi.MensagemAmigavel(ex)),
-                    Idioma.Texto("Common.Error"), TipoMensagem.Erro);
+                if (!silencioso)
+                    await CaixaMensagem.MostrarAsync(this,
+                        Idioma.Formatar("Message.LoadError", ErrosUi.MensagemAmigavel(ex)),
+                        Idioma.Texto("Common.Error"), TipoMensagem.Erro);
             }
         }
 
@@ -1064,9 +1138,10 @@ namespace CofreDeSenhas.Janelas
 
             try
             {
-                _servicoAnexos?.RemoverTodos(senha);
                 await _servicoSenha.RemoverDefinitivamenteAsync(senha.Id);
                 await _servicoSenha.PersistirAsync();
+                _servicoAnexos?.RemoverTodos(senha);
+                await PublicarTumbasNaPastaDeSincronizacaoAsync(new[] { senha.Id });
                 await CarregarSenhasAsync();
             }
             catch (Exception ex)
@@ -1090,18 +1165,76 @@ namespace CofreDeSenhas.Janelas
 
             try
             {
-                if (_servicoAnexos != null)
-                    foreach (var item in _itensLixeira)
-                        _servicoAnexos.RemoverTodos(item);
+                var itensParaLimparAnexos = _itensLixeira.ToList();
 
                 await _servicoSenha.EsvaziarLixeiraAsync();
                 await _servicoSenha.PersistirAsync();
+
+                // Sobrecarga em lote: limpa UltimosAvisos uma vez só e acumula os
+                // avisos de todos os itens, em vez de um loop de chamadas individuais
+                // (que perderia o aviso de cada item anterior a cada nova chamada).
+                _servicoAnexos?.RemoverTodos(itensParaLimparAnexos);
+
+                await PublicarTumbasNaPastaDeSincronizacaoAsync(itensParaLimparAnexos.Select(s => s.Id));
                 await CarregarSenhasAsync();
             }
             catch (Exception ex)
             {
                 await CaixaMensagem.MostrarAsync(this,
                     Idioma.Formatar("Trash.EmptyError", ErrosUi.MensagemAmigavel(ex)), Idioma.Texto("Common.Error"), TipoMensagem.Erro);
+            }
+        }
+
+        // Diferente do caminho de banco (RepositorioSenhaBanco.EsvaziarLinhaAsync
+        // grava uma linha em branco persistente), a pasta de sincronização não tem
+        // nenhum armazenamento próprio — só o snapshot que cada sync escreve. Uma vez
+        // que RemoverDefinitivamenteAsync roda, o item não deixa nenhum rastro local
+        // (RepositorioSenha.RemoverDefinitivamenteAsync é um DELETE de verdade), então
+        // se nada avisasse o sincronizacao.dat agora, o próximo ciclo de sync veria o
+        // item "só no remoto" (a cópia de antes da exclusão) e o ressuscitaria aqui —
+        // exatamente o oposto do que "excluir definitivamente" promete. Isto publica a
+        // tumba direto no arquivo compartilhado, sem esperar o próximo ciclo.
+        //
+        // internal só pra teste chamar direto sem precisar navegar até a lixeira na
+        // UI — ver App.Testes (InternalsVisibleTo), mesmo padrão já usado em
+        // RepublicarAposTrocaDeSenhaMestraAsync.
+        internal async Task PublicarTumbasNaPastaDeSincronizacaoAsync(IEnumerable<Guid> idsExcluidos)
+        {
+            if (_servicoSincronizacao == null || Preferencias.Sincronizacao is not { } perfil)
+                return;
+
+            try
+            {
+                var caminho = Path.Combine(perfil.Pasta, ServicoSincronizacao.NomeArquivo);
+                var remotas = await _servicoSincronizacao.LerAsync(caminho);
+                var agora = DateTime.UtcNow;
+
+                foreach (var id in idsExcluidos)
+                {
+                    remotas.RemoveAll(s => s.Id == id);
+                    remotas.Add(new SenhaExportada
+                    {
+                        Id = id,
+                        NomeServico = "",
+                        Usuario = "",
+                        Senha = "",
+                        NaLixeira = true,
+                        DataExclusao = agora,
+                        DataCriacao = agora,
+                        DataAtualizacao = agora
+                    });
+                }
+
+                var salt = Convert.FromBase64String(perfil.Salt);
+                await _servicoSincronizacao.EscreverAsync(caminho, salt, perfil.Kdf, perfil.Iteracoes,
+                    perfil.MemoriaKb, perfil.Paralelismo, remotas);
+            }
+            catch
+            {
+                // Melhor esforço: se a publicação da tumba falhar, o item já foi
+                // excluído localmente de qualquer forma; o pior caso é o próximo sync
+                // ainda ressuscitar o item aqui — o mesmo comportamento de antes desta
+                // correção, não uma perda pior do que já existia.
             }
         }
 
@@ -1234,6 +1367,91 @@ namespace CofreDeSenhas.Janelas
             }
 
             return historico;
+        }
+
+        // Decifra cada campo cifrado de s com a chave atual (_criptografia) e recifra
+        // com criptografiaNova, preservando estrutura e Ids (diferente dos Obter*Plain
+        // acima, que convertem para a forma exportada/plana usada na pasta de
+        // sincronização e por isso descartam o Id de CodigoRecuperacao). Retorna null
+        // se a própria senha estiver corrompida — melhor pular o item do que abortar a
+        // republicação inteira por causa de um registro só.
+        private Senha? RecifrarComNovaChave(Senha origem, ServicoCriptografia criptografiaNova)
+        {
+            if (_criptografia == null)
+                return null;
+
+            string senhaPlana;
+            try { senhaPlana = _criptografia.Descriptografar(origem.SenhaHash); }
+            catch { return null; }
+
+            string? totpPlano = null;
+            if (!string.IsNullOrEmpty(origem.TotpSegredo))
+            {
+                try { totpPlano = _criptografia.Descriptografar(origem.TotpSegredo); }
+                catch { }
+            }
+
+            var camposExtras = new Dictionary<string, string>();
+            foreach (var (chave, valorCifrado) in origem.CamposExtras)
+            {
+                try { camposExtras[chave] = criptografiaNova.Criptografar(_criptografia.Descriptografar(valorCifrado)); }
+                catch { }
+            }
+
+            var historico = new List<HistoricoSenha>();
+            foreach (var item in origem.Historico)
+            {
+                try
+                {
+                    historico.Add(new HistoricoSenha
+                    {
+                        SenhaHash = criptografiaNova.Criptografar(_criptografia.Descriptografar(item.SenhaHash)),
+                        DataAlteracao = item.DataAlteracao
+                    });
+                }
+                catch { }
+            }
+
+            var codigosRecuperacao = new List<CodigoRecuperacao>();
+            foreach (var item in origem.CodigosRecuperacao)
+            {
+                try
+                {
+                    codigosRecuperacao.Add(new CodigoRecuperacao
+                    {
+                        Id = item.Id,
+                        Codigo = criptografiaNova.Criptografar(_criptografia.Descriptografar(item.Codigo)),
+                        Usado = item.Usado
+                    });
+                }
+                catch { }
+            }
+
+            return new Senha
+            {
+                Id = origem.Id,
+                NomeServico = origem.NomeServico,
+                Usuario = origem.Usuario,
+                SenhaHash = criptografiaNova.Criptografar(senhaPlana),
+                Url = origem.Url,
+                Categoria = origem.Categoria,
+                Etiquetas = origem.Etiquetas.ToList(),
+                Notas = origem.Notas,
+                Tipo = origem.Tipo,
+                CamposExtras = camposExtras,
+                TotpSegredo = totpPlano == null ? null : criptografiaNova.Criptografar(totpPlano),
+                Historico = historico,
+                CodigosRecuperacao = codigosRecuperacao,
+                Favorito = origem.Favorito,
+                Fixado = origem.Fixado,
+                NaLixeira = origem.NaLixeira,
+                DataExclusao = origem.DataExclusao,
+                DataCriacao = origem.DataCriacao,
+                DataAtualizacao = origem.DataAtualizacao,
+                DataUltimaCopiaSenha = origem.DataUltimaCopiaSenha,
+                DataUltimaCopiaUsuario = origem.DataUltimaCopiaUsuario,
+                DataUltimaCopiaTotp = origem.DataUltimaCopiaTotp
+            };
         }
 
         private List<CodigoRecuperacaoExportado> ObterCodigosRecuperacaoPlain(Senha s)
@@ -1504,7 +1722,6 @@ namespace CofreDeSenhas.Janelas
                 PainelGeradorFlutuante.IsVisible = false;
             else
                 ExibirPainel(PainelGeradorFlutuante);
-            AtualizarFabGerador();
         }
 
         private void FecharGerador_Click(object? sender, RoutedEventArgs e) => FecharGerador();
@@ -1553,12 +1770,6 @@ namespace CofreDeSenhas.Janelas
         private void FecharGerador()
         {
             PainelGeradorFlutuante.IsVisible = false;
-            AtualizarFabGerador();
-        }
-
-        private void AtualizarFabGerador()
-        {
-            IconeFabGerador.RenderTransform = null;
         }
 
         private void ToggleNav_Click(object? sender, RoutedEventArgs e)
@@ -1724,9 +1935,24 @@ namespace CofreDeSenhas.Janelas
 
         private void OrdenarColuna_PointerPressed(object? sender, PointerPressedEventArgs e)
         {
+            if (OrdenarPelaColunaDe(sender))
+                e.Handled = true;
+        }
+
+        private void OrdenarColuna_KeyDown(object? sender, KeyEventArgs e)
+        {
+            if (e.Key is not (Key.Enter or Key.Space))
+                return;
+
+            if (OrdenarPelaColunaDe(sender))
+                e.Handled = true;
+        }
+
+        private bool OrdenarPelaColunaDe(object? sender)
+        {
             if (_naLixeira || sender is not Control { Tag: string tag } ||
                 !Enum.TryParse<ColunaOrdenacao>(tag, out var coluna))
-                return;
+                return false;
 
             if (_colunaOrdenacao == coluna)
             {
@@ -1741,7 +1967,7 @@ namespace CofreDeSenhas.Janelas
 
             AtualizarNavegacao();
             FiltrarSenhas();
-            e.Handled = true;
+            return true;
         }
 
         private void AtualizarNavegacao()
@@ -1777,15 +2003,33 @@ namespace CofreDeSenhas.Janelas
                 botao.Classes.Remove("ativo");
         }
 
-        private void Linha_SolicitouDetalhes(object? sender, Senha senha) => AbrirDetalhes(senha);
+        private async void Linha_SolicitouDetalhes(object? sender, Senha senha)
+        {
+            // Mesma trava de Salvar/Fechar/Excluir — sem ela, clicar em outra linha
+            // enquanto um Salvar/Excluir do item atual ainda está em voo troca o
+            // painel pro novo item sem bloqueio nenhum (a lista continua totalmente
+            // interativa durante esse voo, só os botões do próprio painel são
+            // desabilitados). Quando a operação original terminar, ela reabre/fecha o
+            // painel por cima do que o usuário já estava vendo/editando no novo item.
+            if (_detalhesOperacaoEmAndamento)
+                return;
 
-        private void AbrirDetalhes(Senha senha)
+            if (!await ConfirmarDescarteDetalhesAsync())
+                return;
+            AbrirDetalhes(senha);
+        }
+
+        // internal só pra teste abrir o painel diretamente sem precisar simular o
+        // clique na linha da lista — ver App.Testes (InternalsVisibleTo).
+        internal void AbrirDetalhes(Senha senha)
         {
             if (_modoPrivacidade)
                 return;
 
             _senhaDetalhe = senha;
             _senhaDetalhePlain = ObterSenhaPlain(senha) ?? "";
+            _senhaDetalheOriginal = _senhaDetalhePlain;
+            _senhaDetalheDataAtualizacaoAoAbrir = senha.DataAtualizacao;
             _senhaDetalheVisivel = false;
 
             TxtDetalheServico.Text = senha.NomeServico;
@@ -1795,6 +2039,8 @@ namespace CofreDeSenhas.Janelas
 
             LblDetalheUsuario.Text = TemplatesCredencial.RotuloUsuario(senha.Tipo);
             LblDetalheSenha.Text = TemplatesCredencial.RotuloSenha(senha.Tipo);
+            AutomationProperties.SetName(TxtDetalheUsuario, LblDetalheUsuario.Text);
+            AutomationProperties.SetName(TxtDetalheSenha, LblDetalheSenha.Text);
 
             TxtDetalheEtiquetas.Text = Etiquetas.Formatar(senha.Etiquetas);
             CmbDetalheCategoria.ItemsSource = CategoriasUI.Rotulos;
@@ -1805,6 +2051,51 @@ namespace CofreDeSenhas.Janelas
             AtualizarSenhaDetalhe();
             AtualizarTotpDetalhes();
             ExibirPainel(PainelDetalhes);
+
+            _snapshotDetalhes = (TxtDetalheServico.Text ?? "", TxtDetalheUsuario.Text ?? "",
+                TxtDetalheUrl.Text ?? "", TxtDetalheNotas.Text ?? "", TxtDetalheEtiquetas.Text ?? "",
+                CmbDetalheCategoria.SelectedIndex);
+        }
+
+        // internal só pra teste checar o resultado direto, sem depender do diálogo de
+        // confirmação real — ver App.Testes (InternalsVisibleTo).
+        internal bool DetalhesTemAlteracoesNaoSalvas()
+        {
+            if (_snapshotDetalhes is not { } s)
+                return false;
+
+            if (TxtDetalheServico.Text != s.Servico || TxtDetalheUsuario.Text != s.Usuario ||
+                TxtDetalheUrl.Text != s.Url || TxtDetalheNotas.Text != s.Notas ||
+                TxtDetalheEtiquetas.Text != s.Etiquetas || CmbDetalheCategoria.SelectedIndex != s.Categoria)
+                return true;
+
+            // Compara contra a baseline imutável, não contra _senhaDetalhePlain (que
+            // RevelarSenhaDetalhes_Click atualiza a cada ocultada) — assim uma edição
+            // feita enquanto a senha estava visível continua detectável mesmo depois
+            // de ocultá-la de novo, sem precisar que o campo esteja visível agora.
+            var senhaAtual = _senhaDetalheVisivel ? (TxtDetalheSenha.Text ?? "") : _senhaDetalhePlain;
+            return senhaAtual != _senhaDetalheOriginal;
+        }
+
+        // internal só pra teste checar a detecção direto, sem depender do diálogo de
+        // confirmação real — mesmo padrão de DetalhesTemAlteracoesNaoSalvas.
+        internal bool DetalhesTemAlteracaoConcorrente()
+        {
+            if (_senhaDetalhe == null)
+                return false;
+
+            var atual = _senhasAtuais.Concat(_itensLixeira).FirstOrDefault(s => s.Id == _senhaDetalhe.Id);
+            return atual != null && atual.DataAtualizacao != _senhaDetalheDataAtualizacaoAoAbrir;
+        }
+
+        private async Task<bool> ConfirmarDescarteDetalhesAsync()
+        {
+            if (!DetalhesTemAlteracoesNaoSalvas())
+                return true;
+
+            return await CaixaMensagem.ConfirmarAsync(this,
+                Idioma.Texto("Entry.Detail.DiscardChangesConfirm"),
+                Idioma.Texto("Entry.Detail.DiscardChangesTitle"), TipoMensagem.Aviso);
         }
 
         private void AtualizarHistoricoDetalhes()
@@ -1855,24 +2146,6 @@ namespace CofreDeSenhas.Janelas
             ToolTip.SetTip(BtnDetalheRevelar, Idioma.Texto(_senhaDetalheVisivel ? "Row.HidePassword" : "Row.RevealPassword"));
         }
 
-        private (Categoria categoria, List<string> etiquetas) LerCategoriaDetalhes()
-        {
-            var categoria = (Categoria)Math.Max(0, CmbDetalheCategoria.SelectedIndex);
-            var etiquetas = Etiquetas.Analisar(TxtDetalheEtiquetas.Text);
-
-            if (categoria == Categoria.Other)
-            {
-                var indice = etiquetas.FindIndex(e => CategoriasUI.TentarObterCategoria(e, out _));
-                if (indice >= 0)
-                {
-                    CategoriasUI.TentarObterCategoria(etiquetas[indice], out categoria);
-                    etiquetas.RemoveAt(indice);
-                }
-            }
-
-            return (categoria, etiquetas);
-        }
-
         private void AtualizarTotpDetalhes()
         {
             var segredo = _senhaDetalhe != null ? ObterTotpPlain(_senhaDetalhe) : null;
@@ -1919,6 +2192,9 @@ namespace CofreDeSenhas.Janelas
             if (_senhaDetalhe == null)
                 return;
 
+            if (!await ConfirmarDescarteDetalhesAsync())
+                return;
+
             var id = _senhaDetalhe.Id;
             var dlg = new JanelaEditarSenha(_servicoSenha, _senhaDetalhe, _criptografia, _servicoAnexos);
             if (await AbrirDialogoAsync<bool>(dlg))
@@ -1931,14 +2207,36 @@ namespace CofreDeSenhas.Janelas
                 FecharDetalhes();
         }
 
-        private void FecharDetalhes_Click(object? sender, RoutedEventArgs e) => FecharDetalhes();
+        private async void FecharDetalhes_Click(object? sender, RoutedEventArgs e)
+        {
+            // Salvar/Fechar/Excluir compartilham esta trava — sem ela, dava pra
+            // fechar (ou descartar) o painel enquanto um Salvar do mesmo item ainda
+            // estava em voo, e quando o Salvar terminasse ele reabria o painel que o
+            // usuário acabou de fechar.
+            if (_detalhesOperacaoEmAndamento)
+                return;
+
+            _detalhesOperacaoEmAndamento = true;
+            try
+            {
+                if (!await ConfirmarDescarteDetalhesAsync())
+                    return;
+                FecharDetalhes();
+            }
+            finally
+            {
+                _detalhesOperacaoEmAndamento = false;
+            }
+        }
 
         private void FecharDetalhes()
         {
             PainelDetalhes.IsVisible = false;
             _senhaDetalhe = null;
             _senhaDetalhePlain = "";
+            _senhaDetalheOriginal = "";
             _senhaDetalheVisivel = false;
+            _snapshotDetalhes = null;
             TxtDetalheSenha.Text = "";
             _timerTotpDetalhe.Parar();
             PainelDetalheTotp.IsVisible = false;
@@ -1946,18 +2244,33 @@ namespace CofreDeSenhas.Janelas
 
         private async void ExcluirDetalhes_Click(object? sender, RoutedEventArgs e)
         {
-            if (_senhaDetalhe == null)
+            if (_senhaDetalhe == null || _detalhesOperacaoEmAndamento)
                 return;
 
-            var id = _senhaDetalhe.Id;
-            await ExcluirSenhaAsync(_senhaDetalhe);
-            if (_senhasAtuais.All(s => s.Id != id))
-                FecharDetalhes();
+            _detalhesOperacaoEmAndamento = true;
+            BtnSalvarDetalhes.IsEnabled = false;
+            BtnFecharDetalhes.IsEnabled = false;
+            BtnExcluirDetalhes.IsEnabled = false;
+
+            try
+            {
+                var id = _senhaDetalhe.Id;
+                await ExcluirSenhaAsync(_senhaDetalhe);
+                if (_senhasAtuais.All(s => s.Id != id))
+                    FecharDetalhes();
+            }
+            finally
+            {
+                _detalhesOperacaoEmAndamento = false;
+                BtnSalvarDetalhes.IsEnabled = true;
+                BtnFecharDetalhes.IsEnabled = true;
+                BtnExcluirDetalhes.IsEnabled = true;
+            }
         }
 
         private async void SalvarDetalhes_Click(object? sender, RoutedEventArgs e)
         {
-            if (_senhaDetalhe == null)
+            if (_senhaDetalhe == null || _detalhesOperacaoEmAndamento)
                 return;
 
             var servico = (TxtDetalheServico.Text ?? "").Trim();
@@ -1978,10 +2291,30 @@ namespace CofreDeSenhas.Janelas
                 return;
             }
 
+            _detalhesOperacaoEmAndamento = true;
+            BtnSalvarDetalhes.IsEnabled = false;
+            BtnFecharDetalhes.IsEnabled = false;
+            BtnExcluirDetalhes.IsEnabled = false;
+
             try
             {
+                // Sincronização automática silenciosa (timer em segundo plano) pode
+                // ter alterado este mesmo item por trás do painel enquanto o usuário
+                // editava — CarregarSenhasAsync atualiza _senhasAtuais a cada ciclo,
+                // mas nunca toca no painel de detalhes já aberto. Sem esta checagem,
+                // Salvar sobrescreveria em silêncio o que acabou de chegar de outro
+                // dispositivo, sem qualquer aviso de conflito.
+                if (DetalhesTemAlteracaoConcorrente())
+                {
+                    var continuar = await CaixaMensagem.ConfirmarAsync(this,
+                        Idioma.Texto("Entry.Detail.ConcurrentChangeConfirm"),
+                        Idioma.Texto("Entry.Detail.ConcurrentChangeTitle"), TipoMensagem.Aviso);
+                    if (!continuar)
+                        return;
+                }
+
                 var id = _senhaDetalhe.Id;
-                var (categoria, etiquetas) = LerCategoriaDetalhes();
+                var (categoria, etiquetas) = CategoriasUI.LerCategoriaEEtiquetas(CmbDetalheCategoria.SelectedIndex, TxtDetalheEtiquetas.Text);
                 await _servicoSenha.AtualizarSenhaAsync(
                     id,
                     servico,
@@ -2003,6 +2336,13 @@ namespace CofreDeSenhas.Janelas
             {
                 await CaixaMensagem.MostrarAsync(this,
                     Idioma.Formatar("Entry.UpdateError", ErrosUi.MensagemAmigavel(ex)), Idioma.Texto("Common.Error"), TipoMensagem.Erro);
+            }
+            finally
+            {
+                _detalhesOperacaoEmAndamento = false;
+                BtnSalvarDetalhes.IsEnabled = true;
+                BtnFecharDetalhes.IsEnabled = true;
+                BtnExcluirDetalhes.IsEnabled = true;
             }
         }
 
@@ -2063,6 +2403,8 @@ namespace CofreDeSenhas.Janelas
             ToolTip.SetTip(BtnCopiarSenhaDetalhes, mensagem);
             AutomationProperties.SetName(BtnCopiarSenhaDetalhes, mensagem);
 
+            _timerFeedbackSenhaDetalhes?.Stop();
+
             var t = new DispatcherTimer { Interval = TimeSpan.FromSeconds(Math.Min(segundos, 3)) };
             t.Tick += (s, e) =>
             {
@@ -2070,6 +2412,7 @@ namespace CofreDeSenhas.Janelas
                 BtnCopiarSenhaDetalhes.ClearValue(AutomationProperties.NameProperty);
                 t.Stop();
             };
+            _timerFeedbackSenhaDetalhes = t;
             t.Start();
         }
 
@@ -2082,7 +2425,7 @@ namespace CofreDeSenhas.Janelas
                 AtualizarHistoricoDetalhes();
         }
 
-        private async void FavoritarToggle(Senha s)
+        private async Task FavoritarToggle(Senha s)
         {
             try
             {
@@ -2099,7 +2442,7 @@ namespace CofreDeSenhas.Janelas
             }
         }
 
-        private async void FixarToggle(Senha s)
+        private async Task FixarToggle(Senha s)
         {
             try
             {
@@ -2390,7 +2733,7 @@ namespace CofreDeSenhas.Janelas
 
         private async void VerificarVazamentos_Click(object? sender, RoutedEventArgs e)
         {
-            if (_linhasSenha.Count == 0)
+            if (_senhasAtuais.Count == 0)
             {
                 await CaixaMensagem.MostrarAsync(this,
                     Idioma.Texto("Message.BreachNoPasswords"),
@@ -2402,21 +2745,9 @@ namespace CofreDeSenhas.Janelas
             BtnVazamentos.IsEnabled = false;
             BtnVazamentos.Content = "…";
 
-            int comprometidas = 0;
-            int verificadas = 0;
             try
             {
-                foreach (var linha in _linhasSenha)
-                {
-                    var plain = ObterSenhaPlain(linha.Senha);
-                    if (string.IsNullOrEmpty(plain)) continue;
-
-                    int contagem = await _servicoVazamento.VerificarAsync(plain);
-                    linha.Vazamentos = contagem;
-                    _vazamentosPorId[linha.Senha.Id] = contagem;
-                    if (contagem > 0) comprometidas++;
-                    verificadas++;
-                }
+                var (verificadas, comprometidas) = await VerificarVazamentosDoVaultAsync();
 
                 string msg = comprometidas == 0
                     ? Idioma.Formatar("Message.BreachSuccess", verificadas)
@@ -2448,27 +2779,36 @@ namespace CofreDeSenhas.Janelas
                 return;
             }
 
-            ExecutarAuditoria();
-            var relatorio = ServicoRelatorioSeguranca.Gerar(_senhasAtuais, _resultadoAuditoria!, _vazamentosPorId,
-                CertificadoBancoNaoExigido());
-            bool jaVerificouVazamentos = _vazamentosPorId.Count > 0;
-
-            var dlg = new JanelaRelatorioSeguranca(relatorio, jaVerificouVazamentos, GerarRelatorioAtualizadoAsync);
-            await AbrirDialogoAsync<bool>(dlg);
-
-            if (dlg.CategoriaSelecionada is { } categoria)
+            try
             {
-                SairDaLixeira();
-                _somenteFavoritos = false;
-                _somenteRecentes = false;
-                _filtroSeguranca = categoria;
-                PintarFiltroFavoritos();
-                AtualizarNavegacao();
-            }
+                ExecutarAuditoria();
+                var relatorio = ServicoRelatorioSeguranca.Gerar(_senhasAtuais, _resultadoAuditoria!, _vazamentosPorId,
+                    CertificadoBancoNaoExigido());
+                bool jaVerificouVazamentos = _vazamentosPorId.Count > 0;
 
-            AtualizarChipFiltroSeguranca();
-            FiltrarSenhas();
-            AtualizarContador();
+                var dlg = new JanelaRelatorioSeguranca(relatorio, jaVerificouVazamentos, GerarRelatorioAtualizadoAsync);
+                await AbrirDialogoAsync<bool>(dlg);
+
+                if (dlg.CategoriaSelecionada is { } categoria)
+                {
+                    SairDaLixeira();
+                    _somenteFavoritos = false;
+                    _somenteRecentes = false;
+                    _filtroSeguranca = categoria;
+                    PintarFiltroFavoritos();
+                    AtualizarNavegacao();
+                }
+
+                AtualizarChipFiltroSeguranca();
+                FiltrarSenhas();
+                AtualizarContador();
+            }
+            catch (Exception ex)
+            {
+                await CaixaMensagem.MostrarAsync(this,
+                    Idioma.Formatar("Message.AuditError", ErrosUi.MensagemAmigavel(ex)),
+                    Idioma.Texto("Common.Error"), TipoMensagem.Erro);
+            }
         }
 
         private async Task<RelatorioSegurancaCofre> GerarRelatorioAtualizadoAsync()
@@ -2481,8 +2821,11 @@ namespace CofreDeSenhas.Janelas
         private static bool CertificadoBancoNaoExigido() =>
             Preferencias.UltimoBanco is { Conectado: true, ExigirCertificadoValido: false };
 
-        private async Task VerificarVazamentosDoVaultAsync()
+        private async Task<(int Verificadas, int Comprometidas)> VerificarVazamentosDoVaultAsync()
         {
+            int verificadas = 0;
+            int comprometidas = 0;
+
             foreach (var senha in _senhasAtuais)
             {
                 var plain = ObterSenhaPlain(senha);
@@ -2490,11 +2833,15 @@ namespace CofreDeSenhas.Janelas
 
                 int contagem = await _servicoVazamento.VerificarAsync(plain);
                 _vazamentosPorId[senha.Id] = contagem;
+                if (contagem > 0) comprometidas++;
+                verificadas++;
             }
 
             foreach (var linha in _linhasSenha)
                 if (_vazamentosPorId.TryGetValue(linha.Senha.Id, out var contagem))
                     linha.Vazamentos = contagem;
+
+            return (verificadas, comprometidas);
         }
 
         private async void Exportar_Click(object? sender, RoutedEventArgs e)
@@ -2721,53 +3068,62 @@ namespace CofreDeSenhas.Janelas
                 StringComparer.OrdinalIgnoreCase);
 
             int adicionadas = 0, invalidas = 0, duplicadas = 0, processadas = 0;
-            foreach (var item in itens)
+            try
             {
-                if (string.IsNullOrWhiteSpace(item.NomeServico) ||
-                    string.IsNullOrWhiteSpace(item.Usuario) ||
-                    string.IsNullOrWhiteSpace(item.Senha))
+                foreach (var item in itens)
                 {
-                    invalidas++;
-                }
-                else if (!chaves.Add(item.NomeServico + " " + item.Usuario))
-                {
-                    duplicadas++;
-                }
-                else
-                {
-                    Senha? nova = null;
-                    try
+                    if (string.IsNullOrWhiteSpace(item.NomeServico) ||
+                        string.IsNullOrWhiteSpace(item.Usuario) ||
+                        string.IsNullOrWhiteSpace(item.Senha))
                     {
-                        var totp = _totp.SegredoValido(item.TotpSegredo) ? item.TotpSegredo : null;
-                        nova = await _servicoSenha.CriarSenhaAsync(
-                            item.NomeServico, item.Usuario, item.Senha, item.Categoria, item.Url, item.Notas, totp, item.Etiquetas,
-                            item.Tipo, item.CamposExtras);
-                    }
-                    catch (ErroLocalizavel)
-                    {
-                        chaves.Remove(item.NomeServico + " " + item.Usuario);
                         invalidas++;
                     }
-
-                    if (nova != null)
+                    else if (!chaves.Add(item.NomeServico + " " + item.Usuario))
                     {
-                        if (item.Favorito)
-                            await _servicoSenha.MarcarComoFavoritoAsync(nova.Id);
-                        RestaurarHistorico(nova, item.Historico);
-                        if (item.CodigosRecuperacao is { Count: > 0 })
-                            await _servicoSenha.AdicionarCodigosRecuperacaoAsync(nova.Id,
-                                item.CodigosRecuperacao.Select(c => (c.Codigo, c.Usado)));
-                        await RestaurarAnexosAsync(nova, item.Anexos);
-                        adicionadas++;
+                        duplicadas++;
                     }
+                    else
+                    {
+                        Senha? nova = null;
+                        try
+                        {
+                            var totp = _totp.SegredoValido(item.TotpSegredo) ? item.TotpSegredo : null;
+                            nova = await _servicoSenha.CriarSenhaAsync(
+                                item.NomeServico, item.Usuario, item.Senha, item.Categoria, item.Url, item.Notas, totp, item.Etiquetas,
+                                item.Tipo, item.CamposExtras);
+                        }
+                        catch (ErroLocalizavel)
+                        {
+                            chaves.Remove(item.NomeServico + " " + item.Usuario);
+                            invalidas++;
+                        }
+
+                        if (nova != null)
+                        {
+                            if (item.Favorito)
+                                await _servicoSenha.MarcarComoFavoritoAsync(nova.Id);
+                            RestaurarHistorico(nova, item.Historico);
+                            if (item.CodigosRecuperacao is { Count: > 0 })
+                                await _servicoSenha.AdicionarCodigosRecuperacaoAsync(nova.Id,
+                                    item.CodigosRecuperacao.Select(c => (c.Codigo, c.Usado)));
+                            await RestaurarAnexosAsync(nova, item.Anexos);
+                            adicionadas++;
+                        }
+                    }
+
+                    processadas++;
+                    aoProgredir?.Invoke(processadas, itens.Count);
                 }
-
-                processadas++;
-                aoProgredir?.Invoke(processadas, itens.Count);
             }
-
-            await _servicoSenha.PersistirAsync();
-            await CarregarSenhasAsync();
+            finally
+            {
+                // Mesmo que um item no meio do lote lance algo além de ErroLocalizavel
+                // (ex.: banco de dados conectado caiu na metade), o que já foi
+                // adicionado até aqui não pode ficar só na memória, sem persistir e
+                // sem refletir na lista — a exceção ainda propaga normalmente depois.
+                await _servicoSenha.PersistirAsync();
+                await CarregarSenhasAsync();
+            }
 
             return (adicionadas, invalidas, duplicadas);
         }
@@ -2844,10 +3200,29 @@ namespace CofreDeSenhas.Janelas
             if (!await AbrirDialogoAsync<bool>(dlg))
                 return;
 
+            // A senha do servidor de banco (se houver) está cifrada com a chave atual —
+            // precisa ser decifrada antes da troca e recifrada com a chave nova depois,
+            // senão a reconexão automática passa a falhar silenciosamente no próximo
+            // login (MontarConexaoDoPerfil não consegue mais decifrá-la).
+            string? senhaServidorPlano = null;
             try
             {
-                var servico = new ServicoMudancaSenhaMestra();
-                await servico.AlterarAsync(dlg.SenhaAtual, dlg.NovaSenha);
+                if (_criptografia != null && !string.IsNullOrEmpty(Preferencias.UltimoBanco?.SenhaCifrada))
+                    senhaServidorPlano = _criptografia.Descriptografar(Preferencias.UltimoBanco.SenhaCifrada);
+            }
+            catch { }
+
+            // Reconcilia com a pasta de sincronização compartilhada usando a chave
+            // ainda antiga, antes dela deixar de bater com a senha nova — evita que a
+            // republicação feita mais abaixo (já com a chave nova) sobrescreva o que
+            // outro dispositivo tenha colocado lá desde a última sincronização.
+            await SincronizarAsync(silencioso: true);
+
+            var servico = new ServicoMudancaSenhaMestra();
+            byte[] chaveNova;
+            try
+            {
+                chaveNova = await servico.AlterarAsync(dlg.SenhaAtual, dlg.NovaSenha);
             }
             catch (ErroLocalizavel ex)
             {
@@ -2862,6 +3237,24 @@ namespace CofreDeSenhas.Janelas
                 return;
             }
 
+            // A troca já terminou com sucesso — auth.dat/vault (e a pasta de sync, mais
+            // abaixo) já estão na chave nova, mas _servicoSenha/_servicoSincronizacao
+            // continuam vinculados à chave ANTIGA até o restart. Sem parar o timer
+            // aqui, um ciclo de sync automático disparando durante os awaits abaixo
+            // (QrBackup pode ficar esperando o usuário indefinidamente) rodaria com a
+            // chave antiga e sobrescreveria o que acabou de ser regravado com a nova —
+            // deixando o cofre com metades em chaves diferentes. Fica parado até
+            // Reiniciar() encerrar o processo; não precisa reiniciar o timer depois.
+            _timerSincronizacao.Stop();
+
+            if (senhaServidorPlano != null && Preferencias.UltimoBanco != null)
+            {
+                Preferencias.UltimoBanco.SenhaCifrada = new ServicoCriptografia(chaveNova).Criptografar(senhaServidorPlano);
+                Preferencias.Salvar();
+            }
+
+            var afetaOutrosDispositivos = await RepublicarAposTrocaDeSenhaMestraAsync(chaveNova, dlg.NovaSenha, senhaServidorPlano);
+
             var biometriaEstavaHabilitada = _biometria.EstaHabilitado;
             await _biometria.DesabilitarAsync();
             await QrBackup.OferecerSalvarAsync(this, dlg.NovaSenha);
@@ -2869,11 +3262,91 @@ namespace CofreDeSenhas.Janelas
             var mensagem = Idioma.Texto("Master.ChangedRestart");
             if (biometriaEstavaHabilitada)
                 mensagem += "\n\n" + Idioma.Texto("Biometric.DisabledAfterMasterChange");
+            if (servico.UltimosAvisos.Count > 0)
+                mensagem += "\n\n" + Idioma.Texto("Master.ItemsDiscardedWarning");
+            if (afetaOutrosDispositivos)
+                mensagem += "\n\n" + Idioma.Texto("Master.OtherDevicesWarning");
 
             await CaixaMensagem.MostrarAsync(this,
                 mensagem,
                 Idioma.Texto("Master.ChangeTitle"));
             Reiniciar();
+        }
+
+        // internal (em vez de private) só para expor um seam de teste direto sem
+        // precisar dirigir o diálogo JanelaAlterarSenhaMestra nem os efeitos colaterais
+        // de UI (QR code, biometria, reinício) que o resto do fluxo dispara — ver
+        // App.Testes (InternalsVisibleTo), mesmo padrão já usado em ConectarAsync.
+        //
+        // Sem isto, o banco conectado e a pasta de sincronização continuam com o
+        // conteúdo (e o hmac, no caso do banco) cifrados com a chave antiga — nem este
+        // dispositivo consegue lê-los de volta depois de reiniciar com a senha nova, e
+        // "Restaurar de um banco de dados" fica travado no salt/verificador antigos pra
+        // sempre (RepositorioSenhaEspelhado só concilia dados, nunca a chave de
+        // cifragem usada pra gravá-los). Retorna true se o cofre está conectado a um
+        // banco ou pasta compartilhada com outros dispositivos, que precisam trocar a
+        // senha mestra também para continuar lendo o que este dispositivo publicar.
+        internal async Task<bool> RepublicarAposTrocaDeSenhaMestraAsync(byte[] chaveNova, string novaSenhaPlano, string? senhaServidorPlano)
+        {
+            var afetaOutrosDispositivos = _conectadoAoBanco || Preferencias.Sincronizacao != null;
+
+            if (_conectadoAoBanco && Preferencias.UltimoBanco is { } perfilBanco && _criptografia != null)
+            {
+                try
+                {
+                    var criptografiaNova = new ServicoCriptografia(chaveNova);
+                    var cfgNova = new ConexaoBanco
+                    {
+                        Tipo = perfilBanco.Tipo,
+                        Host = perfilBanco.Host,
+                        Porta = perfilBanco.Porta,
+                        Banco = perfilBanco.Banco,
+                        Usuario = perfilBanco.Usuario,
+                        SenhaServidor = senhaServidorPlano,
+                        ExigirCertificadoValido = perfilBanco.ExigirCertificadoValido
+                    };
+
+                    var todasAtuais = (await _servicoSenha.ListarTodosAsync()).Concat(await _servicoSenha.ListarLixeiraAsync());
+                    var itensRecifrados = todasAtuais
+                        .Select(s => RecifrarComNovaChave(s, criptografiaNova))
+                        .Where(s => s != null)
+                        .Cast<Senha>();
+
+                    var repoBancoNovo = new RepositorioSenhaBanco(cfgNova, criptografiaNova);
+                    await repoBancoNovo.GravarVariasPorChaveAsync(itensRecifrados);
+
+                    if (new AutenticacaoMestra().TentarLerParametros(out var salt, out var verificador, out var kdf, out var custo, out var memoriaKb, out var paralelismo))
+                        await new ServicoBancoDados().PublicarAuthAsync(cfgNova, new AuthBanco(salt, verificador, kdf, custo, memoriaKb, paralelismo));
+                }
+                catch
+                {
+                    // Melhor esforço: se a republicação falhar, o cofre local já está
+                    // trocado e funcional; a próxima reconexão manual ou sincronização
+                    // tenta de novo, e o usuário já é avisado sobre os outros
+                    // dispositivos por quem chama este método.
+                }
+            }
+
+            if (Preferencias.Sincronizacao is { } perfilSync)
+            {
+                try
+                {
+                    var saltSync = Convert.FromBase64String(perfilSync.Salt);
+                    var chaveSyncNova = ServicoSincronizacao.DerivarChave(novaSenhaPlano, saltSync, perfilSync.Kdf,
+                        perfilSync.Iteracoes, perfilSync.MemoriaKb, perfilSync.Paralelismo);
+                    var servicoSyncNovo = new ServicoSincronizacao(new ServicoCriptografia(chaveSyncNova));
+
+                    var caminho = Path.Combine(perfilSync.Pasta, ServicoSincronizacao.NomeArquivo);
+                    await servicoSyncNovo.EscreverAsync(caminho, saltSync, perfilSync.Kdf, perfilSync.Iteracoes,
+                        perfilSync.MemoriaKb, perfilSync.Paralelismo, await ConstruirListaExportavelAsync());
+                }
+                catch
+                {
+                    // Melhor esforço, mesmo raciocínio do bloco do banco acima.
+                }
+            }
+
+            return afetaOutrosDispositivos;
         }
 
         private async void RegerarQrCode_Click(object? sender, RoutedEventArgs e)
@@ -3044,8 +3517,25 @@ namespace CofreDeSenhas.Janelas
             await ConectarAsync(cfg, persistir: true, silencioso: false);
         }
 
-        private async Task ConectarAsync(ConexaoBanco cfg, bool persistir, bool silencioso)
+        // internal (não private) só pra permitir testar a orquestração de conexão sem
+        // precisar dirigir os dois diálogos (JanelaSelecionarBanco/JanelaConexaoBanco)
+        // que normalmente ficam na frente dela — ver App.Testes (InternalsVisibleTo).
+        internal Task ConectarAsync(ConexaoBanco cfg, bool persistir, bool silencioso)
         {
+            var minhaGeracao = ++_geracaoConexao;
+            var minhaTarefa = ConectarAposAsync(_tarefaConexaoAtual, cfg, persistir, silencioso, minhaGeracao);
+            _tarefaConexaoAtual = minhaTarefa;
+            return minhaTarefa;
+        }
+
+        private async Task ConectarAposAsync(Task tarefaAnterior, ConexaoBanco cfg, bool persistir, bool silencioso, int minhaGeracao)
+        {
+            // Uma falha da tentativa anterior (incluindo, em tese, o próprio diálogo de
+            // erro dela) não pode propagar aqui — senão essa nova tarefa também fica
+            // faltada, e como _tarefaConexaoAtual nunca é resetada, toda tentativa futura
+            // de conexão ficaria permanentemente travada reencontrando o erro antigo.
+            try { await tarefaAnterior; } catch { }
+
             try
             {
                 var repoBanco = new RepositorioSenhaBanco(cfg, _criptografia);
@@ -3058,6 +3548,13 @@ namespace CofreDeSenhas.Janelas
 
                 await servico.ListarTodosAsync();
                 await PublicarAuthNoBancoSeNecessarioAsync(cfg);
+
+                // Enquanto os awaits acima estavam em voo, o usuário pode ter clicado
+                // "Desconectar" ou iniciado outra tentativa de conexão — essa é a mais
+                // recente e deve prevalecer; aplicar o resultado desta reconectaria o
+                // cofre contra a vontade mais atual do usuário.
+                if (minhaGeracao != _geracaoConexao)
+                    return;
 
                 _servicoSenha = servico;
                 _repositorioEspelhado = espelho;
@@ -3097,6 +3594,12 @@ namespace CofreDeSenhas.Janelas
             }
             catch (Exception ex)
             {
+                // Mesmo raciocínio do "return" acima: se o usuário já desconectou ou
+                // começou outra tentativa, nem o estado nem um diálogo de erro fazem
+                // sentido pra uma conexão que ele já abandonou.
+                if (minhaGeracao != _geracaoConexao)
+                    return;
+
                 _servicoSenha = _servicoSenhaLocal;
                 _repositorioEspelhado = null;
                 _conectadoAoBanco = false;
@@ -3154,6 +3657,12 @@ namespace CofreDeSenhas.Janelas
 
         private async void DesconectarBanco_Click(object? sender, RoutedEventArgs e)
         {
+            // Invalida qualquer tentativa de conexão ainda em voo (ver
+            // ConectarAposAsync) — sem isto, uma conexão iniciada antes de
+            // "Desconectar" podia terminar depois e reconectar o cofre por cima
+            // desta escolha, que é a mais recente.
+            _geracaoConexao++;
+
             _servicoSenha = _servicoSenhaLocal;
             _repositorioEspelhado = null;
             _conectadoAoBanco = false;
@@ -3194,7 +3703,6 @@ namespace CofreDeSenhas.Janelas
                 MenuDesconectarBanco.IsVisible = false;
             }
 
-            PontoConexao.IsVisible = false;
             LblConexao.Text = TextoBloqueioAutomatico();
             ToolTip.SetTip(LblConexao, conexao);
 

@@ -68,7 +68,7 @@
                        Foreground="{DynamicResource TextSecondary}"
                        Margin="0,0,0,6" />
             <TextBox Name="TxtSenha"
-                     Classes="campo revealPasswordButton"
+                     Classes="campo"
                      TabIndex="2"
                      AutomationProperties.Name="{DynamicResource Login.MasterPassword}"
                      AutomationProperties.HelpText="{DynamicResource A11y.PasswordFieldHelp}"
@@ -83,7 +83,7 @@
                          Foreground="{DynamicResource TextSecondary}"
                          Margin="0,0,0,6" />
               <TextBox Name="TxtConfirmar"
-                       Classes="campo revealPasswordButton"
+                       Classes="campo"
                        TabIndex="3"
                        AutomationProperties.Name="{DynamicResource Login.ConfirmPassword}"
                        AutomationProperties.HelpText="{DynamicResource A11y.PasswordFieldHelp}"

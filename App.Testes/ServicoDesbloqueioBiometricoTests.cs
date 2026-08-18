@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using CofreDeSenhas;
 
@@ -60,6 +61,26 @@ namespace App.Testes
         [Fact]
         public void RegistroValido_ComNulo_RetornaFalso() =>
             Assert.False(ServicoDesbloqueioBiometrico.RegistroValido(null));
+
+#if WINDOWS
+        [Fact]
+        public void SistemaSuportado_NaTfmWindows_UsaVerificacaoRealDePlataforma()
+        {
+            var servico = new ServicoDesbloqueioBiometrico(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString()));
+
+            Assert.Equal(
+                RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && OperatingSystem.IsWindowsVersionAtLeast(10, 0, 10240),
+                servico.SistemaSuportado);
+        }
+#else
+        [Fact]
+        public void SistemaSuportado_ForaDaTfmWindows_SempreFalso()
+        {
+            var servico = new ServicoDesbloqueioBiometrico(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString()));
+
+            Assert.False(servico.SistemaSuportado);
+        }
+#endif
 
         [Theory]
         [InlineData(1)]

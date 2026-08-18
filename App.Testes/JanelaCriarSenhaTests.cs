@@ -46,6 +46,29 @@ namespace App.Testes
         }
 
         [AvaloniaFact]
+        public async Task Salvar_DesabilitaOBotaoEnquantoSalvaEReabilitaDepois_ImpedindoDuploClique()
+        {
+            var (servico, _) = CriarServico();
+            var janela = new JanelaCriarSenha(servico);
+            janela.Show();
+
+            janela.Encontrar<TextBox>("TxtNomeServico").Text = "Servico de Teste";
+            janela.Encontrar<TextBox>("TxtUsuario").Text = "usuario.teste";
+            janela.Encontrar<TextBox>("TxtSenha").Text = "SenhaCriada123!";
+
+            var botao = janela.BotaoPorTexto(Idioma.Texto("Common.Save"));
+            botao.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+
+            Assert.False(botao.IsEnabled);
+
+            await TesteUtil.AguardarAsync(() => botao.IsEnabled);
+
+            Assert.True(botao.IsEnabled);
+            var lista = await servico.ListarTodosAsync();
+            Assert.Single(lista);
+        }
+
+        [AvaloniaFact]
         public async Task Salvar_ComCamposObrigatoriosVazios_NaoPersisteNada()
         {
             var (servico, _) = CriarServico();

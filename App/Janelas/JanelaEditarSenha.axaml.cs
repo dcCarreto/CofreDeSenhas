@@ -21,6 +21,7 @@ namespace CofreDeSenhas.Janelas
         private readonly ServicoAnexos? _servicoAnexos;
         private readonly ServicoTotp _totp = new();
         private readonly TotpPreview.Temporizador _timerTotp = new();
+        private readonly List<DispatcherTimer> _timersFeedbackCopia = new();
         private const int PeriodoTotp = 30;
 
         public JanelaEditarSenha(IServicoSenha servicoSenha, Senha senhaAtual, IServicoCriptografia? criptografia,
@@ -59,6 +60,8 @@ namespace CofreDeSenhas.Janelas
             Closed += (s, e) =>
             {
                 _timerTotp.Parar();
+                foreach (var timer in _timersFeedbackCopia)
+                    timer.Stop();
                 Idioma.Alterado -= Idioma_Alterado;
             };
             AtualizarPreviewTotp();
@@ -173,6 +176,10 @@ namespace CofreDeSenhas.Janelas
 
         private async void Salvar_Click(object? sender, RoutedEventArgs e)
         {
+            var botao = sender as Button;
+            if (botao != null)
+                botao.IsEnabled = false;
+
             try
             {
                 if (string.IsNullOrWhiteSpace(TxtNomeServico.Text) || string.IsNullOrWhiteSpace(TxtUsuario.Text))
@@ -204,7 +211,7 @@ namespace CofreDeSenhas.Janelas
                     }
                 }
 
-                var (categoria, etiquetas) = LerCategoriaEEtiquetas();
+                var (categoria, etiquetas) = CategoriasUI.LerCategoriaEEtiquetas(CmbCategoria.SelectedIndex, TxtEtiquetas.Text);
                 var tipo = TemplatesCredencial.ObterTipo(CmbTipo.SelectedIndex);
                 await _servicoSenha.AtualizarSenhaAsync(
                     _senhaAtual.Id,
@@ -227,6 +234,11 @@ namespace CofreDeSenhas.Janelas
             {
                 await CaixaMensagem.MostrarAsync(this,
                     Idioma.Formatar("Entry.UpdateError", ErrosUi.MensagemAmigavel(ex)), Idioma.Texto("Common.Error"), TipoMensagem.Erro);
+            }
+            finally
+            {
+                if (botao != null)
+                    botao.IsEnabled = true;
             }
         }
 
@@ -256,24 +268,6 @@ namespace CofreDeSenhas.Janelas
                 PainelTotp.IsVisible = false;
                 _timerTotp.Parar();
             }
-        }
-
-        private (Categoria categoria, List<string> etiquetas) LerCategoriaEEtiquetas()
-        {
-            var categoria = (Categoria)Math.Max(0, CmbCategoria.SelectedIndex);
-            var etiquetas = Etiquetas.Analisar(TxtEtiquetas.Text);
-
-            if (categoria == Categoria.Other)
-            {
-                var indice = etiquetas.FindIndex(e => CategoriasUI.TentarObterCategoria(e, out _));
-                if (indice >= 0)
-                {
-                    CategoriasUI.TentarObterCategoria(etiquetas[indice], out categoria);
-                    etiquetas.RemoveAt(indice);
-                }
-            }
-
-            return (categoria, etiquetas);
         }
 
         private void MontarHistorico()
@@ -319,7 +313,6 @@ namespace CofreDeSenhas.Janelas
                 VerticalAlignment = VerticalAlignment.Center
             };
             campo.Classes.Add("campo");
-            campo.Classes.Add("revealPasswordButton");
             AutomationProperties.SetName(campo, Idioma.Texto("A11y.PreviousPassword"));
 
             var btnCopiar = CriarBotaoHistorico(Idioma.Texto("Row.CopyPassword"), Idioma.Texto("Row.CopyPassword"));
@@ -396,7 +389,6 @@ namespace CofreDeSenhas.Janelas
                 Opacity = item.Usado ? 0.55 : 1.0
             };
             campo.Classes.Add("campo");
-            campo.Classes.Add("revealPasswordButton");
             AutomationProperties.SetName(campo, Idioma.Texto("A11y.RecoveryCode"));
 
             var btnCopiar = CriarBotaoHistorico(Idioma.Texto("Row.CopyRecoveryCode"), Idioma.Texto("Row.CopyRecoveryCode"));
@@ -652,7 +644,9 @@ namespace CofreDeSenhas.Janelas
                         ToolTip.SetTip(origem, Idioma.Texto("Row.CopyPassword"));
                         AutomationProperties.SetName(origem, Idioma.Texto("Row.CopyPassword"));
                         t.Stop();
+                        _timersFeedbackCopia.Remove(t);
                     };
+                    _timersFeedbackCopia.Add(t);
                     t.Start();
                 }
             }

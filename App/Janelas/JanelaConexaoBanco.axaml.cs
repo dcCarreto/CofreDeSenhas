@@ -167,7 +167,6 @@ namespace CofreDeSenhas.Janelas
             if (senha)
             {
                 caixa.PasswordChar = '●';
-                caixa.Classes.Add("revealPasswordButton");
                 AutomationProperties.SetHelpText(caixa, Idioma.Texto("A11y.PasswordFieldHelp"));
             }
 
@@ -278,7 +277,7 @@ namespace CofreDeSenhas.Janelas
                 return null;
             }
 
-            if (!int.TryParse(_txtPorta?.Text?.Trim(), out var porta) || porta <= 0)
+            if (!int.TryParse(_txtPorta?.Text?.Trim(), out var porta) || porta is <= 0 or > 65535)
             {
                 MostrarErro(Idioma.Texto("Db.ErrorInvalidPort"));
                 return null;

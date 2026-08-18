@@ -19,14 +19,21 @@ namespace CofreDeSenhas.Janelas
         private ServicoSincronizacao? _servicoAtual;
         private readonly Action<ServicoSincronizacao?> _definirServico;
         private readonly Func<Task<bool>> _sincronizarAgora;
+        private readonly Func<bool> _estaSincronizando;
+        // internal só pra teste conferir que o delegate certo foi injetado, sem
+        // precisar simular o seletor de pasta nativo que vem antes dele em
+        // Ativar_Click — ver App.Testes (InternalsVisibleTo).
+        internal readonly Func<Window, Task<bool>> _abrirDialogoAninhado;
         private bool _carregandoPreferencias;
 
         public JanelaSincronizacao(ServicoSincronizacao? servicoAtual, Action<ServicoSincronizacao?> definirServico,
-            Func<Task<bool>> sincronizarAgora)
+            Func<Task<bool>> sincronizarAgora, Func<bool> estaSincronizando, Func<Window, Task<bool>> abrirDialogoAninhado)
         {
             _servicoAtual = servicoAtual;
             _definirServico = definirServico ?? throw new ArgumentNullException(nameof(definirServico));
             _sincronizarAgora = sincronizarAgora ?? throw new ArgumentNullException(nameof(sincronizarAgora));
+            _estaSincronizando = estaSincronizando ?? throw new ArgumentNullException(nameof(estaSincronizando));
+            _abrirDialogoAninhado = abrirDialogoAninhado ?? throw new ArgumentNullException(nameof(abrirDialogoAninhado));
 
             InitializeComponent();
             Icon = Recursos.IconeApp();
@@ -107,7 +114,14 @@ namespace CofreDeSenhas.Janelas
                 Idioma.Texto("Sync.ConfirmMasterTitle"),
                 Idioma.Texto("Sync.ConfirmMasterInstruction"),
                 Idioma.Texto("Sync.Confirm"));
-            if (!await dlg.ShowDialog<bool>(this))
+
+            // Via _abrirDialogoAninhado (que delega pro AbrirDialogoAsync de
+            // JanelaPrincipal) em vez de ShowDialog direto — sem isto, o
+            // MonitorInatividade nunca soube de teclas digitadas neste diálogo
+            // aninhado (ele só é vinculado a diálogos abertos diretamente pela janela
+            // principal), e o bloqueio automático podia fechá-lo à força enquanto o
+            // usuário ainda estava digitando a senha mestra de confirmação.
+            if (!await _abrirDialogoAninhado(dlg))
                 return;
 
             try
@@ -164,6 +178,13 @@ namespace CofreDeSenhas.Janelas
 
         private async void SincronizarAgora_Click(object? sender, RoutedEventArgs e)
         {
+            if (_estaSincronizando())
+            {
+                await CaixaMensagem.MostrarAsync(this,
+                    Idioma.Texto("Sync.AlreadyInProgress"), Idioma.Texto("Sync.Title"), TipoMensagem.Aviso);
+                return;
+            }
+
             var sucesso = await _sincronizarAgora();
             if (Preferencias.Sincronizacao is { } perfil)
                 AtualizarUltimaSincronizacao(perfil);
@@ -174,10 +195,30 @@ namespace CofreDeSenhas.Janelas
 
         private async void Desativar_Click(object? sender, RoutedEventArgs e)
         {
+            // Mesma checagem que SincronizarAgora_Click já faz antes de agir — sem
+            // ela, zerar a chave enquanto uma sincronização está em andamento
+            // derrubava esse ciclo com ObjectDisposedException.
+            if (_estaSincronizando())
+            {
+                await CaixaMensagem.MostrarAsync(this,
+                    Idioma.Texto("Sync.AlreadyInProgress"), Idioma.Texto("Sync.Title"), TipoMensagem.Aviso);
+                return;
+            }
+
             var confirmar = await CaixaMensagem.ConfirmarAsync(this,
                 Idioma.Texto("Sync.DisableConfirm"), Idioma.Texto("Sync.Disable"));
             if (!confirmar)
                 return;
+
+            // Uma sincronização periódica silenciosa pode ter começado enquanto o
+            // diálogo de confirmação estava aberto (o timer de sync não é bloqueado
+            // por ele) — reconfere antes de agir.
+            if (_estaSincronizando())
+            {
+                await CaixaMensagem.MostrarAsync(this,
+                    Idioma.Texto("Sync.AlreadyInProgress"), Idioma.Texto("Sync.Title"), TipoMensagem.Aviso);
+                return;
+            }
 
             Preferencias.Sincronizacao = null;
             Preferencias.Salvar();

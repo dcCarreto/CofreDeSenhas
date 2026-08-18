@@ -259,6 +259,7 @@
                       Margin="0,0,0,16"
                       Classes="fab"
                       ToolTip.Tip="{DynamicResource Generator.Title}"
+                      AutomationProperties.Name="{DynamicResource Generator.Title}"
                       Click="ToggleGerador_Click">
                 <c:Icone Name="IconeFabGerador"
                        Width="{StaticResource TamIconeHero}" Height="{StaticResource TamIconeHero}"
@@ -316,31 +317,31 @@
                            FontSize="10" FontWeight="Bold"
                            Foreground="{DynamicResource TextHeader}"
                            Margin="12,0,0,6" />
-                <Button Name="BtnCatPessoal" Classes="nav-item categoria" Tag="Personal" Click="NavCategoria_Click">
+                <Button Name="BtnCatPessoal" Classes="nav-item" Tag="Personal" Click="NavCategoria_Click">
                   <Grid ColumnDefinitions="40,*">
                     <Ellipse Width="9" Height="9" Fill="{DynamicResource CategoryPersonalFg}" HorizontalAlignment="Center" VerticalAlignment="Center" />
                     <TextBlock Name="LblCatJogos" Grid.Column="1" Text="{DynamicResource Category.Personal}" VerticalAlignment="Center" />
                   </Grid>
                 </Button>
-                <Button Name="BtnCatSocial" Classes="nav-item categoria" Tag="Social" Click="NavCategoria_Click">
+                <Button Name="BtnCatSocial" Classes="nav-item" Tag="Social" Click="NavCategoria_Click">
                   <Grid ColumnDefinitions="40,*">
                     <Ellipse Width="9" Height="9" Fill="{DynamicResource CategorySocialFg}" HorizontalAlignment="Center" VerticalAlignment="Center" />
                     <TextBlock Name="LblCatRedes" Grid.Column="1" Text="{DynamicResource Category.Social}" VerticalAlignment="Center" />
                   </Grid>
                 </Button>
-                <Button Name="BtnCatTrabalho" Classes="nav-item categoria" Tag="Work" Click="NavCategoria_Click">
+                <Button Name="BtnCatTrabalho" Classes="nav-item" Tag="Work" Click="NavCategoria_Click">
                   <Grid ColumnDefinitions="40,*">
                     <Ellipse Width="9" Height="9" Fill="{DynamicResource CategoryWorkFg}" HorizontalAlignment="Center" VerticalAlignment="Center" />
                     <TextBlock Name="LblCatEmail" Grid.Column="1" Text="{DynamicResource Category.Work}" VerticalAlignment="Center" />
                   </Grid>
                 </Button>
-                <Button Name="BtnCatFinancas" Classes="nav-item categoria" Tag="Finance" Click="NavCategoria_Click">
+                <Button Name="BtnCatFinancas" Classes="nav-item" Tag="Finance" Click="NavCategoria_Click">
                   <Grid ColumnDefinitions="40,*">
                     <Ellipse Width="9" Height="9" Fill="{DynamicResource CategoryFinanceFg}" HorizontalAlignment="Center" VerticalAlignment="Center" />
                     <TextBlock Name="LblCatFinanceiro" Grid.Column="1" Text="{DynamicResource Category.Finance}" VerticalAlignment="Center" />
                   </Grid>
                 </Button>
-                <Button Name="BtnCatOutro" Classes="nav-item categoria" Tag="Other" Click="NavCategoria_Click">
+                <Button Name="BtnCatOutro" Classes="nav-item" Tag="Other" Click="NavCategoria_Click">
                   <Grid ColumnDefinitions="40,*">
                     <Ellipse Width="9" Height="9" Fill="{DynamicResource CategoryOtherFg}" HorizontalAlignment="Center" VerticalAlignment="Center" />
                     <TextBlock Name="LblCatOutro" Grid.Column="1" Text="{DynamicResource Category.Other}" VerticalAlignment="Center" />
@@ -385,6 +386,7 @@
                       <Button Name="BtnAtualizarAgora" Classes="plano" Padding="9,3" FontSize="11" FontWeight="Bold"
                               Foreground="{DynamicResource AccentPrimary}"
                               ToolTip.Tip="{DynamicResource Update.Now}"
+                              AutomationProperties.Name="{DynamicResource Update.Now}"
                               Click="AtualizarAgora_Click">
                         <StackPanel Orientation="Horizontal" Spacing="5">
                           <c:Icone Width="{StaticResource TamIconeRodape}" Height="{StaticResource TamIconeRodape}"
@@ -602,7 +604,10 @@
                           Margin="4,0,8,0">
                       <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center"
                                   Margin="10,0,0,0" Cursor="Hand" Tag="Servico" Background="Transparent"
+                                  Focusable="True"
                                   PointerPressed="OrdenarColuna_PointerPressed"
+                                  KeyDown="OrdenarColuna_KeyDown"
+                                  AutomationProperties.ControlTypeOverride="Button"
                                   AutomationProperties.Name="{DynamicResource Vault.Table.Service}"
                                   AutomationProperties.HelpText="{DynamicResource A11y.SortByColumn}">
                         <TextBlock Text="{DynamicResource Vault.Table.Service}" FontSize="10" FontWeight="Bold"
@@ -618,7 +623,10 @@
                               PointerReleased="RedimensionarColuna_PointerReleased" />
                       <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center"
                                   Margin="4,0,0,0" Cursor="Hand" Tag="Usuario" Background="Transparent"
+                                  Focusable="True"
                                   PointerPressed="OrdenarColuna_PointerPressed"
+                                  KeyDown="OrdenarColuna_KeyDown"
+                                  AutomationProperties.ControlTypeOverride="Button"
                                   AutomationProperties.Name="{DynamicResource Vault.Table.User}"
                                   AutomationProperties.HelpText="{DynamicResource A11y.SortByColumn}">
                         <TextBlock Text="{DynamicResource Vault.Table.User}" FontSize="10" FontWeight="Bold"
@@ -634,7 +642,10 @@
                               PointerReleased="RedimensionarColuna_PointerReleased" />
                       <StackPanel Grid.Column="5" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center"
                                   Cursor="Hand" Tag="Categoria" Background="Transparent"
+                                  Focusable="True"
                                   PointerPressed="OrdenarColuna_PointerPressed"
+                                  KeyDown="OrdenarColuna_KeyDown"
+                                  AutomationProperties.ControlTypeOverride="Button"
                                   AutomationProperties.Name="{DynamicResource Vault.Table.Category}"
                                   AutomationProperties.HelpText="{DynamicResource A11y.SortByColumn}">
                         <TextBlock Text="{DynamicResource Vault.Table.Category}" FontSize="10" FontWeight="Bold"
@@ -650,7 +661,10 @@
                               PointerReleased="RedimensionarColuna_PointerReleased" />
                       <StackPanel Grid.Column="7" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center"
                                   Cursor="Hand" Tag="Forca" Background="Transparent"
+                                  Focusable="True"
                                   PointerPressed="OrdenarColuna_PointerPressed"
+                                  KeyDown="OrdenarColuna_KeyDown"
+                                  AutomationProperties.ControlTypeOverride="Button"
                                   AutomationProperties.Name="{DynamicResource Vault.Table.Strength}"
                                   AutomationProperties.HelpText="{DynamicResource A11y.SortByColumn}">
                         <TextBlock Text="{DynamicResource Vault.Table.Strength}" FontSize="10" FontWeight="Bold"
@@ -757,7 +771,7 @@
                   <TextBlock Text="{DynamicResource Details.Title}" FontSize="18" FontWeight="Bold"
                              Foreground="{DynamicResource TextPrimary}"
                              VerticalAlignment="Center" />
-                  <Button Grid.Column="1" Classes="icone" Width="34" Height="34"
+                  <Button Name="BtnFecharDetalhes" Grid.Column="1" Classes="icone" Width="34" Height="34"
                           ToolTip.Tip="{DynamicResource Details.Close}"
                           AutomationProperties.Name="{DynamicResource Details.Close}"
                           Click="FecharDetalhes_Click">
@@ -771,15 +785,17 @@
                         BorderThickness="0,1,0,0"
                         Padding="20,14">
                   <Grid ColumnDefinitions="Auto,10,*">
-                    <Button Classes="secundario" Height="38" Click="ExcluirDetalhes_Click">
+                    <Button Name="BtnExcluirDetalhes" Classes="secundario" Height="38" Click="ExcluirDetalhes_Click"
+                            AutomationProperties.Name="{DynamicResource Details.Delete}">
                       <StackPanel Orientation="Horizontal" Spacing="7">
                         <c:Icone Width="{StaticResource TamIconeCampo}" Height="{StaticResource TamIconeCampo}"
                                Chave="IconeExcluir" />
                         <TextBlock Text="{DynamicResource Details.Delete}" />
                       </StackPanel>
                     </Button>
-                    <Button Grid.Column="2" Classes="primario" Height="38" FontSize="13"
-                            Click="SalvarDetalhes_Click">
+                    <Button Name="BtnSalvarDetalhes" Grid.Column="2" Classes="primario" Height="38" FontSize="13"
+                            Click="SalvarDetalhes_Click"
+                            AutomationProperties.Name="{DynamicResource Details.Save}">
                       <StackPanel Orientation="Horizontal" Spacing="7">
                         <c:Icone Width="{StaticResource TamIconeCampo}" Height="{StaticResource TamIconeCampo}" Stroke="White"
                                Chave="IconeCheck" />
@@ -911,7 +927,8 @@
                       <Grid ColumnDefinitions="Auto,*,Auto">
                         <c:Icone Width="{StaticResource TamIconeCampo}" Height="{StaticResource TamIconeCampo}" Margin="0,0,8,0" VerticalAlignment="Center"
                                Chave="IconeLink" />
-                        <TextBox Name="TxtDetalheUrl" Grid.Column="1" Classes="campo" Height="38" />
+                        <TextBox Name="TxtDetalheUrl" Grid.Column="1" Classes="campo" Height="38"
+                                 AutomationProperties.Name="{DynamicResource Entry.UrlOptional}" />
                         <Button Grid.Column="2" Classes="icone" Width="36" Height="36" Margin="8,0,0,0"
                                 ToolTip.Tip="{DynamicResource Row.CopyUrl}"
                                 AutomationProperties.Name="{DynamicResource Row.CopyUrl}"
@@ -931,7 +948,8 @@
                                  MinHeight="86"
                                  AcceptsReturn="True"
                                  TextWrapping="Wrap"
-                                 VerticalContentAlignment="Top" />
+                                 VerticalContentAlignment="Top"
+                                 AutomationProperties.Name="{DynamicResource Entry.NotesOptional}" />
                       </Grid>
                     </StackPanel>
 

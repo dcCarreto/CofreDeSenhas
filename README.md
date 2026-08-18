@@ -456,7 +456,10 @@ pacotes. Fica como possibilidade futura se houver demanda (veja o
 
 No primeiro uso, o programa pedirá a criação de uma senha mestra. Guarde-a com
 cuidado: ela é a única forma de abrir o cofre. Um cofre exportado (`.gsenhas`)
-em uma plataforma pode ser importado na outra.
+em uma plataforma pode ser importado na outra. Se este é um dispositivo novo e
+o cofre já é compartilhado através de um banco de dados externo, a mesma tela
+oferece "Restaurar de um banco de dados": basta digitar a senha mestra já em
+uso para trazer o cofre inteiro daquele banco, sem precisar recriar nada.
 
 ### Verificando a integridade dos arquivos
 
