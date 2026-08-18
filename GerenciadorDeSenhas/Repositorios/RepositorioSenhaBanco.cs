@@ -362,11 +362,15 @@ namespace GerenciadorDeSenhas.Repositorios
         {
             await CarregarSeNecessarioAsync();
 
-            if (!_mapa.ContainsKey(id))
+            if (!_mapa.TryGetValue(id, out var idBanco))
                 return;
 
             await using var con = await AbrirConexaoAsync();
-            await EsvaziarLinhaAsync(con, id);
+
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = $"DELETE FROM {_tabela} WHERE id = @id";
+            Parametro(cmd, "@id", idBanco);
+            await cmd.ExecuteNonQueryAsync();
 
             _senhas.RemoveAll(s => s.Id == id);
             _mapa.Remove(id);

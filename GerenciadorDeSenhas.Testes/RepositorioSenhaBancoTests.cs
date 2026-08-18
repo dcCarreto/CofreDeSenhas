@@ -333,8 +333,14 @@ public class RepositorioSenhaBancoTests : IDisposable
     }
 
     [Fact]
-    public async Task RemoverDefinitivamente_EsvaziaALinhaEmVezDeApagarParaNaoRessuscitarEmOutroDispositivo()
+    public async Task RemoverDefinitivamente_ApagaALinhaDeVerdade()
     {
+        // Diferente de ExcluirDefinitivamentePorChaveAsync (usado pela sincronização
+        // via RepositorioSenhaEspelhado, que precisa manter uma tumba pra outro
+        // dispositivo reconhecer a exclusão): este é o caminho de "esvaziar lixeira"
+        // chamado direto pelo dono da linha, sem outro lado pra reconciliar depois —
+        // aqui o contrato é o mesmo de RepositorioSenha.RemoverDefinitivamenteAsync,
+        // sumir de vez.
         var repo = new RepositorioSenhaBanco(_cfg);
         var senha = NovaSenha("site.com", "u", "s");
         await repo.AdicionarAsync(senha);
@@ -343,11 +349,11 @@ public class RepositorioSenhaBancoTests : IDisposable
         await repo.RemoverDefinitivamenteAsync(senha.Id);
 
         Assert.Empty(await repo.ListarLixeiraAsync());
-        // A linha continua existindo (não é DELETE) — só assim outro dispositivo que
-        // ainda tem a cópia local desse GUID reconhece a exclusão na sincronização em
-        // vez de reinserir a credencial como se fosse nova.
-        Assert.Equal(1, await ContarLinhas("SELECT COUNT(*) FROM CofreDeSenhas"));
-        Assert.Equal(1, await ContarLinhas("SELECT COUNT(*) FROM CofreDeSenhas WHERE dominio = '' AND usuario = '' AND senha = '' AND excluido = 1"));
+        Assert.Empty(await repo.ListarTodosAsync());
+        Assert.Equal(0, await ContarLinhas("SELECT COUNT(*) FROM CofreDeSenhas"));
+
+        var outro = new RepositorioSenhaBanco(_cfg);
+        Assert.Empty(await outro.ListarLixeiraAsync());
     }
 
     [Fact]
@@ -362,9 +368,8 @@ public class RepositorioSenhaBancoTests : IDisposable
 
         await repo.EsvaziarLixeiraAsync();
 
-        Assert.Equal(2, await ContarLinhas("SELECT COUNT(*) FROM CofreDeSenhas"));
+        Assert.Equal(1, await ContarLinhas("SELECT COUNT(*) FROM CofreDeSenhas"));
         Assert.Equal(1, await ContarLinhas("SELECT COUNT(*) FROM CofreDeSenhas WHERE dominio = 'ativa.com'"));
-        Assert.Equal(1, await ContarLinhas("SELECT COUNT(*) FROM CofreDeSenhas WHERE dominio = '' AND excluido = 1"));
         Assert.Single(await repo.ListarTodosAsync());
     }
 
