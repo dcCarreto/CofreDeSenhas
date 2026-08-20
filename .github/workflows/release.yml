@@ -125,11 +125,23 @@ jobs:
         shell: pwsh
         run: .\App\distribuicao\gerar-instalador.ps1 -Versao "${{ needs.verificar-versao.outputs.versao }}"
 
-      - name: Empacotar o executável portátil
+      - name: Publicar o gerador de senhas standalone
+        # Só o executável portátil autocontido, sem instalador próprio: é uma
+        # variante de conveniência do mesmo gerador que já vive dentro do Cofre.
+        shell: pwsh
+        run: |
+          dotnet publish Gerador\Gerador.csproj `
+            -f net10.0-windows10.0.19041.0 -c Release -r win-x64 `
+            --self-contained true `
+            -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true `
+            -o publish-gerador
+
+      - name: Empacotar os executáveis portáteis
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path dist | Out-Null
           Copy-Item "publish\CofreDeSenhas.exe" "dist\CofreDeSenhas-${{ needs.verificar-versao.outputs.versao }}-win-x64-portatil.exe"
+          Copy-Item "publish-gerador\GeradorDeSenhas.exe" "dist\GeradorDeSenhas-${{ needs.verificar-versao.outputs.versao }}-win-x64-portatil.exe"
 
       - name: Enviar artefatos do Windows
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2

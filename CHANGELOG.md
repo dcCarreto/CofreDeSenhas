@@ -17,6 +17,10 @@ sincronização, banco de dados externo e troca de senha mestra.
   app pela primeira vez num dispositivo novo, é possível digitar a senha
   mestra já em uso e trazer o cofre inteiro de um banco de dados externo já
   compartilhado, em vez de recriar as credenciais do zero.
+- Executável standalone do gerador de senhas (`GeradorDeSenhas.exe`), com as
+  mesmas regras de geração do cofre mas sem nenhuma delas — sem senha mestra,
+  sem salvar nada. Disponível como executável portátil à parte na página de
+  releases, para quem só quer gerar senhas.
 
 ### Segurança
 - A tabela de autenticação publicada num banco de dados externo (necessária

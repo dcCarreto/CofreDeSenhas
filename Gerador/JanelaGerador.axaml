@@ -1,0 +1,14 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:c="using:CofreDeSenhas.Controles"
+        x:Class="CofreDeSenhas.Gerador.JanelaGerador"
+        Title="{DynamicResource Generator.Title}"
+        Width="420" Height="780"
+        MinWidth="380" MinHeight="520"
+        Background="{DynamicResource WorkspaceBackground}"
+        WindowStartupLocation="CenterScreen"
+        RenderOptions.BitmapInterpolationMode="HighQuality">
+
+  <c:GeradorSenha Name="Gerador" />
+
+</Window>

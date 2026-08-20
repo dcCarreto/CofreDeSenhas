@@ -404,6 +404,12 @@ No Windows:
    (sem instalador) também fica disponível na página da release — é só
    baixar e executar.
 
+Quem só quer gerar senhas, sem abrir o cofre, pode baixar
+`GeradorDeSenhas-X.Y.Z-win-x64-portatil.exe` na mesma [página de
+releases](../../releases/latest): é o mesmo gerador do Cofre, num executável
+autocontido à parte, sem instalador e sem nenhuma das regras do cofre (sem
+senha mestra, sem salvar nada).
+
 Cada release gera também os manifests necessários para publicação no
 `winget` (gerenciador de pacotes do Windows), como um passo em direção a
 `winget install` — a submissão a `microsoft/winget-pkgs` ainda não foi
