@@ -6,6 +6,12 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+## [2.2.1] - 2026-08-20
+
+Rodada extra de auditoria em cima da 2.2.0, com uma nova forma de restaurar o
+cofre a partir de um banco de dados conectado e correções de segurança em
+sincronização, banco de dados externo e troca de senha mestra.
+
 ### Adicionado
 - Restaurar o cofre local a partir de um banco de dados conectado: ao abrir o
   app pela primeira vez num dispositivo novo, é possível digitar a senha
@@ -563,7 +569,8 @@ gerenciador de senhas seguro e completo.
 - PBKDF2-SHA256 (100k iterações) para a senha mestra; verificador one-way em `auth.dat`.
 - Comparações em tempo constante; arquivos sensíveis isolados em `%APPDATA%`.
 
-[Não lançado]: https://github.com/dcCarreto/CofreDeSenhas/compare/v2.2.0...HEAD
+[Não lançado]: https://github.com/dcCarreto/CofreDeSenhas/compare/v2.2.1...HEAD
+[2.2.1]: https://github.com/dcCarreto/CofreDeSenhas/compare/v2.2.0...v2.2.1
 [2.2.0]: https://github.com/dcCarreto/CofreDeSenhas/compare/v2.1.1...v2.2.0
 [2.1.1]: https://github.com/dcCarreto/CofreDeSenhas/compare/v2.1.0...v2.1.1
 [2.1.0]: https://github.com/dcCarreto/CofreDeSenhas/compare/v2.0.0...v2.1.0
