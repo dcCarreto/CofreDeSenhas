@@ -647,7 +647,13 @@ com banco de dados externo.
   de terceiros) continua manual, fora do alcance do pipeline deste
   projeto.
 
-### Não lançado
+### Versão 2.2.1
+
+Rodada extra de auditoria em cima da 2.2.0: uma nova forma de restaurar o
+cofre a partir de um banco de dados conectado, e correções de segurança em
+sincronização, banco de dados externo e troca de senha mestra.
+
+#### Restauração e banco de dados
 
 - Restaurar o cofre local a partir de um banco de dados conectado: num
   dispositivo novo, sem cofre local ainda, a tela de primeiro uso oferece
@@ -658,6 +664,41 @@ com banco de dados externo.
   verificador da senha mestra que antes só existiam em `auth.dat` local —
   ver [modelo de ameaça](THREAT_MODEL.md) para o que isso muda no cenário
   de banco externo compartilhado.
+
+#### Segurança
+
+- Trocar a senha mestra passa a recifrar e republicar o cofre inteiro no
+  banco de dados conectado e na pasta de sincronização, não só localmente —
+  antes, o próprio dispositivo que trocou a senha ficava sem conseguir
+  sincronizar de volta com a chave antiga ainda esperada do outro lado, e
+  "Restaurar de um banco de dados" num dispositivo novo ficava travado no
+  salt/verificador antigos para sempre.
+- Excluir definitivamente um item agora grava uma "tumba" também na
+  sincronização por pasta (só existia para banco de dados) — sem isso, o
+  próximo ciclo de sincronização podia trazer de volta um item que tinha
+  acabado de ser apagado para sempre.
+- Uma linha vinda do banco de dados com HMAC de integridade inválido
+  (possível adulteração) deixa de ser sobrescrita automaticamente pela
+  sincronização antes que o conflito apareça para alguém revisar.
+
+#### Corrigido
+
+- Corrida entre conectar e desconectar de um banco de dados podia
+  reconectar o cofre por cima de uma escolha mais recente do usuário.
+- Uma falha temporária de rede na primeira sincronização com o banco
+  travava o cofre inteiro (nem listar, nem editar funcionavam) até
+  reiniciar o app.
+- Sincronização automática em segundo plano podia sobrescrever
+  silenciosamente uma edição em andamento no painel de detalhes; agora
+  pede confirmação quando o item mudou por fora enquanto o painel estava
+  aberto.
+- Diversos pontos de reentrância por clique duplo/repetido (login,
+  bloqueio do cofre, painel de detalhes, ativar/desativar sincronização)
+  que podiam disparar a mesma ação mais de uma vez ou derrubar um ciclo de
+  sincronização em andamento.
+- Limpeza dos backups da troca de senha mestra deixou de depender de
+  heurística e passou a usar um marcador de conclusão, evitando reverter
+  por engano uma troca que já tinha dado certo.
 
 ## Planejado
 
