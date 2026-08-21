@@ -807,11 +807,6 @@ criptografia anterior) e de uma camada inteira de métodos de busca/contagem em
 - Qualquer mecanismo que permita recuperar o cofre sem a senha mestra ou chave
   equivalente do usuário.
 
-## Ordem sugerida de execução
-
-1. macOS.
-2. Aplicativo móvel.
-
 ## Como sugerir
 
 Encontrou um problema ou tem uma ideia? Abra uma issue descrevendo o caso de uso.
