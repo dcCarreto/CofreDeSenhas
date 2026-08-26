@@ -47,7 +47,12 @@ namespace GerenciadorDeSenhas.Servicos
                     continue;
                 }
 
-                var etiquetas = MesclarListaAditiva(vencedor.Etiquetas, perdedor.Etiquetas);
+                // Normalizar (não só a mesclagem aditiva) de propósito: cada dispositivo já
+                // aplica o teto de 20 etiquetas na hora de digitar, mas a soma dos dois
+                // lados aqui pode passar disso — sem reaplicar o teto, uma etiqueta nova em
+                // cada lado a cada ciclo de sincronização cresce pra sempre e nunca mais
+                // some, mesmo que cada dispositivo isoladamente respeite o limite.
+                var etiquetas = Etiquetas.Normalizar(MesclarListaAditiva(vencedor.Etiquetas, perdedor.Etiquetas));
                 var historico = MesclarHistorico(vencedor.Historico, perdedor.Historico);
                 var codigosRecuperacao = MesclarCodigosRecuperacaoAditiva(vencedor.CodigosRecuperacao, perdedor.CodigosRecuperacao);
 
@@ -55,8 +60,13 @@ namespace GerenciadorDeSenhas.Servicos
                 // dispositivo que os criou) — o objeto remoto sempre chega com Anexos
                 // vazio, então usar ele como vencedor sem ajuste apagaria os anexos que
                 // o lado local já tinha. Local sempre vence pra esse campo específico.
-                if (etiquetas.Count != vencedor.Etiquetas.Count || historico.Count != vencedor.Historico.Count
-                    || codigosRecuperacao.Count != vencedor.CodigosRecuperacao.Count || vencedorEhRemoto)
+                //
+                // SequenceEqual em vez de comparar Count: o teto de histórico (acima)
+                // pode remover do vencedor tantas entradas quanto o perdedor contribuiu,
+                // deixando a contagem final igual à original mesmo com conteúdo
+                // diferente — só contagem deixaria essa mesclagem passar batido.
+                if (!etiquetas.SequenceEqual(vencedor.Etiquetas) || !historico.SequenceEqual(vencedor.Historico)
+                    || !codigosRecuperacao.SequenceEqual(vencedor.CodigosRecuperacao) || vencedorEhRemoto)
                     vencedor = ComListasMescladas(vencedor, etiquetas, historico, codigosRecuperacao, local.Anexos);
 
                 resultado[remoto.Id] = vencedor;
@@ -93,12 +103,20 @@ namespace GerenciadorDeSenhas.Servicos
                     continue;
                 }
 
-                var etiquetas = MesclarListaAditiva(vencedor.Etiquetas, perdedor.Etiquetas);
+                // Normalizar (não só a mesclagem aditiva) de propósito: cada dispositivo já
+                // aplica o teto de 20 etiquetas na hora de digitar, mas a soma dos dois
+                // lados aqui pode passar disso — sem reaplicar o teto, uma etiqueta nova em
+                // cada lado a cada ciclo de sincronização cresce pra sempre e nunca mais
+                // some, mesmo que cada dispositivo isoladamente respeite o limite.
+                var etiquetas = Etiquetas.Normalizar(MesclarListaAditiva(vencedor.Etiquetas, perdedor.Etiquetas));
                 var historico = MesclarHistoricoExportado(vencedor.Historico, perdedor.Historico);
                 var codigosRecuperacao = MesclarCodigosRecuperacaoExportadaAditiva(vencedor.CodigosRecuperacao, perdedor.CodigosRecuperacao);
 
-                if (etiquetas.Count != vencedor.Etiquetas.Count || historico.Count != vencedor.Historico.Count
-                    || codigosRecuperacao.Count != vencedor.CodigosRecuperacao.Count)
+                // SequenceEqual em vez de Count — mesmo motivo do MesclarSenhas acima:
+                // o teto de histórico pode fazer a contagem final bater com a original
+                // mesmo com conteúdo diferente.
+                if (!etiquetas.SequenceEqual(vencedor.Etiquetas) || !historico.SequenceEqual(vencedor.Historico)
+                    || !codigosRecuperacao.SequenceEqual(vencedor.CodigosRecuperacao))
                     vencedor = ComListasMescladas(vencedor, etiquetas, historico, codigosRecuperacao);
 
                 resultado[remoto.Id] = vencedor;
@@ -133,17 +151,37 @@ namespace GerenciadorDeSenhas.Servicos
         }
 
         private static List<HistoricoSenha> MesclarHistorico(List<HistoricoSenha> vencedor, List<HistoricoSenha> perdedor) =>
-            MesclarListaAditivaGenerica(vencedor, perdedor, h => (h.SenhaHash, h.DataAlteracao), h => h.DataAlteracao);
+            ComTetoDeHistorico(MesclarListaAditivaGenerica(vencedor, perdedor, h => (h.SenhaHash, h.DataAlteracao), h => h.DataAlteracao));
 
         private static List<CodigoRecuperacao> MesclarCodigosRecuperacaoAditiva(List<CodigoRecuperacao> vencedor, List<CodigoRecuperacao> perdedor) =>
-            MesclarListaAditivaGenerica(vencedor, perdedor, c => c.Id);
+            ComTetoDeCodigosRecuperacao(MesclarListaAditivaGenerica(vencedor, perdedor, c => c.Id));
 
         private static List<CodigoRecuperacaoExportado> MesclarCodigosRecuperacaoExportadaAditiva(List<CodigoRecuperacaoExportado> vencedor, List<CodigoRecuperacaoExportado> perdedor) =>
-            MesclarListaAditivaGenerica(vencedor, perdedor, c => c.Codigo);
+            ComTetoDeCodigosRecuperacao(MesclarListaAditivaGenerica(vencedor, perdedor, c => c.Codigo));
+
+        // Sem isto, dois dispositivos gerando códigos de recuperação novos de forma
+        // independente entre ciclos de sync (nunca convergindo pro mesmo conjunto)
+        // faziam essa lista crescer sem limite — furando o teto de
+        // ServicoSenha.MaxCodigosRecuperacao, que AdicionarCodigosRecuperacaoAsync já
+        // impõe em todo outro caminho de código. Mantém tudo do vencedor (que por sua
+        // vez já respeita o teto) e completa com as adições do perdedor até o limite.
+        private static List<T> ComTetoDeCodigosRecuperacao<T>(List<T> lista) =>
+            lista.Count > ServicoSenha.MaxCodigosRecuperacao
+                ? lista.Take(ServicoSenha.MaxCodigosRecuperacao).ToList()
+                : lista;
 
         private static List<HistoricoSenhaExportada> MesclarHistoricoExportado(
             List<HistoricoSenhaExportada> vencedor, List<HistoricoSenhaExportada> perdedor) =>
-            MesclarListaAditivaGenerica(vencedor, perdedor, h => (h.Senha, h.DataAlteracao), h => h.DataAlteracao);
+            ComTetoDeHistorico(MesclarListaAditivaGenerica(vencedor, perdedor, h => (h.Senha, h.DataAlteracao), h => h.DataAlteracao));
+
+        // Reaplica o teto de MaxHistorico (10) depois da mesclagem aditiva — a lista já
+        // chega ordenada por DataAlteracao (mais antiga primeiro), então cortar do
+        // início preserva as versões mais recentes, mesmo critério que
+        // ServicoSenha.RegistrarHistoricoSeMudou já usa no caminho de troca direta.
+        private static List<T> ComTetoDeHistorico<T>(List<T> historicoOrdenado) =>
+            historicoOrdenado.Count > ServicoSenha.MaxHistorico
+                ? historicoOrdenado.Skip(historicoOrdenado.Count - ServicoSenha.MaxHistorico).ToList()
+                : historicoOrdenado;
 
         private static Senha ComListasMescladas(Senha origem, List<string> etiquetas, List<HistoricoSenha> historico, List<CodigoRecuperacao> codigosRecuperacao, List<AnexoSenha> anexos) => new()
         {

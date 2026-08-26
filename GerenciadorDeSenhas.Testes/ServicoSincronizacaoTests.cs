@@ -200,6 +200,28 @@ public class ServicoSincronizacaoTests : IDisposable
     }
 
     [Fact]
+    public async Task Ler_ComArquivoTravadoPorOutroProcesso_LancaEmVezDeRetornarListaVazia()
+    {
+        // Diferente de "chave errada" ou "arquivo ausente" (que viram lista vazia de
+        // propósito): um arquivo que existe mas não pode ser lido agora — pasta de nuvem
+        // ainda baixando, outro dispositivo escrevendo nele nesse instante — precisa
+        // propagar. SincronizarAsync mescla o retorno com o cofre local e regrava o
+        // arquivo remoto por cima; se isso virasse lista vazia como os outros casos, o
+        // sync apagaria do remoto qualquer coisa que outro dispositivo ainda não tinha
+        // terminado de publicar.
+        var caminho = Path.Combine(_pastaTemp, "sincronizacao.dat");
+        await File.WriteAllTextAsync(caminho, "conteudo qualquer");
+
+        var servico = new ServicoSincronizacao(new ServicoCriptografia(RandomNumberGenerator.GetBytes(32)));
+
+        using var travamento = new FileStream(caminho, FileMode.Open, FileAccess.Read, FileShare.None);
+        var ex = await Assert.ThrowsAsync<ErroLocalizavel>(() => servico.LerAsync(caminho));
+
+        Assert.Equal("Sync.Error.ReadFailed", ex.Chave);
+        Assert.NotNull(ex.InnerException);
+    }
+
+    [Fact]
     public async Task LerAsync_ComCamposNulosExplicitosNoJson_SanitizaEmVezDePropagarNull()
     {
         // EscreverAsync nunca produz "Etiquetas": null (OpcoesJson omite o campo em

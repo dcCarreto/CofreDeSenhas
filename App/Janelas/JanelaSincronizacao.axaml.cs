@@ -20,6 +20,7 @@ namespace CofreDeSenhas.Janelas
         private readonly Action<ServicoSincronizacao?> _definirServico;
         private readonly Func<Task<bool>> _sincronizarAgora;
         private readonly Func<bool> _estaSincronizando;
+        private readonly Action? _ajustarTimer;
         // internal só pra teste conferir que o delegate certo foi injetado, sem
         // precisar simular o seletor de pasta nativo que vem antes dele em
         // Ativar_Click — ver App.Testes (InternalsVisibleTo).
@@ -27,13 +28,15 @@ namespace CofreDeSenhas.Janelas
         private bool _carregandoPreferencias;
 
         public JanelaSincronizacao(ServicoSincronizacao? servicoAtual, Action<ServicoSincronizacao?> definirServico,
-            Func<Task<bool>> sincronizarAgora, Func<bool> estaSincronizando, Func<Window, Task<bool>> abrirDialogoAninhado)
+            Func<Task<bool>> sincronizarAgora, Func<bool> estaSincronizando, Func<Window, Task<bool>> abrirDialogoAninhado,
+            Action? ajustarTimer = null)
         {
             _servicoAtual = servicoAtual;
             _definirServico = definirServico ?? throw new ArgumentNullException(nameof(definirServico));
             _sincronizarAgora = sincronizarAgora ?? throw new ArgumentNullException(nameof(sincronizarAgora));
             _estaSincronizando = estaSincronizando ?? throw new ArgumentNullException(nameof(estaSincronizando));
             _abrirDialogoAninhado = abrirDialogoAninhado ?? throw new ArgumentNullException(nameof(abrirDialogoAninhado));
+            _ajustarTimer = ajustarTimer;
 
             InitializeComponent();
             Icon = Recursos.IconeApp();
@@ -98,6 +101,11 @@ namespace CofreDeSenhas.Janelas
 
             perfil.FrequenciaMinutos = opcao.Minutos;
             Preferencias.Salvar();
+
+            // Sem isto, o DispatcherTimer de JanelaPrincipal só reaplicava o novo
+            // intervalo quando este diálogo fechasse — trocar a frequência e deixar a
+            // janela aberta mantinha o timer batendo no intervalo antigo indefinidamente.
+            _ajustarTimer?.Invoke();
         }
 
         private async void Ativar_Click(object? sender, RoutedEventArgs e)

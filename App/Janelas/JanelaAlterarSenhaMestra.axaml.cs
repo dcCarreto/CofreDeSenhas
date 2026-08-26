@@ -16,6 +16,7 @@ namespace CofreDeSenhas.Janelas
             InitializeComponent();
             Icon = Recursos.IconeApp();
             Acessibilidade.Vincular(this);
+            Acessibilidade.RegistrarAnunciador(this, LblAnuncioLeitorTela);
 
             TxtNova.TextChanged += (s, e) => Medidor.Avaliar(TxtNova.Text);
 

@@ -24,6 +24,12 @@ namespace CofreDeSenhas.Janelas
         private readonly List<DispatcherTimer> _timersFeedbackCopia = new();
         private const int PeriodoTotp = 30;
 
+        // Acumula por chave, não substitui: sem isto, ir e voltar entre tipos que não
+        // compartilham campo (Cartão -> Login -> Cartão) apagava validade/CVV/bandeira
+        // já digitados antes mesmo de salvar, já que só os campos do tipo anterior
+        // ficavam disponíveis pra repovoar o painel.
+        private readonly Dictionary<string, string> _camposExtrasAcumulados = new();
+
         public JanelaEditarSenha(IServicoSenha servicoSenha, Senha senhaAtual, IServicoCriptografia? criptografia,
             ServicoAnexos? servicoAnexos = null)
         {
@@ -35,6 +41,7 @@ namespace CofreDeSenhas.Janelas
             InitializeComponent();
             Icon = Recursos.IconeApp();
             Acessibilidade.Vincular(this);
+            Acessibilidade.RegistrarAnunciador(this, LblAnuncioLeitorTela);
 
             AtualizarTitulo();
             TxtNomeServico.Text = _senhaAtual.NomeServico;
@@ -47,10 +54,13 @@ namespace CofreDeSenhas.Janelas
             AtualizarCategorias();
             CmbCategoria.SelectedIndex = (int)_senhaAtual.Categoria;
 
+            foreach (var (chave, valor) in DescriptografarCamposExtras())
+                _camposExtrasAcumulados[chave] = valor;
+
             CmbTipo.ItemsSource = TemplatesCredencial.Rotulos;
             CmbTipo.SelectedIndex = TemplatesCredencial.ObterIndice(_senhaAtual.Tipo);
             CmbTipo.SelectionChanged += (s, e) => AtualizarCamposPorTipo();
-            AtualizarCamposPorTipo(usarValoresIniciais: true);
+            AtualizarCamposPorTipo();
 
             TxtTotp.TextChanged += (s, e) => AtualizarPreviewTotp();
             MontarHistorico();
@@ -110,7 +120,7 @@ namespace CofreDeSenhas.Janelas
             CmbCategoria.SelectedIndex = selecionado;
         }
 
-        private void AtualizarCamposPorTipo(bool usarValoresIniciais = false)
+        private void AtualizarCamposPorTipo()
         {
             var tipo = TemplatesCredencial.ObterTipo(CmbTipo.SelectedIndex);
             LblUsuario.Text = TemplatesCredencial.RotuloUsuario(tipo);
@@ -118,12 +128,9 @@ namespace CofreDeSenhas.Janelas
             LblSenha.Text = Idioma.Formatar("Entry.PasswordKeepCurrentFormat", TemplatesCredencial.RotuloSenha(tipo));
             AutomationProperties.SetName(TxtSenha, LblSenha.Text);
 
-            var valoresAtuais = usarValoresIniciais
-                ? DescriptografarCamposExtras()
-                : PainelCamposExtras.Children
-                    .OfType<TextBox>()
-                    .Where(t => t.Tag is string)
-                    .ToDictionary(t => (string)t.Tag!, t => t.Text ?? "");
+            foreach (var caixa in PainelCamposExtras.Children.OfType<TextBox>())
+                if (caixa.Tag is string chave)
+                    _camposExtrasAcumulados[chave] = caixa.Text ?? "";
 
             PainelCamposExtras.Children.Clear();
             foreach (var campo in TemplatesCredencial.CamposExtras(tipo))
@@ -141,7 +148,7 @@ namespace CofreDeSenhas.Janelas
                     Tag = campo.Chave
                 };
                 AutomationProperties.SetName(caixa, campo.Rotulo);
-                if (valoresAtuais.TryGetValue(campo.Chave, out var valor))
+                if (_camposExtrasAcumulados.TryGetValue(campo.Chave, out var valor))
                     caixa.Text = valor;
 
                 PainelCamposExtras.Children.Add(rotulo);
@@ -542,6 +549,15 @@ namespace CofreDeSenhas.Janelas
 
             try
             {
+                // Checa o tamanho via propriedades do arquivo antes de ler qualquer
+                // byte — sem isto, escolher um arquivo bem maior que o limite (um ISO
+                // de vários GB, por exemplo) carregava o arquivo inteiro num
+                // MemoryStream só pra descobrir depois, já com tudo em RAM, que ele ia
+                // ser rejeitado.
+                var propriedades = await arquivos[0].GetBasicPropertiesAsync();
+                if (propriedades.Size is { } tamanho && tamanho > (ulong)ServicoAnexos.TamanhoMaximoPorAnexo)
+                    throw new LimiteAnexoExcedidoException("Attachment.Error.FileTooLarge", ServicoAnexos.TamanhoMaximoPorAnexo / 1024 / 1024);
+
                 await using var origem = await arquivos[0].OpenReadAsync();
                 using var memoria = new MemoryStream();
                 await origem.CopyToAsync(memoria);

@@ -71,6 +71,36 @@ namespace App.Testes
         }
 
         [AvaloniaFact]
+        public async Task CopiarUsuarioAsync_ComLimpezaAutomaticaAtiva_AgendaLimpezaComoACopiaDeSenha()
+        {
+            // Antes da correção, CopiarUsuarioAsync ia direto pro clipboard.SetTextAsync
+            // cru — só senha e TOTP passavam por AreaTransferenciaFeedback e ganhavam a
+            // limpeza automática agendada. Usuário (muitas vezes o e-mail da pessoa)
+            // ficava esquecido no clipboard pra sempre.
+            var segundosOriginal = Preferencias.SegundosLimpezaClipboard;
+            try
+            {
+                Preferencias.SegundosLimpezaClipboard = 5;
+
+                var senha = new Senha { Id = Guid.NewGuid(), NomeServico = "Servico", Usuario = "usuario.linha", SenhaHash = "irrelevante-para-o-teste" };
+                var (janela, linha) = CriarLinhaEmJanela(senha, "SenhaSecreta123!");
+
+                var rotuloUsuario = linha.TextoPorConteudo("usuario.linha");
+                rotuloUsuario.RaiseEvent(new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Enter });
+
+                var mensagemEsperada = Idioma.Formatar("Row.UserCopiedClearing", 5);
+                await TesteUtil.AguardarAsync(() =>
+                    linha.GetVisualDescendants().OfType<TextBlock>().Any(t => t.Text == mensagemEsperada));
+
+                Assert.Contains(linha.GetVisualDescendants().OfType<TextBlock>(), t => t.Text == mensagemEsperada);
+            }
+            finally
+            {
+                Preferencias.SegundosLimpezaClipboard = segundosOriginal;
+            }
+        }
+
+        [AvaloniaFact]
         public async Task RevelarSenha_ClicarNoTextoRevelado_CopiaASenhaNaoOUsuario()
         {
             var senha = new Senha { Id = Guid.NewGuid(), NomeServico = "Servico", Usuario = "usuario.linha", SenhaHash = "irrelevante-para-o-teste" };
@@ -156,6 +186,25 @@ namespace App.Testes
 
             Assert.NotNull(janela.TextoPorConteudo("Servico Privado"));
             Assert.NotNull(janela.TextoPorConteudo("usuario.privado"));
+        }
+
+        [AvaloniaFact]
+        public void DefinirModoPrivacidade_DesabilitaEReabilitaOBotaoDeEditar()
+        {
+            // Mesma proteção que já existia pro botão de revelar (_btnOlho) — sem isto,
+            // "Editar" continuava clicável no modo privacidade e abria a janela de
+            // edição com tudo em texto puro.
+            var senha = new Senha { Id = Guid.NewGuid(), NomeServico = "Servico Privado", Usuario = "usuario.privado", SenhaHash = "irrelevante-para-o-teste" };
+            var (_, linha) = CriarLinhaEmJanela(senha, "SenhaSecreta123!");
+
+            var botaoEditar = linha.BotaoPorNomeAutomacao(Idioma.Texto("Row.EditEntry"));
+            Assert.True(botaoEditar.IsEnabled);
+
+            linha.DefinirModoPrivacidade(true);
+            Assert.False(botaoEditar.IsEnabled);
+
+            linha.DefinirModoPrivacidade(false);
+            Assert.True(botaoEditar.IsEnabled);
         }
 
         [AvaloniaFact]

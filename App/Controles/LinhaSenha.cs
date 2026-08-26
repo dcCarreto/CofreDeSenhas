@@ -57,6 +57,7 @@ namespace CofreDeSenhas.Controles
         private TextBlock _lblAuditoria = null!;
         private Border[] _segmentosForca = Array.Empty<Border>();
         private Button _btnOlho = null!;
+        private Button _btnEditar = null!;
         private Button _btnCopiar = null!;
         private Button _btnFixar = null!;
         private Button? _btnTotp;
@@ -64,12 +65,26 @@ namespace CofreDeSenhas.Controles
         private DispatcherTimer? _timerFeedbackSenha;
         private DispatcherTimer? _timerFeedbackTotp;
 
-        private const string MascaraPrivacidade = "••••••••";
+        // internal pra JanelaPrincipal reaproveitar a mesma máscara na lista da
+        // lixeira, que não usa LinhaSenha (é montada com controles crus) mas
+        // precisa respeitar o mesmo modo privacidade — ver CriarLinhaLixeira.
+        internal const string MascaraPrivacidade = "••••••••";
 
         private bool _pointerSobre;
 
         public Senha Senha => _senha;
         public bool Selecionada { get; private set; }
+
+        // Pra JanelaPrincipal conseguir preservar uma edição de nome de serviço ainda
+        // não confirmada através de um rebuild da lista — ver AtualizarLista.
+        //
+        // !_salvandoServico importa: ConfirmarEdicaoServicoAsync já deixa
+        // _editandoServico=true durante o próprio await de _onRenomearServico (que por
+        // sua vez chama CarregarSenhasAsync/AtualizarLista de novo) — sem essa checagem,
+        // o rebuild disparado pelo PRÓPRIO confirm confundia o commit em andamento com
+        // uma digitação do usuário e reabria a edição por cima do nome já salvo.
+        public bool EmEdicaoDeServico => _editandoServico && !_salvandoServico;
+        public string? TextoServicoEmEdicao => EmEdicaoDeServico ? _txtServico.Text : null;
 
         public event EventHandler<Senha>? SolicitouDetalhes;
         public event EventHandler<Senha>? SelecaoAlterada;
@@ -116,6 +131,11 @@ namespace CofreDeSenhas.Controles
             _modoPrivacidade = ativo;
             _revelada = false;
             _btnOlho.IsEnabled = !ativo;
+
+            // Sem isto, "Editar" abria JanelaEditarSenha com usuário, URL, notas e
+            // campos extras em texto puro — um jeito de um clique pra ver tudo que o
+            // modo privacidade acabou de mascarar, sem precisar desligá-lo.
+            _btnEditar.IsEnabled = !ativo;
 
             if (ativo && _editandoServico)
                 CancelarEdicaoServico();
@@ -289,8 +309,8 @@ namespace CofreDeSenhas.Controles
                 finally { _btnFixar.IsEnabled = true; }
             };
 
-            var btnEditar = CriarBotaoAcaoImagem("IconeEditar", Idioma.Texto("Row.EditEntry"));
-            btnEditar.Click += (s, e) => _onEditar(_senha);
+            _btnEditar = CriarBotaoAcaoImagem("IconeEditar", Idioma.Texto("Row.EditEntry"));
+            _btnEditar.Click += (s, e) => _onEditar(_senha);
 
             var btnExcluir = CriarBotaoAcaoImagem("IconeExcluir", Idioma.Texto("Row.DeleteEntry"));
             btnExcluir.Classes.Add("excluir");
@@ -319,7 +339,7 @@ namespace CofreDeSenhas.Controles
             }
 
             _acoes.Children.Add(_btnFixar);
-            _acoes.Children.Add(btnEditar);
+            _acoes.Children.Add(_btnEditar);
             _acoes.Children.Add(btnExcluir);
             Grid.SetColumn(_acoes, 9);
             _grid.Children.Add(_acoes);
@@ -653,13 +673,16 @@ namespace CofreDeSenhas.Controles
             _ => 11
         };
 
-        private void IniciarEdicaoServico()
+        // internal (não só private) e com o parâmetro opcional pra JanelaPrincipal
+        // conseguir retomar uma edição preservada através de um rebuild da lista com o
+        // texto que o usuário já tinha digitado — ver AtualizarLista/TextoServicoEmEdicao.
+        internal void IniciarEdicaoServico(string? textoInicial = null)
         {
             if (_editandoServico || _salvandoServico || _modoPrivacidade)
                 return;
 
             _editandoServico = true;
-            _txtServico.Text = _senha.NomeServico;
+            _txtServico.Text = textoInicial ?? _senha.NomeServico;
             _lblServico.IsVisible = false;
             _txtServico.IsVisible = true;
             Acessibilidade.Anunciar(this, Idioma.Texto("A11y.EditServiceMode"));
@@ -1024,19 +1047,30 @@ namespace CofreDeSenhas.Controles
             catch { return; }
 
             var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
-            if (clipboard != null)
-            {
-                try { await clipboard.SetTextAsync(codigo); } catch { }
-            }
+            var (copiado, vaiLimpar) = await AreaTransferenciaFeedback.CopiarComAvisoAsync(clipboard, codigo, this, Idioma.Texto("Row.CopyTotp"));
+            if (!copiado) return;
+
             await RegistrarCopiaSeHabilitadoAsync(TipoCampoCopiado.Totp);
 
             DefinirIconeImagem(_btnTotp, "IconeCheck", Tema.Pincel(Tema.StrengthStrong));
-            Acessibilidade.Anunciar(this, Idioma.Formatar("A11y.Copied", Idioma.Texto("Row.CopyTotp")));
+
+            if (vaiLimpar)
+            {
+                var mensagem = Idioma.Formatar("Row.TotpCopiedClearing", Preferencias.SegundosLimpezaClipboard);
+                ToolTip.SetTip(_btnTotp, mensagem);
+                AutomationProperties.SetName(_btnTotp, mensagem);
+            }
+
             _timerFeedbackTotp?.Stop();
             _timerFeedbackTotp = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
             _timerFeedbackTotp.Tick += (s, e) =>
             {
                 DefinirIconeImagem(_btnTotp, "IconeTotp");
+                if (vaiLimpar)
+                {
+                    ToolTip.SetTip(_btnTotp, Idioma.Texto("Row.CopyTotp"));
+                    AutomationProperties.SetName(_btnTotp, Idioma.Texto("Row.CopyTotp"));
+                }
                 _timerFeedbackTotp?.Stop();
                 _timerFeedbackTotp = null;
             };
@@ -1048,21 +1082,29 @@ namespace CofreDeSenhas.Controles
             if (string.IsNullOrWhiteSpace(_senha.Usuario))
                 return;
 
+            // Mesmo caminho de CopiarAsync/CopiarCodigoTotpAsync (AreaTransferenciaFeedback,
+            // que agenda a limpeza automática do clipboard) — antes disto, copiar o
+            // usuário ia direto pro clipboard.SetTextAsync cru, e só senha e TOTP eram
+            // apagados sozinhos depois de alguns segundos. Usuário ficava esquecido lá,
+            // muitas vezes o próprio e-mail da pessoa, disponível pra qualquer app ler
+            // (inclusive histórico/nuvem de área de transferência do Windows).
             var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
-            if (clipboard != null)
-            {
-                try { await clipboard.SetTextAsync(_senha.Usuario); } catch { }
-            }
+            var (copiado, vaiLimpar) = await AreaTransferenciaFeedback.CopiarComAvisoAsync(clipboard, _senha.Usuario, this, Idioma.Texto("Row.CopyUser"));
+            if (!copiado) return;
+
             await RegistrarCopiaSeHabilitadoAsync(TipoCampoCopiado.Usuario);
 
+            var textoCopiado = vaiLimpar
+                ? Idioma.Formatar("Row.UserCopiedClearing", Preferencias.SegundosLimpezaClipboard)
+                : Idioma.Texto("Row.UserCopied");
+
             _timerFeedbackUsuario?.Stop();
-            _lblUsuario.Text = Idioma.Texto("Row.UserCopied");
+            _lblUsuario.Text = textoCopiado;
             _lblUsuario.ClearValue(TextBlock.FontFamilyProperty);
             _lblUsuario.FontWeight = FontWeight.Bold;
             _lblUsuario.Foreground = Tema.Pincel(Tema.StrengthStrong);
-            ToolTip.SetTip(_lblUsuario, Idioma.Texto("Row.UserCopied"));
-            AutomationProperties.SetName(_lblUsuario, Idioma.Texto("Row.UserCopied"));
-            Acessibilidade.Anunciar(this, Idioma.Formatar("A11y.Copied", Idioma.Texto("Row.CopyUser")));
+            ToolTip.SetTip(_lblUsuario, textoCopiado);
+            AutomationProperties.SetName(_lblUsuario, textoCopiado);
 
             _timerFeedbackUsuario = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(1100) };
             _timerFeedbackUsuario.Tick += (s, e) =>

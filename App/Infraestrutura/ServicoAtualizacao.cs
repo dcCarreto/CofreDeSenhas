@@ -8,6 +8,8 @@ namespace CofreDeSenhas
 {
     internal enum ResultadoAtualizacaoTipo { Sucesso, NaoSuportado, Falha }
 
+    internal readonly record struct AtualizacaoDisponivel(string Tag, string? NotasVersao);
+
     internal readonly record struct ResultadoAtualizacao(ResultadoAtualizacaoTipo Tipo, string? Mensagem = null)
     {
         public static ResultadoAtualizacao Sucesso() => new(ResultadoAtualizacaoTipo.Sucesso);
@@ -26,6 +28,9 @@ namespace CofreDeSenhas
             [JsonPropertyName("tag_name")]
             public string? TagName { get; set; }
 
+            [JsonPropertyName("body")]
+            public string? Body { get; set; }
+
             [JsonPropertyName("assets")]
             public List<Ativo>? Assets { get; set; }
         }
@@ -39,7 +44,7 @@ namespace CofreDeSenhas
             public string? UrlDownload { get; set; }
         }
 
-        public static async Task<string?> VerificarNovaVersaoAsync()
+        public static async Task<AtualizacaoDisponivel?> VerificarNovaVersaoAsync()
         {
             try
             {
@@ -55,7 +60,7 @@ namespace CofreDeSenhas
                 if (versaoRemota == null || versaoAtual == null || versaoRemota <= versaoAtual)
                     return null;
 
-                return tag;
+                return new AtualizacaoDisponivel(tag, resposta?.Body);
             }
             catch
             {
@@ -87,7 +92,7 @@ namespace CofreDeSenhas
                 var json = await httpMeta.GetStringAsync(UrlUltimaRelease);
                 var resposta = JsonSerializer.Deserialize<RespostaRelease>(json);
                 if (resposta?.Assets is not { Count: > 0 })
-                    return ResultadoAtualizacao.Falha("Não foi possível obter os arquivos da versão.");
+                    return ResultadoAtualizacao.Falha(Idioma.Texto("Update.Error.NoAssets"));
 
                 var versaoTexto = tag.TrimStart('v', 'V');
 
@@ -101,7 +106,7 @@ namespace CofreDeSenhas
                 {
                     instaladoViaSetup = File.Exists(Path.Combine(AppContext.BaseDirectory, "unins000.exe"));
                     if (!instaladoViaSetup && string.IsNullOrEmpty(Environment.ProcessPath))
-                        return ResultadoAtualizacao.Falha("Não foi possível localizar o executável atual.");
+                        return ResultadoAtualizacao.Falha(Idioma.Texto("Update.Error.ExecutableNotFound"));
 
                     nomeAtivo = instaladoViaSetup
                         ? $"CofreDeSenhas-Setup-{versaoTexto}.exe"
@@ -111,22 +116,32 @@ namespace CofreDeSenhas
                 var ativo = resposta.Assets.Find(a => string.Equals(a.Name, nomeAtivo, StringComparison.OrdinalIgnoreCase));
                 var ativoChecksums = resposta.Assets.Find(a => string.Equals(a.Name, NomeChecksums, StringComparison.OrdinalIgnoreCase));
                 if (ativo?.UrlDownload == null || ativoChecksums?.UrlDownload == null)
-                    return ResultadoAtualizacao.Falha("Arquivo de atualização não encontrado nesta versão.");
+                    return ResultadoAtualizacao.Falha(Idioma.Texto("Update.Error.AssetNotFound"));
 
                 var checksums = await httpMeta.GetStringAsync(ativoChecksums.UrlDownload);
                 var hashEsperado = ExtrairHash(checksums, nomeAtivo);
                 if (hashEsperado == null)
-                    return ResultadoAtualizacao.Falha("Não foi possível verificar a integridade do arquivo.");
+                    return ResultadoAtualizacao.Falha(Idioma.Texto("Update.Error.ChecksumUnavailable"));
 
-                caminhoTemp = Path.Combine(Path.GetTempPath(), nomeAtivo);
+                // Pasta com nome aleatório, não Path.GetTempPath() direto: o nome do
+                // arquivo (nomeAtivo) é previsível a partir só da tag da release, e em
+                // Linux o temp compartilhado (/tmp) é gravável por qualquer usuário
+                // local — sem isto, dava pra pré-posicionar um arquivo/link no caminho
+                // exato antes mesmo do download começar, e a checagem de hash abaixo
+                // verificaria o arquivo baixado, mas o Move/Process.Start um passo
+                // adiante poderia acabar pegando outra coisa se algo trocasse o
+                // conteúdo bem no intervalo entre os dois.
+                var pastaTemp = Path.Combine(Path.GetTempPath(), "CofreDeSenhas-update-" + Guid.NewGuid().ToString("N"));
+                Directory.CreateDirectory(pastaTemp);
+                caminhoTemp = Path.Combine(pastaTemp, nomeAtivo);
                 using (var httpDownload = CriarHttpClient(TimeSpan.FromMinutes(3)))
                     await BaixarArquivoAsync(httpDownload, ativo.UrlDownload, caminhoTemp);
 
                 var hashObtido = await CalcularSha256Async(caminhoTemp);
                 if (!string.Equals(hashObtido, hashEsperado, StringComparison.OrdinalIgnoreCase))
                 {
-                    File.Delete(caminhoTemp);
-                    return ResultadoAtualizacao.Falha("A verificação de integridade do arquivo baixado falhou.");
+                    LimparPastaTemp(caminhoTemp);
+                    return ResultadoAtualizacao.Falha(Idioma.Texto("Update.Error.ChecksumMismatch"));
                 }
 
                 if (appImageAtual != null)
@@ -140,12 +155,21 @@ namespace CofreDeSenhas
             }
             catch (Exception ex)
             {
-                if (caminhoTemp != null && File.Exists(caminhoTemp))
-                {
-                    try { File.Delete(caminhoTemp); } catch { }
-                }
-                return ResultadoAtualizacao.Falha(ex.Message);
+                if (caminhoTemp != null)
+                    LimparPastaTemp(caminhoTemp);
+                return ResultadoAtualizacao.Falha(ErrosUi.MensagemAmigavel(ex));
             }
+        }
+
+        private static void LimparPastaTemp(string caminhoArquivo)
+        {
+            try
+            {
+                var pasta = Path.GetDirectoryName(caminhoArquivo);
+                if (!string.IsNullOrEmpty(pasta) && Directory.Exists(pasta))
+                    Directory.Delete(pasta, recursive: true);
+            }
+            catch { }
         }
 
         private static void AtualizarPortatil(string caminhoNovoExe)

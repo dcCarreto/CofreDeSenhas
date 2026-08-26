@@ -60,13 +60,17 @@ public class ServicoMudancaSenhaMestraTests : IDisposable
     }
 
     [Fact]
-    public async Task AlterarAsync_ComSenhaHashCorrompida_LancaErroLocalizavelIdentificandoACredencialENaoMutaNadaEmDisco()
+    public async Task AlterarAsync_ComSenhaHashCorrompida_DescartaSoACredencialCorrompidaEConcluiATroca()
     {
+        // Uma credencial cuja própria senha não decifra não tem como ser recifrada com
+        // a chave nova — a senha antiga dela já está perdida de qualquer jeito, então
+        // a troca de senha mestra não pode travar o cofre inteiro por causa dela. Mesmo
+        // padrão de AlterarAsync_ComHistoricoCorrompido_NaoFalhaMasRegistraAviso acima,
+        // só que na própria credencial em vez de um campo dela.
         await PrepararCofre("SenhaAntiga@123",
             ("GitHub", "dev@git.com", "GitHub@Secreta1"),
             ("Gmail", "user@gmail.com", "Gmail@Secreta2"));
 
-        // Simula dado corrompido em disco: a própria senha da credencial não decifra.
         var auth = new AutenticacaoMestra(_pasta);
         var chave = auth.Autenticar("SenhaAntiga@123")!;
         var crypto = new ServicoCriptografia(chave);
@@ -77,16 +81,17 @@ public class ServicoMudancaSenhaMestraTests : IDisposable
         await persist.SalvarSenhasAsync(senhas, chave);
 
         var servico = new ServicoMudancaSenhaMestra(_pasta);
-        var ex = await Assert.ThrowsAsync<ErroLocalizavel>(() => servico.AlterarAsync("SenhaAntiga@123", "SenhaNova@456"));
+        var chaveNova = await servico.AlterarAsync("SenhaAntiga@123", "SenhaNova@456");
 
-        Assert.Equal("Master.Error.CorruptedEntry", ex.Chave);
-        Assert.Equal("Gmail", ex.Argumentos.Single());
+        Assert.NotEmpty(servico.UltimosAvisos);
 
-        // A senha mestra atual (e o cofre) continuam intactos após a falha.
-        Assert.True(auth.ValidarChave(chave));
-        var aindaLegiveis = await persist.CarregarSenhasAsync(chave);
-        Assert.Equal(2, aindaLegiveis.Count);
-        Assert.Equal("GitHub@Secreta1", crypto.Descriptografar(aindaLegiveis.Single(s => s.NomeServico == "GitHub").SenhaHash));
+        var cryptoNovo = new ServicoCriptografia(chaveNova);
+        var persistNovo = new PersistenciaLocal(cryptoNovo, _pasta);
+        var recarregadas = await persistNovo.CarregarSenhasAsync(chaveNova);
+
+        Assert.Single(recarregadas);
+        Assert.Equal("GitHub", recarregadas[0].NomeServico);
+        Assert.Equal("GitHub@Secreta1", cryptoNovo.Descriptografar(recarregadas[0].SenhaHash));
     }
 
     [Fact]

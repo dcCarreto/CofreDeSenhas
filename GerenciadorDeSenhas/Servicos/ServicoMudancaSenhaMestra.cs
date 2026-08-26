@@ -46,11 +46,18 @@ namespace GerenciadorDeSenhas.Servicos
 
             var cryptoAntigo = new ServicoCriptografia(chaveAntiga);
             var persistAntigo = new PersistenciaLocal(cryptoAntigo, _pastaApp);
-            var senhas = await persistAntigo.CarregarSenhasAsync(chaveAntiga);
+            var todasSenhas = await persistAntigo.CarregarSenhasAsync(chaveAntiga);
             var anexos = new ServicoAnexos(cryptoAntigo, _pastaApp);
 
-            var decifrados = new List<CamposDecifrados>(senhas.Count);
-            foreach (var s in senhas)
+            // Uma credencial cuja senha/TOTP não decifra (dado corrompido) não tem como
+            // ser recifrada com a chave nova — a senha antiga dela já está perdida de
+            // qualquer jeito, então descartar só essa credencial (com aviso) segue o
+            // mesmo padrão já usado abaixo pra histórico/campos extras/anexos
+            // individualmente corrompidos, em vez de travar a troca de senha mestra do
+            // cofre inteiro por causa de uma única credencial ilegível.
+            var senhas = new List<Senha>(todasSenhas.Count);
+            var decifrados = new List<CamposDecifrados>(todasSenhas.Count);
+            foreach (var s in todasSenhas)
             {
                 string senhaPlano;
                 string? totpPlano;
@@ -59,11 +66,13 @@ namespace GerenciadorDeSenhas.Servicos
                     senhaPlano = cryptoAntigo.Descriptografar(s.SenhaHash);
                     totpPlano = string.IsNullOrEmpty(s.TotpSegredo) ? null : cryptoAntigo.Descriptografar(s.TotpSegredo);
                 }
-                catch (Exception ex)
+                catch
                 {
-                    throw new ErroLocalizavel("Master.Error.CorruptedEntry", ex, s.NomeServico);
+                    _avisos.Add($"Credencial \"{s.NomeServico}\" corrompida — descartada da troca de senha mestra.");
+                    continue;
                 }
 
+                senhas.Add(s);
                 decifrados.Add(new CamposDecifrados(
                     senhaPlano,
                     totpPlano,

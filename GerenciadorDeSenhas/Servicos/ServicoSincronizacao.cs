@@ -84,9 +84,27 @@ namespace GerenciadorDeSenhas.Servicos
             if (!File.Exists(caminhoArquivo))
                 return new List<SenhaExportada>();
 
+            string conteudo;
             try
             {
-                var envelope = JsonSerializer.Deserialize<EnvelopeSincronizacao>(await File.ReadAllTextAsync(caminhoArquivo));
+                conteudo = await File.ReadAllTextAsync(caminhoArquivo);
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                // Diferente de "chave errada" ou "arquivo corrompido" (que viram lista vazia
+                // de propósito, ver testes) — uma falha de leitura de verdade (pasta de nuvem
+                // ainda baixando o arquivo, outro dispositivo escrevendo nele nesse instante
+                // etc.) não pode virar lista vazia aqui: SincronizarAsync mescla o retorno com
+                // o cofre local e regrava o arquivo remoto por cima, então "vazio" nesse caso
+                // apagaria qualquer dado que outro dispositivo ainda não tinha terminado de
+                // publicar. Propagar deixa o chamador abortar a rodada de sync sem regravar
+                // nada.
+                throw new ErroLocalizavel("Sync.Error.ReadFailed", ex);
+            }
+
+            try
+            {
+                var envelope = JsonSerializer.Deserialize<EnvelopeSincronizacao>(conteudo);
                 if (envelope?.Dados == null)
                     return new List<SenhaExportada>();
 

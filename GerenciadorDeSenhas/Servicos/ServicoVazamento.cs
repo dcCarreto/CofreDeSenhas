@@ -36,14 +36,29 @@ namespace GerenciadorDeSenhas.Servicos
 
             var resposta = await _http.GetStringAsync($"https://api.pwnedpasswords.com/range/{prefixo}");
 
+            return ContarOcorrencias(resposta, sufixo);
+        }
+
+        // Público só pra GerenciadorDeSenhas.Testes exercitar o parsing sem bater na
+        // API de verdade.
+        public static int ContarOcorrencias(string resposta, string sufixo)
+        {
             foreach (var linha in resposta.Split('\n'))
             {
                 var partes = linha.Split(':');
-                if (partes.Length == 2 && partes[0].Trim().Equals(sufixo, StringComparison.OrdinalIgnoreCase))
-                {
-                    if (int.TryParse(partes[1].Trim(), out int contagem))
-                        return contagem;
-                }
+                if (partes.Length != 2 || !partes[0].Trim().Equals(sufixo, StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                // O sufixo bateu mas a contagem não é um número — resposta da API em
+                // formato inesperado. Continuar o loop como se não tivesse batido faria
+                // esta checagem de segurança relatar "senha não vazada" (fail-open)
+                // justamente no caso em que ela não conseguiu confirmar nada; melhor
+                // estourar e deixar o chamador (que já trata erro de rede) avisar que a
+                // verificação falhou.
+                if (!int.TryParse(partes[1].Trim(), out int contagem))
+                    throw new FormatException("Resposta da API Have I Been Pwned em formato inesperado.");
+
+                return contagem;
             }
 
             return 0;

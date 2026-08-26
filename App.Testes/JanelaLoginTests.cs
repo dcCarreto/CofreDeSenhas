@@ -77,6 +77,57 @@ namespace App.Testes
         }
 
         [AvaloniaFact]
+        public async Task Desbloqueio_ComCincoSenhasErradas_BloqueiaEMostraErro()
+        {
+            var pasta = TesteUtil.CriarPastaTemporaria();
+            var auth = new AutenticacaoMestra(pasta);
+            auth.CriarSenhaMestra("SenhaDeTeste123!");
+
+            var login = new JanelaLogin(auth, (chave, senha) => { });
+            login.Show();
+
+            var btnPrincipal = login.Encontrar<Button>("BtnPrincipal");
+            var txtSenha = login.Encontrar<TextBox>("TxtSenha");
+            var lblErro = login.Encontrar<TextBlock>("LblErro");
+
+            for (var i = 0; i < 5; i++)
+            {
+                await TesteUtil.AguardarAsync(() => btnPrincipal.IsEnabled);
+                txtSenha.Text = "SenhaErrada!";
+                btnPrincipal.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                await TesteUtil.AguardarAsync(() => !string.IsNullOrEmpty(lblErro.Text));
+            }
+
+            Assert.False(btnPrincipal.IsEnabled);
+            Assert.Equal(Idioma.Texto("Login.Error.TooManyAttempts"), lblErro.Text);
+        }
+
+        [AvaloniaFact]
+        public async Task Desbloqueio_ComBloqueioDeUmaInstanciaAnterior_AbreJaBloqueado()
+        {
+            // Simula reabrir o app depois de bater no limite de tentativas — uma nova
+            // JanelaLogin (processo reiniciado leria do mesmo tentativas.dat) precisa
+            // abrir já bloqueada, não com o contador zerado de novo.
+            var pasta = TesteUtil.CriarPastaTemporaria();
+            var auth = new AutenticacaoMestra(pasta);
+            auth.CriarSenhaMestra("SenhaDeTeste123!");
+
+            var controle = new ControleTentativasLogin(pasta);
+            for (var i = 0; i < ControleTentativasLogin.LimiteTentativas; i++)
+                controle.RegistrarFalha();
+
+            var login = new JanelaLogin(auth, (chave, senha) => { });
+            login.Show();
+
+            var btnPrincipal = login.Encontrar<Button>("BtnPrincipal");
+            var lblErro = login.Encontrar<TextBlock>("LblErro");
+            await TesteUtil.AguardarAsync(() => !string.IsNullOrEmpty(lblErro.Text));
+
+            Assert.False(btnPrincipal.IsEnabled);
+            Assert.Equal(Idioma.Texto("Login.Error.TooManyAttempts"), lblErro.Text);
+        }
+
+        [AvaloniaFact]
         public async Task Confirmar_ComBotaoJaDesabilitado_IgnoraChamadaReentrante()
         {
             var pasta = TesteUtil.CriarPastaTemporaria();

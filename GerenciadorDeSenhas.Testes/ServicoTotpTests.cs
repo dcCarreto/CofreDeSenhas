@@ -72,6 +72,14 @@ public class ServicoTotpTests
     }
 
     [Fact]
+    public void SegredoValido_ComEntradaExcessivamenteLonga_RetornaFalso()
+    {
+        var gigante = new string('A', 10_000);
+
+        Assert.False(_totp.SegredoValido(gigante));
+    }
+
+    [Fact]
     public void NormalizarSegredo_RemoveEspacosEMaiusculiza()
     {
         Assert.Equal("GEZDGNBVGY3TQOJQ", _totp.NormalizarSegredo("gezd gnbv gy3t qojq"));

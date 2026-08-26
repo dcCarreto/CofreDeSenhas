@@ -18,6 +18,12 @@ namespace CofreDeSenhas.Janelas
         private readonly TotpPreview.Temporizador _timerTotp = new();
         private const int PeriodoTotp = 30;
 
+        // Acumula por chave, não substitui: sem isto, ir e voltar entre tipos que não
+        // compartilham campo (Cartão -> Login -> Cartão) apagava validade/CVV/bandeira
+        // já digitados antes mesmo de salvar, já que só os campos do tipo anterior
+        // ficavam disponíveis pra repovoar o painel.
+        private readonly Dictionary<string, string> _camposExtrasAcumulados = new();
+
         public JanelaCriarSenha(IServicoSenha servicoSenha, string? senhaGerada = null)
         {
             _servicoSenha = servicoSenha ?? throw new ArgumentNullException(nameof(servicoSenha));
@@ -78,10 +84,9 @@ namespace CofreDeSenhas.Janelas
             LblSenha.Text = TemplatesCredencial.RotuloSenha(tipo);
             AutomationProperties.SetName(TxtSenha, TemplatesCredencial.RotuloSenha(tipo));
 
-            var valoresAtuais = PainelCamposExtras.Children
-                .OfType<TextBox>()
-                .Where(t => t.Tag is string)
-                .ToDictionary(t => (string)t.Tag!, t => t.Text ?? "");
+            foreach (var caixa in PainelCamposExtras.Children.OfType<TextBox>())
+                if (caixa.Tag is string chave)
+                    _camposExtrasAcumulados[chave] = caixa.Text ?? "";
 
             PainelCamposExtras.Children.Clear();
             foreach (var campo in TemplatesCredencial.CamposExtras(tipo))
@@ -99,7 +104,7 @@ namespace CofreDeSenhas.Janelas
                     Tag = campo.Chave
                 };
                 AutomationProperties.SetName(caixa, campo.Rotulo);
-                if (valoresAtuais.TryGetValue(campo.Chave, out var valor))
+                if (_camposExtrasAcumulados.TryGetValue(campo.Chave, out var valor))
                     caixa.Text = valor;
 
                 PainelCamposExtras.Children.Add(rotulo);

@@ -19,6 +19,20 @@ namespace App.Testes
         }
 
         [AvaloniaFact]
+        public async Task Construtor_RegistraAnunciadorParaLeitorDeTela()
+        {
+            var janela = new JanelaSenhaExportacao(modoExportar: true);
+            janela.Show();
+
+            Acessibilidade.Anunciar(janela, "mensagem-de-teste-leitor-de-tela", forcar: true);
+
+            var anunciador = janela.Encontrar<TextBlock>("LblAnuncioLeitorTela");
+            await TesteUtil.AguardarAsync(() => anunciador.Text == "mensagem-de-teste-leitor-de-tela");
+
+            Assert.Equal("mensagem-de-teste-leitor-de-tela", anunciador.Text);
+        }
+
+        [AvaloniaFact]
         public async Task Abrir_SemFiltroAtivo_EscondeCheckboxDeExportacaoSeletiva()
         {
             var janela = new JanelaSenhaExportacao(modoExportar: true, totalGeral: 10, totalFiltrado: 10);

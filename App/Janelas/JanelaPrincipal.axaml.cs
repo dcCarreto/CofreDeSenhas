@@ -44,7 +44,11 @@ namespace CofreDeSenhas.Janelas
         private readonly Action? _aoBloquear;
         private readonly MonitorInatividade _monitor;
         private readonly DispatcherTimer _timerSincronizacao;
+        // internal só pra teste inspecionar o agendamento sem esperar uma hora de
+        // verdade — ver App.Testes (InternalsVisibleTo).
+        internal readonly DispatcherTimer _timerBackupAgendado;
         private DispatcherTimer? _timerFeedbackSenhaDetalhes;
+        private DispatcherTimer? _timerFeedbackUsuarioDetalhes;
         private bool _sincronizando;
         private bool _conectadoAoBanco;
         // internal só pra teste conseguir semear um ponto de espera controlável (via
@@ -85,6 +89,7 @@ namespace CofreDeSenhas.Janelas
         private bool _naLixeira;
         private bool _modoPrivacidade;
         private string? _versaoDisponivel;
+        private string? _notasVersaoDisponivel;
         private bool _atualizando;
         private List<Senha> _itensLixeira = new();
         private Senha? _senhaDetalhe;
@@ -185,11 +190,23 @@ namespace CofreDeSenhas.Janelas
             _timerSincronizacao.Tick += async (s, e) => await SincronizarAsync(silencioso: true);
             AjustarTimerSincronizacao();
 
+            // VerificarBackupAgendadoAsync só rodava uma vez, na abertura da janela —
+            // numa sessão longa (o app suporta ficar minimizado na bandeja por dias),
+            // "diário"/"semanal" nunca disparava de novo depois disso, mesmo com o
+            // agendamento genuinamente vencido havia muito tempo. Reavaliar de hora em
+            // hora é barato (AgendaBackup.Devido só decide algo quando já venceu) e
+            // fecha essa lacuna sem depender do usuário bloquear/desbloquear o cofre.
+            _timerBackupAgendado = new DispatcherTimer { Interval = TimeSpan.FromHours(1) };
+            _timerBackupAgendado.Tick += async (s, e) => await VerificarBackupAgendadoAsync();
+            _timerBackupAgendado.Start();
+
             Closed += (s, e) =>
             {
                 _monitor.Encerrar();
                 _timerSincronizacao.Stop();
+                _timerBackupAgendado.Stop();
                 _timerFeedbackSenhaDetalhes?.Stop();
+                _timerFeedbackUsuarioDetalhes?.Stop();
                 Idioma.Alterado -= IdiomaGlobal_Alterado;
                 Acessibilidade.Alterado -= Acessibilidade_Alterado;
                 FecharDetalhes();
@@ -260,6 +277,9 @@ namespace CofreDeSenhas.Janelas
 
             foreach (var linha in _linhasSenha)
                 linha.DefinirModoPrivacidade(_modoPrivacidade);
+
+            if (_naLixeira)
+                AtualizarListaLixeira();
 
             AtualizarBotaoPrivacidade();
             Acessibilidade.Anunciar(this, Idioma.Texto(_modoPrivacidade ? "A11y.PrivacyModeOn" : "A11y.PrivacyModeOff"));
@@ -653,13 +673,23 @@ namespace CofreDeSenhas.Janelas
             if (!Preferencias.VerificarAtualizacoes)
                 return;
 
-            var versao = await ServicoAtualizacao.VerificarNovaVersaoAsync();
-            if (string.IsNullOrEmpty(versao) || string.Equals(versao, Preferencias.VersaoDispensada, StringComparison.OrdinalIgnoreCase))
+            var atualizacao = await ServicoAtualizacao.VerificarNovaVersaoAsync();
+            if (atualizacao is not { } info ||
+                string.Equals(info.Tag, Preferencias.VersaoDispensada, StringComparison.OrdinalIgnoreCase))
                 return;
 
-            _versaoDisponivel = versao;
-            LblAtualizacaoDisponivel.Text = Idioma.Formatar("Update.Available", versao);
-            AutomationProperties.SetName(LblAtualizacaoDisponivel, Idioma.Formatar("Update.Available", versao));
+            ExibirAtualizacaoDisponivel(info);
+        }
+
+        // internal só pra teste popular o painel de atualização sem depender da
+        // chamada de rede de verdade que VerificarAtualizacaoAsync faz pra API do
+        // GitHub — ver App.Testes (InternalsVisibleTo).
+        internal void ExibirAtualizacaoDisponivel(AtualizacaoDisponivel info)
+        {
+            _versaoDisponivel = info.Tag;
+            _notasVersaoDisponivel = info.NotasVersao;
+            LblAtualizacaoDisponivel.Text = Idioma.Formatar("Update.Available", info.Tag);
+            AutomationProperties.SetName(LblAtualizacaoDisponivel, Idioma.Formatar("Update.Available", info.Tag));
             PainelAtualizacaoDisponivel.IsVisible = true;
         }
 
@@ -689,7 +719,8 @@ namespace CofreDeSenhas.Janelas
                 servico => _servicoSincronizacao = servico,
                 () => SincronizarAsync(silencioso: false),
                 () => _sincronizando,
-                janela => AbrirDialogoAsync<bool>(janela));
+                janela => AbrirDialogoAsync<bool>(janela),
+                AjustarTimerSincronizacao);
 
             await AbrirDialogoAsync<bool>(dlg);
             AjustarTimerSincronizacao();
@@ -785,6 +816,17 @@ namespace CofreDeSenhas.Janelas
             if (string.IsNullOrEmpty(_versaoDisponivel) || _atualizando)
                 return;
 
+            // Sem isto, "Atualizar agora" já disparava o download e a instalação
+            // silenciosa direto — o usuário nunca via qual versão ia entrar nem o que
+            // mudava nela antes de o app se fechar sozinho pra aplicar a atualização.
+            var confirmou = await CaixaMensagem.ConfirmarComListaAsync(this,
+                Idioma.Formatar("Update.ConfirmMessage", _versaoDisponivel),
+                Idioma.Formatar("Update.ConfirmTitle", _versaoDisponivel),
+                QuebrarNotasDaVersao(_notasVersaoDisponivel),
+                TipoMensagem.Info);
+            if (!confirmou)
+                return;
+
             _atualizando = true;
             BtnAtualizarAgora.IsEnabled = false;
             LblBtnAtualizarAgora.Text = Idioma.Texto("Update.Downloading");
@@ -824,6 +866,20 @@ namespace CofreDeSenhas.Janelas
             catch { }
         }
 
+        // As notas vêm em markdown puro da API do GitHub — sem um renderizador de
+        // markdown no app, mostra linha a linha (títulos com # e itens com - ainda
+        // saem legíveis como texto simples) em vez de tentar interpretar a formatação.
+        private static List<string> QuebrarNotasDaVersao(string? notas)
+        {
+            if (string.IsNullOrWhiteSpace(notas))
+                return new List<string> { Idioma.Texto("Update.NoReleaseNotes") };
+
+            return notas.Replace("\r\n", "\n").Split('\n')
+                .Select(linha => linha.Trim())
+                .Where(linha => linha.Length > 0)
+                .ToList();
+        }
+
         private void DispensarAtualizacao_Click(object? sender, RoutedEventArgs e)
         {
             Preferencias.VersaoDispensada = _versaoDisponivel;
@@ -835,6 +891,7 @@ namespace CofreDeSenhas.Janelas
         {
             PainelAtualizacaoDisponivel.IsVisible = false;
             _versaoDisponivel = null;
+            _notasVersaoDisponivel = null;
         }
 
         private void LeitorTela_Alterado(object? sender, RoutedEventArgs e) => Acessibilidade.TratarClickLeitorTela(this, sender);
@@ -935,10 +992,26 @@ namespace CofreDeSenhas.Janelas
 
         private void AtualizarLista(List<Senha> lista)
         {
+            // Preserva uma edição inline de nome de serviço ainda não confirmada através
+            // do rebuild — sem isto, favoritar/fixar OUTRA linha, ou o sync em segundo
+            // plano, disparava CarregarSenhasAsync/FiltrarSenhas e a linha em edição era
+            // recriada do zero, descartando em silêncio o que o usuário tinha acabado de
+            // digitar e ainda não confirmou com Enter/clicando fora.
+            var linhaEmEdicao = _linhasSenha.FirstOrDefault(l => l.EmEdicaoDeServico);
+            var idEmEdicao = linhaEmEdicao?.Senha.Id;
+            var textoEmEdicao = linhaEmEdicao?.TextoServicoEmEdicao;
+
             PainelLista.Children.Clear();
             _linhasSenha.Clear();
             _linhaFocada = null;
-            _selecionados.Clear();
+
+            // IntersectWith em vez de Clear: uma busca/filtro roda a cada tecla digitada
+            // (Busca_Alterada -> FiltrarSenhas -> aqui), então um Clear incondicional
+            // derrubava a seleção em lote inteira no meio do trabalho — bastava o
+            // usuário digitar um caractere na busca enquanto tinha itens marcados pra
+            // favoritar/etiquetar/mover pra lixeira. Preserva só o que ainda está na
+            // lista filtrada; o que saiu de vista sai da seleção também.
+            _selecionados.IntersectWith(lista.Select(s => s.Id));
             AtualizarPainelAcoesLote();
 
             LblVazio.IsVisible = lista.Count == 0;
@@ -960,6 +1033,8 @@ namespace CofreDeSenhas.Janelas
                 linha.SolicitouDetalhes += Linha_SolicitouDetalhes;
                 linha.SelecaoAlterada += Linha_SelecaoAlterada;
                 linha.GotFocus += (s, e) => _linhaFocada = linha;
+                if (_selecionados.Contains(senha.Id))
+                    linha.DefinirSelecionada(true);
 
                 var plain = ObterSenhaPlain(senha);
                 if (!string.IsNullOrEmpty(plain))
@@ -972,6 +1047,9 @@ namespace CofreDeSenhas.Janelas
                 PainelLista.Children.Add(linha);
                 _linhasSenha.Add(linha);
             }
+
+            if (idEmEdicao != null && textoEmEdicao != null)
+                _linhasSenha.FirstOrDefault(l => l.Senha.Id == idEmEdicao.Value)?.IniciarEdicaoServico(textoEmEdicao);
         }
 
         private async Task CarregarLixeiraAsync()
@@ -1011,34 +1089,51 @@ namespace CofreDeSenhas.Janelas
 
         private Control CriarLinhaLixeira(Senha senha)
         {
-            var icone = IconesServico.Obter(senha.NomeServico, senha.Url);
+            // Mesma máscara que LinhaSenha aplica na lista principal — sem isto, entrar
+            // na lixeira com o modo privacidade ativo mostrava serviço e usuário reais
+            // de todo item excluído, driblando o próprio modo que o usuário acabou de
+            // ligar.
+            var nomeExibido = _modoPrivacidade ? LinhaSenha.MascaraPrivacidade : senha.NomeServico;
+            var usuarioExibido = _modoPrivacidade ? LinhaSenha.MascaraPrivacidade : senha.Usuario;
+
             var avatar = new Border
             {
                 Width = 40,
                 Height = 40,
                 CornerRadius = new CornerRadius(10),
-                Background = new SolidColorBrush(icone.Fundo),
                 VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
             };
-            avatar.Child = new TextBlock
+            var avatarTexto = new TextBlock
             {
-                Text = icone.Texto,
                 FontWeight = FontWeight.Bold,
-                Foreground = new SolidColorBrush(icone.Frente),
                 HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center,
                 VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
             };
+            avatar.Child = avatarTexto;
+            if (_modoPrivacidade)
+            {
+                avatar.Background = Tema.Pincel(Tema.TrailInactive);
+                avatarTexto.Text = "•";
+                avatarTexto.Foreground = Tema.Pincel(Tema.TextSecondary);
+            }
+            else
+            {
+                var icone = IconesServico.Obter(senha.NomeServico, senha.Url);
+                avatar.Background = new SolidColorBrush(icone.Fundo);
+                avatarTexto.Text = icone.Texto;
+                avatarTexto.Foreground = new SolidColorBrush(icone.Frente);
+            }
 
             var lblServico = new TextBlock
             {
-                Text = senha.NomeServico,
+                Text = nomeExibido,
                 FontSize = 14,
                 FontWeight = FontWeight.Bold,
                 Foreground = Tema.Pincel(Tema.TextPrimary)
             };
             var lblUsuario = new TextBlock
             {
-                Text = senha.Usuario,
+                Text = usuarioExibido,
                 FontSize = 12,
                 Foreground = Tema.Pincel(Tema.TextSecondary)
             };
@@ -1069,7 +1164,7 @@ namespace CofreDeSenhas.Janelas
                 Margin = new Thickness(8, 0, 0, 0)
             };
             btnRestaurar.Classes.Add("secundario");
-            AutomationProperties.SetName(btnRestaurar, Idioma.Formatar("Trash.Restore") + " " + senha.NomeServico);
+            AutomationProperties.SetName(btnRestaurar, Idioma.Formatar("Trash.Restore") + " " + nomeExibido);
             btnRestaurar.Click += async (s, e) => await RestaurarDaLixeiraAsync(senha);
             Grid.SetColumn(btnRestaurar, 3);
 
@@ -1083,7 +1178,7 @@ namespace CofreDeSenhas.Janelas
             btnExcluir.Classes.Add("icone");
             btnExcluir.Content = Recursos.ImagemIcone("IconeExcluir", 22);
             ToolTip.SetTip(btnExcluir, Idioma.Texto("Trash.DeleteForever"));
-            AutomationProperties.SetName(btnExcluir, Idioma.Formatar("Trash.DeleteForeverConfirm", senha.NomeServico));
+            AutomationProperties.SetName(btnExcluir, Idioma.Formatar("Trash.DeleteForeverConfirm", nomeExibido));
             btnExcluir.Click += async (s, e) => await ExcluirDefinitivamenteAsync(senha);
             Grid.SetColumn(btnExcluir, 4);
 
@@ -1129,8 +1224,9 @@ namespace CofreDeSenhas.Janelas
 
         private async Task ExcluirDefinitivamenteAsync(Senha senha)
         {
+            var nomeExibido = _modoPrivacidade ? LinhaSenha.MascaraPrivacidade : senha.NomeServico;
             var confirmar = await CaixaMensagem.ConfirmarAsync(this,
-                Idioma.Formatar("Trash.DeleteForeverConfirm", senha.NomeServico),
+                Idioma.Formatar("Trash.DeleteForeverConfirm", nomeExibido),
                 Idioma.Texto("Trash.DeleteForever"), TipoMensagem.Aviso);
 
             if (!confirmar)
@@ -1238,9 +1334,29 @@ namespace CofreDeSenhas.Janelas
             }
         }
 
-        private async void LimparCofre_Click(object? sender, RoutedEventArgs e)
+        // internal só pra teste chamar direto sem precisar abrir o MenuFlyout de
+        // configurações (os itens dele só existem na árvore visual depois de aberto de
+        // verdade) — ver App.Testes (InternalsVisibleTo).
+        internal async void LimparCofre_Click(object? sender, RoutedEventArgs e)
         {
             if (_senhasAtuais.Count == 0)
+                return;
+
+            if (_criptografia == null)
+            {
+                await CaixaMensagem.MostrarAsync(this,
+                    Idioma.Texto("Db.FeatureUnavailable"), Idioma.Texto("Vault.ClearTitle"), TipoMensagem.Aviso);
+                return;
+            }
+
+            // Mesma reautenticação que Excluir Cofre já exige — sem isto, "Limpar
+            // cofre" bastava um clique de confirmação, sem senha nenhuma, pra esvaziar
+            // o cofre inteiro pra lixeira numa sessão já desbloqueada e sem vigilância.
+            var dlgSenha = new JanelaConfirmarSenhaMestra(
+                Idioma.Texto("Vault.ClearTitle"),
+                Idioma.Texto("Vault.DeleteReauthInstruction"),
+                Idioma.Texto("Vault.DeleteReauthButton"));
+            if (!await AbrirDialogoAsync<bool>(dlgSenha))
                 return;
 
             var confirmar = await CaixaMensagem.ConfirmarAsync(this,
@@ -1293,7 +1409,10 @@ namespace CofreDeSenhas.Janelas
                 var persistencia = new PersistenciaLocal(_criptografia);
                 await persistencia.ApagarTudoAsync();
 
-                new AutenticacaoMestra().ExcluirSenhaMestra();
+                var authPadrao = new AutenticacaoMestra();
+                authPadrao.ExcluirSenhaMestra();
+                new ControleTentativasLogin(authPadrao.PastaApp).Limpar();
+                HistoricoPontuacaoSeguranca.Limpar();
 
                 Preferencias.UltimoBanco = null;
                 Preferencias.Sincronizacao = null;
@@ -1865,6 +1984,13 @@ namespace CofreDeSenhas.Janelas
 
         private async void NavLixeira_Click(object? sender, RoutedEventArgs e)
         {
+            // Mesma trava de Salvar/Fechar/Excluir (ver FecharDetalhes_Click) — sem
+            // ela, dava pra ir pra Lixeira enquanto um Salvar/Excluir do item aberto
+            // ainda estava em voo, e quando a operação terminasse ela reabria o painel
+            // de detalhes por cima da lixeira que o usuário já estava vendo.
+            if (_detalhesOperacaoEmAndamento)
+                return;
+
             FecharDetalhes();
             FecharGerador();
             _naLixeira = true;
@@ -2184,7 +2310,7 @@ namespace CofreDeSenhas.Janelas
             try { codigo = _totp.Gerar(segredo).Codigo; }
             catch { return; }
 
-            await CopiarDetalheAsync(codigo, Idioma.Texto("Row.CopyTotp"), campoRegistrado: TipoCampoCopiado.Totp);
+            await CopiarDetalheAsync(codigo, Idioma.Texto("Row.CopyTotp"), limparDepois: true, campoRegistrado: TipoCampoCopiado.Totp);
         }
 
         private async void EdicaoCompletaDetalhes_Click(object? sender, RoutedEventArgs e)
@@ -2356,17 +2482,28 @@ namespace CofreDeSenhas.Janelas
         }
 
         private async void CopiarUsuarioDetalhes_Click(object? sender, RoutedEventArgs e) =>
-            await CopiarDetalheAsync(TxtDetalheUsuario.Text, Idioma.Texto("Row.CopyUser"), campoRegistrado: TipoCampoCopiado.Usuario);
+            // limparDepois:true — mesmo motivo do LinhaSenha.CopiarUsuarioAsync (ver
+            // AreaTransferenciaFeedback): sem isto, usuário copiado pelo painel de
+            // detalhes (muitas vezes o e-mail da pessoa) ficava esquecido no clipboard
+            // pra sempre, enquanto senha e TOTP já eram apagados sozinhos.
+            await CopiarDetalheAsync(TxtDetalheUsuario.Text, Idioma.Texto("Row.CopyUser"),
+                limparDepois: true, campoRegistrado: TipoCampoCopiado.Usuario, botaoFeedback: BtnCopiarUsuarioDetalhes,
+                obterTimer: () => _timerFeedbackUsuarioDetalhes, definirTimer: t => _timerFeedbackUsuarioDetalhes = t,
+                chaveMensagemLimpando: "Row.UserCopiedClearing");
 
         private async void CopiarSenhaDetalhes_Click(object? sender, RoutedEventArgs e) =>
             await CopiarDetalheAsync(_senhaDetalheVisivel ? TxtDetalheSenha.Text : _senhaDetalhePlain,
-                Idioma.Texto("Row.CopyPassword"), limparDepois: true, campoRegistrado: TipoCampoCopiado.Senha);
+                Idioma.Texto("Row.CopyPassword"), limparDepois: true, campoRegistrado: TipoCampoCopiado.Senha,
+                botaoFeedback: BtnCopiarSenhaDetalhes, obterTimer: () => _timerFeedbackSenhaDetalhes,
+                definirTimer: t => _timerFeedbackSenhaDetalhes = t, chaveMensagemLimpando: "Row.PasswordCopiedClearing");
 
         private async void CopiarUrlDetalhes_Click(object? sender, RoutedEventArgs e) =>
             await CopiarDetalheAsync(TxtDetalheUrl.Text, "URL");
 
         private async Task CopiarDetalheAsync(string? texto, string rotulo, bool limparDepois = false,
-            TipoCampoCopiado? campoRegistrado = null)
+            TipoCampoCopiado? campoRegistrado = null, Button? botaoFeedback = null,
+            Func<DispatcherTimer?>? obterTimer = null, Action<DispatcherTimer?>? definirTimer = null,
+            string? chaveMensagemLimpando = null)
         {
             if (string.IsNullOrWhiteSpace(texto))
                 return;
@@ -2381,7 +2518,8 @@ namespace CofreDeSenhas.Janelas
             if (limparDepois && segundos > 0 && clipboard != null)
             {
                 Acessibilidade.Anunciar(this, Idioma.Formatar("A11y.CopiedWillClear", rotulo, segundos));
-                AgendarFeedbackLimpezaSenhaDetalhes(segundos);
+                if (botaoFeedback != null && obterTimer != null && definirTimer != null && chaveMensagemLimpando != null)
+                    AgendarFeedbackLimpezaDetalhe(botaoFeedback, obterTimer, definirTimer, chaveMensagemLimpando, segundos);
                 _ = ServicoLimpezaClipboard.ProgramarLimpezaAsync(new AreaTransferenciaAvalonia(clipboard), texto, segundos);
             }
             else
@@ -2397,22 +2535,23 @@ namespace CofreDeSenhas.Janelas
             }
         }
 
-        private void AgendarFeedbackLimpezaSenhaDetalhes(int segundos)
+        private void AgendarFeedbackLimpezaDetalhe(Button botao, Func<DispatcherTimer?> obterTimer,
+            Action<DispatcherTimer?> definirTimer, string chaveMensagem, int segundos)
         {
-            var mensagem = Idioma.Formatar("Row.PasswordCopiedClearing", segundos);
-            ToolTip.SetTip(BtnCopiarSenhaDetalhes, mensagem);
-            AutomationProperties.SetName(BtnCopiarSenhaDetalhes, mensagem);
+            var mensagem = Idioma.Formatar(chaveMensagem, segundos);
+            ToolTip.SetTip(botao, mensagem);
+            AutomationProperties.SetName(botao, mensagem);
 
-            _timerFeedbackSenhaDetalhes?.Stop();
+            obterTimer()?.Stop();
 
             var t = new DispatcherTimer { Interval = TimeSpan.FromSeconds(Math.Min(segundos, 3)) };
             t.Tick += (s, e) =>
             {
-                BtnCopiarSenhaDetalhes.ClearValue(ToolTip.TipProperty);
-                BtnCopiarSenhaDetalhes.ClearValue(AutomationProperties.NameProperty);
+                botao.ClearValue(ToolTip.TipProperty);
+                botao.ClearValue(AutomationProperties.NameProperty);
                 t.Stop();
             };
-            _timerFeedbackSenhaDetalhes = t;
+            definirTimer(t);
             t.Start();
         }
 
@@ -2459,8 +2598,18 @@ namespace CofreDeSenhas.Janelas
             }
         }
 
-        private async void EditarSenha(Senha s)
+        // internal só pra teste chamar direto e confirmar o bloqueio do modo
+        // privacidade sem precisar simular o clique no botão da linha (que nem chega a
+        // testar o guard, já que RaiseEvent não respeita IsEnabled) — ver App.Testes
+        // (InternalsVisibleTo).
+        internal async void EditarSenha(Senha s)
         {
+            // Mesma proteção de AbrirDetalhes: o botão da linha já fica desabilitado no
+            // modo privacidade, mas checar aqui de novo cobre qualquer outro caminho que
+            // chegue a este método sem passar pelo botão.
+            if (_modoPrivacidade)
+                return;
+
             var dlg = new JanelaEditarSenha(_servicoSenha, s, _criptografia, _servicoAnexos);
             if (await AbrirDialogoAsync<bool>(dlg))
                 await CarregarSenhasAsync();
@@ -3063,9 +3212,8 @@ namespace CofreDeSenhas.Janelas
             List<SenhaExportada> itens, Action<int, int>? aoProgredir = null)
         {
             var existentes = await _servicoSenha.ListarTodosAsync();
-            var chaves = new HashSet<string>(
-                existentes.Select(s => s.NomeServico + " " + s.Usuario),
-                StringComparer.OrdinalIgnoreCase);
+            var chaves = new HashSet<(string Nome, string Usuario)>(
+                existentes.Select(s => ChaveDuplicata(s.NomeServico, s.Usuario)));
 
             int adicionadas = 0, invalidas = 0, duplicadas = 0, processadas = 0;
             try
@@ -3078,7 +3226,7 @@ namespace CofreDeSenhas.Janelas
                     {
                         invalidas++;
                     }
-                    else if (!chaves.Add(item.NomeServico + " " + item.Usuario))
+                    else if (!chaves.Add(ChaveDuplicata(item.NomeServico, item.Usuario)))
                     {
                         duplicadas++;
                     }
@@ -3094,7 +3242,7 @@ namespace CofreDeSenhas.Janelas
                         }
                         catch (ErroLocalizavel)
                         {
-                            chaves.Remove(item.NomeServico + " " + item.Usuario);
+                            chaves.Remove(ChaveDuplicata(item.NomeServico, item.Usuario));
                             invalidas++;
                         }
 
@@ -3127,6 +3275,13 @@ namespace CofreDeSenhas.Janelas
 
             return (adicionadas, invalidas, duplicadas);
         }
+
+        // Tupla, não concatenação de string ("nome + " " + usuario"): serviço="Banco X",
+        // usuario="Contas Correntes" e serviço="Banco X Contas", usuario="Correntes" geravam
+        // a mesma chave concatenada e um dos dois era descartado como "duplicata" na
+        // importação sem nunca ter sido de fato duplicado.
+        private static (string Nome, string Usuario) ChaveDuplicata(string nomeServico, string usuario) =>
+            (nomeServico.ToLowerInvariant(), usuario.ToLowerInvariant());
 
         private void MostrarProgresso(string chaveMensagem)
         {
@@ -3377,11 +3532,35 @@ namespace CofreDeSenhas.Janelas
             await RestaurarBackupAsync(persistencia, caminho);
         }
 
-        private async Task RestaurarBackupAsync(IPersistenciaLocal persistencia, string caminhoBackup)
+        // internal só pra teste chamar direto sem precisar dirigir a JanelaBackup
+        // inteira (lista de backups, clique de restaurar, confirmação) — ver
+        // App.Testes (InternalsVisibleTo).
+        internal async Task RestaurarBackupAsync(IPersistenciaLocal persistencia, string caminhoBackup)
         {
             try
             {
                 var senhasRestauradas = await persistencia.CarregarBackupAsync(caminhoBackup);
+
+                // Salva o estado atual como um backup antes de sobrescrever — sem isto,
+                // restaurar um backup mais antigo descarta tudo que mudou depois sem
+                // deixar nenhum jeito de desfazer, mesmo a própria janela de restauração
+                // já avisando que as alterações mais recentes serão perdidas. Lido o
+                // backup de destino ANTES desta chamada de propósito: BackupAutomaticoAsync
+                // pode acabar apagando o backup mais antigo pra respeitar o teto — se for
+                // justo o que o usuário escolheu restaurar, o conteúdo dele já está a
+                // salvo em memória a essa altura.
+                try
+                {
+                    var senhasAtuais = await _servicoSenhaLocal.ListarTodosAsync();
+                    if (senhasAtuais.Count > 0)
+                        await persistencia.BackupAutomaticoAsync(senhasAtuais, _chaveMestra, Preferencias.MaximoBackups);
+                }
+                catch
+                {
+                    // Melhor esforço: falhar na foto de segurança não pode impedir a
+                    // restauração que o usuário pediu.
+                }
+
                 await persistencia.SalvarSenhasAsync(senhasRestauradas, _chaveMestra);
 
                 _repositorioLocal = new RepositorioSenha(persistencia, _chaveMestra);
@@ -3585,6 +3764,17 @@ namespace CofreDeSenhas.Janelas
                 }
 
                 AtualizarEstadoConexao(cfg.Descricao);
+
+                // Sem isto, um conflito de sincronização (em especial integridade
+                // violada — possível adulteração do banco compartilhado) só existia na
+                // lista em memória de UltimosConflitos: se o usuário não abrisse a tela
+                // de conflitos antes de reconectar ou fechar o app, o registro sumia
+                // pra sempre sem deixar rastro nenhum pra revisar depois.
+                foreach (var conflito in espelho?.UltimosConflitos ?? Array.Empty<ConflitoSincronizacao>())
+                    Diagnostico.Registrar(
+                        $"{conflito.Tipo} em \"{conflito.NomeServico}\" (id {conflito.SenhaId})",
+                        "ConflitoSincronizacao");
+
                 await CarregarSenhasAsync();
 
                 if (!silencioso)

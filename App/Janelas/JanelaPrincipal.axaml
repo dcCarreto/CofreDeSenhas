@@ -847,7 +847,7 @@
                         <c:Icone Width="{StaticResource TamIconeCampo}" Height="{StaticResource TamIconeCampo}" Margin="0,0,8,0" VerticalAlignment="Center"
                                Chave="IconeUsuario" />
                         <TextBox Name="TxtDetalheUsuario" Grid.Column="1" Classes="campo" Height="38" />
-                        <Button Grid.Column="2" Classes="icone" Width="36" Height="36" Margin="8,0,0,0"
+                        <Button Name="BtnCopiarUsuarioDetalhes" Grid.Column="2" Classes="icone" Width="36" Height="36" Margin="8,0,0,0"
                                 ToolTip.Tip="{DynamicResource Row.CopyUser}"
                                 AutomationProperties.Name="{DynamicResource Row.CopyUser}"
                                 Click="CopiarUsuarioDetalhes_Click">

@@ -6,7 +6,13 @@ namespace GerenciadorDeSenhas.Servicos
 {
     public class ServicoSenha : IServicoSenha
     {
-        private const int MaxHistorico = 10;
+        // public (mesmo padrão de Etiquetas.QuantidadeMaxima) pra MesclaSincronizacao
+        // reaplicar o mesmo teto depois da mesclagem aditiva de histórico — sem isso,
+        // dois dispositivos trocando a senha em momentos diferentes entre ciclos de
+        // sync somam entradas pra sempre e nunca mais voltam a 10.
+        public const int MaxHistorico = 10;
+        public const int MaxCodigosRecuperacao = 100;
+        private const int MaxComprimentoCodigoRecuperacao = 500;
 
         private readonly IRepositorioSenha _repositorio;
         private readonly IServicoCriptografia _criptografia;
@@ -26,7 +32,7 @@ namespace GerenciadorDeSenhas.Servicos
             IEnumerable<string>? etiquetas = null, TipoCredencial tipo = TipoCredencial.Login,
             IReadOnlyDictionary<string, string>? camposExtras = null)
         {
-            ValidarEntrada(nomeServico, usuario, senhaPlaintext);
+            ValidarEntrada(nomeServico, usuario, senhaPlaintext, url, notas, camposExtras);
 
             var senha = new Senha
             {
@@ -54,7 +60,7 @@ namespace GerenciadorDeSenhas.Servicos
             Categoria categoria, string? url = null, string? notas = null, IEnumerable<string>? etiquetas = null,
             TipoCredencial? tipo = null, IReadOnlyDictionary<string, string>? camposExtras = null)
         {
-            ValidarEntrada(nomeServico, usuario, senhaPlaintext);
+            ValidarEntrada(nomeServico, usuario, senhaPlaintext, url, notas, camposExtras);
 
             var senha = await ObterOuFalharAsync(id);
 
@@ -105,13 +111,22 @@ namespace GerenciadorDeSenhas.Servicos
         {
             var senha = await ObterOuFalharAsync(id);
 
-            var novos = (codigos ?? Enumerable.Empty<(string Codigo, bool Usado)>())
+            var validos = (codigos ?? Enumerable.Empty<(string Codigo, bool Usado)>())
                 .Where(c => !string.IsNullOrWhiteSpace(c.Codigo))
-                .Select(c => new CodigoRecuperacao
-                {
-                    Codigo = _criptografia.Criptografar(c.Codigo.Trim()),
-                    Usado = c.Usado
-                });
+                .Select(c => (Codigo: c.Codigo.Trim(), c.Usado))
+                .ToList();
+
+            if (validos.Any(c => c.Codigo.Length > MaxComprimentoCodigoRecuperacao))
+                throw new ErroLocalizavel("Entry.Error.RecoveryCodeTooLong", MaxComprimentoCodigoRecuperacao);
+
+            if (senha.CodigosRecuperacao.Count + validos.Count > MaxCodigosRecuperacao)
+                throw new ErroLocalizavel("Entry.Error.RecoveryCodesTooMany", MaxCodigosRecuperacao);
+
+            var novos = validos.Select(c => new CodigoRecuperacao
+            {
+                Codigo = _criptografia.Criptografar(c.Codigo),
+                Usado = c.Usado
+            });
 
             senha.CodigosRecuperacao.AddRange(novos);
             senha.DataAtualizacao = DateTime.UtcNow;
@@ -353,7 +368,8 @@ namespace GerenciadorDeSenhas.Servicos
             await _repositorio.SalvarAsync();
         }
 
-        private static void ValidarEntrada(string nomeServico, string usuario, string senhaPlaintext)
+        private static void ValidarEntrada(string nomeServico, string usuario, string senhaPlaintext,
+            string? url = null, string? notas = null, IReadOnlyDictionary<string, string>? camposExtras = null)
         {
             if (string.IsNullOrWhiteSpace(nomeServico))
                 throw new ErroLocalizavel("Entry.Error.ServiceRequired");
@@ -372,6 +388,17 @@ namespace GerenciadorDeSenhas.Servicos
 
             if (senhaPlaintext.Length > 1000)
                 throw new ErroLocalizavel("Entry.Error.PasswordTooLong", 1000);
+
+            if (url != null && url.Length > 2048)
+                throw new ErroLocalizavel("Entry.Error.UrlTooLong", 2048);
+
+            if (notas != null && notas.Length > 5000)
+                throw new ErroLocalizavel("Entry.Error.NotesTooLong", 5000);
+
+            if (camposExtras != null)
+                foreach (var valor in camposExtras.Values)
+                    if (valor != null && valor.Length > 1000)
+                        throw new ErroLocalizavel("Entry.Error.CustomFieldTooLong", 1000);
         }
     }
 }
