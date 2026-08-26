@@ -2,6 +2,7 @@ using System.Runtime.CompilerServices;
 using Avalonia;
 
 [assembly: InternalsVisibleTo("App.Testes")]
+[assembly: InternalsVisibleTo("GeradorDeSenhas")]
 
 namespace CofreDeSenhas
 {

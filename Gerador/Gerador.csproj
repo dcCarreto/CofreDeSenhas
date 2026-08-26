@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFrameworks>net10.0-windows10.0.19041.0;net10.0</TargetFrameworks>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+
+    <AssemblyName>GeradorDeSenhas</AssemblyName>
+    <RootNamespace>CofreDeSenhas.Gerador</RootNamespace>
+    <Version>2.2.1</Version>
+    <Product>Gerador de Senhas</Product>
+    <Authors>dcCarreto</Authors>
+    <Company>dcCarreto</Company>
+    <Description>Gerador de senhas e frases-senha autônomo, sem cofre, com as mesmas regras de geração do Cofre de Senhas.</Description>
+    <Copyright>Copyright © dcCarreto 2026</Copyright>
+
+    <!-- Mesmo ícone do Cofre de Senhas; ignorado no Linux -->
+    <ApplicationIcon>..\App\app.ico</ApplicationIcon>
+
+    <!-- Janelas só têm construtor com parâmetros; não usamos o loader dinâmico de XAML -->
+    <NoWarn>$(NoWarn);AVLN3001</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="11.3.18" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.3.18" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.18" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.18" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\App\App.csproj" />
+    <ProjectReference Include="..\GerenciadorDeSenhas\GerenciadorDeSenhas.csproj" />
+  </ItemGroup>
+
+</Project>
