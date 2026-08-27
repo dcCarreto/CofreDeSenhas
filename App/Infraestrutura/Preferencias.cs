@@ -56,9 +56,7 @@ namespace CofreDeSenhas
             public PerfilSincronizacao? Sincronizacao { get; set; }
         }
 
-        private static readonly string _caminho = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            CaminhosApp.PastaDados, "config.json");
+        private static readonly string _caminho = Path.Combine(CaminhosApp.PastaDados, "config.json");
 
         public static PerfilBanco? UltimoBanco { get; set; }
         public static int MinutosBloqueio { get; set; } = MinutosBloqueioPadrao;

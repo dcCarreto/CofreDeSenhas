@@ -43,9 +43,7 @@ namespace CofreDeSenhas
 
         public ServicoDesbloqueioBiometrico(string? pastaApp = null)
         {
-            var pasta = pastaApp ?? Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                CaminhosApp.PastaDados);
+            var pasta = pastaApp ?? CaminhosApp.PastaDados;
 
             _caminhoRegistro = Path.Combine(pasta, "biometria.dat");
         }
@@ -68,7 +66,7 @@ namespace CofreDeSenhas
 
         public async Task<bool> PodeConfigurarAsync()
         {
-            if (!SistemaSuportado)
+            if (GerenciadorDeSenhas.AmbienteCofre.Isolado || !SistemaSuportado)
                 return false;
 
 #if WINDOWS
@@ -200,7 +198,7 @@ namespace CofreDeSenhas
 
         private static async Task<ResultadoBiometria> VerificarDisponibilidadeAsync()
         {
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            if (GerenciadorDeSenhas.AmbienteCofre.Isolado || !RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 return ResultadoBiometria.Falha(Idioma.Texto("Biometric.UnsupportedPlatform"));
 
 #if WINDOWS
@@ -328,6 +326,11 @@ namespace CofreDeSenhas
 
         private static async Task ExcluirCredencialAsync()
         {
+            // A credencial é global por conta do Windows — apagá-la a partir de uma
+            // execução isolada (teste, verify) tiraria o Windows Hello do cofre
+            // instalado. ExcluirRegistro (o biometria.dat, que é por pasta) segue.
+            if (GerenciadorDeSenhas.AmbienteCofre.Isolado)
+                return;
             try
             {
                 await KeyCredentialManager.DeleteAsync(NomeCredencial);

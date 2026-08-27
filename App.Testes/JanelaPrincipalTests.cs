@@ -550,6 +550,129 @@ namespace App.Testes
         }
 
         [AvaloniaFact]
+        public async Task TrocarIdiomaNaLixeira_MantemAListaMostrandoAsTumbas()
+        {
+            // IdiomaGlobal_Alterado chamava FiltrarSenhas() direto, sem checar _naLixeira —
+            // trocar o idioma dentro da Lixeira trocava a lista pelo cofre inteiro,
+            // contradizendo a barra de ferramentas e o item de menu, que continuam "Lixeira".
+            var (servico, chave) = CriarServico();
+            var excluida = await servico.CriarSenhaAsync("Servico Na Lixeira", "usuario.lixeira", "SenhaForte123!", Categoria.Personal);
+            await servico.RemoverSenhaAsync(excluida.Id);
+            await servico.CriarSenhaAsync("Servico No Cofre", "usuario.cofre", "SenhaForte123!", Categoria.Personal);
+            await servico.PersistirAsync();
+
+            var janela = new JanelaPrincipal(servico, chave);
+            janela.Show();
+            await TesteUtil.AguardarAsync(() => false, tentativas: 5);
+
+            janela.Encontrar<Button>("BtnNavLixeira").RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            await TesteUtil.AguardarAsync(() =>
+                janela.GetVisualDescendants().OfType<TextBlock>().Any(t => t.Text == "Servico Na Lixeira"));
+
+            try
+            {
+                Idioma.Definir("en");
+                await TesteUtil.AguardarAsync(() => false, tentativas: 5);
+
+                var textos = janela.GetVisualDescendants().OfType<TextBlock>().Select(t => t.Text).ToList();
+                Assert.Contains("Servico Na Lixeira", textos);
+                Assert.DoesNotContain("Servico No Cofre", textos);
+                Assert.Empty(janela.GetVisualDescendants().OfType<LinhaSenha>());
+            }
+            finally
+            {
+                Idioma.Definir("pt-BR");
+            }
+        }
+
+        [AvaloniaFact]
+        public async Task RestaurarDaLixeira_AnunciaRestauradoEmVezDeCopiadoParaAreaDeTransferencia()
+        {
+            // O anúncio reaproveitava A11y.Copied ("{0} copiado para a área de
+            // transferência.") ao restaurar — frase sem sentido e nada foi copiado.
+            Acessibilidade.DefinirLeitorTela(true);
+            try
+            {
+                var (servico, chave) = CriarServico();
+                var criada = await servico.CriarSenhaAsync("Servico Restaurado", "u", "SenhaForte123!", Categoria.Personal);
+                await servico.RemoverSenhaAsync(criada.Id);
+                await servico.PersistirAsync();
+
+                var janela = new JanelaPrincipal(servico, chave);
+                janela.Show();
+                await TesteUtil.AguardarAsync(() => false, tentativas: 5);
+
+                janela.Encontrar<Button>("BtnNavLixeira").RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                await TesteUtil.AguardarAsync(() =>
+                    janela.GetVisualDescendants().OfType<TextBlock>().Any(t => t.Text == "Servico Restaurado"));
+
+                janela.BotaoPorTexto(Idioma.Texto("Trash.Restore")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+
+                var anunciador = janela.Encontrar<TextBlock>("LblAnuncioLeitorTela");
+                var esperado = Idioma.Formatar("A11y.Restored", "Servico Restaurado");
+                await TesteUtil.AguardarAsync(() => anunciador.Text == esperado);
+
+                Assert.Equal(esperado, anunciador.Text);
+                Assert.NotEqual(Idioma.Formatar("A11y.Copied", Idioma.Texto("Trash.Restore")), anunciador.Text);
+            }
+            finally
+            {
+                Acessibilidade.DefinirLeitorTela(false);
+            }
+        }
+
+        [AvaloniaFact]
+        public async Task LixeiraBotaoExcluirDefinitivamente_NomeAcessivelUsaRotuloCurtoComNomeDoItem()
+        {
+            // O nome acessível vinha de Trash.DeleteForeverConfirm — o texto do diálogo
+            // de confirmação, com quebra de linha — em vez de um rótulo curto como o
+            // botão de restaurar ao lado.
+            var (servico, chave) = CriarServico();
+            var criada = await servico.CriarSenhaAsync("Servico Lixo", "u", "SenhaForte123!", Categoria.Personal);
+            await servico.RemoverSenhaAsync(criada.Id);
+            await servico.PersistirAsync();
+
+            var janela = new JanelaPrincipal(servico, chave);
+            janela.Show();
+            await TesteUtil.AguardarAsync(() => false, tentativas: 5);
+
+            janela.Encontrar<Button>("BtnNavLixeira").RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            await TesteUtil.AguardarAsync(() =>
+                janela.GetVisualDescendants().OfType<TextBlock>().Any(t => t.Text == "Servico Lixo"));
+
+            var btnExcluir = janela.GetVisualDescendants().OfType<Button>()
+                .Single(b => (ToolTip.GetTip(b) as string) == Idioma.Texto("Trash.DeleteForever"));
+
+            Assert.Equal(Idioma.Texto("Trash.DeleteForever") + " Servico Lixo", AutomationProperties.GetName(btnExcluir));
+        }
+
+        [AvaloniaFact]
+        public async Task BadgeContador_AcompanhaABuscaEVoltaAoTotalQuandoLimpa()
+        {
+            // AtualizarContador sempre usava _senhasAtuais.Count e FiltrarSenhas nunca o
+            // chamava — o badge "N Itens" ignorava busca e filtros.
+            var (servico, chave) = CriarServico();
+            await servico.CriarSenhaAsync("GitHub QA", "user", "SenhaForte123!", Categoria.Personal);
+            await servico.CriarSenhaAsync("Site Fraco", "user2", "SenhaForte123!", Categoria.Personal);
+
+            var janela = new JanelaPrincipal(servico, chave);
+            janela.Show();
+            await TesteUtil.AguardarAsync(() => janela.GetVisualDescendants().OfType<LinhaSenha>().Count() == 2);
+
+            var badge = janela.Encontrar<TextBlock>("LblContadorHeader");
+            Assert.Equal(Idioma.Plural(2, "Vault.Counter.ItemSingular", "Vault.Counter.ItemPlural"), badge.Text);
+
+            var busca = janela.Encontrar<TextBox>("TxtBusca");
+            busca.Text = "github";
+            await TesteUtil.AguardarAsync(() => janela.GetVisualDescendants().OfType<LinhaSenha>().Count() == 1);
+            Assert.Equal(Idioma.Plural(1, "Vault.Counter.ItemSingular", "Vault.Counter.ItemPlural"), badge.Text);
+
+            busca.Text = "";
+            await TesteUtil.AguardarAsync(() => janela.GetVisualDescendants().OfType<LinhaSenha>().Count() == 2);
+            Assert.Equal(Idioma.Plural(2, "Vault.Counter.ItemSingular", "Vault.Counter.ItemPlural"), badge.Text);
+        }
+
+        [AvaloniaFact]
         public async Task CtrlClicarDuasLinhas_MostraPainelDeAcoesEmLoteEFavoritarAplicaNasDuas()
         {
             var (servico, chave) = CriarServico();
@@ -1009,15 +1132,12 @@ namespace App.Testes
                     await cmd.ExecuteNonQueryAsync();
                 }
 
-                var caminhoLog = System.IO.Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                    "GerenciadorSenhas", "logs", "erros.log");
+                var caminhoLog = System.IO.Path.Combine(CaminhosApp.PastaDados, "logs", "erros.log");
 
                 await janela.ConectarAsync(cfg, persistir: false, silencioso: true);
 
-                // Não compara com um snapshot "antes": as duas TFMs deste projeto de
-                // teste rodam em paralelo como processos separados contra o mesmo
-                // erros.log real (%APPDATA%), então outro processo pode escrever nele
+                // Não compara com um snapshot "antes": outros testes do mesmo processo
+                // também escrevem nesse log, então outro pode acrescentar uma linha
                 // entre a leitura "antes" e esta gravação — o nome do serviço usado
                 // aqui já é específico o bastante pra não colidir com outra coisa.
                 var conteudo = File.ReadAllText(caminhoLog);
@@ -1052,6 +1172,75 @@ namespace App.Testes
             {
                 Preferencias.Sincronizacao = perfilOriginal;
             }
+        }
+
+        [AvaloniaFact]
+        public async Task BarraLateral_CadaBotaoDeNavegacaoTemNomeAcessivelProprio()
+        {
+            // Sem AutomationProperties.Name no Button, o peer de automação cai no nome do
+            // tipo do primeiro filho ("Avalonia.Controls.Grid") — os 9 botões da barra
+            // lateral ficam indistinguíveis para um leitor de tela.
+            var (servico, chave, criptografia) = CriarServicoComCriptografia();
+            var janela = new JanelaPrincipal(servico, chave, criptografia);
+            janela.Show();
+            await TesteUtil.AguardarAsync(() => false, tentativas: 5);
+
+            var esperado = new (string Nome, string Chave)[]
+            {
+                ("BtnNavCofre", "Nav.Vault"),
+                ("BtnNavFavoritas", "Nav.Favorites"),
+                ("BtnNavRecentes", "Nav.Recent"),
+                ("BtnNavLixeira", "Nav.Trash"),
+                ("BtnCatPessoal", "Category.Personal"),
+                ("BtnCatSocial", "Category.Social"),
+                ("BtnCatTrabalho", "Category.Work"),
+                ("BtnCatFinancas", "Category.Finance"),
+                ("BtnCatOutro", "Category.Other"),
+            };
+
+            var botoes = janela.GetVisualDescendants().OfType<Button>().ToList();
+            foreach (var (nome, chaveTexto) in esperado)
+            {
+                var botao = botoes.Single(b => b.Name == nome);
+                Assert.Equal(Idioma.Texto(chaveTexto), AutomationProperties.GetName(botao));
+            }
+
+            janela.Close();
+        }
+
+        [AvaloniaFact]
+        public async Task DesabilitarInteracaoAteReiniciar_CongelaAJanelaEBloqueiaOsAtalhosQueGravamNoCofre()
+        {
+            // Depois que a troca de senha mestra grava auth.dat/vault na chave nova, a
+            // janela continua com _servicoSenha/_criptografia na chave ANTIGA até o
+            // processo reiniciar — qualquer gravação nesse intervalo regrava o cofre com
+            // a chave errada e o deixa ilegível depois do restart. A janela precisa
+            // ficar sem nenhuma interação capaz de gravar até lá.
+            var (servico, chave, criptografia) = CriarServicoComCriptografia();
+            await servico.CriarSenhaAsync("ServicoX", "user", "SenhaOriginal@1", Categoria.Personal);
+            await servico.PersistirAsync();
+            var totalAntes = (await servico.ListarTodosAsync()).Count;
+
+            var janela = new JanelaPrincipal(servico, chave, criptografia);
+            janela.Show();
+            await TesteUtil.AguardarAsync(() => false, tentativas: 5);
+
+            janela.DesabilitarInteracaoAteReiniciar();
+
+            Assert.False(janela.IsEnabled);
+
+            janela.RaiseEvent(new KeyEventArgs
+            {
+                RoutedEvent = InputElement.KeyDownEvent,
+                Key = Key.N,
+                KeyModifiers = KeyModifiers.Control
+            });
+            await TesteUtil.AguardarAsync(() => false, tentativas: 5);
+
+            Assert.DoesNotContain(janela.OwnedWindows, w => w is JanelaCriarSenha);
+            Assert.Equal(totalAntes, (await servico.ListarTodosAsync()).Count);
+
+            janela.Close();
         }
 
         [AvaloniaFact]

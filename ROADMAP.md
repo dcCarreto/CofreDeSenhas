@@ -700,6 +700,112 @@ sincronização, banco de dados externo e troca de senha mestra.
   heurística e passou a usar um marcador de conclusão, evitando reverter
   por engano uma troca que já tinha dado certo.
 
+### Versão 2.2.2
+
+Endurecimento em cima da 2.2.1, sem funcionalidades novas: uma auditoria
+sistemática de todo o inventário de funcionalidades e uma varredura de QA com
+o aplicativo rodando de verdade, fechando dezenas de brechas de segurança,
+robustez e acessibilidade.
+
+#### Troca de senha mestra
+
+- A janela principal continuava vinculada à chave antiga entre o momento em
+  que a troca de senha mestra era gravada em disco e o reinício obrigatório.
+  Qualquer gravação nesse intervalo — criar, editar, excluir, importar CSV,
+  restaurar ou esvaziar a lixeira — regravava `senhas.json.enc` com a chave
+  antiga por cima da versão já recifrada com a nova, deixando o cofre ilegível
+  com a senha nova depois do reinício. A janela agora congela por completo
+  (interação de ponteiro e de teclado) assim que a troca é confirmada, até o
+  processo reiniciar; os diálogos que faltam no fluxo (QR code de backup e
+  aviso de reinício) seguem funcionando por serem janelas próprias.
+
+#### Autenticação e zona de risco
+
+- O limite de tentativas da senha mestra (5, com bloqueio temporário) passa a
+  persistir em disco e a sobreviver a reinício do aplicativo, e passa a valer
+  também no diálogo compartilhado de reautenticação (excluir cofre, limpar
+  cofre, regerar QR code, ativar sincronização), que antes não tinha limite
+  nenhum — numa sessão já desbloqueada, dava para forçar a senha mestra à
+  vontade.
+- "Limpar cofre" passa a exigir reautenticação com a senha mestra, como
+  "Excluir cofre" já exigia.
+- "Excluir cofre" passa a apagar também o histórico de pontuação de segurança,
+  que sobrevivia sozinho em texto claro em `%APPDATA%` depois do cofre ter
+  sido apagado por completo.
+
+#### Modo privacidade
+
+- O botão "Editar" de uma linha da lista ignorava o modo privacidade por
+  completo: um clique abria a janela de edição com usuário, URL, notas e
+  campos extras em texto puro, driblando a máscara que a lista tinha acabado
+  de aplicar.
+
+#### Sincronização e atualização automática
+
+- União de códigos de recuperação na mesclagem não reaplicava o teto de 100
+  (dois dispositivos gerando lotes independentes furavam o limite); histórico
+  e etiquetas já tinham essa proteção.
+- A leitura de `sincronizacao.dat` não distinguia falha real de I/O (pasta de
+  nuvem ainda baixando, outro dispositivo escrevendo) de "chave errada" /
+  "arquivo corrompido"; as duas viravam lista vazia, arriscando sobrescrever o
+  remoto só com o que havia localmente.
+- Conflitos de sincronização (em especial integridade violada) passam também
+  para o log de diagnóstico persistente, em vez de ficarem só numa lista em
+  memória perdida a cada reconexão.
+- O timer de sincronização automática só reaplicava um novo intervalo
+  escolhido nas configurações quando o diálogo fechava.
+- `RemoverDefinitivamenteAsync` do banco de dados tinha voltado a virar tumba
+  por engano, deixando o item preso na lixeira.
+- O arquivo temporário do instalador/AppImage baixado na atualização
+  automática tinha nome previsível a partir só da tag da release — no Linux,
+  onde `/tmp` é compartilhado, isso abria uma corrida entre a checagem de hash
+  e o uso do arquivo. Passa a baixar numa subpasta de nome aleatório.
+- "Atualizar agora" passa a pedir confirmação antes de baixar e instalar,
+  mostrando a versão e as notas de mudança da release.
+
+#### Acessibilidade e interface
+
+- A barra lateral de navegação inteira (quatro modos e cinco categorias) não
+  tinha nome acessível: um leitor de tela lia "Avalonia.Controls.Grid" nos
+  nove botões.
+- Cinco janelas de diálogo (confirmar senha mestra, alterar senha mestra,
+  exportar/importar, conectar banco, editar credencial) nunca registravam um
+  anunciador para leitor de tela — mensagens de erro inline eram descartadas
+  em silêncio.
+- Trocar o idioma dentro da Lixeira trocava a lista pelo cofre inteiro,
+  enquanto a barra de ferramentas e o menu continuavam na Lixeira.
+- O botão de revelar senha do gerador nunca atualizava o próprio nome e a dica
+  de acessibilidade; o nome acessível do botão "Excluir definitivamente" da
+  lixeira usava o texto inteiro do diálogo de confirmação; o anúncio ao
+  restaurar da lixeira dizia "copiado para a área de transferência".
+- O contador "N itens" do cabeçalho não acompanhava busca nem filtros.
+- O campo de código de recuperação renderizava estreito demais na tela de
+  edição, colado nos botões de ação.
+- Cinco mensagens de erro do atualizador automático estavam fixas em
+  português, vazando para a interface em outros idiomas.
+- O indicador de força de senha não refletia a ausência de símbolo quando os
+  outros critérios já saturavam o nível; campos extras eram perdidos ao trocar
+  de tipo de credencial e voltar por um tipo intermediário; o teto de 20
+  etiquetas por credencial era aplicado por engano ao total do cofre; o
+  segredo TOTP não tinha limite de tamanho; categoria inválida vinda da
+  interface podia gerar índice fora do enum; a verificação de vazamento tratava
+  resposta em formato inesperado como "não vazada" (fail-open).
+
+#### Ambiente de desenvolvimento
+
+- Rodar o projeto a partir do código-fonte (build de Debug) e a suíte de
+  testes passam a usar uma pasta de dados isolada — `GerenciadorSenhas.dev`
+  para o Debug, uma pasta temporária descartável para os testes — resolvido
+  num único ponto (`AmbienteCofre`) em vez de espalhado por cada serviço.
+  Antes, rodar o projeto ou os testes podia sobrescrever o `config.json`, os
+  logs e o histórico de pontuação do cofre de um aplicativo instalado na mesma
+  máquina.
+- O Windows Hello do cofre instalado deixa de ser afetado por qualquer
+  execução que não seja o aplicativo instalado. A credencial é global por
+  conta do Windows, não por pasta, então o isolamento acima não bastava; o
+  serviço de biometria não toca na credencial do Windows a menos que seja o
+  build de release instalado.
+
 ## Planejado
 
 Ideias e melhorias consideradas para versões futuras, agrupadas por prioridade:

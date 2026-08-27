@@ -485,6 +485,7 @@ namespace CofreDeSenhas
             ("A11y.CopyGenerated", "Copiar elemento generado"),
             ("A11y.CopyAllGenerated", "Copiar todos los elementos generados"),
             ("A11y.Copied", "{0} copiado al portapapeles."),
+            ("A11y.Restored", "{0} restaurado."),
             ("A11y.CopiedWillClear", "{0} copiado. Se borrará del portapapeles en {1} segundos."),
             ("A11y.PasswordVisible", "Contraseña visible en la pantalla."),
             ("A11y.PasswordHidden", "Contraseña oculta."),

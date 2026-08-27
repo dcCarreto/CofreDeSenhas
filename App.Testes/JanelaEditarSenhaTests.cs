@@ -91,6 +91,29 @@ namespace App.Testes
         }
 
         [AvaloniaFact]
+        public async Task CodigoRecuperacao_CampoNaoFicaEsmagadoContraOsBotoesDeAcao()
+        {
+            var (servico, criptografia, senha) = await CriarServicoComCredencialAsync();
+            senha.CodigosRecuperacao.Add(new CodigoRecuperacao { Codigo = criptografia.Criptografar("CODE-AAAA-1111") });
+            await servico.PersistirAsync();
+
+            var janela = new JanelaEditarSenha(servico, senha, criptografia);
+            janela.Show();
+            await TesteUtil.AguardarAsync(() =>
+                janela.GetVisualDescendants().OfType<TextBox>()
+                    .Any(t => AutomationProperties.GetName(t) == Idioma.Texto("A11y.RecoveryCode")));
+
+            var campo = janela.GetVisualDescendants().OfType<TextBox>()
+                .First(t => AutomationProperties.GetName(t) == Idioma.Texto("A11y.RecoveryCode"));
+
+            // Antes da correção o campo dividia a linha da Grid com três botões de
+            // rótulo longo e sobrava com ~64px de largura; agora fica sozinho na
+            // própria linha, com os botões abaixo.
+            Assert.IsNotType<Grid>(campo.Parent);
+            Assert.True(campo.Bounds.Width > 200, $"largura do campo do código de recuperação: {campo.Bounds.Width}");
+        }
+
+        [AvaloniaFact]
         public async Task Abrir_ComAnexoExistente_MostraOAnexoNaLista()
         {
             var (servico, criptografia, senha) = await CriarServicoComCredencialAsync();

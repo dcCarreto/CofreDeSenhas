@@ -15,9 +15,7 @@ namespace GerenciadorDeSenhas.Servicos
 
         public ServicoMudancaSenhaMestra(string? pastaApp = null)
         {
-            _pastaApp = pastaApp ?? Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "GerenciadorSenhas");
+            _pastaApp = pastaApp ?? AmbienteCofre.PastaDados;
         }
 
         // Itens que não puderam ser decifrados (dado corrompido) e por isso foram

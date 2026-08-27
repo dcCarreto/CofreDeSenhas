@@ -4,9 +4,7 @@ namespace CofreDeSenhas
     {
         private const long TamanhoMaximoBytes = 1_000_000;
 
-        private static string CaminhoLog => Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            CaminhosApp.PastaDados, "logs", "erros.log");
+        private static string CaminhoLog => Path.Combine(CaminhosApp.PastaDados, "logs", "erros.log");
 
         public static void Registrar(Exception ex, string? contexto = null)
         {

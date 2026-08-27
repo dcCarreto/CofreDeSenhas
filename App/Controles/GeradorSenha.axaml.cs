@@ -147,6 +147,15 @@ namespace CofreDeSenhas.Controles
                 : "Generator.GeneratePassword"));
             AutomationProperties.SetName(BtnSalvar, Idioma.Texto("Generator.SaveToVault"));
             AutomationProperties.SetName(BtnLimpar, Idioma.Texto("Generator.Clear"));
+            AtualizarBotaoOlho();
+        }
+
+        private void AtualizarBotaoOlho()
+        {
+            var chave = _mostrarSenha ? "Row.HidePassword" : "Row.RevealPassword";
+            BtnOlhoGerada.Content = Recursos.ImagemIcone(_mostrarSenha ? "IconeOcultar" : "IconeRevelar", 18);
+            ToolTip.SetTip(BtnOlhoGerada, Idioma.Texto(chave));
+            AutomationProperties.SetName(BtnOlhoGerada, Idioma.Texto(chave));
         }
 
         private void ModoGerador_Alterado(object? sender, SelectionChangedEventArgs e)
@@ -354,6 +363,7 @@ namespace CofreDeSenhas.Controles
             _mostrarSenha = !_mostrarSenha;
             AtualizarSenhaGerada();
             AtualizarListaSenhasGeradas();
+            AtualizarBotaoOlho();
             var estado = Idioma.Texto(_mostrarSenha ? "A11y.PasswordVisible" : "A11y.PasswordHidden");
             AutomationProperties.SetName(TxtSenhaGerada, $"{Idioma.Texto("A11y.GeneratedPassword")}. {estado}");
             Acessibilidade.Anunciar(this, estado);
@@ -391,6 +401,7 @@ namespace CofreDeSenhas.Controles
             AtualizarSenhaGerada();
             AtualizarBarraForca();
             AtualizarListaSenhasGeradas();
+            AtualizarBotaoOlho();
         }
 
         private async void SalvarNoCofre_Click(object? sender, RoutedEventArgs e)

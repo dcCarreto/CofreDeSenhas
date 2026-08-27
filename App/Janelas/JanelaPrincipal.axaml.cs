@@ -88,6 +88,7 @@ namespace CofreDeSenhas.Janelas
         private bool _navColapsada;
         private bool _naLixeira;
         private bool _modoPrivacidade;
+        private bool _bloqueadoAteReiniciar;
         private string? _versaoDisponivel;
         private string? _notasVersaoDisponivel;
         private bool _atualizando;
@@ -230,6 +231,9 @@ namespace CofreDeSenhas.Janelas
 
         private void Atalho_KeyDown(object? sender, KeyEventArgs e)
         {
+            if (_bloqueadoAteReiniciar)
+                return;
+
             var atalho = AtalhosTeclado.Encontrar(e.Key, e.KeyModifiers);
             if (atalho == null)
                 return;
@@ -578,16 +582,19 @@ namespace CofreDeSenhas.Janelas
             Preferencias.Salvar();
         }
 
-        private void IdiomaGlobal_Alterado(object? sender, EventArgs e)
+        private async void IdiomaGlobal_Alterado(object? sender, EventArgs e)
         {
             AtualizarBotaoPrivacidade();
             MarcarIdiomaSelecionado();
             AtualizarMenuBiometria();
             AtualizarFiltroOrganizacao();
-            AtualizarContador();
             AtualizarEstadoConexao(_descricaoConexaoAtual, _falhaReconexaoAtual);
             ConfigurarAcessibilidadeLeitorTela();
-            FiltrarSenhas();
+
+            if (_naLixeira)
+                await CarregarLixeiraAsync();
+            else
+                FiltrarSenhas();
 
             if (!_atualizando)
             {
@@ -1178,7 +1185,7 @@ namespace CofreDeSenhas.Janelas
             btnExcluir.Classes.Add("icone");
             btnExcluir.Content = Recursos.ImagemIcone("IconeExcluir", 22);
             ToolTip.SetTip(btnExcluir, Idioma.Texto("Trash.DeleteForever"));
-            AutomationProperties.SetName(btnExcluir, Idioma.Formatar("Trash.DeleteForeverConfirm", nomeExibido));
+            AutomationProperties.SetName(btnExcluir, Idioma.Texto("Trash.DeleteForever") + " " + nomeExibido);
             btnExcluir.Click += async (s, e) => await ExcluirDefinitivamenteAsync(senha);
             Grid.SetColumn(btnExcluir, 4);
 
@@ -1213,7 +1220,8 @@ namespace CofreDeSenhas.Janelas
                 await _servicoSenha.RestaurarSenhaAsync(senha.Id);
                 await _servicoSenha.PersistirAsync();
                 await CarregarSenhasAsync();
-                Acessibilidade.Anunciar(this, Idioma.Formatar("A11y.Copied", Idioma.Texto("Trash.Restore")));
+                var nomeExibido = _modoPrivacidade ? LinhaSenha.MascaraPrivacidade : senha.NomeServico;
+                Acessibilidade.Anunciar(this, Idioma.Formatar("A11y.Restored", nomeExibido));
             }
             catch (Exception ex)
             {
@@ -1657,6 +1665,7 @@ namespace CofreDeSenhas.Janelas
 
             _senhasFiltradasAtuais = filtradas;
             AtualizarLista(filtradas);
+            AtualizarContador();
         }
 
         private List<Senha> OrdenarPorColuna(List<Senha> lista) => _colunaOrdenacao switch
@@ -1806,7 +1815,7 @@ namespace CofreDeSenhas.Janelas
         {
             int total = _senhasAtuais.Count;
             int favoritos = _senhasAtuais.Count(s => s.Favorito);
-            LblContadorHeader.Text = Idioma.Plural(total, "Vault.Counter.ItemSingular", "Vault.Counter.ItemPlural");
+            LblContadorHeader.Text = Idioma.Plural(_senhasFiltradasAtuais.Count, "Vault.Counter.ItemSingular", "Vault.Counter.ItemPlural");
             var status = Idioma.Formatar("Vault.Status",
                 total,
                 Idioma.Texto(total == 1 ? "Vault.Status.PasswordSingular" : "Vault.Status.PasswordPlural"),
@@ -3394,13 +3403,15 @@ namespace CofreDeSenhas.Janelas
 
             // A troca já terminou com sucesso — auth.dat/vault (e a pasta de sync, mais
             // abaixo) já estão na chave nova, mas _servicoSenha/_servicoSincronizacao
-            // continuam vinculados à chave ANTIGA até o restart. Sem parar o timer
-            // aqui, um ciclo de sync automático disparando durante os awaits abaixo
-            // (QrBackup pode ficar esperando o usuário indefinidamente) rodaria com a
-            // chave antiga e sobrescreveria o que acabou de ser regravado com a nova —
-            // deixando o cofre com metades em chaves diferentes. Fica parado até
-            // Reiniciar() encerrar o processo; não precisa reiniciar o timer depois.
+            // continuam vinculados à chave ANTIGA até o restart. Qualquer gravação no
+            // cofre nesse intervalo — o ciclo de sync automático, ou uma ação manual do
+            // usuário enquanto o QrBackup e o aviso de reinício esperam a decisão dele
+            // sem prazo — regrava senhas.json.enc com a chave antiga por cima do que
+            // acabou de ser salvo com a nova, deixando o cofre com metades em chaves
+            // diferentes e ilegível depois do restart. Para o timer e congela a janela
+            // até Reiniciar() encerrar o processo; nada disso precisa voltar depois.
             _timerSincronizacao.Stop();
+            DesabilitarInteracaoAteReiniciar();
 
             if (senhaServidorPlano != null && Preferencias.UltimoBanco != null)
             {
@@ -3909,6 +3920,18 @@ namespace CofreDeSenhas.Janelas
 
             var dlg = new JanelaConflitosSincronizacao(_repositorioEspelhado.UltimosConflitos);
             await AbrirDialogoAsync<bool>(dlg);
+        }
+
+        // Entre a troca de senha mestra gravada em disco e o restart, a janela ainda
+        // opera na chave antiga (ver AlterarSenhaMestra_Click). IsEnabled bloqueia a UI
+        // de ponteiro — menus, botões, linhas, painel de detalhes; a flag bloqueia os
+        // atalhos de teclado, que ainda percorrem a árvore de eventos com a janela
+        // desabilitada. Os diálogos que ainda faltam no fluxo (QR de backup, aviso de
+        // reinício) são janelas próprias e seguem utilizáveis. internal só para teste.
+        internal void DesabilitarInteracaoAteReiniciar()
+        {
+            _bloqueadoAteReiniciar = true;
+            IsEnabled = false;
         }
 
         private void Reiniciar()

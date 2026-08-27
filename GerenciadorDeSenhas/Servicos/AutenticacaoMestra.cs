@@ -28,9 +28,7 @@ namespace GerenciadorDeSenhas.Servicos
 
         public AutenticacaoMestra(string? pastaApp = null)
         {
-            _pastaApp = pastaApp ?? Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "GerenciadorSenhas");
+            _pastaApp = pastaApp ?? AmbienteCofre.PastaDados;
 
             if (!Directory.Exists(_pastaApp))
                 Directory.CreateDirectory(_pastaApp);

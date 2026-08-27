@@ -16,9 +16,7 @@ namespace CofreDeSenhas
         // que abre a janela do relatório gravaria de verdade no %APPDATA% da máquina.
         internal static string? CaminhoOverride { get; set; }
 
-        private static string Caminho => CaminhoOverride ?? Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            CaminhosApp.PastaDados, "pontuacao-historico.json");
+        private static string Caminho => CaminhoOverride ?? Path.Combine(CaminhosApp.PastaDados, "pontuacao-historico.json");
 
         public static List<PontoPontuacaoSeguranca> Carregar()
         {

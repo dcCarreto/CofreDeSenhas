@@ -562,6 +562,7 @@ namespace CofreDeSenhas
             ("A11y.CopyGenerated", "Copy generated item"),
             ("A11y.CopyAllGenerated", "Copy all generated items"),
             ("A11y.Copied", "{0} copied to clipboard."),
+            ("A11y.Restored", "{0} restored."),
             ("A11y.CopiedWillClear", "{0} copied. It will be cleared from the clipboard in {1} seconds."),
             ("A11y.PasswordVisible", "Password visible on screen."),
             ("A11y.PasswordHidden", "Password hidden."),

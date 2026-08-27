@@ -30,15 +30,9 @@ namespace App.Testes
             // Sobrecarga usada por eventos que não são exceções (ex.: conflito de
             // sincronização) — precisa gravar igual à sobrecarga de Exception: acrescenta
             // no arquivo em vez de sobrescrever, e mantém o mesmo formato "[contexto]".
-            //
-            // Não compara o conteúdo do arquivo antes/depois byte a byte: as duas TFMs
-            // deste projeto de teste rodam em paralelo como processos separados contra
-            // o mesmo erros.log real (%APPDATA%), então outro processo pode acrescentar
-            // uma linha entre a leitura "antes" e a gravação daqui — um marcador único
-            // (guid) já garante que a linha é desta chamada, sem depender de ordem.
-            var caminho = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "GerenciadorSenhas", "logs", "erros.log");
+            // Um marcador único (guid) identifica a linha desta chamada sem depender da
+            // ordem em que outros testes do processo tenham escrito no mesmo log.
+            var caminho = Path.Combine(CaminhosApp.PastaDados, "logs", "erros.log");
             var marcador = "marcador-" + Guid.NewGuid();
 
             Diagnostico.Registrar(marcador, "ContextoDeTeste");

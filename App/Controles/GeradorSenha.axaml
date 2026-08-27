@@ -45,8 +45,7 @@
                         Orientation="Horizontal"
                         Spacing="4"
                         VerticalAlignment="Top">
-              <Button Classes="icone" Width="32" Height="32"
-                      AutomationProperties.Name="{DynamicResource Row.RevealPassword}"
+              <Button Name="BtnOlhoGerada" Classes="icone" Width="32" Height="32"
                       Click="OlhoGerada_Click">
                 <c:Icone Width="{StaticResource TamIconeCampo}" Height="{StaticResource TamIconeCampo}"
                        Chave="IconeRevelar" />

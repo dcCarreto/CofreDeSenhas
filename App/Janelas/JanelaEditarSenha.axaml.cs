@@ -391,8 +391,7 @@ namespace CofreDeSenhas.Janelas
                 IsReadOnly = true,
                 Text = plain,
                 FontSize = 13,
-                Margin = new Thickness(0, 0, 8, 0),
-                VerticalAlignment = VerticalAlignment.Center,
+                Margin = new Thickness(0, 0, 0, 4),
                 Opacity = item.Usado ? 0.55 : 1.0
             };
             campo.Classes.Add("campo");
@@ -409,22 +408,15 @@ namespace CofreDeSenhas.Janelas
             var btnRemover = CriarBotaoHistorico(rotuloRemover, rotuloRemover);
             btnRemover.Click += async (_, _) => await RemoverCodigoAsync(item);
 
-            var acoes = new StackPanel
-            {
-                Orientation = Orientation.Horizontal,
-                Spacing = 4,
-                VerticalAlignment = VerticalAlignment.Center
-            };
+            var acoes = new WrapPanel { Orientation = Orientation.Horizontal, ItemSpacing = 4, LineSpacing = 4 };
             acoes.Children.Add(btnCopiar);
             acoes.Children.Add(btnUsado);
             acoes.Children.Add(btnRemover);
 
-            var linha = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto") };
-            Grid.SetColumn(campo, 0);
-            Grid.SetColumn(acoes, 1);
-            linha.Children.Add(campo);
-            linha.Children.Add(acoes);
-            return linha;
+            var painel = new StackPanel();
+            painel.Children.Add(campo);
+            painel.Children.Add(acoes);
+            return painel;
         }
 
         private async void AdicionarCodigosRecuperacao_Click(object? sender, RoutedEventArgs e)
