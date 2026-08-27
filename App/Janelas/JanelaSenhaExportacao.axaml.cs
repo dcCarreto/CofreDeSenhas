@@ -24,6 +24,7 @@ namespace CofreDeSenhas.Janelas
             InitializeComponent();
             Icon = Recursos.IconeApp();
             Acessibilidade.Vincular(this);
+            Acessibilidade.RegistrarAnunciador(this, LblAnuncioLeitorTela);
 
             AtualizarTextos();
             PainelConfirmar.IsVisible = modoExportar;

@@ -760,6 +760,27 @@ public class ServicoSenhaTests : IDisposable
     }
 
     [Fact]
+    public async Task AdicionarCodigosRecuperacaoAsync_ComCodigoExcessivamenteLongo_LancaExcecao()
+    {
+        var senha = await _servico.CriarSenhaAsync(
+            "Gmail", "user@gmail.com", "Senha@123456", Categoria.Personal);
+
+        await Assert.ThrowsAsync<ErroLocalizavel>(() =>
+            _servico.AdicionarCodigosRecuperacaoAsync(senha.Id, new[] { (new string('A', 501), false) }));
+    }
+
+    [Fact]
+    public async Task AdicionarCodigosRecuperacaoAsync_AcimaDoLimiteTotal_LancaExcecao()
+    {
+        var senha = await _servico.CriarSenhaAsync(
+            "Gmail", "user@gmail.com", "Senha@123456", Categoria.Personal);
+        var muitos = Enumerable.Range(0, 101).Select(i => ($"codigo-{i}", false));
+
+        await Assert.ThrowsAsync<ErroLocalizavel>(() =>
+            _servico.AdicionarCodigosRecuperacaoAsync(senha.Id, muitos));
+    }
+
+    [Fact]
     public async Task MarcarCodigoRecuperacaoAsync_AlternaEstadoUsado()
     {
         var senha = await _servico.CriarSenhaAsync(

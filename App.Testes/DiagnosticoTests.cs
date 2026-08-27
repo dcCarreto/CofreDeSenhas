@@ -23,5 +23,22 @@ namespace App.Testes
 
             Assert.Equal(mensagem, Diagnostico.Redigir(mensagem));
         }
+
+        [Fact]
+        public void Registrar_ComMensagemDeTexto_AcrescentaLinhaComContextoNoFormatoEsperado()
+        {
+            // Sobrecarga usada por eventos que não são exceções (ex.: conflito de
+            // sincronização) — precisa gravar igual à sobrecarga de Exception: acrescenta
+            // no arquivo em vez de sobrescrever, e mantém o mesmo formato "[contexto]".
+            // Um marcador único (guid) identifica a linha desta chamada sem depender da
+            // ordem em que outros testes do processo tenham escrito no mesmo log.
+            var caminho = Path.Combine(CaminhosApp.PastaDados, "logs", "erros.log");
+            var marcador = "marcador-" + Guid.NewGuid();
+
+            Diagnostico.Registrar(marcador, "ContextoDeTeste");
+
+            var conteudo = File.ReadAllText(caminho);
+            Assert.Contains($"[ContextoDeTeste] {marcador}", conteudo);
+        }
     }
 }

@@ -204,9 +204,7 @@ namespace CofreDeSenhas
             Timeout = TempoLimiteRequisicao
         };
 
-        private static readonly string PastaCacheDisco = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            CaminhosApp.PastaDados, "icones");
+        private static readonly string PastaCacheDisco = Path.Combine(CaminhosApp.PastaDados, "icones");
 
         private static readonly ConcurrentDictionary<string, Bitmap> IconesProntos =
             new(StringComparer.OrdinalIgnoreCase);

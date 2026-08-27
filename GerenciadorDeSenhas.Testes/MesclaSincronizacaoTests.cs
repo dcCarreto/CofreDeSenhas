@@ -65,6 +65,73 @@ public class MesclaSincronizacaoTests
     }
 
     [Fact]
+    public void MesclarSenhas_UniaoDeEtiquetasAcimaDoLimite_RespeitaTeto()
+    {
+        var id = Guid.NewGuid();
+        var agora = DateTime.UtcNow;
+
+        var local = NovaSenha(id, "servico.com", agora);
+        local.Etiquetas.AddRange(Enumerable.Range(0, 15).Select(i => $"local-{i}"));
+
+        var remoto = NovaSenha(id, "servico.com", agora.AddMinutes(-10));
+        remoto.Etiquetas.AddRange(Enumerable.Range(0, 15).Select(i => $"remoto-{i}"));
+
+        var resultado = MesclaSincronizacao.MesclarSenhas(new List<Senha> { local }, new List<Senha> { remoto });
+
+        var item = Assert.Single(resultado);
+        Assert.True(item.Etiquetas.Count <= Etiquetas.QuantidadeMaxima);
+    }
+
+    [Fact]
+    public void MesclarSenhas_UniaoDeHistoricoAcimaDoLimite_RespeitaTeto()
+    {
+        var id = Guid.NewGuid();
+        var agora = DateTime.UtcNow;
+
+        var local = NovaSenha(id, "servico.com", agora);
+        local.Historico.AddRange(Enumerable.Range(0, 6)
+            .Select(i => new HistoricoSenha { SenhaHash = $"local-{i}", DataAlteracao = agora.AddDays(-i - 1) }));
+
+        var remoto = NovaSenha(id, "servico.com", agora.AddMinutes(-10));
+        remoto.Historico.AddRange(Enumerable.Range(0, 6)
+            .Select(i => new HistoricoSenha { SenhaHash = $"remoto-{i}", DataAlteracao = agora.AddDays(-i - 1).AddHours(1) }));
+
+        var resultado = MesclaSincronizacao.MesclarSenhas(new List<Senha> { local }, new List<Senha> { remoto });
+
+        var item = Assert.Single(resultado);
+        Assert.True(item.Historico.Count <= ServicoSenha.MaxHistorico);
+    }
+
+    [Fact]
+    public void MesclarSenhas_UniaoDeHistoricoAcimaDoLimiteComContagemFinalIgualAOriginal_AindaIncorporaAsEntradasRemotas()
+    {
+        // Cenário que só a contagem não pegava: o vencedor (local) já está no teto de
+        // 10, o perdedor (remoto) traz entradas mais novas que empurram 3 das mais
+        // antigas do vencedor pra fora do teto — a contagem final bate 10 == 10, igual
+        // à original, mas o conteúdo mudou. Antes da correção (SequenceEqual em vez de
+        // Count), essa mesclagem era descartada em silêncio e as entradas do remoto
+        // nunca apareciam no vencedor.
+        var id = Guid.NewGuid();
+        var agora = DateTime.UtcNow;
+
+        var local = NovaSenha(id, "servico.com", agora);
+        local.Historico.AddRange(Enumerable.Range(1, 10)
+            .Select(i => new HistoricoSenha { SenhaHash = $"local-{i}", DataAlteracao = agora.AddDays(-i) }));
+
+        var remoto = NovaSenha(id, "servico.com", agora.AddMinutes(-10));
+        remoto.Historico.AddRange(Enumerable.Range(0, 3)
+            .Select(i => new HistoricoSenha { SenhaHash = $"remoto-novo-{i}", DataAlteracao = agora.AddHours(-i) }));
+
+        var resultado = MesclaSincronizacao.MesclarSenhas(new List<Senha> { local }, new List<Senha> { remoto });
+
+        var item = Assert.Single(resultado);
+        Assert.Equal(ServicoSenha.MaxHistorico, item.Historico.Count);
+        Assert.Contains(item.Historico, h => h.SenhaHash == "remoto-novo-0");
+        Assert.Contains(item.Historico, h => h.SenhaHash == "remoto-novo-1");
+        Assert.Contains(item.Historico, h => h.SenhaHash == "remoto-novo-2");
+    }
+
+    [Fact]
     public void MesclarSenhas_MesmoIdComRemotoMaisRecente_PreservaAnexosLocais()
     {
         // Anexos nunca sincronizam pro banco (decisão de produto) — o objeto remoto
@@ -176,6 +243,29 @@ public class MesclaSincronizacaoTests
         var item = Assert.Single(resultado);
         Assert.Contains(item.CodigosRecuperacao, c => c.Codigo == "CODIGO-LOCAL");
         Assert.Contains(item.CodigosRecuperacao, c => c.Codigo == "CODIGO-REMOTO");
+    }
+
+    [Fact]
+    public void MesclarSenhasExportadas_UniaoDeCodigosRecuperacaoAcimaDoLimite_RespeitaTeto()
+    {
+        // Diferente de etiquetas e histórico (que já tinham teto reaplicado), a união
+        // de códigos de recuperação não tinha limite nenhum — dois dispositivos gerando
+        // lotes novos de forma independente, sem nunca convergir, furava o
+        // ServicoSenha.MaxCodigosRecuperacao que AdicionarCodigosRecuperacaoAsync já
+        // impõe em todo outro caminho de código.
+        var id = Guid.NewGuid();
+        var agora = DateTime.UtcNow;
+
+        var local = new SenhaExportada { Id = id, NomeServico = "s", Usuario = "u", Senha = "p", DataAtualizacao = agora };
+        local.CodigosRecuperacao.AddRange(Enumerable.Range(0, 60).Select(i => new CodigoRecuperacaoExportado { Codigo = $"local-{i}" }));
+
+        var remoto = new SenhaExportada { Id = id, NomeServico = "s", Usuario = "u", Senha = "p", DataAtualizacao = agora.AddMinutes(-5) };
+        remoto.CodigosRecuperacao.AddRange(Enumerable.Range(0, 60).Select(i => new CodigoRecuperacaoExportado { Codigo = $"remoto-{i}" }));
+
+        var resultado = MesclaSincronizacao.MesclarSenhasExportadas(new List<SenhaExportada> { local }, new List<SenhaExportada> { remoto });
+
+        var item = Assert.Single(resultado);
+        Assert.True(item.CodigosRecuperacao.Count <= ServicoSenha.MaxCodigosRecuperacao);
     }
 
     [Fact]

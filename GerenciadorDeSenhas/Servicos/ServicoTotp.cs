@@ -11,6 +11,12 @@ namespace GerenciadorDeSenhas.Servicos
         public const int Periodo = 30;
         public const int Digitos = 6;
 
+        // Segredos reais raramente passam de 64 caracteres (320 bits); acima disso é
+        // colagem acidental de outra coisa, não uma chave 2FA de verdade — sem limite
+        // nenhum, um texto gigante colado em TxtTotp seria normalizado e cifrado
+        // inteiro a cada tecla digitada (SegredoValido roda no TextChanged).
+        private const int ComprimentoMaximo = 256;
+
         private const string Alfabeto = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
 
         public bool SegredoValido(string? entrada) => TentarNormalizar(entrada, out _);
@@ -64,7 +70,7 @@ namespace GerenciadorDeSenhas.Servicos
             }
 
             var limpo = LimparBase32(texto);
-            if (limpo.Length < 8)
+            if (limpo.Length < 8 || limpo.Length > ComprimentoMaximo)
                 return false;
 
             foreach (var c in limpo)

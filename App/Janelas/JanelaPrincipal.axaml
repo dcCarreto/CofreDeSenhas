@@ -270,7 +270,8 @@
 
               <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
               <StackPanel Margin="0,12,0,0" Spacing="4">
-                <Button Name="BtnNavCofre" Classes="nav-item ativo" Click="NavCofre_Click">
+                <Button Name="BtnNavCofre" Classes="nav-item ativo" Click="NavCofre_Click"
+                        AutomationProperties.Name="{DynamicResource Nav.Vault}">
                   <Grid ColumnDefinitions="40,*">
                     <c:Icone Width="{StaticResource TamIconeNav}" Height="{StaticResource TamIconeNav}"
                            VerticalAlignment="Center"
@@ -280,7 +281,8 @@
                     <TextBlock Name="LblNavCofre" Grid.Column="1" Text="{DynamicResource Nav.Vault}" VerticalAlignment="Center" />
                   </Grid>
                 </Button>
-                <Button Name="BtnNavFavoritas" Classes="nav-item" Click="NavFavoritas_Click">
+                <Button Name="BtnNavFavoritas" Classes="nav-item" Click="NavFavoritas_Click"
+                        AutomationProperties.Name="{DynamicResource Nav.Favorites}">
                   <Grid ColumnDefinitions="40,*">
                     <c:Icone Width="{StaticResource TamIconeNav}" Height="{StaticResource TamIconeNav}"
                            VerticalAlignment="Center"
@@ -290,7 +292,8 @@
                     <TextBlock Name="LblNavFavoritas" Grid.Column="1" Text="{DynamicResource Nav.Favorites}" VerticalAlignment="Center" />
                   </Grid>
                 </Button>
-                <Button Name="BtnNavRecentes" Classes="nav-item" Click="NavRecentes_Click">
+                <Button Name="BtnNavRecentes" Classes="nav-item" Click="NavRecentes_Click"
+                        AutomationProperties.Name="{DynamicResource Nav.Recent}">
                   <Grid ColumnDefinitions="40,*">
                     <c:Icone Width="{StaticResource TamIconeNav}" Height="{StaticResource TamIconeNav}"
                            VerticalAlignment="Center"
@@ -300,7 +303,8 @@
                     <TextBlock Name="LblNavRecentes" Grid.Column="1" Text="{DynamicResource Nav.Recent}" VerticalAlignment="Center" />
                   </Grid>
                 </Button>
-                <Button Name="BtnNavLixeira" Classes="nav-item" Click="NavLixeira_Click">
+                <Button Name="BtnNavLixeira" Classes="nav-item" Click="NavLixeira_Click"
+                        AutomationProperties.Name="{DynamicResource Nav.Trash}">
                   <Grid ColumnDefinitions="40,*">
                     <c:Icone Width="{StaticResource TamIconeNav}" Height="{StaticResource TamIconeNav}"
                            VerticalAlignment="Center"
@@ -317,31 +321,36 @@
                            FontSize="10" FontWeight="Bold"
                            Foreground="{DynamicResource TextHeader}"
                            Margin="12,0,0,6" />
-                <Button Name="BtnCatPessoal" Classes="nav-item" Tag="Personal" Click="NavCategoria_Click">
+                <Button Name="BtnCatPessoal" Classes="nav-item" Tag="Personal" Click="NavCategoria_Click"
+                        AutomationProperties.Name="{DynamicResource Category.Personal}">
                   <Grid ColumnDefinitions="40,*">
                     <Ellipse Width="9" Height="9" Fill="{DynamicResource CategoryPersonalFg}" HorizontalAlignment="Center" VerticalAlignment="Center" />
                     <TextBlock Name="LblCatJogos" Grid.Column="1" Text="{DynamicResource Category.Personal}" VerticalAlignment="Center" />
                   </Grid>
                 </Button>
-                <Button Name="BtnCatSocial" Classes="nav-item" Tag="Social" Click="NavCategoria_Click">
+                <Button Name="BtnCatSocial" Classes="nav-item" Tag="Social" Click="NavCategoria_Click"
+                        AutomationProperties.Name="{DynamicResource Category.Social}">
                   <Grid ColumnDefinitions="40,*">
                     <Ellipse Width="9" Height="9" Fill="{DynamicResource CategorySocialFg}" HorizontalAlignment="Center" VerticalAlignment="Center" />
                     <TextBlock Name="LblCatRedes" Grid.Column="1" Text="{DynamicResource Category.Social}" VerticalAlignment="Center" />
                   </Grid>
                 </Button>
-                <Button Name="BtnCatTrabalho" Classes="nav-item" Tag="Work" Click="NavCategoria_Click">
+                <Button Name="BtnCatTrabalho" Classes="nav-item" Tag="Work" Click="NavCategoria_Click"
+                        AutomationProperties.Name="{DynamicResource Category.Work}">
                   <Grid ColumnDefinitions="40,*">
                     <Ellipse Width="9" Height="9" Fill="{DynamicResource CategoryWorkFg}" HorizontalAlignment="Center" VerticalAlignment="Center" />
                     <TextBlock Name="LblCatEmail" Grid.Column="1" Text="{DynamicResource Category.Work}" VerticalAlignment="Center" />
                   </Grid>
                 </Button>
-                <Button Name="BtnCatFinancas" Classes="nav-item" Tag="Finance" Click="NavCategoria_Click">
+                <Button Name="BtnCatFinancas" Classes="nav-item" Tag="Finance" Click="NavCategoria_Click"
+                        AutomationProperties.Name="{DynamicResource Category.Finance}">
                   <Grid ColumnDefinitions="40,*">
                     <Ellipse Width="9" Height="9" Fill="{DynamicResource CategoryFinanceFg}" HorizontalAlignment="Center" VerticalAlignment="Center" />
                     <TextBlock Name="LblCatFinanceiro" Grid.Column="1" Text="{DynamicResource Category.Finance}" VerticalAlignment="Center" />
                   </Grid>
                 </Button>
-                <Button Name="BtnCatOutro" Classes="nav-item" Tag="Other" Click="NavCategoria_Click">
+                <Button Name="BtnCatOutro" Classes="nav-item" Tag="Other" Click="NavCategoria_Click"
+                        AutomationProperties.Name="{DynamicResource Category.Other}">
                   <Grid ColumnDefinitions="40,*">
                     <Ellipse Width="9" Height="9" Fill="{DynamicResource CategoryOtherFg}" HorizontalAlignment="Center" VerticalAlignment="Center" />
                     <TextBlock Name="LblCatOutro" Grid.Column="1" Text="{DynamicResource Category.Other}" VerticalAlignment="Center" />
@@ -847,7 +856,7 @@
                         <c:Icone Width="{StaticResource TamIconeCampo}" Height="{StaticResource TamIconeCampo}" Margin="0,0,8,0" VerticalAlignment="Center"
                                Chave="IconeUsuario" />
                         <TextBox Name="TxtDetalheUsuario" Grid.Column="1" Classes="campo" Height="38" />
-                        <Button Grid.Column="2" Classes="icone" Width="36" Height="36" Margin="8,0,0,0"
+                        <Button Name="BtnCopiarUsuarioDetalhes" Grid.Column="2" Classes="icone" Width="36" Height="36" Margin="8,0,0,0"
                                 ToolTip.Tip="{DynamicResource Row.CopyUser}"
                                 AutomationProperties.Name="{DynamicResource Row.CopyUser}"
                                 Click="CopiarUsuarioDetalhes_Click">

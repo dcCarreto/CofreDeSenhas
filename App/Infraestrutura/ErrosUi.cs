@@ -10,9 +10,18 @@ namespace CofreDeSenhas
         {
             Diagnostico.Registrar(ex);
 
-            return ex is ILocalizavel erro
-                ? Idioma.Formatar(erro.Chave, erro.Argumentos)
-                : PrimeiraLinha(ex.Message);
+            if (ex is ILocalizavel erro)
+                return Idioma.Formatar(erro.Chave, erro.Argumentos);
+
+            // Exceções que não passam pelo padrão ILocalizavel deste app (IOException,
+            // erros de driver de banco, timeout de rede etc.) não têm como ser
+            // traduzidas — a mensagem técnica em si continua no idioma que o .NET/o
+            // driver produziu. Mas sem este prefixo traduzido, o diálogo inteiro
+            // aparecia cru em inglês pra quem usa o app em qualquer outro idioma,
+            // quebrando a promessa de mensagens traduzidas. Redigir aqui também, mesma
+            // razão do log: não repetir o caminho do perfil do Windows (com o nome de
+            // usuário) numa mensagem que o usuário pode print e mandar pra suporte.
+            return Idioma.Formatar("Common.UnexpectedError", Diagnostico.Redigir(PrimeiraLinha(ex.Message)));
         }
 
         public static Task MostrarErroAsync(Window dono, Exception ex, string titulo) =>

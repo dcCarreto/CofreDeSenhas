@@ -39,7 +39,7 @@ namespace CofreDeSenhas
 
         public static (Categoria Categoria, List<string> Etiquetas) LerCategoriaEEtiquetas(int categoriaIndex, string? etiquetasTexto)
         {
-            var categoria = (Categoria)Math.Max(0, categoriaIndex);
+            var categoria = Categorias[Math.Clamp(categoriaIndex, 0, Categorias.Length - 1)];
             var etiquetas = Etiquetas.Analisar(etiquetasTexto);
 
             if (categoria == Categoria.Other)

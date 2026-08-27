@@ -4,11 +4,27 @@ namespace CofreDeSenhas
     {
         private const long TamanhoMaximoBytes = 1_000_000;
 
-        private static string CaminhoLog => Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            CaminhosApp.PastaDados, "logs", "erros.log");
+        private static string CaminhoLog => Path.Combine(CaminhosApp.PastaDados, "logs", "erros.log");
 
         public static void Registrar(Exception ex, string? contexto = null)
+        {
+            var prefixoContexto = contexto != null ? $" [{contexto}]" : "";
+            var causa = ex.InnerException != null ? $" | Causa: {ex.InnerException.GetType().Name}: {Redigir(ex.InnerException.Message)}" : "";
+            Gravar($"{prefixoContexto} {ex.GetType().Name}: {Redigir(ex.Message)}{causa}");
+        }
+
+        // Usado por eventos que não são exceções mas ainda merecem um rastro
+        // persistente — ex.: um conflito de sincronização detectado. Sem isto, o único
+        // registro era a lista em memória de RepositorioSenhaEspelhado.UltimosConflitos,
+        // que se perde a cada reconexão/reinício se o usuário não abrir a tela de
+        // conflitos a tempo de ver.
+        public static void Registrar(string mensagem, string? contexto = null)
+        {
+            var prefixoContexto = contexto != null ? $" [{contexto}]" : "";
+            Gravar($"{prefixoContexto} {Redigir(mensagem)}");
+        }
+
+        private static void Gravar(string corpo)
         {
             try
             {
@@ -20,9 +36,7 @@ namespace CofreDeSenhas
                 if (File.Exists(caminho) && new FileInfo(caminho).Length > TamanhoMaximoBytes)
                     File.Delete(caminho);
 
-                var prefixoContexto = contexto != null ? $" [{contexto}]" : "";
-                var causa = ex.InnerException != null ? $" | Causa: {ex.InnerException.GetType().Name}: {Redigir(ex.InnerException.Message)}" : "";
-                var linha = $"{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}Z{prefixoContexto} {ex.GetType().Name}: {Redigir(ex.Message)}{causa}{Environment.NewLine}";
+                var linha = $"{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}Z{corpo}{Environment.NewLine}";
                 File.AppendAllText(caminho, linha);
             }
             catch

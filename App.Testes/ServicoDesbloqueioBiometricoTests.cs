@@ -62,6 +62,35 @@ namespace App.Testes
         public void RegistroValido_ComNulo_RetornaFalso() =>
             Assert.False(ServicoDesbloqueioBiometrico.RegistroValido(null));
 
+        [Fact]
+        public async Task PodeConfigurarAsync_EmAmbienteIsolado_RetornaFalsoSemConsultarOWindows()
+        {
+            var servico = new ServicoDesbloqueioBiometrico(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N")));
+
+            Assert.False(await servico.PodeConfigurarAsync());
+        }
+
+        [Fact]
+        public async Task DesabilitarAsync_EmAmbienteIsolado_ApagaOBiometriaDatLocalMasNaoACredencialGlobalDoWindows()
+        {
+            // A credencial "CofreDeSenhas.WindowsHello" é por conta do Windows, não por
+            // pasta: um `dotnet test` que a apagasse tiraria o Windows Hello do cofre
+            // instalado do usuário. Sob COFRE_BASE (todo teste roda assim) essa parte
+            // vira no-op; só o biometria.dat, que é por pasta, ainda é limpo.
+            var pasta = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(pasta);
+            var registroLocal = Path.Combine(pasta, "biometria.dat");
+            File.WriteAllText(registroLocal, "x");
+
+            var servico = new ServicoDesbloqueioBiometrico(pasta);
+            Assert.True(servico.EstaHabilitado);
+
+            await servico.DesabilitarAsync();
+
+            Assert.False(File.Exists(registroLocal));
+            Assert.False(servico.EstaHabilitado);
+        }
+
 #if WINDOWS
         [Fact]
         public void SistemaSuportado_NaTfmWindows_UsaVerificacaoRealDePlataforma()

@@ -6,6 +6,121 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+## [2.2.2] - 2026-08-27
+
+Rodada de endurecimento em cima da 2.2.1: uma auditoria sistemática de todo o
+inventário de funcionalidades, seguida de uma varredura de QA com o aplicativo
+rodando de verdade. Dezenas de brechas de segurança, robustez e acessibilidade
+fechadas, sem nenhuma funcionalidade nova — o foco é deixar o que já existe
+mais difícil de quebrar.
+
+### Adicionado
+- "Atualizar agora" pede confirmação antes de baixar e instalar, mostrando a
+  versão e as notas de mudança da release — antes o aplicativo se fechava
+  sozinho para aplicar a atualização sem o usuário ver o que entraria.
+
+### Segurança
+- Usar o cofre no intervalo entre "trocar a senha mestra" e o reinício
+  obrigatório podia corromper o cofre. A janela principal continuava vinculada
+  à chave **antiga** até o restart, então qualquer gravação nesse meio-tempo
+  (criar, editar, excluir, importar CSV, restaurar ou esvaziar a lixeira)
+  regravava `senhas.json.enc` com a chave antiga por cima da versão já
+  recifrada com a nova — deixando o cofre ilegível com a senha nova depois de
+  reiniciar. A janela agora congela por completo assim que a troca é gravada
+  em disco, até o processo reiniciar.
+- O limite de tentativas da senha mestra (5, com bloqueio temporário) passa a
+  persistir em disco e a sobreviver a reinício do aplicativo. O mesmo limite
+  passa a valer no diálogo compartilhado de reautenticação (excluir cofre,
+  limpar cofre, regerar QR code, ativar sincronização), que antes não tinha
+  limite nenhum — dava para forçar a senha mestra à vontade numa sessão já
+  desbloqueada.
+- "Limpar cofre" passa a exigir reautenticação com a senha mestra, como
+  "Excluir cofre" já exigia — antes bastava um clique de confirmação para
+  mover o cofre inteiro para a lixeira.
+- "Excluir cofre" passa a apagar também o histórico de pontuação de segurança,
+  que sobrevivia em texto claro em `%APPDATA%` mesmo depois do cofre ter sido
+  apagado por completo.
+- O botão "Editar" de uma linha da lista ignorava o modo privacidade: um
+  clique abria a janela de edição com usuário, URL, notas e campos extras em
+  texto puro, driblando a máscara que a lista tinha acabado de aplicar.
+- O arquivo temporário do instalador/AppImage baixado na atualização
+  automática tinha nome previsível a partir só da tag da release — no Linux,
+  onde `/tmp` é compartilhado entre usuários locais, isso abria uma corrida
+  entre a checagem de hash e o uso do arquivo. Passa a baixar numa subpasta de
+  nome aleatório.
+- A verificação de vazamento (Have I Been Pwned) tratava uma resposta da API
+  em formato inesperado como "senha não vazada" (fail-open) em vez de sinalizar
+  que a verificação falhou.
+- A união de códigos de recuperação na mesclagem de sincronização não
+  reaplicava o teto de 100 (dois dispositivos gerando lotes independentes
+  furavam o limite); histórico e etiquetas já tinham essa proteção.
+- A leitura de `sincronizacao.dat` não distinguia falha real de I/O (pasta de
+  nuvem ainda baixando, outro dispositivo escrevendo) de "chave errada" /
+  "arquivo corrompido" — as duas viravam lista vazia, arriscando sobrescrever
+  o remoto só com o que havia localmente.
+- Conflitos de sincronização (em especial integridade violada — possível
+  adulteração de um banco compartilhado) ficavam só numa lista em memória,
+  perdida a cada reconexão ou reinício; agora vão também para o log de
+  diagnóstico persistente.
+
+### Corrigido
+- A barra lateral de navegação inteira (os quatro modos e as cinco categorias)
+  não tinha nome acessível: um leitor de tela lia "Avalonia.Controls.Grid" nos
+  nove botões, sem forma de diferenciá-los.
+- Trocar o idioma dentro da Lixeira trocava a lista pelo cofre inteiro,
+  enquanto a barra de ferramentas e o menu continuavam na Lixeira.
+- O botão de revelar senha do gerador nunca atualizava o próprio nome e a dica
+  de acessibilidade: a senha nasce visível, mas o botão anunciava "Revelar
+  senha" quando a ação seria ocultar.
+- O nome acessível do botão "Excluir definitivamente" da lixeira usava o texto
+  inteiro do diálogo de confirmação, com quebra de linha, em vez de um rótulo
+  curto.
+- O contador "N itens" do cabeçalho não acompanhava busca nem filtros —
+  mostrava sempre o total do cofre.
+- O anúncio de acessibilidade ao restaurar da lixeira dizia "copiado para a
+  área de transferência".
+- O campo de código de recuperação renderizava estreito demais na tela de
+  edição, colado nos botões de ação.
+- Cinco janelas de diálogo (confirmar senha mestra, alterar senha mestra,
+  exportar/importar, conectar banco, editar credencial) nunca registravam um
+  anunciador para leitor de tela — mensagens de erro inline eram descartadas
+  em silêncio.
+- Cinco mensagens de erro do atualizador automático estavam fixas em
+  português, vazando para a interface de quem usa o aplicativo em outro idioma.
+- `RemoverDefinitivamenteAsync` do banco de dados tinha voltado a virar tumba
+  por engano, deixando o item preso na lixeira em vez de sumir de vez.
+- Falsa detecção de duplicata na importação de CSV / `.gsenhas`: a chave de
+  deduplicação concatenava nome do serviço + usuário numa única string, e duas
+  credenciais diferentes podiam colidir nessa concatenação e uma ser
+  descartada como duplicata sem nunca ter sido.
+- O timer de sincronização automática só reaplicava um novo intervalo escolhido
+  nas configurações quando o diálogo fechava.
+- O indicador de força de senha não refletia a ausência de símbolo quando
+  comprimento + maiúscula/minúscula + dígito já saturavam o nível — a mesma
+  senha aparecia "Excelente" ali e "Fraca" no Relatório de Segurança.
+- Categoria inválida vinda da interface podia gerar um índice fora do enum
+  `Categoria` em vez de cair em "Outra".
+- Campos extras (validade/CVV, host/porta etc.) eram perdidos ao trocar de
+  tipo de credencial e voltar, se o tipo intermediário não os compartilhasse.
+- O teto de 20 etiquetas por credencial estava sendo aplicado por engano ao
+  total de etiquetas distintas do cofre inteiro, escondendo etiquetas do
+  filtro sem aviso.
+- Segredo TOTP sem limite de tamanho: texto colado por engano no lugar do
+  segredo era normalizado e cifrado inteiro a cada tecla digitada.
+
+### Desenvolvimento
+- Rodar o projeto a partir do código-fonte (build de Debug) e a suíte de
+  testes passam a usar uma pasta de dados isolada — `GerenciadorSenhas.dev`
+  para o build de Debug, uma pasta temporária descartável para os testes — em
+  vez de `%APPDATA%\GerenciadorSenhas`. Antes, isso podia sobrescrever o
+  `config.json`, os logs e o histórico de pontuação do cofre de um aplicativo
+  instalado na mesma máquina.
+- O Windows Hello do cofre instalado deixa de ser afetado por qualquer
+  execução que não seja o aplicativo instalado. A credencial do Windows Hello
+  é global por conta do Windows, não por pasta, então o isolamento acima não a
+  cobria sozinho; o serviço de biometria agora não toca na credencial do
+  Windows a menos que seja o build de release instalado.
+
 ## [2.2.1] - 2026-08-20
 
 Rodada extra de auditoria em cima da 2.2.0, com uma nova forma de restaurar o

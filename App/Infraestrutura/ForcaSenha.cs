@@ -16,8 +16,18 @@ namespace CofreDeSenhas
 
             var partes = senha.Split(new[] { '-', '_', '.', ' ' }, StringSplitOptions.RemoveEmptyEntries);
             int palavras = partes.Count(p => p.Length >= 3 && p.All(char.IsLetter));
-            if (palavras >= 4)
+            bool ehPassphrase = palavras >= 4;
+            if (ehPassphrase)
                 forca = Math.Max(forca, Math.Min(4, palavras - 1));
+
+            // Sem isto, comprimento + maiúscula/minúscula + dígito já batem o teto
+            // sozinhos e o nível nunca reflete se a senha tem algum símbolo — a mesma
+            // senha aparecia "Excelente" aqui e "Fraca" no Relatório de Segurança
+            // (ServicoAuditoriaSenha.SenhaForteParaAuditoria exige símbolo pra senhas
+            // que não são passphrase). Passphrase continua isenta, mesmo critério do
+            // relatório (EhPassphraseForte).
+            if (!ehPassphrase && forca >= 4 && !Regex.IsMatch(senha, @"[^A-Za-z0-9]"))
+                forca = 3;
 
             return Math.Min(forca, 4);
         }

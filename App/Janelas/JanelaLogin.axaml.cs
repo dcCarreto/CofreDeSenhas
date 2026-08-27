@@ -19,9 +19,9 @@ namespace CofreDeSenhas.Janelas
         private readonly Action<byte[], string?> _aoAutenticar;
         private readonly bool _primeiroAcesso;
         private readonly ServicoDesbloqueioBiometrico _biometria = new();
+        private readonly ControleTentativasLogin _controleTentativas;
 
         private BiometriaModo _modoBiometria = BiometriaModo.Desbloquear;
-        private int _tentativas;
         private DispatcherTimer? _timerBloqueioTentativas;
 
         public JanelaLogin(AutenticacaoMestra auth, Action<byte[], string?> aoAutenticar)
@@ -32,6 +32,7 @@ namespace CofreDeSenhas.Janelas
             new ServicoMudancaSenhaMestra(_auth.PastaApp).RestaurarBackupOrfaoSeNecessario();
 
             _primeiroAcesso = !auth.ExisteSenhaMestra();
+            _controleTentativas = new ControleTentativasLogin(auth.PastaApp);
 
             InitializeComponent();
             Icon = Recursos.IconeApp();
@@ -78,6 +79,15 @@ namespace CofreDeSenhas.Janelas
             {
                 TxtSenha.Focus();
                 await ConfigurarBotaoBiometriaAsync();
+
+                // Um bloqueio de tentativas continua valendo mesmo que esta janela seja
+                // uma instância nova (app reiniciado, ou reaberta depois de um bloqueio
+                // do cofre) — ver ControleTentativasLogin.
+                if (!_primeiroAcesso && _controleTentativas.ObterBloqueioAtivo() is { } bloqueioAtivo)
+                {
+                    MostrarErro(Idioma.Texto("Login.Error.TooManyAttempts"));
+                    IniciarContagemBloqueio(bloqueioAtivo);
+                }
             };
         }
 
@@ -364,32 +374,23 @@ namespace CofreDeSenhas.Janelas
                     var chave = _auth.Autenticar(senha);
                     if (chave != null)
                     {
+                        _controleTentativas.RegistrarSucesso();
                         var chaveMigrada = await MigrarKdfSeNecessarioAsync(senha);
                         manterDesabilitado = true;
                         _aoAutenticar(chaveMigrada ?? chave, senha);
                         return;
                     }
 
-                    _tentativas++;
-                    if (_tentativas >= 5)
+                    var (tentativas, bloqueioAte) = _controleTentativas.RegistrarFalha();
+                    if (bloqueioAte is { } ate)
                     {
                         MostrarErro(Idioma.Texto("Login.Error.TooManyAttempts"));
                         manterDesabilitado = true;
-                        _timerBloqueioTentativas?.Stop();
-                        var t = new DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
-                        t.Tick += (s, ev) =>
-                        {
-                            BtnPrincipal.IsEnabled = true;
-                            _tentativas = 0;
-                            LblErro.Text = "";
-                            t.Stop();
-                        };
-                        _timerBloqueioTentativas = t;
-                        t.Start();
+                        IniciarContagemBloqueio(ate);
                     }
                     else
                     {
-                        MostrarErro(Idioma.Formatar("Login.Error.WrongPassword", _tentativas));
+                        MostrarErro(Idioma.Formatar("Login.Error.WrongPassword", tentativas));
                     }
 
                     TxtSenha.SelectAll();
@@ -401,6 +402,26 @@ namespace CofreDeSenhas.Janelas
                 if (!manterDesabilitado)
                     BtnPrincipal.IsEnabled = true;
             }
+        }
+
+        private void IniciarContagemBloqueio(DateTime bloqueadoAteUtc)
+        {
+            BtnPrincipal.IsEnabled = false;
+            _timerBloqueioTentativas?.Stop();
+
+            var restante = bloqueadoAteUtc - DateTime.UtcNow;
+            if (restante < TimeSpan.FromMilliseconds(1))
+                restante = TimeSpan.FromMilliseconds(1);
+
+            var t = new DispatcherTimer { Interval = restante };
+            t.Tick += (s, ev) =>
+            {
+                BtnPrincipal.IsEnabled = true;
+                LblErro.Text = "";
+                t.Stop();
+            };
+            _timerBloqueioTentativas = t;
+            t.Start();
         }
 
         private async Task<byte[]?> MigrarKdfSeNecessarioAsync(string senha)
@@ -445,6 +466,7 @@ namespace CofreDeSenhas.Janelas
             var resultado = await _biometria.DesbloquearAsync(this, _auth);
             if (resultado.Sucesso && resultado.Chave != null)
             {
+                _controleTentativas.RegistrarSucesso();
                 _aoAutenticar(resultado.Chave, null);
                 return;
             }

@@ -27,6 +27,21 @@ namespace App.Testes
         }
 
         [AvaloniaFact]
+        public async Task Construtor_RegistraAnunciadorParaLeitorDeTela()
+        {
+            var (servico, criptografia, senha) = await CriarServicoComCredencialAsync();
+            var janela = new JanelaEditarSenha(servico, senha, criptografia);
+            janela.Show();
+
+            Acessibilidade.Anunciar(janela, "mensagem-de-teste-leitor-de-tela", forcar: true);
+
+            var anunciador = janela.Encontrar<TextBlock>("LblAnuncioLeitorTela");
+            await TesteUtil.AguardarAsync(() => anunciador.Text == "mensagem-de-teste-leitor-de-tela");
+
+            Assert.Equal("mensagem-de-teste-leitor-de-tela", anunciador.Text);
+        }
+
+        [AvaloniaFact]
         public async Task Salvar_AtualizaNomeDoServico()
         {
             var (servico, criptografia, senha) = await CriarServicoComCredencialAsync();
@@ -47,6 +62,55 @@ namespace App.Testes
             var atualizada = Assert.Single(lista);
             Assert.Equal("Servico Renomeado", atualizada.NomeServico);
             Assert.Equal("usuario.original", atualizada.Usuario);
+        }
+
+        [AvaloniaFact]
+        public async Task TrocarTipoEVoltar_PreservaCampoExtraJaDigitado()
+        {
+            var (servico, criptografia, senha) = await CriarServicoComCredencialAsync();
+            var janela = new JanelaEditarSenha(servico, senha, criptografia);
+            janela.Show();
+
+            var cmbTipo = janela.Encontrar<ComboBox>("CmbTipo");
+            cmbTipo.SelectedIndex = TemplatesCredencial.ObterIndice(TipoCredencial.Cartao);
+            await TesteUtil.AguardarAsync(() => false, tentativas: 5);
+
+            janela.GetVisualDescendants().OfType<TextBox>().First(t => (string?)t.Tag == "cvv").Text = "123";
+
+            // Troca pra um tipo que não tem "cvv" e volta pro Cartão, sem salvar —
+            // antes desta correção, isso apagava o valor recém-digitado porque só os
+            // campos do tipo anterior (não os de todos os tipos já visitados na sessão)
+            // ficavam disponíveis pra repovoar o painel.
+            cmbTipo.SelectedIndex = TemplatesCredencial.ObterIndice(TipoCredencial.Login);
+            await TesteUtil.AguardarAsync(() => false, tentativas: 5);
+            cmbTipo.SelectedIndex = TemplatesCredencial.ObterIndice(TipoCredencial.Cartao);
+            await TesteUtil.AguardarAsync(() => false, tentativas: 5);
+
+            var cvvDepois = janela.GetVisualDescendants().OfType<TextBox>().First(t => (string?)t.Tag == "cvv");
+            Assert.Equal("123", cvvDepois.Text);
+        }
+
+        [AvaloniaFact]
+        public async Task CodigoRecuperacao_CampoNaoFicaEsmagadoContraOsBotoesDeAcao()
+        {
+            var (servico, criptografia, senha) = await CriarServicoComCredencialAsync();
+            senha.CodigosRecuperacao.Add(new CodigoRecuperacao { Codigo = criptografia.Criptografar("CODE-AAAA-1111") });
+            await servico.PersistirAsync();
+
+            var janela = new JanelaEditarSenha(servico, senha, criptografia);
+            janela.Show();
+            await TesteUtil.AguardarAsync(() =>
+                janela.GetVisualDescendants().OfType<TextBox>()
+                    .Any(t => AutomationProperties.GetName(t) == Idioma.Texto("A11y.RecoveryCode")));
+
+            var campo = janela.GetVisualDescendants().OfType<TextBox>()
+                .First(t => AutomationProperties.GetName(t) == Idioma.Texto("A11y.RecoveryCode"));
+
+            // Antes da correção o campo dividia a linha da Grid com três botões de
+            // rótulo longo e sobrava com ~64px de largura; agora fica sozinho na
+            // própria linha, com os botões abaixo.
+            Assert.IsNotType<Grid>(campo.Parent);
+            Assert.True(campo.Bounds.Width > 200, $"largura do campo do código de recuperação: {campo.Bounds.Width}");
         }
 
         [AvaloniaFact]

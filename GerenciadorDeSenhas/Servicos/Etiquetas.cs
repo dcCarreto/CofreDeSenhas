@@ -18,7 +18,7 @@ namespace GerenciadorDeSenhas.Servicos
             return Normalizar(texto.Split(Separadores));
         }
 
-        public static List<string> Normalizar(IEnumerable<string>? etiquetas)
+        public static List<string> Normalizar(IEnumerable<string>? etiquetas, int limite = QuantidadeMaxima)
         {
             var resultado = new List<string>();
             if (etiquetas == null)
@@ -32,7 +32,7 @@ namespace GerenciadorDeSenhas.Servicos
                     continue;
 
                 resultado.Add(limpa);
-                if (resultado.Count >= QuantidadeMaxima)
+                if (resultado.Count >= limite)
                     break;
             }
 
@@ -48,7 +48,11 @@ namespace GerenciadorDeSenhas.Servicos
             foreach (var senha in senhas)
                 todas.AddRange(senha.Etiquetas);
 
-            return Normalizar(todas)
+            // QuantidadeMaxima é o teto de etiquetas POR credencial — não faz sentido
+            // reaplicá-lo aqui: o total de etiquetas distintas do cofre inteiro (usado
+            // pra montar o filtro) cresce com o número de credenciais, não por
+            // credencial, e cortar em 20 escondia etiquetas do filtro sem nenhum aviso.
+            return Normalizar(todas, limite: int.MaxValue)
                 .OrderBy(e => e, StringComparer.Create(CultureInfo.GetCultureInfo("pt-BR"), ignoreCase: true))
                 .ToList();
         }

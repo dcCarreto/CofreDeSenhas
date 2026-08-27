@@ -21,7 +21,12 @@ namespace CofreDeSenhas
 
         public static Atalho? Encontrar(Key tecla, KeyModifiers modificadores)
         {
-            if (!modificadores.HasFlag(KeyModifiers.Control))
+            // AltGr (comum em teclados PT, FR, DE, ES, IT — todos os idiomas que o app
+            // suporta além do inglês) chega ao Windows como Ctrl+Alt sintético, não como
+            // uma tecla própria. Sem excluir Alt aqui, digitar um símbolo com AltGr (ex.:
+            // AltGr+L num teclado PT-BR) num campo de texto qualquer da janela disparava
+            // o atalho "Bloquear agora" por engano, no meio da digitação.
+            if (!modificadores.HasFlag(KeyModifiers.Control) || modificadores.HasFlag(KeyModifiers.Alt))
                 return null;
 
             bool shift = modificadores.HasFlag(KeyModifiers.Shift);

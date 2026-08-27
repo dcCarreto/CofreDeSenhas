@@ -41,9 +41,7 @@ namespace GerenciadorDeSenhas.Servicos
         {
             _criptografia = criptografia ?? throw new ArgumentNullException(nameof(criptografia));
 
-            var pasta = pastaApp ?? Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "GerenciadorSenhas");
+            var pasta = pastaApp ?? AmbienteCofre.PastaDados;
 
             _pastaAnexos = Path.Combine(pasta, "anexos");
         }

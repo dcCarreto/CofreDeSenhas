@@ -62,6 +62,57 @@ namespace App.Testes
         }
 
         [AvaloniaFact]
+        public async Task Frequencia_Alterada_ChamaAjustarTimerImediatamenteSemEsperarODialogoFechar()
+        {
+            // Antes da correção, o DispatcherTimer de JanelaPrincipal só reaplicava o
+            // novo intervalo quando este diálogo fechasse (AjustarTimerSincronizacao
+            // chamado só depois do ShowDialog retornar) — trocar a frequência e deixar
+            // a janela aberta mantinha o timer batendo no intervalo antigo.
+            var perfilOriginal = Preferencias.Sincronizacao;
+            try
+            {
+                var pastaSincronizada = TesteUtil.CriarPastaTemporaria();
+                Preferencias.Sincronizacao = new PerfilSincronizacao
+                {
+                    Pasta = pastaSincronizada,
+                    Salt = Convert.ToBase64String(ServicoSincronizacao.GerarSalt()),
+                    FrequenciaMinutos = 15
+                };
+
+                var chave = new AutenticacaoMestra(TesteUtil.CriarPastaTemporaria()).CriarSenhaMestra("SenhaDeTeste123!");
+                var servicoSincronizacao = new ServicoSincronizacao(new ServicoCriptografia(chave));
+
+                var chamadas = 0;
+                var janela = new JanelaSincronizacao(servicoSincronizacao, _ => { },
+                    () => Task.FromResult(true), () => false, _ => Task.FromResult(true),
+                    ajustarTimer: () => chamadas++);
+                janela.Show();
+                await TesteUtil.AguardarAsync(() => false, tentativas: 5);
+
+                var combo = janela.Encontrar<ComboBox>("CmbFrequencia");
+                Assert.Equal(1, combo.SelectedIndex); // 15 min é a opção de índice 1 em {5, 15, 30, 60}
+
+                combo.SelectedIndex = 0; // troca pra 5 min
+
+                Assert.Equal(1, chamadas);
+                Assert.Equal(5, Preferencias.Sincronizacao?.FrequenciaMinutos);
+            }
+            finally
+            {
+                // Frequencia_Alterada chama Preferencias.Salvar() de verdade (grava em
+                // %APPDATA%\GerenciadorSenhas\config.json) — restaurar só em memória não
+                // basta, senão o arquivo real do usuário rodando este teste fica com
+                // Sincronizacao apontando pra uma pasta de teste já apagada. É exatamente
+                // o mecanismo suspeito de poluir Preferencias.UltimoBanco/Sincronizacao
+                // entre execuções de teste em sessões anteriores desta auditoria — ver o
+                // mesmo cuidado em JanelaLoginTests e no outro teste desta classe que
+                // grava de verdade.
+                Preferencias.Sincronizacao = perfilOriginal;
+                Preferencias.Salvar();
+            }
+        }
+
+        [AvaloniaFact]
         public async Task SincronizarAgora_QuandoJaEstaSincronizando_MostraAvisoENaoChamaSincronizarDeNovo()
         {
             var perfilOriginal = Preferencias.Sincronizacao;

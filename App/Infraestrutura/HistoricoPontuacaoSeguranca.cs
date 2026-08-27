@@ -16,9 +16,7 @@ namespace CofreDeSenhas
         // que abre a janela do relatório gravaria de verdade no %APPDATA% da máquina.
         internal static string? CaminhoOverride { get; set; }
 
-        private static string Caminho => CaminhoOverride ?? Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            CaminhosApp.PastaDados, "pontuacao-historico.json");
+        private static string Caminho => CaminhoOverride ?? Path.Combine(CaminhosApp.PastaDados, "pontuacao-historico.json");
 
         public static List<PontoPontuacaoSeguranca> Carregar()
         {
@@ -34,6 +32,23 @@ namespace CofreDeSenhas
             {
                 Diagnostico.Registrar(ex, "HistoricoPontuacaoSeguranca.Carregar");
                 return new List<PontoPontuacaoSeguranca>();
+            }
+        }
+
+        // Excluir cofre promete apagar todo rastro do cofre (ver JanelaPrincipal,
+        // ExcluirCofre_Click) — sem isto, o histórico de pontuação sobrevivia sozinho
+        // em texto puro no %APPDATA%, revelando datas e a evolução da postura de
+        // segurança de um cofre que o usuário já tinha decidido apagar por completo.
+        public static void Limpar()
+        {
+            try
+            {
+                if (File.Exists(Caminho))
+                    File.Delete(Caminho);
+            }
+            catch (Exception ex)
+            {
+                Diagnostico.Registrar(ex, "HistoricoPontuacaoSeguranca.Limpar");
             }
         }
 

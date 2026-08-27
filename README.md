@@ -11,7 +11,7 @@ plataformas.
 ![Licença](https://img.shields.io/badge/licen%C3%A7a-MIT-blue)
 ![Plataforma](https://img.shields.io/badge/plataforma-Windows%2010%2F11%20%7C%20Linux-0078D6)
 ![.NET](https://img.shields.io/badge/.NET-10-512BD4)
-![Versão](https://img.shields.io/badge/vers%C3%A3o-2.2.1-success)
+![Versão](https://img.shields.io/badge/vers%C3%A3o-2.2.2-success)
 
 Este é um projeto de código aberto e software livre, distribuído sob a licença
 MIT. Você pode usá-lo, estudá-lo, modificá-lo e compartilhá-lo livremente.
@@ -655,6 +655,12 @@ em `~/.config/GerenciadorSenhas/` no Linux:
 - `backups/`: cópias de segurança do cofre.
 
 Esses arquivos não fazem parte do repositório e contêm dados sensíveis.
+
+Ao rodar o projeto a partir do código-fonte (`dotnet run`, ou o executável de
+uma compilação de Debug), os dados vão para `GerenciadorSenhas.dev/` ao lado
+da pasta acima — nunca para a pasta do aplicativo instalado. A suíte de testes
+usa uma pasta temporária descartável, apagada ao final. Só o binário publicado
+para release usa `GerenciadorSenhas/`.
 
 ## Roadmap
 
