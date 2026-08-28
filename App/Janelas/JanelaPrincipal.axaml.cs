@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Globalization;
 using System.Security.Cryptography;
+using System.Text.Json;
 using Avalonia;
 using Avalonia.Animation;
 using Avalonia.Animation.Easings;
@@ -44,6 +45,7 @@ namespace CofreDeSenhas.Janelas
         private readonly Action? _aoBloquear;
         private readonly MonitorInatividade _monitor;
         private readonly DispatcherTimer _timerSincronizacao;
+        private readonly DispatcherTimer _timerBusca = new() { Interval = TimeSpan.FromMilliseconds(150) };
         // internal só pra teste inspecionar o agendamento sem esperar uma hora de
         // verdade — ver App.Testes (InternalsVisibleTo).
         internal readonly DispatcherTimer _timerBackupAgendado;
@@ -76,9 +78,11 @@ namespace CofreDeSenhas.Janelas
         private readonly HashSet<Guid> _selecionados = new();
         private readonly List<LinhaSenha> _linhasSenha = new();
         private LinhaSenha? _linhaFocada;
+        private (Guid Id, string Texto)? _edicaoServicoPendente;
         private readonly Dictionary<Guid, ItemAuditoriaSenha> _itensAuditoria = new();
         private ResultadoAuditoriaCofre? _resultadoAuditoria;
         private readonly Dictionary<Guid, int> _vazamentosPorId = new();
+        private readonly Dictionary<Guid, (string Cifra, string Plain, int Forca)> _cachePlain = new();
         private CategoriaRelatorioSeguranca? _filtroSeguranca;
 
         private bool _somenteFavoritos;
@@ -154,6 +158,9 @@ namespace CofreDeSenhas.Janelas
             Acessibilidade.RegistrarAnunciador(this, LblAnuncioLeitorTela);
             ConfigurarAcessibilidadeLeitorTela();
 
+            PainelLista.FabricaLinha = CriarLinhaSenha;
+            PainelLista.FabricaLixeira = CriarLinhaLixeira;
+
             CmbCategoria.ItemsSource = ConstruirFiltrosCategoria();
             CmbCategoria.SelectedIndex = 0;
             CmbEtiqueta.ItemsSource = ConstruirFiltrosEtiqueta(Array.Empty<Senha>());
@@ -191,6 +198,12 @@ namespace CofreDeSenhas.Janelas
             _timerSincronizacao.Tick += async (s, e) => await SincronizarAsync(silencioso: true);
             AjustarTimerSincronizacao();
 
+            _timerBusca.Tick += (s, e) =>
+            {
+                _timerBusca.Stop();
+                FiltrarSenhas();
+            };
+
             // VerificarBackupAgendadoAsync só rodava uma vez, na abertura da janela —
             // numa sessão longa (o app suporta ficar minimizado na bandeja por dias),
             // "diário"/"semanal" nunca disparava de novo depois disso, mesmo com o
@@ -205,6 +218,7 @@ namespace CofreDeSenhas.Janelas
             {
                 _monitor.Encerrar();
                 _timerSincronizacao.Stop();
+                _timerBusca.Stop();
                 _timerBackupAgendado.Stop();
                 _timerFeedbackSenhaDetalhes?.Stop();
                 _timerFeedbackUsuarioDetalhes?.Stop();
@@ -213,6 +227,7 @@ namespace CofreDeSenhas.Janelas
                 FecharDetalhes();
                 foreach (var linha in _linhasSenha)
                     linha.EsconderSenhaSeRevelada();
+                _cachePlain.Clear();
                 CryptographicOperations.ZeroMemory(_chaveMestra);
                 _criptografia?.ZerarChave();
                 _servicoSincronizacao?.ZerarChave();
@@ -748,18 +763,32 @@ namespace CofreDeSenhas.Janelas
                 var remotas = await _servicoSincronizacao.LerAsync(caminho);
                 var mescladas = ServicoSincronizacao.MesclarListas(locais, remotas);
 
-                foreach (var item in mescladas)
-                    await _servicoSenha.AplicarSincronizadoAsync(item);
-                await _servicoSenha.PersistirAsync();
+                // O ciclo automático roda de tempos em tempos e quase sempre não acha
+                // nada novo. Sem estas guardas, cada passagem re-cifrava o cofre inteiro,
+                // reescrevia o arquivo e reconstruía a lista (pulando a rolagem do
+                // usuário pro topo) à toa.
+                bool localMudou = !MesmoConteudoSync(locais, mescladas);
+                bool remotoMudou = !MesmoConteudoSync(remotas, mescladas);
 
-                var salt = Convert.FromBase64String(perfil.Salt);
-                await _servicoSincronizacao.EscreverAsync(caminho, salt, perfil.Kdf, perfil.Iteracoes,
-                    perfil.MemoriaKb, perfil.Paralelismo, mescladas);
+                if (localMudou)
+                {
+                    foreach (var item in mescladas)
+                        await _servicoSenha.AplicarSincronizadoAsync(item);
+                    await _servicoSenha.PersistirAsync();
+                }
+
+                if (remotoMudou)
+                {
+                    var salt = Convert.FromBase64String(perfil.Salt);
+                    await _servicoSincronizacao.EscreverAsync(caminho, salt, perfil.Kdf, perfil.Iteracoes,
+                        perfil.MemoriaKb, perfil.Paralelismo, mescladas);
+                }
 
                 perfil.UltimaSincronizacao = DateTime.UtcNow;
                 Preferencias.Salvar();
 
-                await CarregarSenhasAsync(silencioso);
+                if (localMudou)
+                    await CarregarSenhasAsync(silencioso);
                 return true;
             }
             catch (Exception ex)
@@ -780,6 +809,25 @@ namespace CofreDeSenhas.Janelas
             {
                 _sincronizando = false;
             }
+        }
+
+        private static readonly JsonSerializerOptions _opcoesAssinaturaSync = new();
+
+        private static bool MesmoConteudoSync(List<SenhaExportada> a, List<SenhaExportada> b)
+        {
+            if (a.Count != b.Count)
+                return false;
+
+            using var ea = a.OrderBy(s => s.Id).GetEnumerator();
+            using var eb = b.OrderBy(s => s.Id).GetEnumerator();
+            while (ea.MoveNext() && eb.MoveNext())
+            {
+                if (ea.Current.Id != eb.Current.Id ||
+                    JsonSerializer.Serialize(ea.Current, _opcoesAssinaturaSync) !=
+                    JsonSerializer.Serialize(eb.Current, _opcoesAssinaturaSync))
+                    return false;
+            }
+            return true;
         }
 
         private async Task<List<SenhaExportada>> ConstruirListaExportavelAsync()
@@ -964,8 +1012,19 @@ namespace CofreDeSenhas.Janelas
             if (_naLixeira) return;
 
             var dlg = new JanelaCriarSenha(_servicoSenha);
-            if (await AbrirDialogoAsync<bool>(dlg))
+            if (!await AbrirDialogoAsync<bool>(dlg))
+                return;
+
+            if (dlg.SenhaCriada is { } nova && !_senhasAtuais.Any(s => s.Id == nova.Id))
+            {
+                _senhasAtuais.Add(nova);
+                AtualizarFiltroOrganizacao();
+                FiltrarSenhas();
+            }
+            else
+            {
                 await CarregarSenhasAsync();
+            }
         }
 
         // internal só pra teste poder forçar um refresh de _senhasAtuais sem precisar
@@ -999,16 +1058,12 @@ namespace CofreDeSenhas.Janelas
 
         private void AtualizarLista(List<Senha> lista)
         {
-            // Preserva uma edição inline de nome de serviço ainda não confirmada através
-            // do rebuild — sem isto, favoritar/fixar OUTRA linha, ou o sync em segundo
-            // plano, disparava CarregarSenhasAsync/FiltrarSenhas e a linha em edição era
-            // recriada do zero, descartando em silêncio o que o usuário tinha acabado de
-            // digitar e ainda não confirmou com Enter/clicando fora.
-            var linhaEmEdicao = _linhasSenha.FirstOrDefault(l => l.EmEdicaoDeServico);
-            var idEmEdicao = linhaEmEdicao?.Senha.Id;
-            var textoEmEdicao = linhaEmEdicao?.TextoServicoEmEdicao;
-
-            PainelLista.Children.Clear();
+            // Uma edição inline de nome de serviço ainda não confirmada sobrevive ao
+            // rebuild da lista e à virtualização: LinhaSenha reporta o rascunho a cada
+            // tecla (RascunhoServicoAlterado -> _edicaoServicoPendente) e CriarLinhaSenha
+            // reabre a edição quando a linha volta a ser realizada. Sem isto, favoritar/
+            // fixar outra linha, o sync em segundo plano, ou só rolar a lista descartava
+            // em silêncio o que o usuário tinha acabado de digitar.
             _linhasSenha.Clear();
             _linhaFocada = null;
 
@@ -1031,32 +1086,61 @@ namespace CofreDeSenhas.Janelas
             AutomationProperties.SetItemStatus(PainelLista, estadoLista);
             AutomationProperties.SetName(LblVazio, Idioma.Texto("Vault.Empty"));
 
-            foreach (var senha in lista)
+            PainelLista.ModoLixeira = false;
+            PainelLista.ItemsSource = lista;
+        }
+
+        private LinhaSenha CriarLinhaSenha(Senha senha)
+        {
+            var linha = new LinhaSenha(senha, ObterSenhaPlain, ObterTotpPlain, FavoritarToggle, FixarToggle, EditarSenha,
+                ExcluirSenhaAsync, RenomearServicoAsync, RegistrarCopiaLinhaAsync);
+            linha.SolicitouDetalhes += Linha_SolicitouDetalhes;
+            linha.SelecaoAlterada += Linha_SelecaoAlterada;
+            linha.GotFocus += (s, e) => _linhaFocada = linha;
+
+            linha.RascunhoServicoAlterado += (s, texto) => _edicaoServicoPendente = (linha.Senha.Id, texto);
+            linha.EdicaoServicoFinalizada += (s, e) =>
             {
-                var linha = new LinhaSenha(senha, ObterSenhaPlain, ObterTotpPlain, FavoritarToggle, FixarToggle, EditarSenha,
-                    ExcluirSenhaAsync, RenomearServicoAsync, RegistrarCopiaLinhaAsync);
-                linha.DefinirLargurasColunas(_larguraServico, _larguraUsuario, _larguraCategoria, _larguraData, _larguraAcoes);
-                linha.DefinirModoPrivacidade(_modoPrivacidade);
-                linha.SolicitouDetalhes += Linha_SolicitouDetalhes;
-                linha.SelecaoAlterada += Linha_SelecaoAlterada;
-                linha.GotFocus += (s, e) => _linhaFocada = linha;
-                if (_selecionados.Contains(senha.Id))
-                    linha.DefinirSelecionada(true);
+                if (_edicaoServicoPendente is { } p && p.Id == linha.Senha.Id)
+                    _edicaoServicoPendente = null;
+            };
+            linha.EstadoExternoNecessario += (s, e) => AplicarEstadoLinha(linha);
+            linha.AttachedToVisualTree += (s, e) =>
+            {
+                if (!_linhasSenha.Contains(linha))
+                    _linhasSenha.Add(linha);
+                if (_edicaoServicoPendente is { } pendente && pendente.Id == linha.Senha.Id && !linha.EmEdicaoDeServico)
+                    linha.IniciarEdicaoServico(pendente.Texto);
+            };
+            linha.DetachedFromVisualTree += (s, e) =>
+            {
+                _linhasSenha.Remove(linha);
+                if (ReferenceEquals(_linhaFocada, linha))
+                    _linhaFocada = null;
+            };
 
-                var plain = ObterSenhaPlain(senha);
-                if (!string.IsNullOrEmpty(plain))
-                    linha.NivelForca = ForcaSenha.Calcular(plain);
-                if (_itensAuditoria.TryGetValue(senha.Id, out var itemAuditoria))
-                    linha.DefinirAuditoria(itemAuditoria);
-                if (_vazamentosPorId.TryGetValue(senha.Id, out var vazamentos))
-                    linha.Vazamentos = vazamentos;
+            return linha;
+        }
 
-                PainelLista.Children.Add(linha);
-                _linhasSenha.Add(linha);
-            }
+        // Empurra pra linha (recém-criada ou reciclada) o estado que a janela guarda
+        // por Id: larguras de coluna, modo privacidade, seleção em lote, nível de
+        // força, achados de auditoria, contagem de vazamentos e um rascunho de edição
+        // pendente. LinhaSenha.Vincular chama isto via EstadoExternoNecessario a cada
+        // reciclagem.
+        private void AplicarEstadoLinha(LinhaSenha linha)
+        {
+            var senha = linha.Senha;
+            linha.DefinirLargurasColunas(_larguraServico, _larguraUsuario, _larguraCategoria, _larguraData, _larguraAcoes);
+            linha.DefinirModoPrivacidade(_modoPrivacidade);
+            linha.DefinirSelecionada(_selecionados.Contains(senha.Id));
 
-            if (idEmEdicao != null && textoEmEdicao != null)
-                _linhasSenha.FirstOrDefault(l => l.Senha.Id == idEmEdicao.Value)?.IniciarEdicaoServico(textoEmEdicao);
+            var forca = NivelForcaDe(senha);
+            linha.NivelForca = forca >= 0 ? forca : -1;
+            linha.DefinirAuditoria(_itensAuditoria.TryGetValue(senha.Id, out var itemAuditoria) ? itemAuditoria : null);
+            linha.Vazamentos = _vazamentosPorId.TryGetValue(senha.Id, out var vazamentos) ? vazamentos : -1;
+
+            if (_edicaoServicoPendente is { } pendente && pendente.Id == senha.Id && !linha.EmEdicaoDeServico)
+                linha.IniciarEdicaoServico(pendente.Texto);
         }
 
         private async Task CarregarLixeiraAsync()
@@ -1076,8 +1160,8 @@ namespace CofreDeSenhas.Janelas
 
         private void AtualizarListaLixeira()
         {
-            PainelLista.Children.Clear();
             _linhasSenha.Clear();
+            _linhaFocada = null;
 
             var lista = _itensLixeira
                 .OrderByDescending(s => s.DataExclusao)
@@ -1090,8 +1174,8 @@ namespace CofreDeSenhas.Janelas
             BtnVazioNovaSenha.IsVisible = false;
             AutomationProperties.SetName(LblVazio, Idioma.Texto("Trash.Empty"));
 
-            foreach (var senha in lista)
-                PainelLista.Children.Add(CriarLinhaLixeira(senha));
+            PainelLista.ModoLixeira = true;
+            PainelLista.ItemsSource = lista;
         }
 
         private Control CriarLinhaLixeira(Senha senha)
@@ -1126,9 +1210,9 @@ namespace CofreDeSenhas.Janelas
             else
             {
                 var icone = IconesServico.Obter(senha.NomeServico, senha.Url);
-                avatar.Background = new SolidColorBrush(icone.Fundo);
+                avatar.Background = Tema.Pincel(icone.Fundo);
                 avatarTexto.Text = icone.Texto;
-                avatarTexto.Foreground = new SolidColorBrush(icone.Frente);
+                avatarTexto.Foreground = Tema.Pincel(icone.Frente);
             }
 
             var lblServico = new TextBlock
@@ -1244,6 +1328,7 @@ namespace CofreDeSenhas.Janelas
             {
                 await _servicoSenha.RemoverDefinitivamenteAsync(senha.Id);
                 await _servicoSenha.PersistirAsync();
+                _cachePlain.Remove(senha.Id);
                 _servicoAnexos?.RemoverTodos(senha);
                 await PublicarTumbasNaPastaDeSincronizacaoAsync(new[] { senha.Id });
                 await CarregarSenhasAsync();
@@ -1273,6 +1358,9 @@ namespace CofreDeSenhas.Janelas
 
                 await _servicoSenha.EsvaziarLixeiraAsync();
                 await _servicoSenha.PersistirAsync();
+
+                foreach (var item in itensParaLimparAnexos)
+                    _cachePlain.Remove(item.Id);
 
                 // Sobrecarga em lote: limpa UltimosAvisos uma vez só e acumula os
                 // avisos de todos os itens, em vez de um loop de chamadas individuais
@@ -1441,8 +1529,23 @@ namespace CofreDeSenhas.Janelas
 
         private string? ObterSenhaPlain(Senha s)
         {
-            try { return _criptografia?.Descriptografar(s.SenhaHash); }
-            catch { return null; }
+            if (_criptografia == null)
+                return null;
+
+            if (_cachePlain.TryGetValue(s.Id, out var entrada) && entrada.Cifra == s.SenhaHash)
+                return entrada.Plain;
+
+            try
+            {
+                var plain = _criptografia.Descriptografar(s.SenhaHash);
+                _cachePlain[s.Id] = (s.SenhaHash, plain, ForcaSenha.Calcular(plain));
+                return plain;
+            }
+            catch
+            {
+                _cachePlain.Remove(s.Id);
+                return null;
+            }
         }
 
         private string? ObterTotpPlain(Senha s)
@@ -1632,11 +1735,17 @@ namespace CofreDeSenhas.Janelas
 
         private void Filtro_Alterado(object? sender, SelectionChangedEventArgs e) => FiltrarSenhas();
 
-        private void Busca_Alterada(object? sender, TextChangedEventArgs e) => FiltrarSenhas();
+        private void Busca_Alterada(object? sender, TextChangedEventArgs e)
+        {
+            _timerBusca.Stop();
+            _timerBusca.Start();
+        }
 
         private void FiltrarSenhas()
         {
             if (PainelLista == null) return;
+
+            _timerBusca.Stop();
 
             var termo = (TxtBusca.Text ?? "").Trim();
             var categoriaFiltro = (CmbCategoria.SelectedItem as FiltroOrganizacao)?.Categoria;
@@ -1654,35 +1763,52 @@ namespace CofreDeSenhas.Janelas
                 .Where(s => _filtroSeguranca == null || SenhaTemProblema(s, _filtroSeguranca.Value))
                 .ToList();
 
-            filtradas = _somenteRecentes
-                ? filtradas
-                    .OrderByDescending(s => s.DataAtualizacao)
-                    .ThenByDescending(s => s.DataCriacao)
-                    .ToList()
-                : OrdenarPorColuna(filtradas);
-
-            filtradas = filtradas.OrderByDescending(s => s.Fixado).ToList();
+            // Uma passada de List.Sort em vez de 2-3 OrderBy().ToList() encadeados —
+            // fixadas no topo, favoritas logo abaixo (sempre alfabéticas entre si), o
+            // resto na ordenação da coluna ativa. Desempate final por Id pra a lista
+            // não "pular" quando reordenada com itens de chave igual.
+            filtradas.Sort(CompararLinha);
 
             _senhasFiltradasAtuais = filtradas;
             AtualizarLista(filtradas);
             AtualizarContador();
         }
 
-        private List<Senha> OrdenarPorColuna(List<Senha> lista) => _colunaOrdenacao switch
+        private int CompararLinha(Senha a, Senha b)
         {
-            ColunaOrdenacao.Usuario => _ordenacaoDescendente
-                ? lista.OrderByDescending(s => s.Usuario, StringComparer.CurrentCultureIgnoreCase).ToList()
-                : lista.OrderBy(s => s.Usuario, StringComparer.CurrentCultureIgnoreCase).ToList(),
-            ColunaOrdenacao.Categoria => _ordenacaoDescendente
-                ? lista.OrderByDescending(RotuloOrdenacaoCategoria, StringComparer.CurrentCultureIgnoreCase).ToList()
-                : lista.OrderBy(RotuloOrdenacaoCategoria, StringComparer.CurrentCultureIgnoreCase).ToList(),
-            ColunaOrdenacao.Forca => _ordenacaoDescendente
-                ? lista.OrderByDescending(NivelForcaDe).ToList()
-                : lista.OrderBy(NivelForcaDe).ToList(),
-            _ => _ordenacaoDescendente
-                ? lista.OrderByDescending(s => s.NomeServico, StringComparer.CurrentCultureIgnoreCase).ToList()
-                : lista.OrderBy(s => s.NomeServico, StringComparer.CurrentCultureIgnoreCase).ToList()
-        };
+            int c = b.Fixado.CompareTo(a.Fixado);
+            if (c != 0) return c;
+
+            c = b.Favorito.CompareTo(a.Favorito);
+            if (c != 0) return c;
+
+            if (a.Favorito)
+            {
+                c = string.Compare(a.NomeServico, b.NomeServico, StringComparison.CurrentCultureIgnoreCase);
+                return c != 0 ? c : a.Id.CompareTo(b.Id);
+            }
+
+            c = CompararOrdenacaoAtiva(a, b);
+            return c != 0 ? c : a.Id.CompareTo(b.Id);
+        }
+
+        private int CompararOrdenacaoAtiva(Senha a, Senha b)
+        {
+            if (_somenteRecentes)
+            {
+                int c = b.DataAtualizacao.CompareTo(a.DataAtualizacao);
+                return c != 0 ? c : b.DataCriacao.CompareTo(a.DataCriacao);
+            }
+
+            int r = _colunaOrdenacao switch
+            {
+                ColunaOrdenacao.Usuario => string.Compare(a.Usuario, b.Usuario, StringComparison.CurrentCultureIgnoreCase),
+                ColunaOrdenacao.Categoria => string.Compare(RotuloOrdenacaoCategoria(a), RotuloOrdenacaoCategoria(b), StringComparison.CurrentCultureIgnoreCase),
+                ColunaOrdenacao.Forca => NivelForcaDe(a).CompareTo(NivelForcaDe(b)),
+                _ => string.Compare(a.NomeServico, b.NomeServico, StringComparison.CurrentCultureIgnoreCase)
+            };
+            return _ordenacaoDescendente ? -r : r;
+        }
 
         private static string RotuloOrdenacaoCategoria(Senha s) =>
             s.Categoria == Categoria.Other && s.Etiquetas.Count > 0
@@ -1692,7 +1818,9 @@ namespace CofreDeSenhas.Janelas
         private int NivelForcaDe(Senha s)
         {
             var plain = ObterSenhaPlain(s);
-            return string.IsNullOrEmpty(plain) ? -1 : ForcaSenha.Calcular(plain);
+            if (string.IsNullOrEmpty(plain))
+                return -1;
+            return _cachePlain.TryGetValue(s.Id, out var entrada) ? entrada.Forca : ForcaSenha.Calcular(plain);
         }
 
         private bool SenhaTemProblema(Senha senha, CategoriaRelatorioSeguranca categoria) => categoria switch
@@ -1738,13 +1866,31 @@ namespace CofreDeSenhas.Janelas
             FiltrarSenhas();
         }
 
+        private string? _culturaCombosFiltro;
+        private string? _assinaturaEtiquetasCombo;
+
         private void AtualizarFiltroOrganizacao()
         {
             if (CmbCategoria == null || CmbEtiqueta == null)
                 return;
 
-            AtualizarComboFiltro(CmbCategoria, ConstruirFiltrosCategoria());
-            AtualizarComboFiltro(CmbEtiqueta, ConstruirFiltrosEtiqueta(_senhasAtuais));
+            // Reatribuir ItemsSource dispara SelectionChanged -> Filtro_Alterado ->
+            // FiltrarSenhas (duas vezes por combo). As categorias só mudam de rótulo
+            // ao trocar o idioma; as etiquetas, quando o conjunto muda. Sem estas
+            // guardas, todo reload rodava FiltrarSenhas várias vezes à toa.
+            if (_culturaCombosFiltro != Idioma.Atual.Codigo)
+            {
+                _culturaCombosFiltro = Idioma.Atual.Codigo;
+                AtualizarComboFiltro(CmbCategoria, ConstruirFiltrosCategoria());
+            }
+
+            var etiquetas = ConstruirFiltrosEtiqueta(_senhasAtuais);
+            var assinatura = string.Join("\n", etiquetas.Select(f => f.Etiqueta));
+            if (assinatura != _assinaturaEtiquetasCombo)
+            {
+                _assinaturaEtiquetasCombo = assinatura;
+                AtualizarComboFiltro(CmbEtiqueta, etiquetas);
+            }
         }
 
         private static void AtualizarComboFiltro(ComboBox combo, List<FiltroOrganizacao> filtros)
@@ -2258,14 +2404,14 @@ namespace CofreDeSenhas.Janelas
                 return;
 
             var icone = IconesServico.Obter(TxtDetalheServico.Text ?? _senhaDetalhe.NomeServico, TxtDetalheUrl.Text);
-            AvatarDetalhe.Background = new SolidColorBrush(icone.Fundo);
+            AvatarDetalhe.Background = Tema.Pincel(icone.Fundo);
             TxtAvatarDetalhe.Text = icone.Texto;
-            TxtAvatarDetalhe.Foreground = new SolidColorBrush(icone.Frente);
+            TxtAvatarDetalhe.Foreground = Tema.Pincel(icone.Frente);
             ToolTip.SetTip(AvatarDetalhe, TxtDetalheServico.Text ?? _senhaDetalhe.NomeServico);
 
             var (bg, fg) = Acessibilidade.CoresCategoria(_senhaDetalhe.Categoria);
-            BadgeDetalheCategoria.Background = new SolidColorBrush(bg);
-            TxtDetalheCategoria.Foreground = new SolidColorBrush(fg);
+            BadgeDetalheCategoria.Background = Tema.Pincel(bg);
+            TxtDetalheCategoria.Foreground = Tema.Pincel(fg);
             TxtDetalheCategoria.Text = _senhaDetalhe.Categoria == Categoria.Other && _senhaDetalhe.Etiquetas.Count > 0
                 ? string.Join(", ", _senhaDetalhe.Etiquetas)
                 : CategoriasUI.Rotulo(_senhaDetalhe.Categoria);
@@ -2580,7 +2726,8 @@ namespace CofreDeSenhas.Janelas
                 if (s.Favorito) await _servicoSenha.RemoverDeFavoritoAsync(s.Id);
                 else await _servicoSenha.MarcarComoFavoritoAsync(s.Id);
                 await _servicoSenha.PersistirAsync();
-                await CarregarSenhasAsync();
+                AtualizarFiltroOrganizacao();
+                FiltrarSenhas();
             }
             catch (Exception ex)
             {
@@ -2597,7 +2744,8 @@ namespace CofreDeSenhas.Janelas
                 if (s.Fixado) await _servicoSenha.RemoverFixacaoAsync(s.Id);
                 else await _servicoSenha.MarcarComoFixadoAsync(s.Id);
                 await _servicoSenha.PersistirAsync();
-                await CarregarSenhasAsync();
+                AtualizarFiltroOrganizacao();
+                FiltrarSenhas();
             }
             catch (Exception ex)
             {
@@ -2620,8 +2768,18 @@ namespace CofreDeSenhas.Janelas
                 return;
 
             var dlg = new JanelaEditarSenha(_servicoSenha, s, _criptografia, _servicoAnexos);
-            if (await AbrirDialogoAsync<bool>(dlg))
-                await CarregarSenhasAsync();
+            if (!await AbrirDialogoAsync<bool>(dlg))
+                return;
+
+            // A entrada é o mesmo objeto que está em _senhasAtuais e foi mutada no
+            // lugar — só re-filtra/reordena. Descarta o cache e o achado de auditoria
+            // desta entrada (podem ter mudado); o resto da auditoria continua válido,
+            // diferente do CarregarSenhasAsync que zerava tudo.
+            _cachePlain.Remove(s.Id);
+            _itensAuditoria.Remove(s.Id);
+            _vazamentosPorId.Remove(s.Id);
+            AtualizarFiltroOrganizacao();
+            FiltrarSenhas();
         }
 
         private async Task ExcluirSenhaAsync(Senha s)
@@ -2652,6 +2810,7 @@ namespace CofreDeSenhas.Janelas
             _senhasAtuais.RemoveAll(s => s.Id == id);
             _itensAuditoria.Remove(id);
             _vazamentosPorId.Remove(id);
+            _cachePlain.Remove(id);
             if (_senhaDetalhe?.Id == id)
                 FecharDetalhes();
             AtualizarFiltroOrganizacao();
