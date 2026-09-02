@@ -350,6 +350,7 @@ namespace CofreDeSenhas
             ("Db.ConnectionCanceledNoTable", "Connessione annullata: la tabella non esiste."),
             ("Db.RestoreTableMissing", "Questo database non ha la cassaforte prevista — la tabella non esiste. Controlla i dati di connessione."),
             ("Db.RestoreNoAuthPublished", "Questo database non ha ancora una password principale pubblicata per il ripristino. Collega prima, a questo database, un dispositivo che abbia già questa cassaforte sbloccata — la pubblicazione avviene da sola alla prossima connessione."),
+            ("Db.RestoreInvalidAuth", "I parametri di derivazione della chiave salvati in questo database sono fuori dall'intervallo accettato. La cassaforte non può essere ripristinata da esso."),
             ("Db.ErrorFileRequired", "Indica il file del database."),
             ("Db.ErrorFieldsRequired", "Compila host, database e utente."),
             ("Db.ErrorInvalidPort", "Porta non valida."),

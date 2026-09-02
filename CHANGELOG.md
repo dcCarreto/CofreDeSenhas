@@ -7,6 +7,14 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 ## [Não lançado]
 
 ### Segurança
+- Os parâmetros de derivação de chave (memória, iterações e paralelismo do
+  Argon2id; iterações do PBKDF2) lidos de fontes externas — arquivo de
+  exportação `.gsenhas`, cabeçalho do `sincronizacao.dat` e a tabela de auth
+  de um banco compartilhado — passam a ser validados contra tetos sãos antes
+  de alimentar o KDF. Um arquivo ou linha de banco adulterado pedindo, por
+  exemplo, alguns terabytes de memória travava ou derrubava o aplicativo por
+  esgotamento de recursos ao importar, ao sincronizar ou ao restaurar de um
+  banco; agora falha rápido com uma mensagem de arquivo inválido.
 - O atualizador em um clique passa a exigir uma assinatura criptográfica destacada
   de `CHECKSUMS.txt`, conferida contra uma chave pública fixada no aplicativo, antes
   de executar o instalador, o portátil ou o AppImage baixado. Até agora a única

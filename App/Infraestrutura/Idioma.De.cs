@@ -350,6 +350,7 @@ namespace CofreDeSenhas
             ("Db.ConnectionCanceledNoTable", "Verbindung abgebrochen: Die Tabelle existiert nicht."),
             ("Db.RestoreTableMissing", "Diese Datenbank hat nicht den erwarteten Tresor — die Tabelle existiert nicht. Überprüfen Sie die Verbindungsdaten."),
             ("Db.RestoreNoAuthPublished", "Diese Datenbank hat noch kein veröffentlichtes Master-Passwort zur Wiederherstellung. Verbinden Sie zuerst ein Gerät, das diesen Tresor bereits entsperrt hat, mit dieser Datenbank — die Veröffentlichung erfolgt automatisch bei der nächsten Verbindung."),
+            ("Db.RestoreInvalidAuth", "Die in dieser Datenbank gespeicherten Parameter zur Schlüsselableitung liegen außerhalb des zulässigen Bereichs. Der Tresor kann daraus nicht wiederhergestellt werden."),
             ("Db.ErrorFileRequired", "Geben Sie die Datenbankdatei an."),
             ("Db.ErrorFieldsRequired", "Füllen Sie Host, Datenbank und Benutzer aus."),
             ("Db.ErrorInvalidPort", "Ungültiger Port."),

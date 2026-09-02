@@ -119,6 +119,10 @@ local) — algo que antes exigia acesso ao dispositivo dono do cofre. O verifica
 permite decifrar o conteúdo do cofre diretamente, só confirmar se uma tentativa de senha
 está correta; o risco real depende da força da senha mestra escolhida e dos parâmetros de
 custo (Argon2id/PBKDF2) usados na derivação, os mesmos que já protegiam `auth.dat` local.
+Esses parâmetros, lidos da tabela de auth do banco (assim como de um arquivo de exportação
+ou do cabeçalho da pasta de sincronização), passam por um teto de sanidade antes de
+alimentar o KDF: um valor absurdo — memória na casa dos terabytes, por exemplo — é
+rejeitado como entrada inválida em vez de esgotar a memória do dispositivo que tenta usar.
 
 ### Desbloqueio biométrico (Windows Hello)
 

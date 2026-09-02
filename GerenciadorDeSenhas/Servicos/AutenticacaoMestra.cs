@@ -165,6 +165,11 @@ namespace GerenciadorDeSenhas.Servicos
         public static byte[] DerivarChaveDeParametros(string senha, byte[] salt, byte kdf, int custo, int memoriaKb, int paralelismo) =>
             DerivarChave(senha, salt, new ParametrosKdf(kdf, custo, memoriaKb, paralelismo));
 
+        public static bool ParametrosDentroDoLimite(byte kdf, int custo, int memoriaKb, int paralelismo) =>
+            kdf == KdfArgon2id
+                ? ProtecaoKdf.Argon2idDentroDoLimite(custo, memoriaKb, paralelismo)
+                : ProtecaoKdf.Pbkdf2DentroDoLimite(custo);
+
         public void GravarAutenticacaoRestaurada(byte[] salt, byte[] verificador, byte kdf, int custo, int memoriaKb, int paralelismo)
         {
             var dados = new byte[SaltSize + VerificadorSize + sizeof(int) + 1 + sizeof(int) + sizeof(int)];
@@ -230,11 +235,15 @@ namespace GerenciadorDeSenhas.Servicos
                 ? DerivarChaveArgon2id(senha, salt, parametros.CustoPrimario, parametros.MemoriaKb, parametros.Paralelismo)
                 : DerivarChavePbkdf2(senha, salt, parametros.CustoPrimario);
 
-        private static byte[] DerivarChavePbkdf2(string senha, byte[] salt, int iteracoes) =>
-            Rfc2898DeriveBytes.Pbkdf2(senha, salt, iteracoes, HashAlgorithmName.SHA256, KeySize);
+        private static byte[] DerivarChavePbkdf2(string senha, byte[] salt, int iteracoes)
+        {
+            ProtecaoKdf.GarantirPbkdf2(iteracoes);
+            return Rfc2898DeriveBytes.Pbkdf2(senha, salt, iteracoes, HashAlgorithmName.SHA256, KeySize);
+        }
 
         private static byte[] DerivarChaveArgon2id(string senha, byte[] salt, int tempoCusto, int memoriaKb, int paralelismo)
         {
+            ProtecaoKdf.GarantirArgon2id(tempoCusto, memoriaKb, paralelismo);
             using var argon2 = new Argon2id(Encoding.UTF8.GetBytes(senha))
             {
                 Salt = salt,

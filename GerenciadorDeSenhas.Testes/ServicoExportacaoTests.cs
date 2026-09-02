@@ -157,6 +157,32 @@ public class ServicoExportacaoTests : IDisposable
     }
 
     [Fact]
+    public async Task Importar_ArquivoPedindoMemoriaAbsurda_FalhaRapidoEmVezDeEsgotarMemoria()
+    {
+        var envelopeAdulterado = new
+        {
+            Versao = 1,
+            Kdf = "Argon2id",
+            Iteracoes = 3,
+            MemoriaKb = int.MaxValue,
+            Paralelismo = 1,
+            Salt = Convert.ToBase64String(RandomNumberGenerator.GetBytes(16)),
+            Iv = Convert.ToBase64String(RandomNumberGenerator.GetBytes(12)),
+            Tag = Convert.ToBase64String(RandomNumberGenerator.GetBytes(16)),
+            Dados = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32))
+        };
+        await File.WriteAllTextAsync(Caminho(), JsonSerializer.Serialize(envelopeAdulterado));
+
+        var relogio = System.Diagnostics.Stopwatch.StartNew();
+        var ex = await Assert.ThrowsAsync<ErroLocalizavel>(() =>
+            _servico.ImportarAsync(Caminho(), "SenhaExport@123"));
+        relogio.Stop();
+
+        Assert.Equal("Export.Error.InvalidFile", ex.Chave);
+        Assert.True(relogio.Elapsed < TimeSpan.FromSeconds(5), $"demorou {relogio.Elapsed}");
+    }
+
+    [Fact]
     public async Task Exportar_QuandoDestinoNaoPodeSerSubstituido_NaoDeixaArquivoTmpOrfao()
     {
         // Ocupa o caminho de destino com um diretório, forçando o passo final da

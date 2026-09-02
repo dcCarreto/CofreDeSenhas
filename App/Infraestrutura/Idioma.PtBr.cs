@@ -414,6 +414,7 @@ namespace CofreDeSenhas
             ("Db.ConnectionCanceledNoTable", "Conexão cancelada: a tabela não existe."),
             ("Db.RestoreTableMissing", "Este banco não tem o cofre esperado — a tabela não existe. Confira os dados de conexão."),
             ("Db.RestoreNoAuthPublished", "Este banco ainda não tem uma senha mestra publicada para restauração. Conecte primeiro, neste banco, um dispositivo que já tenha este cofre desbloqueado — a publicação acontece sozinha na próxima vez que ele conectar."),
+            ("Db.RestoreInvalidAuth", "Os parâmetros de derivação de chave guardados neste banco estão fora da faixa aceita. Não é possível restaurar o cofre a partir dele."),
             ("Db.ErrorFileRequired", "Informe o arquivo do banco."),
             ("Db.ErrorFieldsRequired", "Preencha host, banco de dados e usuário."),
             ("Db.ErrorInvalidPort", "Porta inválida."),

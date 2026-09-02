@@ -342,4 +342,19 @@ public class ServicoSincronizacaoTests : IDisposable
 
         Assert.NotEqual(chaveArgon2id, chavePbkdf2);
     }
+
+    [Fact]
+    public void DerivarChave_CabecalhoPedindoCustoAbsurdo_FalhaRapidoEmVezDeTravar()
+    {
+        var salt = ServicoSincronizacao.GerarSalt();
+
+        var relogio = System.Diagnostics.Stopwatch.StartNew();
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            ServicoSincronizacao.DerivarChave("SenhaMestra@123", salt, "Argon2id", 3, int.MaxValue, 1));
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            ServicoSincronizacao.DerivarChave("SenhaMestra@123", salt, kdf: null, int.MaxValue));
+        relogio.Stop();
+
+        Assert.True(relogio.Elapsed < TimeSpan.FromSeconds(5), $"demorou {relogio.Elapsed}");
+    }
 }

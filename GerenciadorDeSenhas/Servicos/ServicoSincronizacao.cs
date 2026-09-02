@@ -40,15 +40,20 @@ namespace GerenciadorDeSenhas.Servicos
             (KdfArgon2id, TempoCustoAtual, MemoriaKbAtual, ParalelismoAtual);
 
         public static byte[] DerivarChave(string senhaMestraPlaintext, byte[] salt, string? kdf, int iteracoes,
-            int? memoriaKb = null, int? paralelismo = null) =>
-            string.Equals(kdf, KdfArgon2id, StringComparison.OrdinalIgnoreCase)
-                ? DerivarChaveArgon2id(senhaMestraPlaintext, salt, iteracoes,
-                    memoriaKb ?? MemoriaKbAtual, paralelismo ?? ParalelismoAtual)
-                : Rfc2898DeriveBytes.Pbkdf2(senhaMestraPlaintext, salt,
-                    iteracoes > 0 ? iteracoes : Iteracoes, HashAlgorithmName.SHA256, KeySize);
+            int? memoriaKb = null, int? paralelismo = null)
+        {
+            if (string.Equals(kdf, KdfArgon2id, StringComparison.OrdinalIgnoreCase))
+                return DerivarChaveArgon2id(senhaMestraPlaintext, salt, iteracoes,
+                    memoriaKb ?? MemoriaKbAtual, paralelismo ?? ParalelismoAtual);
+
+            var iteracoesPbkdf2 = iteracoes > 0 ? iteracoes : Iteracoes;
+            ProtecaoKdf.GarantirPbkdf2(iteracoesPbkdf2);
+            return Rfc2898DeriveBytes.Pbkdf2(senhaMestraPlaintext, salt, iteracoesPbkdf2, HashAlgorithmName.SHA256, KeySize);
+        }
 
         private static byte[] DerivarChaveArgon2id(string senha, byte[] salt, int tempoCusto, int memoriaKb, int paralelismo)
         {
+            ProtecaoKdf.GarantirArgon2id(tempoCusto, memoriaKb, paralelismo);
             using var argon2 = new Argon2id(Encoding.UTF8.GetBytes(senha))
             {
                 Salt = salt,

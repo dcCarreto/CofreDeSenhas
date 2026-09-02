@@ -170,6 +170,12 @@ namespace CofreDeSenhas.Janelas
                 return;
             }
 
+            if (!AutenticacaoMestra.ParametrosDentroDoLimite(auth.Kdf, auth.Custo, auth.MemoriaKb, auth.Paralelismo))
+            {
+                MostrarErro(Idioma.Texto("Db.RestoreInvalidAuth"));
+                return;
+            }
+
             var dlgSenha = new JanelaConfirmarSenhaMestra(
                 titulo: Idioma.Texto("Login.RestoreTitle"),
                 instrucao: Idioma.Texto("Login.RestoreInstruction"),

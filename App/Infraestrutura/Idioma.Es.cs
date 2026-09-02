@@ -350,6 +350,7 @@ namespace CofreDeSenhas
             ("Db.ConnectionCanceledNoTable", "Conexión cancelada: la tabla no existe."),
             ("Db.RestoreTableMissing", "Esta base de datos no tiene la caja esperada — la tabla no existe. Revisa los datos de conexión."),
             ("Db.RestoreNoAuthPublished", "Esta base de datos todavía no tiene una contraseña maestra publicada para restauración. Conecta primero, en esta base de datos, un dispositivo que ya tenga esta caja desbloqueada — la publicación ocurre sola la próxima vez que se conecte."),
+            ("Db.RestoreInvalidAuth", "Los parámetros de derivación de clave guardados en esta base de datos están fuera del rango aceptado. No se puede restaurar la caja fuerte desde ella."),
             ("Db.ErrorFileRequired", "Informa el archivo de la base."),
             ("Db.ErrorFieldsRequired", "Completa host, base de datos y usuario."),
             ("Db.ErrorInvalidPort", "Puerto no válido."),

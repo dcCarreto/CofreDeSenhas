@@ -241,6 +241,29 @@ public class AutenticacaoMestraTests : IDisposable
     }
 
     [Fact]
+    public void Autenticar_ComArquivoPedindoMemoriaAbsurda_RetornaNullRapidoSemLancar()
+    {
+        var dados = new byte[16 + 32 + sizeof(int) + 1 + sizeof(int) + sizeof(int)];
+        var offset = 16 + 32;
+        BitConverter.GetBytes(3).CopyTo(dados, offset);
+        offset += sizeof(int);
+        dados[offset] = 1;
+        offset += 1;
+        BitConverter.GetBytes(int.MaxValue).CopyTo(dados, offset);
+        offset += sizeof(int);
+        BitConverter.GetBytes(1).CopyTo(dados, offset);
+        File.WriteAllText(Path.Combine(_pasta, "auth.dat"), Convert.ToBase64String(dados));
+
+        var relogio = System.Diagnostics.Stopwatch.StartNew();
+        var excecao = Record.Exception(() => _auth.Autenticar("SenhaMestra@123"));
+        relogio.Stop();
+
+        Assert.Null(excecao);
+        Assert.Null(_auth.Autenticar("SenhaMestra@123"));
+        Assert.True(relogio.Elapsed < TimeSpan.FromSeconds(5), $"demorou {relogio.Elapsed}");
+    }
+
+    [Fact]
     public void TentarLerParametros_SemArquivo_RetornaFalse()
     {
         var achou = _auth.TentarLerParametros(out _, out _, out _, out _, out _, out _);

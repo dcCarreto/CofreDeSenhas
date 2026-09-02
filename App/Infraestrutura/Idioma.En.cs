@@ -404,6 +404,7 @@ namespace CofreDeSenhas
             ("Db.ConnectionCanceledNoTable", "Connection canceled: the table does not exist."),
             ("Db.RestoreTableMissing", "This database doesn't have the expected vault — the table doesn't exist. Check the connection details."),
             ("Db.RestoreNoAuthPublished", "This database doesn't have a master password published for restoration yet. First connect a device that already has this vault unlocked to this database — publishing happens automatically the next time it connects."),
+            ("Db.RestoreInvalidAuth", "The key-derivation settings stored in this database are outside the accepted range. The vault can't be restored from it."),
             ("Db.ErrorFileRequired", "Enter the database file."),
             ("Db.ErrorFieldsRequired", "Fill in host, database, and user."),
             ("Db.ErrorInvalidPort", "Invalid port."),

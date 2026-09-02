@@ -352,6 +352,7 @@ namespace CofreDeSenhas
             ("Db.ConnectionCanceledNoTable", "Connexion annulée : la table n'existe pas."),
             ("Db.RestoreTableMissing", "Cette base de données n'a pas le coffre attendu — la table n'existe pas. Vérifiez les informations de connexion."),
             ("Db.RestoreNoAuthPublished", "Cette base de données n'a pas encore de mot de passe maître publié pour la restauration. Connectez d'abord, sur cette base de données, un appareil qui a déjà ce coffre déverrouillé — la publication se fait automatiquement à sa prochaine connexion."),
+            ("Db.RestoreInvalidAuth", "Les paramètres de dérivation de clé enregistrés dans cette base de données sont hors de la plage acceptée. Le coffre ne peut pas en être restauré."),
             ("Db.ErrorFileRequired", "Indiquez le fichier de base."),
             ("Db.ErrorFieldsRequired", "Remplissez hôte, base de données et utilisateur."),
             ("Db.ErrorInvalidPort", "Port invalide."),
