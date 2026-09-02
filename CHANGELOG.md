@@ -7,6 +7,16 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 ## [Não lançado]
 
 ### Segurança
+- Conexão a um banco externo ganha a opção "Exigir assinatura de integridade
+  nas linhas", ligada por padrão em conexões novas. Com ela ligada, uma linha
+  do banco compartilhado sem HMAC não entra mais na mesclagem — fica de fora
+  do cofre e aparece na tela de conflitos de sincronização. Antes, uma linha
+  sem HMAC era tratada como confiável e mesclada mesmo assim (só registrava um
+  aviso), então quem tivesse acesso de escrita ao banco podia forjar campos em
+  texto puro — trocar a URL de uma credencial por um site de phishing, por
+  exemplo — ou reverter uma senha para um valor antigo, bastando não gravar o
+  HMAC. A opção fica desligada em "Restaurar de um banco" e pode ser desligada
+  à mão para um banco compartilhado com dispositivos numa versão antiga do app.
 - Os parâmetros de derivação de chave (memória, iterações e paralelismo do
   Argon2id; iterações do PBKDF2) lidos de fontes externas — arquivo de
   exportação `.gsenhas`, cabeçalho do `sincronizacao.dat` e a tabela de auth

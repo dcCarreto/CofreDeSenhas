@@ -407,6 +407,8 @@ namespace CofreDeSenhas
             ("Db.Password", "Senha"),
             ("Db.RequireValidCertificate", "Exigir certificado válido do servidor"),
             ("Db.RequireValidCertificateHelp", "Desligado (padrão): a conexão é sempre cifrada, mas aceita certificado autoassinado — comum em banco local ou na rede interna. Ligue para exigir um certificado validado por uma autoridade confiável, recomendado para banco fora da sua rede."),
+            ("Db.RequireRowIntegrity", "Exigir assinatura de integridade nas linhas"),
+            ("Db.RequireRowIntegrityHelp", "Ligado (padrão): linhas do banco compartilhado sem uma assinatura de integridade válida ficam de fora da mesclagem em vez de entrar no seu cofre, e aparecem na tela de conflitos de sincronização. Desligue só se você compartilha este banco com dispositivos numa versão antiga do aplicativo, que ainda não gravam essa assinatura."),
             ("Db.SQLitePickerTitle", "Arquivo do banco SQLite"),
             ("Db.ConnectionSuccess", "Conexão bem-sucedida."),
             ("Db.CreateTableTitle", "Criar tabela"),

@@ -345,6 +345,8 @@ namespace CofreDeSenhas
             ("Db.Database", "Base de données"), ("Db.User", "Utilisateur"), ("Db.Password", "Mot de passe"),
             ("Db.RequireValidCertificate", "Exiger un certificat de serveur valide"),
             ("Db.RequireValidCertificateHelp", "Désactivé (par défaut) : la connexion est toujours chiffrée, mais accepte un certificat auto-signé — courant pour une base locale ou sur le réseau interne. Activez pour exiger un certificat validé par une autorité de confiance, recommandé pour une base hors de votre réseau."),
+            ("Db.RequireRowIntegrity", "Exiger une signature d'intégrité sur les lignes"),
+            ("Db.RequireRowIntegrityHelp", "Activé (par défaut) : les lignes de la base partagée sans signature d'intégrité valide sont écartées de la fusion au lieu d'entrer dans votre coffre, et apparaissent dans l'écran des conflits de synchronisation. Désactivez uniquement si vous partagez cette base avec des appareils utilisant une ancienne version de l'application, qui n'écrivent pas encore cette signature."),
             ("Db.SQLitePickerTitle", "Fichier de base SQLite"),
             ("Db.ConnectionSuccess", "Connexion réussie."),
             ("Db.CreateTableTitle", "Créer la table"),

@@ -14,6 +14,7 @@ namespace GerenciadorDeSenhas.Repositorios
         private readonly ServicoBancoDados _bd = new();
         private readonly string _tabela = ServicoBancoDados.NomeTabela;
         private readonly IServicoCriptografia? _integridade;
+        private readonly bool _exigirIntegridade;
 
         private readonly Dictionary<Guid, long> _mapa = new();
         private List<Senha> _senhas = new();
@@ -30,10 +31,18 @@ namespace GerenciadorDeSenhas.Repositorios
         private readonly List<(Guid Id, string NomeServico)> _semVerificacaoIntegridade = new();
         public IReadOnlyList<(Guid Id, string NomeServico)> SemVerificacaoIntegridade => _semVerificacaoIntegridade;
 
+        // GUIDs deixados de fora de _senhas por integridade: sempre os de hmac inválido e,
+        // quando o banco está em modo estrito (ConexaoBanco.ExigirIntegridade), também os
+        // sem hmac nenhum. RepositorioSenhaEspelhado usa este conjunto para não republicar
+        // por cima dessas linhas antes de o usuário ver o conflito.
+        private readonly HashSet<Guid> _idsForaDoMerge = new();
+        public IReadOnlySet<Guid> IdsForaDoMerge => _idsForaDoMerge;
+
         public RepositorioSenhaBanco(ConexaoBanco cfg, IServicoCriptografia? integridade = null)
         {
             _cfg = cfg ?? throw new ArgumentNullException(nameof(cfg));
             _integridade = integridade;
+            _exigirIntegridade = cfg.ExigirIntegridade;
         }
 
         private async Task<DbConnection> AbrirConexaoAsync()
@@ -53,6 +62,7 @@ namespace GerenciadorDeSenhas.Repositorios
             _mapa.Clear();
             _violacoesIntegridade.Clear();
             _semVerificacaoIntegridade.Clear();
+            _idsForaDoMerge.Clear();
 
             await using var con = await AbrirConexaoAsync();
 
@@ -94,10 +104,16 @@ namespace GerenciadorDeSenhas.Repositorios
                     if (string.IsNullOrEmpty(hmacArmazenado))
                     {
                         _semVerificacaoIntegridade.Add((senha.Id, senha.NomeServico));
+                        if (_exigirIntegridade)
+                        {
+                            _idsForaDoMerge.Add(senha.Id);
+                            continue;
+                        }
                     }
                     else if (!_integridade.VerificarHmacIntegridade(CalcularAssinatura(senha), hmacArmazenado))
                     {
                         _violacoesIntegridade.Add((senha.Id, senha.NomeServico));
+                        _idsForaDoMerge.Add(senha.Id);
                         continue;
                     }
                 }

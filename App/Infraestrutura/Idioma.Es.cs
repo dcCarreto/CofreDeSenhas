@@ -343,6 +343,8 @@ namespace CofreDeSenhas
             ("Db.Database", "Base de datos"), ("Db.User", "Usuario"), ("Db.Password", "Contraseña"),
             ("Db.RequireValidCertificate", "Exigir certificado válido del servidor"),
             ("Db.RequireValidCertificateHelp", "Desactivado (predeterminado): la conexión siempre está cifrada, pero acepta certificado autofirmado — común en base local o en la red interna. Actívalo para exigir un certificado validado por una autoridad confiable, recomendado para una base fuera de tu red."),
+            ("Db.RequireRowIntegrity", "Exigir firma de integridad en las filas"),
+            ("Db.RequireRowIntegrityHelp", "Activado (predeterminado): las filas de la base compartida sin una firma de integridad válida quedan fuera de la fusión en lugar de entrar en tu caja fuerte, y aparecen en la pantalla de conflictos de sincronización. Desactívalo solo si compartes esta base con dispositivos en una versión antigua de la aplicación, que todavía no escriben esa firma."),
             ("Db.SQLitePickerTitle", "Archivo de base SQLite"),
             ("Db.ConnectionSuccess", "Conexión exitosa."),
             ("Db.CreateTableTitle", "Crear tabla"),

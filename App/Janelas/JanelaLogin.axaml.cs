@@ -235,7 +235,8 @@ namespace CofreDeSenhas.Janelas
                         : cripto.Criptografar(cfg.SenhaServidor),
                     Conectado = true,
                     ReconciliacaoInicialConcluida = true,
-                    ExigirCertificadoValido = cfg.ExigirCertificadoValido
+                    ExigirCertificadoValido = cfg.ExigirCertificadoValido,
+                    ExigirIntegridade = cfg.ExigirIntegridade
                 };
                 Preferencias.Salvar();
             }

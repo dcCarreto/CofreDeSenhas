@@ -31,6 +31,8 @@ public class RepositorioSenhaEspelhadoTests : IDisposable
 
     private RepositorioSenha NovoLocal() => new(new PersistenciaEmMemoria(), _chave);
     private RepositorioSenhaBanco NovoBanco() => new(_cfg, _cripto);
+    private RepositorioSenhaBanco NovoBancoEstrito() =>
+        new(new ConexaoBanco { Tipo = TipoBanco.SQLite, Banco = _arquivo, ExigirIntegridade = true }, _cripto);
 
     private Senha Nova(string dominio, string usuario, string plaintext) => new()
     {
@@ -592,6 +594,55 @@ public class RepositorioSenhaEspelhadoTests : IDisposable
         var conflito = Assert.Single(espelho.UltimosConflitos);
         Assert.Equal(id, conflito.SenhaId);
         Assert.Equal(TipoConflitoSincronizacao.IntegridadeAusente, conflito.Tipo);
+    }
+
+    [Fact]
+    public async Task Mesclar_ModoEstrito_LinhaSemHmac_FicaForaDaMesclagemMasRegistraConflito()
+    {
+        var id = Guid.NewGuid();
+        await NovoBanco().AdicionarAsync(NovaComId(id, "sem-hmac.com", "u", "conteudo", DateTime.UtcNow));
+
+        await using (var con = _bd.CriarConexao(_cfg))
+        {
+            await con.OpenAsync();
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = "UPDATE CofreDeSenhas SET hmac = NULL";
+            await cmd.ExecuteNonQueryAsync();
+        }
+
+        var local = NovoLocal();
+        var espelho = new RepositorioSenhaEspelhado(local, NovoBancoEstrito(), reconciliacaoJaRealizada: true);
+        var todas = await espelho.ListarTodosAsync();
+
+        Assert.Empty(todas);
+        var conflito = Assert.Single(espelho.UltimosConflitos);
+        Assert.Equal(id, conflito.SenhaId);
+        Assert.Equal(TipoConflitoSincronizacao.IntegridadeAusente, conflito.Tipo);
+    }
+
+    [Fact]
+    public async Task Mesclar_ModoEstrito_NaoRepublicaHmacNovoPorCimaDaLinhaSemHmac()
+    {
+        var id = Guid.NewGuid();
+        await NovoBanco().AdicionarAsync(NovaComId(id, "sem-hmac.com", "u", "conteudo-do-banco", DateTime.UtcNow.AddDays(-1)));
+
+        await using (var con = _bd.CriarConexao(_cfg))
+        {
+            await con.OpenAsync();
+            await using var cmd = con.CreateCommand();
+            cmd.CommandText = "UPDATE CofreDeSenhas SET hmac = NULL";
+            await cmd.ExecuteNonQueryAsync();
+        }
+
+        var local = NovoLocal();
+        await local.AdicionarAsync(NovaComId(id, "confiavel.com", "u", "conteudo-local", DateTime.UtcNow));
+
+        var espelho = new RepositorioSenhaEspelhado(local, NovoBancoEstrito(), reconciliacaoJaRealizada: true);
+        await espelho.ListarTodosAsync();
+
+        var repoDireto = NovoBancoEstrito();
+        await repoDireto.ListarTudoAsync();
+        Assert.Contains(repoDireto.SemVerificacaoIntegridade, v => v.Id == id);
     }
 
     private async Task<long> ContarLinhas(string sql)

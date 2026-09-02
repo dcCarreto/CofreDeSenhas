@@ -3628,7 +3628,8 @@ namespace CofreDeSenhas.Janelas
                         Banco = perfilBanco.Banco,
                         Usuario = perfilBanco.Usuario,
                         SenhaServidor = senhaServidorPlano,
-                        ExigirCertificadoValido = perfilBanco.ExigirCertificadoValido
+                        ExigirCertificadoValido = perfilBanco.ExigirCertificadoValido,
+                        ExigirIntegridade = perfilBanco.ExigirIntegridade
                     };
 
                     var todasAtuais = (await _servicoSenha.ListarTodosAsync()).Concat(await _servicoSenha.ListarLixeiraAsync());
@@ -3923,7 +3924,8 @@ namespace CofreDeSenhas.Janelas
                             : _criptografia!.Criptografar(cfg.SenhaServidor),
                         Conectado = true,
                         ReconciliacaoInicialConcluida = espelho?.ReconciliacaoRealizadaNestaSessao == true,
-                        ExigirCertificadoValido = cfg.ExigirCertificadoValido
+                        ExigirCertificadoValido = cfg.ExigirCertificadoValido,
+                        ExigirIntegridade = cfg.ExigirIntegridade
                     };
                     Preferencias.Salvar();
                 }
@@ -4003,7 +4005,8 @@ namespace CofreDeSenhas.Janelas
                 Porta = perfil.Porta,
                 Banco = perfil.Banco,
                 Usuario = perfil.Usuario,
-                ExigirCertificadoValido = perfil.ExigirCertificadoValido
+                ExigirCertificadoValido = perfil.ExigirCertificadoValido,
+                ExigirIntegridade = perfil.ExigirIntegridade
             };
 
             if (!string.IsNullOrEmpty(perfil.SenhaCifrada))

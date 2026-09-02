@@ -343,6 +343,8 @@ namespace CofreDeSenhas
             ("Db.Database", "Database"), ("Db.User", "Utente"), ("Db.Password", "Password"),
             ("Db.RequireValidCertificate", "Richiedi certificato del server valido"),
             ("Db.RequireValidCertificateHelp", "Disattivato (predefinito): la connessione è sempre cifrata, ma accetta un certificato autofirmato — comune per un database locale o sulla rete interna. Attiva per richiedere un certificato validato da un'autorità affidabile, consigliato per un database fuori dalla tua rete."),
+            ("Db.RequireRowIntegrity", "Richiedi una firma di integrità sulle righe"),
+            ("Db.RequireRowIntegrityHelp", "Attivo (predefinito): le righe del database condiviso senza una firma di integrità valida restano fuori dall'unione invece di entrare nella tua cassaforte, e compaiono nella schermata dei conflitti di sincronizzazione. Disattiva solo se condividi questo database con dispositivi che usano una versione precedente dell'app, che non scrivono ancora quella firma."),
             ("Db.SQLitePickerTitle", "File database SQLite"),
             ("Db.ConnectionSuccess", "Connessione riuscita."),
             ("Db.CreateTableTitle", "Crea tabella"),

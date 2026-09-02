@@ -397,6 +397,8 @@ namespace CofreDeSenhas
             ("Db.Password", "Password"),
             ("Db.RequireValidCertificate", "Require a valid server certificate"),
             ("Db.RequireValidCertificateHelp", "Off (default): the connection is always encrypted, but accepts a self-signed certificate — common for a local or LAN database. Turn on to require a certificate validated by a trusted authority, recommended for a database outside your network."),
+            ("Db.RequireRowIntegrity", "Require an integrity signature on rows"),
+            ("Db.RequireRowIntegrityHelp", "On (default): rows in the shared database without a valid integrity signature are kept out of the merge instead of entering your vault, and show up in the sync conflicts screen. Turn off only if you share this database with devices running an older version of the app that doesn't write that signature yet."),
             ("Db.SQLitePickerTitle", "SQLite database file"),
             ("Db.ConnectionSuccess", "Connection successful."),
             ("Db.CreateTableTitle", "Create table"),

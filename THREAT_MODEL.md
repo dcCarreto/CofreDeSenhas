@@ -94,11 +94,14 @@ fica registrada e visível na tela de log de conflitos de sincronização do apl
 **O que não mudou:** o HMAC garante integridade, não confidencialidade. Um administrador do
 banco (ou qualquer pessoa com acesso de leitura direto às linhas) continua conseguindo
 **ler** nome de serviço, usuário, notas e etiquetas em texto puro — só não consegue mais
-**alterar** esses campos sem ser detectado. Linhas gravadas por uma instalação anterior a
-essa mudança, sem HMAC nenhum na coluna, são tratadas como confiáveis (não como violação) —
-rejeitar todo dado legado quebraria a leitura de um banco compartilhado por dispositivos
-ainda não atualizados; a próxima gravação naquela linha, feita por qualquer dispositivo já
-atualizado, passa a assiná-la.
+**alterar** esses campos sem ser detectado. O tratamento de uma linha **sem HMAC nenhum**
+na coluna depende da opção "Exigir assinatura de integridade nas linhas" da conexão, ligada
+por padrão em conexões novas: ligada, a linha fica de fora da mesclagem (não entra no cofre)
+e é registrada como conflito, fechando a brecha de forjar uma linha nova simplesmente não
+gravando o HMAC; desligada — necessário só enquanto o banco é compartilhado com dispositivos
+numa versão do app anterior a esse recurso —, a linha sem HMAC volta a ser tratada como
+legado confiável e mesclada, com um aviso. Em qualquer dos modos, a próxima gravação naquela
+linha por um dispositivo atualizado passa a assiná-la.
 
 Também nesta versão: a conexão ao banco pode exigir certificado de servidor validado por
 uma autoridade confiável (opção "Exigir certificado válido do servidor", desligada por

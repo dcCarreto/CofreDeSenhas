@@ -343,6 +343,8 @@ namespace CofreDeSenhas
             ("Db.Database", "Datenbank"), ("Db.User", "Benutzer"), ("Db.Password", "Passwort"),
             ("Db.RequireValidCertificate", "Gültiges Serverzertifikat verlangen"),
             ("Db.RequireValidCertificateHelp", "Aus (Standard): Die Verbindung ist immer verschlüsselt, akzeptiert aber ein selbstsigniertes Zertifikat — üblich bei einer lokalen Datenbank oder im internen Netzwerk. Aktivieren, um ein von einer vertrauenswürdigen Stelle validiertes Zertifikat zu verlangen, empfohlen für eine Datenbank außerhalb Ihres Netzwerks."),
+            ("Db.RequireRowIntegrity", "Integritätssignatur für Zeilen verlangen"),
+            ("Db.RequireRowIntegrityHelp", "Ein (Standard): Zeilen der gemeinsamen Datenbank ohne gültige Integritätssignatur bleiben von der Zusammenführung ausgeschlossen, statt in Ihren Tresor zu gelangen, und erscheinen im Bildschirm für Synchronisierungskonflikte. Nur ausschalten, wenn Sie diese Datenbank mit Geräten teilen, die eine ältere Version der App verwenden, die diese Signatur noch nicht schreibt."),
             ("Db.SQLitePickerTitle", "SQLite-Datenbankdatei"),
             ("Db.ConnectionSuccess", "Verbindung erfolgreich."),
             ("Db.CreateTableTitle", "Tabelle erstellen"),
