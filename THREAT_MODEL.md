@@ -159,10 +159,14 @@ acesso com uma chave desatualizada.
   a partir daquele commit exato. As dependências de terceiros usadas *pelo próprio
   workflow* (GitHub Actions de checkout, build, upload/download e publicação) são fixadas
   por hash de commit, não por tag flutuante, e o `appimagetool` baixado durante o build do
-  Linux tem versão fixa com hash conferido antes de rodar. Assinatura de código
-  (Authenticode) no instalador Windows segue como item futuro do roadmap, hoje sem
-  certificado disponível — é o que eliminaria o aviso de "editor desconhecido" do
-  SmartScreen.
+  Linux tem versão fixa com hash conferido antes de rodar. O atualizador em um clique
+  embutido no aplicativo, além de conferir o SHA256, exige uma assinatura destacada de
+  `CHECKSUMS.txt` verificada contra uma chave pública fixada no binário antes de executar
+  o instalador/portátil/AppImage baixado — se a assinatura faltar ou não conferir, a
+  atualização automática é recusada e a página de releases é aberta para download manual.
+  Assinatura de código (Authenticode) no instalador Windows segue como item futuro do
+  roadmap, hoje sem certificado disponível — é o que eliminaria o aviso de "editor
+  desconhecido" do SmartScreen.
 
 ## Como isso evolui
 

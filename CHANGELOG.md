@@ -6,6 +6,16 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+### Segurança
+- O atualizador em um clique passa a exigir uma assinatura criptográfica destacada
+  de `CHECKSUMS.txt`, conferida contra uma chave pública fixada no aplicativo, antes
+  de executar o instalador, o portátil ou o AppImage baixado. Até agora a única
+  barreira era o hash SHA256 de um `CHECKSUMS.txt` sem assinatura — um intermediário
+  de TLS com certificado confiável, ou um comprometimento da release, trocaria o
+  arquivo de hashes junto com o binário e o aplicativo instalaria código arbitrário
+  sem aviso. Sem assinatura válida na release, a atualização automática é recusada e
+  a página de lançamentos é aberta para download manual.
+
 ## [2.2.2] - 2026-08-27
 
 Rodada de endurecimento em cima da 2.2.1: uma auditoria sistemática de todo o

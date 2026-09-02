@@ -70,6 +70,8 @@ namespace CofreDeSenhas
             ("Update.Error.AssetNotFound", "Arquivo de atualização não encontrado nesta versão."),
             ("Update.Error.ChecksumUnavailable", "Não foi possível verificar a integridade do arquivo."),
             ("Update.Error.ChecksumMismatch", "A verificação de integridade do arquivo baixado falhou."),
+            ("Update.Error.SignatureMissing", "Esta versão não traz a assinatura de atualização. Baixe a nova versão manualmente pela página de lançamentos."),
+            ("Update.Error.SignatureInvalid", "A assinatura da atualização não confere. O arquivo pode ter sido adulterado — não instale."),
             ("Update.Dismiss", "Dispensar aviso de atualização"),
             ("Icons.ConsentMessage", "Para exibir o ícone real de cada serviço, o aplicativo consulta o serviço de ícones do Google enviando apenas o domínio do site (por exemplo, github.com). Nenhuma senha, usuário ou outro dado sai do seu computador, e os ícones baixados ficam em cache no disco para evitar novas consultas.\n\nDeseja ativar a busca de ícones online?"),
             ("Privacy.Enable", "Ativar modo privacidade"),

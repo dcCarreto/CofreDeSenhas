@@ -52,6 +52,8 @@ namespace CofreDeSenhas
             ("Update.Error.AssetNotFound", "Fichier de mise à jour introuvable pour cette version."),
             ("Update.Error.ChecksumUnavailable", "Impossible de vérifier l'intégrité du fichier."),
             ("Update.Error.ChecksumMismatch", "La vérification d'intégrité du fichier téléchargé a échoué."),
+            ("Update.Error.SignatureMissing", "Cette version n'inclut pas la signature de mise à jour. Téléchargez la nouvelle version manuellement depuis la page des versions."),
+            ("Update.Error.SignatureInvalid", "La signature de la mise à jour ne correspond pas. Le fichier a peut-être été altéré - ne l'installez pas."),
             ("Update.Dismiss", "Ignorer l'avis de mise à jour"),
             ("Icons.ConsentMessage", "Pour afficher l'icône réelle de chaque service, l'application interroge le service d'icônes de Google en envoyant uniquement le domaine du site (par exemple, github.com). Aucun mot de passe, identifiant ou autre donnée ne quitte votre ordinateur, et les icônes téléchargées sont mises en cache sur le disque pour éviter de nouvelles requêtes.\n\nActiver la récupération d'icônes en ligne ?"),
             ("Privacy.Enable", "Activer le mode confidentialité"), ("Privacy.Disable", "Désactiver le mode confidentialité"),

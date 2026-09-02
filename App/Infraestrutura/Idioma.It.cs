@@ -52,6 +52,8 @@ namespace CofreDeSenhas
             ("Update.Error.AssetNotFound", "File di aggiornamento non trovato per questa versione."),
             ("Update.Error.ChecksumUnavailable", "Non è stato possibile verificare l'integrità del file."),
             ("Update.Error.ChecksumMismatch", "La verifica di integrità del file scaricato non è riuscita."),
+            ("Update.Error.SignatureMissing", "Questa versione non include la firma di aggiornamento. Scarica la nuova versione manualmente dalla pagina delle release."),
+            ("Update.Error.SignatureInvalid", "La firma dell'aggiornamento non corrisponde. Il file potrebbe essere stato manomesso: non installarlo."),
             ("Update.Dismiss", "Ignora avviso di aggiornamento"),
             ("Icons.ConsentMessage", "Per mostrare l'icona reale di ogni servizio, l'app interroga il servizio di icone di Google inviando solo il dominio del sito (ad esempio, github.com). Nessuna password, nome utente o altro dato lascia il tuo computer, e le icone scaricate vengono salvate nella cache su disco per evitare nuove richieste.\n\nAttivare il recupero delle icone online?"),
             ("Privacy.Enable", "Attiva modalità privacy"), ("Privacy.Disable", "Disattiva modalità privacy"),

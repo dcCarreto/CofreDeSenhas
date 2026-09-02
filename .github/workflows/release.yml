@@ -245,6 +245,26 @@ jobs:
           sha256sum * > CHECKSUMS.txt
           cat CHECKSUMS.txt
 
+      - name: Assinar CHECKSUMS.txt
+        # Assinatura destacada conferida pelo atualizador embutido (ServicoAtualizacao)
+        # contra a chave pública fixa no binário, antes de executar qualquer coisa
+        # baixada — sem isto o cliente confiaria só no SHA256 de um CHECKSUMS.txt sem
+        # assinatura, que um comprometimento da release trocaria junto com o instalador.
+        env:
+          CHAVE_ASSINATURA: ${{ secrets.UPDATE_SIGNING_KEY }}
+        run: |
+          if [ -z "$CHAVE_ASSINATURA" ]; then
+            echo "Secret UPDATE_SIGNING_KEY não configurado — obrigatório para assinar a atualização." >&2
+            exit 1
+          fi
+          umask 077
+          printf '%s\n' "$CHAVE_ASSINATURA" > chave-assinatura.pem
+          openssl pkey -in chave-assinatura.pem -pubout -out chave-assinatura.pub
+          openssl dgst -sha256 -sign chave-assinatura.pem -out dist/CHECKSUMS.txt.sig dist/CHECKSUMS.txt
+          openssl dgst -sha256 -verify chave-assinatura.pub -signature dist/CHECKSUMS.txt.sig dist/CHECKSUMS.txt
+          rm -f chave-assinatura.pem chave-assinatura.pub
+          echo "CHECKSUMS.txt.sig gerado."
+
       - name: Montar notas da release
         run: python3 .github/scripts/montar_notas_release.py "${{ needs.verificar-versao.outputs.versao }}"
 

@@ -1,9 +1,55 @@
+using System.Security.Cryptography;
+using System.Text;
 using CofreDeSenhas;
 
 namespace App.Testes
 {
     public class ServicoAtualizacaoTests
     {
+        private static readonly byte[] ChecksumsExemplo = Encoding.UTF8.GetBytes(
+            "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d  CofreDeSenhas-Setup-9.9.9.exe\n");
+
+        [Fact]
+        public void VerificarAssinaturaChecksums_AceitaAssinaturaDaChaveCorreta()
+        {
+            using var rsa = RSA.Create(3072);
+            var assinatura = rsa.SignData(ChecksumsExemplo, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+
+            Assert.True(ServicoAtualizacao.VerificarAssinaturaChecksums(
+                rsa.ExportSubjectPublicKeyInfoPem(), ChecksumsExemplo, assinatura));
+        }
+
+        [Fact]
+        public void VerificarAssinaturaChecksums_RejeitaConteudoAdulterado()
+        {
+            using var rsa = RSA.Create(3072);
+            var assinatura = rsa.SignData(ChecksumsExemplo, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+            var adulterado = Encoding.UTF8.GetBytes(
+                "0000000000000000000000000000000000000000  CofreDeSenhas-Setup-9.9.9.exe\n");
+
+            Assert.False(ServicoAtualizacao.VerificarAssinaturaChecksums(
+                rsa.ExportSubjectPublicKeyInfoPem(), adulterado, assinatura));
+        }
+
+        [Fact]
+        public void VerificarAssinaturaChecksums_RejeitaAssinaturaDeOutraChave()
+        {
+            using var assinante = RSA.Create(3072);
+            using var confiavel = RSA.Create(3072);
+            var assinatura = assinante.SignData(ChecksumsExemplo, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+
+            Assert.False(ServicoAtualizacao.VerificarAssinaturaChecksums(
+                confiavel.ExportSubjectPublicKeyInfoPem(), ChecksumsExemplo, assinatura));
+        }
+
+        [Fact]
+        public void VerificarAssinaturaChecksums_RejeitaChaveVaziaOuMalformada()
+        {
+            Assert.False(ServicoAtualizacao.VerificarAssinaturaChecksums("", ChecksumsExemplo, new byte[8]));
+            Assert.False(ServicoAtualizacao.VerificarAssinaturaChecksums(
+                "-----BEGIN PUBLIC KEY-----\nnao-e-uma-chave\n-----END PUBLIC KEY-----", ChecksumsExemplo, new byte[8]));
+        }
+
         [Fact]
         public void ExtrairHash_EncontraHashDoArquivoNoFormatoDoSha256Sum()
         {

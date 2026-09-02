@@ -69,6 +69,8 @@ namespace CofreDeSenhas
             ("Update.Error.AssetNotFound", "Update file not found for this version."),
             ("Update.Error.ChecksumUnavailable", "Couldn't verify the file's integrity."),
             ("Update.Error.ChecksumMismatch", "Integrity check of the downloaded file failed."),
+            ("Update.Error.SignatureMissing", "This release doesn't include the update signature. Download the new version manually from the releases page."),
+            ("Update.Error.SignatureInvalid", "The update signature doesn't match. The file may have been tampered with - don't install it."),
             ("Update.Dismiss", "Dismiss update notice"),
             ("Icons.ConsentMessage", "To display each service's real icon, the app queries Google's favicon service, sending only the site's domain (for example, github.com). No password, username, or any other data leaves your computer, and downloaded icons are cached on disk to avoid repeated lookups.\n\nEnable online icon fetching?"),
             ("Privacy.Enable", "Enable privacy mode"),
