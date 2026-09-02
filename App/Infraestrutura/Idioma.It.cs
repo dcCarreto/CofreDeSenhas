@@ -198,7 +198,7 @@ namespace CofreDeSenhas
             ("Login.Error.PasswordLength", "La password deve avere almeno 8 caratteri."),
             ("Login.Error.PasswordMismatch", "Le password non coincidono."),
             ("Login.Error.MasterPasswordRequired", "Inserisci la password principale."),
-            ("Login.Error.TooManyAttempts", "Troppi tentativi. Attendi 5 secondi."),
+            ("Login.Error.TooManyAttempts", "Troppi tentativi di seguito. Aspetta un po' prima di riprovare - l'attesa aumenta a ogni nuova serie di errori."),
             ("Login.Error.WrongPassword", "Password errata. Tentativo {0} di 5."),
             ("Login.RestoreFromDatabase", "Ripristina da un database"),
             ("Login.RestoreTitle", "Ripristina cassaforte"),

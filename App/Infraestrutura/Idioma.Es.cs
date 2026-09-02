@@ -198,7 +198,7 @@ namespace CofreDeSenhas
             ("Login.Error.PasswordLength", "La contraseña debe tener al menos 8 caracteres."),
             ("Login.Error.PasswordMismatch", "Las contraseñas no coinciden."),
             ("Login.Error.MasterPasswordRequired", "Escribe la contraseña maestra."),
-            ("Login.Error.TooManyAttempts", "Demasiados intentos. Espera 5 segundos."),
+            ("Login.Error.TooManyAttempts", "Demasiados intentos seguidos. Espera un poco antes de volver a intentarlo - la espera aumenta con cada nueva ronda de errores."),
             ("Login.Error.WrongPassword", "Contraseña incorrecta. Intento {0} de 5."),
             ("Login.RestoreFromDatabase", "Restaurar desde una base de datos"),
             ("Login.RestoreTitle", "Restaurar caja"),

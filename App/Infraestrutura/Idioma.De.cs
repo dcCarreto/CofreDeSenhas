@@ -198,7 +198,7 @@ namespace CofreDeSenhas
             ("Login.Error.PasswordLength", "Das Passwort muss mindestens 8 Zeichen lang sein."),
             ("Login.Error.PasswordMismatch", "Die Passwörter stimmen nicht überein."),
             ("Login.Error.MasterPasswordRequired", "Geben Sie das Master-Passwort ein."),
-            ("Login.Error.TooManyAttempts", "Zu viele Versuche. Warten Sie 5 Sekunden."),
+            ("Login.Error.TooManyAttempts", "Zu viele Versuche hintereinander. Warten Sie einen Moment, bevor Sie es erneut versuchen - die Wartezeit wächst mit jeder weiteren Fehlerrunde."),
             ("Login.Error.WrongPassword", "Falsches Passwort. Versuch {0} von 5."),
             ("Login.RestoreFromDatabase", "Aus einer Datenbank wiederherstellen"),
             ("Login.RestoreTitle", "Tresor wiederherstellen"),

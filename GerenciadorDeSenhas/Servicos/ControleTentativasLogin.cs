@@ -10,7 +10,21 @@ namespace GerenciadorDeSenhas.Servicos
     public class ControleTentativasLogin
     {
         public const int LimiteTentativas = 5;
-        public static readonly TimeSpan DuracaoBloqueio = TimeSpan.FromSeconds(5);
+
+        // Duração do bloqueio a cada nova rodada de LimiteTentativas erros seguidos sem
+        // um login bem-sucedido no meio: 5s, depois 30s, 2min, 10min, 30min, e daí em
+        // diante 1h. Sem essa escala, o bloqueio fixo de 5s deixava um atacante na tela
+        // de login testar ~5 senhas a cada 5s indefinidamente. Um login correto zera a
+        // escala (RegistrarSucesso apaga o arquivo).
+        public static readonly TimeSpan[] Escalada =
+        {
+            TimeSpan.FromSeconds(5),
+            TimeSpan.FromSeconds(30),
+            TimeSpan.FromMinutes(2),
+            TimeSpan.FromMinutes(10),
+            TimeSpan.FromMinutes(30),
+            TimeSpan.FromHours(1),
+        };
 
         private readonly string _caminho;
 
@@ -20,6 +34,7 @@ namespace GerenciadorDeSenhas.Servicos
         private sealed class Estado
         {
             public int Tentativas { get; set; }
+            public int Rodadas { get; set; }
             public DateTime? BloqueadoAteUtc { get; set; }
         }
 
@@ -38,19 +53,24 @@ namespace GerenciadorDeSenhas.Servicos
         {
             var estado = Ler();
 
-            // Um bloqueio anterior já expirado reseta a contagem — do contrário a
-            // próxima tentativa, mesmo dias depois, reacumularia em cima de um
-            // contador congelado desde a última vez que o limite foi atingido.
+            // Um bloqueio anterior já expirado começa uma rodada nova de contagem, mas
+            // Rodadas fica de pé — a punição da próxima rodada escala a partir daí, do
+            // contrário bastava esperar cada 5s expirar pra ter sempre mais 5 tentativas.
             if (estado.BloqueadoAteUtc is { } ateAnterior && ateAnterior <= DateTime.UtcNow)
-                estado = new Estado();
+            {
+                estado.Tentativas = 0;
+                estado.BloqueadoAteUtc = null;
+            }
 
             estado.Tentativas++;
 
             DateTime? bloqueioNovo = null;
             if (estado.Tentativas >= LimiteTentativas)
             {
-                bloqueioNovo = DateTime.UtcNow + DuracaoBloqueio;
+                var indice = Math.Min(estado.Rodadas, Escalada.Length - 1);
+                bloqueioNovo = DateTime.UtcNow + Escalada[indice];
                 estado.BloqueadoAteUtc = bloqueioNovo;
+                estado.Rodadas++;
             }
 
             Gravar(estado);

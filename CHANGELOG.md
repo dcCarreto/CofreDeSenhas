@@ -7,6 +7,11 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 ## [Não lançado]
 
 ### Segurança
+- O bloqueio da tela de login depois de 5 senhas erradas seguidas passa a
+  escalar: 5 s, depois 30 s, 2 min, 10 min, 30 min e, daí em diante, 1 h a
+  cada nova rodada de 5 erros. Antes eram 5 s fixos e a contagem zerava a
+  cada expiração, então dava para testar ~5 senhas a cada 5 s
+  indefinidamente na própria tela de login. Um login correto zera a escala.
 - No Windows, copiar uma senha, um TOTP, um usuário ou qualquer campo do cofre
   marca o conteúdo para não entrar no Histórico da Área de Transferência (Win+V)
   nem no Cloud Clipboard. Antes, a limpeza automática apagava só o conteúdo

@@ -199,7 +199,7 @@ namespace CofreDeSenhas
             ("Login.Error.PasswordLength", "Le mot de passe doit contenir au moins 8 caractères."),
             ("Login.Error.PasswordMismatch", "Les mots de passe ne correspondent pas."),
             ("Login.Error.MasterPasswordRequired", "Saisissez le mot de passe maître."),
-            ("Login.Error.TooManyAttempts", "Trop de tentatives. Attendez 5 secondes."),
+            ("Login.Error.TooManyAttempts", "Trop de tentatives d'affilée. Attendez un peu avant de réessayer - le délai augmente à chaque nouvelle série d'échecs."),
             ("Login.Error.WrongPassword", "Mot de passe incorrect. Tentative {0} sur 5."),
             ("Login.RestoreFromDatabase", "Restaurer depuis une base de données"),
             ("Login.RestoreTitle", "Restaurer le coffre"),
