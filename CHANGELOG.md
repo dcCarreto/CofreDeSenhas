@@ -7,6 +7,12 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 ## [Não lançado]
 
 ### Segurança
+- No Windows, copiar uma senha, um TOTP, um usuário ou qualquer campo do cofre
+  marca o conteúdo para não entrar no Histórico da Área de Transferência (Win+V)
+  nem no Cloud Clipboard. Antes, a limpeza automática apagava só o conteúdo
+  atual — o que já tinha ido para o histórico ou sincronizado para a nuvem
+  continuava lá, dando uma falsa sensação de que a senha some depois dos
+  segundos configurados.
 - Conexão a um banco externo ganha a opção "Exigir assinatura de integridade
   nas linhas", ligada por padrão em conexões novas. Com ela ligada, uma linha
   do banco compartilhado sem HMAC não entra mais na mesclagem — fica de fora

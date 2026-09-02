@@ -11,7 +11,7 @@ namespace CofreDeSenhas
             bool copiado = false;
             if (clipboard != null)
             {
-                try { await clipboard.SetTextAsync(texto); copiado = true; } catch { }
+                try { await AreaTransferenciaSegura.CopiarAsync(clipboard, texto); copiado = true; } catch { }
             }
 
             if (!copiado)
