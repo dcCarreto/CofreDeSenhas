@@ -51,6 +51,12 @@ namespace App.Testes
         }
 
         [Fact]
+        public void ChavePublicaEmbutida_EhUmaChaveRsaValida()
+        {
+            Assert.True(ServicoAtualizacao.ChavePublicaAtualizacaoUtilizavel());
+        }
+
+        [Fact]
         public void ExtrairHash_EncontraHashDoArquivoNoFormatoDoSha256Sum()
         {
             var checksums = "d3b07384d113edec49eaa6238ad5ff00f6bc4033  CofreDeSenhas-Setup-2.1.0.exe\n" +

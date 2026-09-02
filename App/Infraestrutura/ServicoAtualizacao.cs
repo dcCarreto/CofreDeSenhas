@@ -25,10 +25,25 @@ namespace CofreDeSenhas
         private const string NomeChecksums = "CHECKSUMS.txt";
         private const string NomeAssinaturaChecksums = "CHECKSUMS.txt.sig";
 
-        // Par da chave privada mantida no secret UPDATE_SIGNING_KEY do workflow de release.
-        // Enquanto estiver vazia, a atualização em um clique é recusada (fail-closed) e o
-        // usuário é mandado para a página de releases.
-        private const string ChavePublicaAtualizacao = "";
+        // Par da chave privada guardada no secret UPDATE_SIGNING_KEY do workflow de release.
+        // Trocar as duas juntas: uma release assinada com a chave nova não é aceita por um
+        // aplicativo que ainda carrega a pública antiga aqui.
+        private const string ChavePublicaAtualizacao = """
+            -----BEGIN PUBLIC KEY-----
+            MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAtP2TJOKW43UqVpBhMVjJ
+            KclYUo8YiHNO7R3Fydh81DPMErRiY2yq2LexJXjAXCx4L+7UG7TjMO0ytRn7mH/j
+            eNh47ZuZMhKnIuxjpFK3UgW1DnKtAElcwmU1Ug5nCTqblPFEoz451VB0wHIT5f60
+            Lf2U6x/g2MMDOlVMdRSG8GGuhXIy+McT0aQyINImpV0ofrGgtayg9WZFYZcHJ1/h
+            JfPRKDkQc3j3zD7WVcvfTv7sXc3vFQtQQQnh64SjQT9L/LUsUYaBY0/TnzDH09G9
+            MLTATLPSHT5ND6UkPSmAp1+kkovSOggiFWMjwvriNeTEySKCtQVx6cqWxIxloJyq
+            wlYXdchLZTmfGZpUL8gkKC90cYzttf/jCrdaXUKQ2gi7kPIfoTw3QuybwYegXEMP
+            QisGJ1+M5o9Fys2rHGmYeXZtP/xBL4hA30pTA+r2xhJskIfTcBhQDXuNd1UZs7mq
+            N4P28+68JcoVyug5TCc1N5kjrKzw6YPErAtoUozF0DX9L2WI6QwLwBvbgMHCg4qS
+            owIScMX6IdIVDcBeHCeMt8UOYddgyCnEzHZNSgNqDuZcGU0FkbZlvlnB3dFHtE/0
+            ticq58bkB/BQj+WDFI5ABy+f2ZjG+sT7lc3RQWsFJobf6Ew2is/+LUR+oOfsy0lZ
+            Dv2YOPd/vclwT1T1iu0Opm0CAwEAAQ==
+            -----END PUBLIC KEY-----
+            """;
 
         private sealed class RespostaRelease
         {
@@ -126,7 +141,7 @@ namespace CofreDeSenhas
                 if (ativo?.UrlDownload == null || ativoChecksums?.UrlDownload == null)
                     return ResultadoAtualizacao.Falha(Idioma.Texto("Update.Error.AssetNotFound"));
 
-                if (string.IsNullOrWhiteSpace(ChavePublicaAtualizacao) || ativoAssinatura?.UrlDownload == null)
+                if (!ChavePublicaAtualizacaoUtilizavel() || ativoAssinatura?.UrlDownload == null)
                     return ResultadoAtualizacao.Falha(Idioma.Texto("Update.Error.SignatureMissing"));
 
                 var checksumsBytes = await httpMeta.GetByteArrayAsync(ativoChecksums.UrlDownload);
@@ -252,6 +267,23 @@ namespace CofreDeSenhas
             await using var stream = File.OpenRead(caminho);
             var hash = await SHA256.HashDataAsync(stream);
             return Convert.ToHexString(hash);
+        }
+
+        internal static bool ChavePublicaAtualizacaoUtilizavel()
+        {
+            if (string.IsNullOrWhiteSpace(ChavePublicaAtualizacao))
+                return false;
+
+            try
+            {
+                using var rsa = RSA.Create();
+                rsa.ImportFromPem(ChavePublicaAtualizacao);
+                return rsa.KeySize >= 3072;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         internal static bool VerificarAssinaturaChecksums(string chavePublicaPem, byte[] conteudo, byte[] assinatura)
