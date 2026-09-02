@@ -7,6 +7,12 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 ## [Não lançado]
 
 ### Segurança
+- O log de erros (`logs/erros.log`) parou de gravar a mensagem de uma
+  `JsonException`. Quando `senhas.json.enc`, um backup ou o `config.json`
+  chegavam corrompidos, o erro de parsing acontecia depois da descriptografia
+  e a mensagem podia ecoar um trecho do JSON já em texto puro (nome de
+  serviço, usuário, URL, nota, host do banco). Agora registra só o caminho
+  estrutural e a posição do erro, nunca o conteúdo.
 - O bloqueio da tela de login depois de 5 senhas erradas seguidas passa a
   escalar: 5 s, depois 30 s, 2 min, 10 min, 30 min e, daí em diante, 1 h a
   cada nova rodada de 5 erros. Antes eram 5 s fixos e a contagem zerava a
