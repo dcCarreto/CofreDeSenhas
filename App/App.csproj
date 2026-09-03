@@ -11,10 +11,10 @@
     <RootNamespace>CofreDeSenhas</RootNamespace>
     <Version>2.2.3</Version>
     <Product>Cofre de Senhas</Product>
-    <Authors>dcCarreto</Authors>
-    <Company>dcCarreto</Company>
+    <Authors>Denis Cristino Cantagallo Carreto</Authors>
+    <Company>Denis Cristino Cantagallo Carreto</Company>
     <Description>Gerenciador de senhas seguro multiplataforma com criptografia AES-256-GCM, senha mestra e gerador de senhas.</Description>
-    <Copyright>Copyright © dcCarreto 2026</Copyright>
+    <Copyright>Copyright © 2026 Denis Cristino Cantagallo Carreto</Copyright>
 
     <!-- Ícone do executável no Windows; ignorado no Linux -->
     <ApplicationIcon>app.ico</ApplicationIcon>

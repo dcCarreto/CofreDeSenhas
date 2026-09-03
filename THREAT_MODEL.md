@@ -182,8 +182,11 @@ acesso com uma chave desatualizada.
   `CHECKSUMS.txt` verificada contra uma chave pública fixada no binário antes de executar
   o instalador/portátil/AppImage baixado — se a assinatura faltar ou não conferir, a
   atualização automática é recusada e a página de releases é aberta para download manual.
-  Assinatura de código (Authenticode) no instalador Windows segue como item futuro do
-  roadmap, hoje sem certificado disponível — é o que eliminaria o aviso de "editor
+  Essa mesma chave pública RSA está versionada no repositório (`update-signing-public.pem`)
+  para conferência manual da assinatura, e a release ainda carrega uma assinatura GPG
+  destacada do `CHECKSUMS.txt` quando há chave configurada; o `SECURITY.md` descreve os
+  passos. Assinatura de código (Authenticode) no instalador Windows segue como item futuro
+  do roadmap, hoje sem certificado disponível — é o que eliminaria o aviso de "editor
   desconhecido" do SmartScreen.
 
 ## Como isso evolui

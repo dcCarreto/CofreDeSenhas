@@ -8,6 +8,56 @@ correções de segurança são aplicadas somente à versão mais recente, dispon
 aplicativo pode avisar sobre novas versões pelo menu de configurações
 ("Verificar atualizações"), recurso opcional e desligado por padrão.
 
+## Confiança nos binários e verificação dos downloads
+
+Os binários das releases são compilados pelo GitHub Actions a partir deste
+repositório e publicados por Denis Cristino Cantagallo Carreto, autor e
+responsável pelo projeto. Eles **não são assinados com um certificado de
+assinatura de código pago** — este é um projeto pessoal, gratuito e sem fins
+comerciais, e um certificado desses tem custo anual e verificação por uma
+autoridade certificadora. Na prática:
+
+- **Windows**: ao executar o instalador ou o portátil pela primeira vez, o
+  SmartScreen pode mostrar "O Windows protegeu o computador" e o controle de
+  conta de usuário pode exibir "Editor: desconhecido". Para prosseguir, clique
+  em "Mais informações" e depois em "Executar assim mesmo". A reputação do
+  SmartScreen tende a se acumular sozinha conforme mais gente baixa a mesma
+  versão.
+- **Linux**: o `.AppImage` precisa de permissão de execução (`chmod +x`) e não
+  há, por ora, pacote assinado em repositório de distribuição nem loja.
+
+Em vez de confiar no aviso do sistema, dá para verificar a autenticidade do que
+foi baixado. Toda release traz, além dos binários:
+
+- `CHECKSUMS.txt` — hash SHA-256 de cada artefato.
+- `CHECKSUMS.txt.sig` — assinatura RSA-4096 destacada do `CHECKSUMS.txt`, a
+  mesma chave que o atualizador embutido exige antes de aplicar qualquer
+  atualização. A chave pública correspondente está versionada no repositório em
+  [`update-signing-public.pem`](update-signing-public.pem).
+- `CHECKSUMS.txt.asc` — assinatura GPG destacada do `CHECKSUMS.txt` (presente a
+  partir do momento em que a chave GPG de release estiver configurada).
+
+Conferir o hash e a assinatura RSA:
+
+```sh
+# 1. o binário bate com o hash publicado
+sha256sum -c CHECKSUMS.txt --ignore-missing
+
+# 2. o CHECKSUMS.txt foi assinado pela chave do projeto
+openssl dgst -sha256 -verify update-signing-public.pem \
+  -signature CHECKSUMS.txt.sig CHECKSUMS.txt
+```
+
+No Windows, o passo 1 equivale a `Get-FileHash <arquivo> -Algorithm SHA256` e
+comparar com a linha correspondente do `CHECKSUMS.txt`.
+
+Cada artefato também tem uma *attestation* de proveniência (SLSA/Sigstore) que
+prova que ele saiu deste workflow, a partir de um commit específico:
+
+```sh
+gh attestation verify <arquivo> --repo dcCarreto/CofreDeSenhas
+```
+
 ## Como reportar uma vulnerabilidade
 
 **Não abra uma issue pública** para relatar uma vulnerabilidade — issues são públicas
