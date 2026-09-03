@@ -19,9 +19,8 @@ namespace CofreDeSenhas
             Gravar($"{prefixoContexto} {Descrever(ex)}{causa}");
         }
 
-        // A Message de uma JsonException carrega um trecho do JSON sendo lido — e no caso
-        // de senhas.json.enc, dos backups e do config.json esse JSON já está descifrado em
-        // memória. Registra só o caminho estrutural e a posição, nunca a Message.
+        // A Message de uma JsonException ecoa o JSON já descifrado — registra só o
+        // caminho e a posição, nunca a Message.
         private static string Descrever(Exception ex) => ex switch
         {
             JsonException je => $"JsonException em {je.Path ?? "?"} " +

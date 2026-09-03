@@ -17,8 +17,7 @@ namespace CofreDeSenhas
 
         public override void Initialize() => AvaloniaXamlLoader.Load(this);
 
-        // Chamada pela segunda instância (via Program): traz a janela existente pra
-        // frente em vez de abrir um segundo processo sobre o mesmo cofre.
+        // Chamada pela segunda instância, via Program.
         internal static void TrazerJanelaParaFrente()
         {
             if (Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime { MainWindow: { } janela })

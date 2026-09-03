@@ -779,10 +779,7 @@ namespace CofreDeSenhas.Janelas
                 var remotas = await _servicoSincronizacao.LerAsync(caminho);
                 var mescladas = ServicoSincronizacao.MesclarListas(locais, remotas);
 
-                // O ciclo automático roda de tempos em tempos e quase sempre não acha
-                // nada novo. Sem estas guardas, cada passagem re-cifrava o cofre inteiro,
-                // reescrevia o arquivo e reconstruía a lista (pulando a rolagem do
-                // usuário pro topo) à toa.
+                // Sem estas guardas, todo ciclo re-cifra e regrava o cofre e joga a rolagem pro topo.
                 bool localMudou = !MesmoConteudoSync(locais, mescladas);
                 bool remotoMudou = !MesmoConteudoSync(remotas, mescladas);
 
@@ -1074,12 +1071,6 @@ namespace CofreDeSenhas.Janelas
 
         private void AtualizarLista(List<Senha> lista)
         {
-            // Uma edição inline de nome de serviço ainda não confirmada sobrevive ao
-            // rebuild da lista e à virtualização: LinhaSenha reporta o rascunho a cada
-            // tecla (RascunhoServicoAlterado -> _edicaoServicoPendente) e CriarLinhaSenha
-            // reabre a edição quando a linha volta a ser realizada. Sem isto, favoritar/
-            // fixar outra linha, o sync em segundo plano, ou só rolar a lista descartava
-            // em silêncio o que o usuário tinha acabado de digitar.
             _linhasSenha.Clear();
             _linhaFocada = null;
 
@@ -1138,11 +1129,6 @@ namespace CofreDeSenhas.Janelas
             return linha;
         }
 
-        // Empurra pra linha (recém-criada ou reciclada) o estado que a janela guarda
-        // por Id: larguras de coluna, modo privacidade, seleção em lote, nível de
-        // força, achados de auditoria, contagem de vazamentos e um rascunho de edição
-        // pendente. LinhaSenha.Vincular chama isto via EstadoExternoNecessario a cada
-        // reciclagem.
         private void AplicarEstadoLinha(LinhaSenha linha)
         {
             var senha = linha.Senha;
@@ -1779,10 +1765,7 @@ namespace CofreDeSenhas.Janelas
                 .Where(s => _filtroSeguranca == null || SenhaTemProblema(s, _filtroSeguranca.Value))
                 .ToList();
 
-            // Uma passada de List.Sort em vez de 2-3 OrderBy().ToList() encadeados —
-            // fixadas no topo, favoritas logo abaixo (sempre alfabéticas entre si), o
-            // resto na ordenação da coluna ativa. Desempate final por Id pra a lista
-            // não "pular" quando reordenada com itens de chave igual.
+            // CompararLinha desempata por Id: List.Sort é instável e sem isso a lista "pula".
             filtradas.Sort(CompararLinha);
 
             _senhasFiltradasAtuais = filtradas;
@@ -1890,10 +1873,7 @@ namespace CofreDeSenhas.Janelas
             if (CmbCategoria == null || CmbEtiqueta == null)
                 return;
 
-            // Reatribuir ItemsSource dispara SelectionChanged -> Filtro_Alterado ->
-            // FiltrarSenhas (duas vezes por combo). As categorias só mudam de rótulo
-            // ao trocar o idioma; as etiquetas, quando o conjunto muda. Sem estas
-            // guardas, todo reload rodava FiltrarSenhas várias vezes à toa.
+            // Reatribuir ItemsSource redispara FiltrarSenhas; só refaz cada combo quando muda de fato.
             if (_culturaCombosFiltro != Idioma.Atual.Codigo)
             {
                 _culturaCombosFiltro = Idioma.Atual.Codigo;
@@ -2787,10 +2767,7 @@ namespace CofreDeSenhas.Janelas
             if (!await AbrirDialogoAsync<bool>(dlg))
                 return;
 
-            // A entrada é o mesmo objeto que está em _senhasAtuais e foi mutada no
-            // lugar — só re-filtra/reordena. Descarta o cache e o achado de auditoria
-            // desta entrada (podem ter mudado); o resto da auditoria continua válido,
-            // diferente do CarregarSenhasAsync que zerava tudo.
+            // Invalida só os caches desta entrada; o resto da auditoria continua válido.
             _cachePlain.Remove(s.Id);
             _itensAuditoria.Remove(s.Id);
             _vazamentosPorId.Remove(s.Id);

@@ -24,10 +24,8 @@ namespace CofreDeSenhas
     {
         private const string CodigoPadrao = "pt-BR";
 
-        // PtBr é o dicionário base (fallback de toda chave ausente) e sai pronto. Os
-        // outros cinco são PtBr + sobrescritas (ver Mesclar) e quase nunca são todos
-        // usados numa sessão — Lazy adia cada um (~617 entradas + cópia) pra primeira
-        // vez que aquele idioma é pedido, fora do caminho de partida.
+        // PtBr é o dicionário base e o fallback de toda chave ausente; os outros são
+        // PtBr + sobrescritas (ver Mesclar), carregados sob demanda pelo Lazy.
         private static readonly IReadOnlyDictionary<string, string> PtBr = CriarPtBr();
 
         private static readonly IReadOnlyDictionary<string, Lazy<IReadOnlyDictionary<string, string>>> Traducoes =

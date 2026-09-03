@@ -235,10 +235,8 @@ namespace GerenciadorDeSenhas.Servicos
             }
         }
 
-        // Cada Criptografar gera um nonce novo, então o senhas.json.enc e qualquer backup
-        // seu nunca coincidem byte a byte pelo caminho normal — nem depois de "Restaurar
-        // backup" (que redecifra e regrava). Se coincidirem, alguém copiou um backup por
-        // cima do arquivo do cofre por fora do aplicativo (rollback manual).
+        // Nonce novo a cada cifra: o cofre e um backup seu nunca coincidem byte a byte
+        // pelo caminho normal. Se coincidem, alguém restaurou um backup por fora do app.
         public static bool CofreEhCopiaDeBackup(string? pastaApp = null)
         {
             try

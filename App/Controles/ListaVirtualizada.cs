@@ -3,11 +3,8 @@ using GerenciadorDeSenhas.Modelos;
 
 namespace CofreDeSenhas.Controles
 {
-    // ItemsControl onde a própria LinhaSenha é o container reciclado pelo
-    // VirtualizingStackPanel. Sem isto (um DataTemplate normal), o ContentPresenter
-    // derruba e reconstrói a LinhaSenha a cada tick de rolagem — ~500 construções e
-    // ~390 MB pra percorrer uma lista de 500. Aqui ~20 LinhaSenha são reusadas entre
-    // todas as posições; rolar vira só troca de DataContext -> LinhaSenha.Vincular.
+    // LinhaSenha é o próprio container reciclado pelo VirtualizingStackPanel: rolar vira
+    // troca de DataContext (LinhaSenha.Vincular), não reconstrução do controle.
     public class ListaVirtualizada : ItemsControl
     {
         private static readonly object ChaveLinha = new();

@@ -24,8 +24,6 @@ namespace CofreDeSenhas.Janelas
         // ficavam disponíveis pra repovoar o painel.
         private readonly Dictionary<string, string> _camposExtrasAcumulados = new();
 
-        // Pra JanelaPrincipal inserir a entrada nova na lista em memória em vez de
-        // recarregar tudo do repositório.
         public Senha? SenhaCriada { get; private set; }
 
         public JanelaCriarSenha(IServicoSenha servicoSenha, string? senhaGerada = null)

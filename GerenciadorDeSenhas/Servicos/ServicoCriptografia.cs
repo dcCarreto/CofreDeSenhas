@@ -11,10 +11,8 @@ namespace GerenciadorDeSenhas.Servicos
         private static readonly byte[] InfoChaveHmac = Encoding.UTF8.GetBytes("CofreDeSenhas.IntegridadeBanco.v1");
 
         private readonly byte[] _chave;
-        // Uma instância de AesGcm por serviço em vez de uma por chamada: cada
-        // construção faz a expansão da chave AES no provedor nativo. O app é todo
-        // single-thread (async/await no dispatcher, sem Task.Run), então reutilizar
-        // é seguro. Descartada em ZerarChave.
+        // AesGcm reusado em vez de um por chamada. Seguro porque o app é single-thread
+        // (sem Task.Run); descartado em ZerarChave.
         private readonly AesGcm _aes;
         private byte[]? _chaveHmac;
         private bool _zerada;

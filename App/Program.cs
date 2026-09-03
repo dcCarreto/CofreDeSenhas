@@ -18,8 +18,7 @@ namespace CofreDeSenhas
         [STAThread]
         public static void Main(string[] args)
         {
-            // Instância única só no app instalado — em Debug, testes e verify
-            // (COFRE_BASE) dá pra rodar cópias isoladas em paralelo.
+            // Instância única só no app instalado; Debug/testes/verify (COFRE_BASE) rodam em paralelo.
             if (!GerenciadorDeSenhas.AmbienteCofre.Isolado)
             {
                 _mutexInstancia = new Mutex(true, NomeMutexApp, out var primeiraInstancia);

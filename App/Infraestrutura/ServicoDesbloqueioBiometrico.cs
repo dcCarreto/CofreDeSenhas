@@ -318,9 +318,7 @@ namespace CofreDeSenhas
         private static byte[] DerivarChaveEnvelope(byte[] assinatura) => SHA256.HashData(assinatura);
 
 #if WINDOWS
-        // Camada extra por cima do envelope: amarra o biometria.dat à conta do Windows
-        // (DPAPI "LOCAL=user"). Copiar o arquivo pra outra conta ou máquina não abre nada
-        // nem antes de chegar na assinatura do Windows Hello.
+        // DPAPI "LOCAL=user" por cima do envelope: o biometria.dat não abre em outra conta ou máquina.
         internal static async Task<string> ProtegerLocalAsync(string texto)
         {
             var provedor = new DataProtectionProvider("LOCAL=user");

@@ -6,10 +6,8 @@ namespace CofreDeSenhas
 {
     internal static class AreaTransferenciaSegura
     {
-        // Copia texto sensível do cofre marcando-o para ficar fora do Histórico da Área
-        // de Transferência (Win+V) e do Cloud Clipboard do Windows. A limpeza automática
-        // do cofre só apaga o conteúdo atual da área de transferência — o que já foi
-        // parar no histórico ou na nuvem continua lá.
+        // Copia marcando o conteúdo pra ficar fora do Histórico da Área de Transferência
+        // e do Cloud Clipboard do Windows.
         public static async Task CopiarAsync(IClipboard clipboard, string texto)
         {
 #if WINDOWS
