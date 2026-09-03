@@ -64,6 +64,12 @@ prova que ele saiu deste workflow, a partir de um commit específico:
 gh attestation verify <arquivo> --repo dcCarreto/CofreDeSenhas
 ```
 
+Os executáveis do Windows de cada release são enviados ao
+[VirusTotal](https://www.virustotal.com) pelo próprio workflow, e os links dos
+relatórios ficam anexados ao corpo da release. Serve como uma segunda opinião,
+de dezenas de motores de antivírus, sobre o arquivo publicado — não substitui as
+verificações acima, que provam a origem exata do binário.
+
 ## Como reportar uma vulnerabilidade
 
 **Não abra uma issue pública** para relatar uma vulnerabilidade — issues são públicas
