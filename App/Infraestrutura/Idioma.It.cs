@@ -52,6 +52,8 @@ namespace CofreDeSenhas
             ("Update.Error.AssetNotFound", "File di aggiornamento non trovato per questa versione."),
             ("Update.Error.ChecksumUnavailable", "Non è stato possibile verificare l'integrità del file."),
             ("Update.Error.ChecksumMismatch", "La verifica di integrità del file scaricato non è riuscita."),
+            ("Update.Error.SignatureMissing", "Questa versione non include la firma di aggiornamento. Scarica la nuova versione manualmente dalla pagina delle release."),
+            ("Update.Error.SignatureInvalid", "La firma dell'aggiornamento non corrisponde. Il file potrebbe essere stato manomesso: non installarlo."),
             ("Update.Dismiss", "Ignora avviso di aggiornamento"),
             ("Icons.ConsentMessage", "Per mostrare l'icona reale di ogni servizio, l'app interroga il servizio di icone di Google inviando solo il dominio del sito (ad esempio, github.com). Nessuna password, nome utente o altro dato lascia il tuo computer, e le icone scaricate vengono salvate nella cache su disco per evitare nuove richieste.\n\nAttivare il recupero delle icone online?"),
             ("Privacy.Enable", "Attiva modalità privacy"), ("Privacy.Disable", "Disattiva modalità privacy"),
@@ -196,7 +198,7 @@ namespace CofreDeSenhas
             ("Login.Error.PasswordLength", "La password deve avere almeno 8 caratteri."),
             ("Login.Error.PasswordMismatch", "Le password non coincidono."),
             ("Login.Error.MasterPasswordRequired", "Inserisci la password principale."),
-            ("Login.Error.TooManyAttempts", "Troppi tentativi. Attendi 5 secondi."),
+            ("Login.Error.TooManyAttempts", "Troppi tentativi di seguito. Aspetta un po' prima di riprovare - l'attesa aumenta a ogni nuova serie di errori."),
             ("Login.Error.WrongPassword", "Password errata. Tentativo {0} di 5."),
             ("Login.RestoreFromDatabase", "Ripristina da un database"),
             ("Login.RestoreTitle", "Ripristina cassaforte"),
@@ -341,6 +343,8 @@ namespace CofreDeSenhas
             ("Db.Database", "Database"), ("Db.User", "Utente"), ("Db.Password", "Password"),
             ("Db.RequireValidCertificate", "Richiedi certificato del server valido"),
             ("Db.RequireValidCertificateHelp", "Disattivato (predefinito): la connessione è sempre cifrata, ma accetta un certificato autofirmato — comune per un database locale o sulla rete interna. Attiva per richiedere un certificato validato da un'autorità affidabile, consigliato per un database fuori dalla tua rete."),
+            ("Db.RequireRowIntegrity", "Richiedi una firma di integrità sulle righe"),
+            ("Db.RequireRowIntegrityHelp", "Attivo (predefinito): le righe del database condiviso senza una firma di integrità valida restano fuori dall'unione invece di entrare nella tua cassaforte, e compaiono nella schermata dei conflitti di sincronizzazione. Disattiva solo se condividi questo database con dispositivi che usano una versione precedente dell'app, che non scrivono ancora quella firma."),
             ("Db.SQLitePickerTitle", "File database SQLite"),
             ("Db.ConnectionSuccess", "Connessione riuscita."),
             ("Db.CreateTableTitle", "Crea tabella"),
@@ -348,6 +352,7 @@ namespace CofreDeSenhas
             ("Db.ConnectionCanceledNoTable", "Connessione annullata: la tabella non esiste."),
             ("Db.RestoreTableMissing", "Questo database non ha la cassaforte prevista — la tabella non esiste. Controlla i dati di connessione."),
             ("Db.RestoreNoAuthPublished", "Questo database non ha ancora una password principale pubblicata per il ripristino. Collega prima, a questo database, un dispositivo che abbia già questa cassaforte sbloccata — la pubblicazione avviene da sola alla prossima connessione."),
+            ("Db.RestoreInvalidAuth", "I parametri di derivazione della chiave salvati in questo database sono fuori dall'intervallo accettato. La cassaforte non può essere ripristinata da esso."),
             ("Db.ErrorFileRequired", "Indica il file del database."),
             ("Db.ErrorFieldsRequired", "Compila host, database e utente."),
             ("Db.ErrorInvalidPort", "Porta non valida."),
@@ -549,6 +554,8 @@ namespace CofreDeSenhas
             ("Vault.Error.WrongKeyOrCorrupt", "Impossibile aprire la cassaforte: la chiave è errata o il file è stato danneggiato."),
             ("Vault.Error.CorruptData", "Il contenuto della cassaforte è danneggiato."),
             ("Vault.Error.IOFailure", "Impossibile accedere al file della cassaforte."),
+            ("Vault.RestoredCopyTitle", "La cassaforte potrebbe essere stata ripristinata"),
+            ("Vault.RestoredCopyWarning", "Il file della cassaforte è una copia identica di uno dei backup. Succede quando qualcuno copia un backup sopra la cassaforte fuori dall'applicazione, annullando le modifiche recenti (password cambiate, elementi rimossi). Se non sei stato tu, valuta di cambiare le password e di controllare il computer."),
             ("Vault.Error.BackupFailed", "Impossibile creare il backup della cassaforte.")
         });
     }

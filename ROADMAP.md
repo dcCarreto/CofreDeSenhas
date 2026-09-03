@@ -806,6 +806,64 @@ robustez e acessibilidade.
   serviço de biometria não toca na credencial do Windows a menos que seja o
   build de release instalado.
 
+### Versão 2.2.3
+
+Patch de manutenção: uma varredura de segurança de todo o código, sem
+funcionalidade nova. A maioria dos pontos fechados depende de pré-condições
+fortes — atacante com escrita no banco compartilhado ou no diretório de
+dados, ou intermediário de TLS com certificado confiável.
+
+#### Atualização automática
+
+- O "Atualizar agora" só conferia o hash SHA256 do binário baixado contra um
+  `CHECKSUMS.txt` sem assinatura, publicado na mesma release. Um intermediário
+  de TLS com certificado confiável, ou um comprometimento da release, trocaria
+  o arquivo de hashes junto com o instalador e o aplicativo executaria o
+  binário adulterado sem aviso. Agora o atualizador exige uma assinatura
+  destacada de `CHECKSUMS.txt`, verificada contra uma chave pública fixada no
+  binário, antes de executar qualquer coisa. Sem assinatura válida, a
+  atualização em um clique é recusada e a página de lançamentos abre para
+  download manual. O workflow de release assina os checksums no CI.
+
+#### Banco de dados externo
+
+- Uma linha do banco compartilhado sem HMAC era mesclada no cofre mesmo
+  assim, só com um aviso. Quem tivesse escrita no banco podia forjar campos
+  em texto puro (trocar a URL de uma credencial por um site de phishing) ou
+  reverter uma senha a um valor antigo, bastando não gravar o HMAC. A conexão
+  ganha a opção "Exigir assinatura de integridade nas linhas", ligada por
+  padrão em conexão nova: linha sem HMAC fica de fora da mesclagem e aparece
+  na tela de conflitos.
+
+#### Derivação de chave a partir de arquivos externos
+
+- Os parâmetros de Argon2id/PBKDF2 lidos de um `.gsenhas`, do cabeçalho do
+  `sincronizacao.dat` ou da tabela de auth de um banco passam por um teto de
+  sanidade antes de alimentar o KDF. Um arquivo adulterado pedindo alguns
+  terabytes de memória travava ou derrubava o aplicativo; agora falha rápido.
+
+#### Área de transferência, login e biometria
+
+- No Windows, copiar uma senha, TOTP ou qualquer campo do cofre marca o
+  conteúdo para não entrar no Histórico da Área de Transferência (Win+V) nem
+  no Cloud Clipboard — a limpeza automática só apagava o slot atual.
+- O bloqueio da tela de login depois de 5 senhas erradas passa a escalar
+  (5 s, 30 s, 2 min, 10 min, 30 min, 1 h) em vez de 5 s fixos com a contagem
+  zerando a cada expiração.
+- O `biometria.dat` passa a ser protegido por DPAPI amarrado à conta do
+  Windows, por cima da cifra que já existia; copiá-lo para outra conta ou
+  máquina não abre nada.
+
+#### Robustez e vazamento em log
+
+- O log de erros parou de gravar a mensagem de uma `JsonException`, que podia
+  ecoar um trecho do JSON já descifrado (nome de serviço, usuário, URL, nota).
+- A abertura avisa se o `senhas.json.enc` for uma cópia byte a byte de um
+  backup — sinal de rollback manual por fora do aplicativo.
+- O app instalado passa a ser instância única: abrir de novo traz a janela
+  existente para a frente em vez de subir um segundo processo sobre o mesmo
+  cofre.
+
 ## Planejado
 
 Ideias e melhorias consideradas para versões futuras, agrupadas por prioridade:

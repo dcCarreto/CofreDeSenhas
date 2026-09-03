@@ -140,11 +140,15 @@ namespace GerenciadorDeSenhas.Servicos
             }
         }
 
-        private static byte[] DerivarChavePbkdf2(string senha, byte[] salt, int iteracoes) =>
-            Rfc2898DeriveBytes.Pbkdf2(senha, salt, iteracoes, HashAlgorithmName.SHA256, KeySize);
+        private static byte[] DerivarChavePbkdf2(string senha, byte[] salt, int iteracoes)
+        {
+            ProtecaoKdf.GarantirPbkdf2(iteracoes);
+            return Rfc2898DeriveBytes.Pbkdf2(senha, salt, iteracoes, HashAlgorithmName.SHA256, KeySize);
+        }
 
         private static byte[] DerivarChaveArgon2id(string senha, byte[] salt, int tempoCusto, int memoriaKb, int paralelismo)
         {
+            ProtecaoKdf.GarantirArgon2id(tempoCusto, memoriaKb, paralelismo);
             using var argon2 = new Argon2id(Encoding.UTF8.GetBytes(senha))
             {
                 Salt = salt,

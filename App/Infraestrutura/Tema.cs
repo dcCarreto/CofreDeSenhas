@@ -1,4 +1,6 @@
+using System.Collections.Concurrent;
 using Avalonia.Media;
+using Avalonia.Media.Immutable;
 
 namespace CofreDeSenhas
 {
@@ -33,6 +35,9 @@ namespace CofreDeSenhas
         public static Color StatusWarning => Acessibilidade.Cor(CorVisual.StatusWarning);
         public static Color StatusConnected => Acessibilidade.Cor(CorVisual.StatusConnected);
 
-        public static IBrush Pincel(Color cor) => new SolidColorBrush(cor);
+        private static readonly ConcurrentDictionary<uint, ImmutableSolidColorBrush> _pinceis = new();
+
+        public static IBrush Pincel(Color cor) =>
+            _pinceis.GetOrAdd(cor.ToUInt32(), argb => new ImmutableSolidColorBrush(Color.FromUInt32(argb)));
     }
 }

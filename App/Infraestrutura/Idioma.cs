@@ -24,23 +24,24 @@ namespace CofreDeSenhas
     {
         private const string CodigoPadrao = "pt-BR";
 
+        // PtBr é o dicionário base (fallback de toda chave ausente) e sai pronto. Os
+        // outros cinco são PtBr + sobrescritas (ver Mesclar) e quase nunca são todos
+        // usados numa sessão — Lazy adia cada um (~617 entradas + cópia) pra primeira
+        // vez que aquele idioma é pedido, fora do caminho de partida.
         private static readonly IReadOnlyDictionary<string, string> PtBr = CriarPtBr();
-        private static readonly IReadOnlyDictionary<string, string> En = CriarEn();
-        private static readonly IReadOnlyDictionary<string, string> Es = CriarEs();
-        private static readonly IReadOnlyDictionary<string, string> Fr = CriarFr();
-        private static readonly IReadOnlyDictionary<string, string> De = CriarDe();
-        private static readonly IReadOnlyDictionary<string, string> It = CriarIt();
 
-        private static readonly IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> Traducoes =
-            new Dictionary<string, IReadOnlyDictionary<string, string>>(StringComparer.OrdinalIgnoreCase)
+        private static readonly IReadOnlyDictionary<string, Lazy<IReadOnlyDictionary<string, string>>> Traducoes =
+            new Dictionary<string, Lazy<IReadOnlyDictionary<string, string>>>(StringComparer.OrdinalIgnoreCase)
             {
-                [CodigoPadrao] = PtBr,
-                ["en"] = En,
-                ["es"] = Es,
-                ["fr"] = Fr,
-                ["de"] = De,
-                ["it"] = It,
+                ["en"] = new(CriarEn),
+                ["es"] = new(CriarEs),
+                ["fr"] = new(CriarFr),
+                ["de"] = new(CriarDe),
+                ["it"] = new(CriarIt),
             };
+
+        private static IReadOnlyDictionary<string, string> Dicionario(string codigo) =>
+            Traducoes.TryGetValue(codigo, out var lazy) ? lazy.Value : PtBr;
 
         public static IReadOnlyList<IdiomaDisponivel> Idiomas { get; } = new[]
         {
@@ -74,11 +75,7 @@ namespace CofreDeSenhas
 
         public static string Texto(string chave)
         {
-            var traducoes = Traducoes.TryGetValue(Atual.Codigo, out var atual)
-                ? atual
-                : PtBr;
-
-            if (traducoes.TryGetValue(chave, out var texto) || PtBr.TryGetValue(chave, out texto))
+            if (Dicionario(Atual.Codigo).TryGetValue(chave, out var texto) || PtBr.TryGetValue(chave, out texto))
                 return texto;
 
             return chave;
@@ -110,9 +107,16 @@ namespace CofreDeSenhas
                 _ => "Category.Other"
             };
 
-            return Traducoes.Values
+            return TodosDicionarios()
                 .Select(t => t.TryGetValue(chave, out var texto) ? texto : PtBr[chave])
                 .Distinct(StringComparer.OrdinalIgnoreCase);
+        }
+
+        private static IEnumerable<IReadOnlyDictionary<string, string>> TodosDicionarios()
+        {
+            yield return PtBr;
+            foreach (var lazy in Traducoes.Values)
+                yield return lazy.Value;
         }
 
         public static string RotuloTipoCredencial(TipoCredencial tipo) => tipo switch

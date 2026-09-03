@@ -69,6 +69,8 @@ namespace CofreDeSenhas
             ("Update.Error.AssetNotFound", "Update file not found for this version."),
             ("Update.Error.ChecksumUnavailable", "Couldn't verify the file's integrity."),
             ("Update.Error.ChecksumMismatch", "Integrity check of the downloaded file failed."),
+            ("Update.Error.SignatureMissing", "This release doesn't include the update signature. Download the new version manually from the releases page."),
+            ("Update.Error.SignatureInvalid", "The update signature doesn't match. The file may have been tampered with - don't install it."),
             ("Update.Dismiss", "Dismiss update notice"),
             ("Icons.ConsentMessage", "To display each service's real icon, the app queries Google's favicon service, sending only the site's domain (for example, github.com). No password, username, or any other data leaves your computer, and downloaded icons are cached on disk to avoid repeated lookups.\n\nEnable online icon fetching?"),
             ("Privacy.Enable", "Enable privacy mode"),
@@ -236,7 +238,7 @@ namespace CofreDeSenhas
             ("Login.Error.PasswordLength", "The password must be at least 8 characters long."),
             ("Login.Error.PasswordMismatch", "The passwords do not match."),
             ("Login.Error.MasterPasswordRequired", "Enter the master password."),
-            ("Login.Error.TooManyAttempts", "Too many attempts. Wait 5 seconds."),
+            ("Login.Error.TooManyAttempts", "Too many attempts in a row. Wait a bit before trying again - the wait grows with each new round of failures."),
             ("Login.Error.WrongPassword", "Wrong password. Attempt {0} of 5."),
             ("Login.RestoreFromDatabase", "Restore from a database"),
             ("Login.RestoreTitle", "Restore vault"),
@@ -395,6 +397,8 @@ namespace CofreDeSenhas
             ("Db.Password", "Password"),
             ("Db.RequireValidCertificate", "Require a valid server certificate"),
             ("Db.RequireValidCertificateHelp", "Off (default): the connection is always encrypted, but accepts a self-signed certificate — common for a local or LAN database. Turn on to require a certificate validated by a trusted authority, recommended for a database outside your network."),
+            ("Db.RequireRowIntegrity", "Require an integrity signature on rows"),
+            ("Db.RequireRowIntegrityHelp", "On (default): rows in the shared database without a valid integrity signature are kept out of the merge instead of entering your vault, and show up in the sync conflicts screen. Turn off only if you share this database with devices running an older version of the app that doesn't write that signature yet."),
             ("Db.SQLitePickerTitle", "SQLite database file"),
             ("Db.ConnectionSuccess", "Connection successful."),
             ("Db.CreateTableTitle", "Create table"),
@@ -402,6 +406,7 @@ namespace CofreDeSenhas
             ("Db.ConnectionCanceledNoTable", "Connection canceled: the table does not exist."),
             ("Db.RestoreTableMissing", "This database doesn't have the expected vault — the table doesn't exist. Check the connection details."),
             ("Db.RestoreNoAuthPublished", "This database doesn't have a master password published for restoration yet. First connect a device that already has this vault unlocked to this database — publishing happens automatically the next time it connects."),
+            ("Db.RestoreInvalidAuth", "The key-derivation settings stored in this database are outside the accepted range. The vault can't be restored from it."),
             ("Db.ErrorFileRequired", "Enter the database file."),
             ("Db.ErrorFieldsRequired", "Fill in host, database, and user."),
             ("Db.ErrorInvalidPort", "Invalid port."),
@@ -627,6 +632,8 @@ namespace CofreDeSenhas
             ("Vault.Error.WrongKeyOrCorrupt", "Could not open the vault: the key is wrong or the file was corrupted."),
             ("Vault.Error.CorruptData", "The vault content is corrupted."),
             ("Vault.Error.IOFailure", "Could not access the vault file."),
+            ("Vault.RestoredCopyTitle", "The vault may have been restored"),
+            ("Vault.RestoredCopyWarning", "The vault file is a byte-for-byte copy of one of the backups. This happens when someone copies a backup over the vault outside the app, which reverts recent changes (changed passwords, removed items). If this wasn't you, consider changing your passwords and checking the computer."),
             ("Vault.Error.BackupFailed", "Could not create the vault backup.")
         });
     }

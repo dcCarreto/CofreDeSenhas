@@ -29,6 +29,15 @@ recuperação (ver "Fora de escopo" no `ROADMAP.md`). Adulterar o arquivo cifrad
 e rejeitado alto e claro (`InvalidOperationException`), não faz o cofre carregar dado
 corrompido silenciosamente.
 
+O que o AEAD **não** cobre é *rollback*: quem tem escrita no diretório de dados pode
+sobrescrever `senhas.json.enc` com uma cópia antiga, ainda válida, e reverter alterações
+recentes (uma senha trocada, um item removido). Anti-rollback de verdade exige um contador
+monotônico em armazenamento confiável fora do alcance de quem tampera (TPM, servidor) — fora
+do modelo de um app de desktop sem privilégio elevado. O que o aplicativo faz é detectar o
+caso óbvio: se o `senhas.json.enc` for uma cópia byte a byte de um dos arquivos em
+`backups/`, ele avisa na abertura que o cofre parece ter sido restaurado por fora do app.
+Um atacante que guarde a própria cópia antiga do arquivo dribla essa checagem.
+
 ### Alguém com acesso à memória do processo enquanto o cofre está aberto
 
 **Este é o ponto mais fraco do modelo hoje, e vale ser dito sem rodeio.** Enquanto o cofre
@@ -94,11 +103,14 @@ fica registrada e visível na tela de log de conflitos de sincronização do apl
 **O que não mudou:** o HMAC garante integridade, não confidencialidade. Um administrador do
 banco (ou qualquer pessoa com acesso de leitura direto às linhas) continua conseguindo
 **ler** nome de serviço, usuário, notas e etiquetas em texto puro — só não consegue mais
-**alterar** esses campos sem ser detectado. Linhas gravadas por uma instalação anterior a
-essa mudança, sem HMAC nenhum na coluna, são tratadas como confiáveis (não como violação) —
-rejeitar todo dado legado quebraria a leitura de um banco compartilhado por dispositivos
-ainda não atualizados; a próxima gravação naquela linha, feita por qualquer dispositivo já
-atualizado, passa a assiná-la.
+**alterar** esses campos sem ser detectado. O tratamento de uma linha **sem HMAC nenhum**
+na coluna depende da opção "Exigir assinatura de integridade nas linhas" da conexão, ligada
+por padrão em conexões novas: ligada, a linha fica de fora da mesclagem (não entra no cofre)
+e é registrada como conflito, fechando a brecha de forjar uma linha nova simplesmente não
+gravando o HMAC; desligada — necessário só enquanto o banco é compartilhado com dispositivos
+numa versão do app anterior a esse recurso —, a linha sem HMAC volta a ser tratada como
+legado confiável e mesclada, com um aviso. Em qualquer dos modos, a próxima gravação naquela
+linha por um dispositivo atualizado passa a assiná-la.
 
 Também nesta versão: a conexão ao banco pode exigir certificado de servidor validado por
 uma autoridade confiável (opção "Exigir certificado válido do servidor", desligada por
@@ -119,6 +131,10 @@ local) — algo que antes exigia acesso ao dispositivo dono do cofre. O verifica
 permite decifrar o conteúdo do cofre diretamente, só confirmar se uma tentativa de senha
 está correta; o risco real depende da força da senha mestra escolhida e dos parâmetros de
 custo (Argon2id/PBKDF2) usados na derivação, os mesmos que já protegiam `auth.dat` local.
+Esses parâmetros, lidos da tabela de auth do banco (assim como de um arquivo de exportação
+ou do cabeçalho da pasta de sincronização), passam por um teto de sanidade antes de
+alimentar o KDF: um valor absurdo — memória na casa dos terabytes, por exemplo — é
+rejeitado como entrada inválida em vez de esgotar a memória do dispositivo que tenta usar.
 
 ### Desbloqueio biométrico (Windows Hello)
 
@@ -126,7 +142,9 @@ custo (Argon2id/PBKDF2) usados na derivação, os mesmos que já protegiam `auth
 (`biometria.dat`), nada disso sincroniza. A chave do cofre fica cifrada com uma chave
 derivada da assinatura de uma credencial do Windows Hello, cuja chave privada mora no TPM;
 o envelope só abre depois de uma autenticação biométrica bem-sucedida do sistema
-operacional. A senha mestra continua sempre disponível como alternativa — biometria nunca
+operacional. Por cima disso, o `biometria.dat` é protegido por DPAPI amarrado à conta do
+Windows — copiá-lo para outra conta ou máquina não abre nada, nem antes de chegar na
+assinatura do Windows Hello. A senha mestra continua sempre disponível como alternativa — biometria nunca
 substitui, só complementa. Se a chave do cofre muda (troca de senha mestra ou migração do
 algoritmo de derivação), o vínculo antigo se autodesabilita em vez de continuar concedendo
 acesso com uma chave desatualizada.
@@ -159,10 +177,14 @@ acesso com uma chave desatualizada.
   a partir daquele commit exato. As dependências de terceiros usadas *pelo próprio
   workflow* (GitHub Actions de checkout, build, upload/download e publicação) são fixadas
   por hash de commit, não por tag flutuante, e o `appimagetool` baixado durante o build do
-  Linux tem versão fixa com hash conferido antes de rodar. Assinatura de código
-  (Authenticode) no instalador Windows segue como item futuro do roadmap, hoje sem
-  certificado disponível — é o que eliminaria o aviso de "editor desconhecido" do
-  SmartScreen.
+  Linux tem versão fixa com hash conferido antes de rodar. O atualizador em um clique
+  embutido no aplicativo, além de conferir o SHA256, exige uma assinatura destacada de
+  `CHECKSUMS.txt` verificada contra uma chave pública fixada no binário antes de executar
+  o instalador/portátil/AppImage baixado — se a assinatura faltar ou não conferir, a
+  atualização automática é recusada e a página de releases é aberta para download manual.
+  Assinatura de código (Authenticode) no instalador Windows segue como item futuro do
+  roadmap, hoje sem certificado disponível — é o que eliminaria o aviso de "editor
+  desconhecido" do SmartScreen.
 
 ## Como isso evolui
 

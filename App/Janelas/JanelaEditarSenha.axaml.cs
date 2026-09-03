@@ -630,7 +630,7 @@ namespace CofreDeSenhas.Janelas
             var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
             if (clipboard != null)
             {
-                try { await clipboard.SetTextAsync(texto); }
+                try { await AreaTransferenciaSegura.CopiarAsync(clipboard, texto); }
                 catch { }
             }
 

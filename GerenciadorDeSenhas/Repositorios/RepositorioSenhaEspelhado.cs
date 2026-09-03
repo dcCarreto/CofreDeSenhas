@@ -113,15 +113,16 @@ namespace GerenciadorDeSenhas.Repositorios
                 }
             }
 
-            // Nunca publica por cima de um guid que acabou de falhar a verificação de
-            // hmac — sem este filtro, se este dispositivo tiver localmente o mesmo
-            // guid, a linha "violada" do banco seria sobrescrita com conteúdo local e
-            // um hmac novo e válido antes de qualquer tela mostrar o conflito ao
+            // Nunca publica por cima de um guid que ficou de fora da leitura por
+            // integridade (hmac inválido sempre; sem hmac também, quando a conexão está
+            // em modo estrito) — sem este filtro, se este dispositivo tiver localmente o
+            // mesmo guid, a linha suspeita do banco seria sobrescrita com conteúdo local
+            // e um hmac novo e válido antes de qualquer tela mostrar o conflito ao
             // usuário (via UltimosConflitos/JanelaConflitosSincronizacao), apagando o
             // rastro de uma possível adulteração ou corrupção no banco compartilhado.
-            var idsComIntegridadeViolada = new HashSet<Guid>(_banco.ViolacoesIntegridade.Select(v => v.Id));
+            var idsForaDoMerge = _banco.IdsForaDoMerge;
             var paraPublicar = (await _local.ListarTudoAsync())
-                .Where(s => !idsComIntegridadeViolada.Contains(s.Id));
+                .Where(s => !idsForaDoMerge.Contains(s.Id));
             await _banco.GravarVariasPorChaveAsync(paraPublicar);
 
             await _local.SalvarAsync();

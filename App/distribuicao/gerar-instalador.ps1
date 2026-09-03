@@ -35,6 +35,7 @@ dotnet publish "$raiz\App\App.csproj" `
     -f net10.0-windows10.0.19041.0 -c Release -r win-x64 `
     --self-contained true `
     -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true `
+    -p:PublishReadyToRun=true `
     -o "$raiz\publish"
 if ($LASTEXITCODE -ne 0) { throw "dotnet publish falhou." }
 

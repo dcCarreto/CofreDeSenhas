@@ -11,6 +11,11 @@ namespace GerenciadorDeSenhas.Servicos
         private static readonly byte[] InfoChaveHmac = Encoding.UTF8.GetBytes("CofreDeSenhas.IntegridadeBanco.v1");
 
         private readonly byte[] _chave;
+        // Uma instância de AesGcm por serviço em vez de uma por chamada: cada
+        // construção faz a expansão da chave AES no provedor nativo. O app é todo
+        // single-thread (async/await no dispatcher, sem Task.Run), então reutilizar
+        // é seguro. Descartada em ZerarChave.
+        private readonly AesGcm _aes;
         private byte[]? _chaveHmac;
         private bool _zerada;
 
@@ -19,6 +24,7 @@ namespace GerenciadorDeSenhas.Servicos
             if (chave.Length != 32)
                 throw new ArgumentException("Chave deve ter 256 bits (32 bytes)");
             _chave = chave;
+            _aes = new AesGcm(chave, TamanhoTag);
         }
 
         public string Criptografar(string plaintext) =>
@@ -31,24 +37,15 @@ namespace GerenciadorDeSenhas.Servicos
         {
             VerificarNaoZerada();
 
-            var iv = new byte[TamanhoNonce];
-            using (var rng = RandomNumberGenerator.Create())
-                rng.GetBytes(iv);
+            var resultado = new byte[TamanhoNonce + plaintext.Length + TamanhoTag];
+            var nonce = resultado.AsSpan(0, TamanhoNonce);
+            var ciphertext = resultado.AsSpan(TamanhoNonce, plaintext.Length);
+            var tag = resultado.AsSpan(TamanhoNonce + plaintext.Length, TamanhoTag);
 
-            var ciphertext = new byte[plaintext.Length];
-            var tag = new byte[TamanhoTag];
+            RandomNumberGenerator.Fill(nonce);
+            _aes.Encrypt(nonce, plaintext, ciphertext, tag);
 
-            using (var aes = new AesGcm(_chave, TamanhoTag))
-            {
-                aes.Encrypt(iv, plaintext, ciphertext, tag, Array.Empty<byte>());
-            }
-
-            var result = new byte[iv.Length + ciphertext.Length + tag.Length];
-            Buffer.BlockCopy(iv, 0, result, 0, iv.Length);
-            Buffer.BlockCopy(ciphertext, 0, result, iv.Length, ciphertext.Length);
-            Buffer.BlockCopy(tag, 0, result, iv.Length + ciphertext.Length, tag.Length);
-
-            return result;
+            return resultado;
         }
 
         public byte[] DescriptografarBytes(byte[] data)
@@ -58,19 +55,13 @@ namespace GerenciadorDeSenhas.Servicos
             if (data.Length < TamanhoNonce + TamanhoTag)
                 throw new CryptographicException("Dados cifrados corrompidos ou incompletos.");
 
-            var iv = new byte[TamanhoNonce];
-            var encrypted = new byte[data.Length - iv.Length - TamanhoTag];
-            var tag = new byte[TamanhoTag];
+            int tamanhoCipher = data.Length - TamanhoNonce - TamanhoTag;
+            var nonce = data.AsSpan(0, TamanhoNonce);
+            var ciphertext = data.AsSpan(TamanhoNonce, tamanhoCipher);
+            var tag = data.AsSpan(TamanhoNonce + tamanhoCipher, TamanhoTag);
 
-            Buffer.BlockCopy(data, 0, iv, 0, iv.Length);
-            Buffer.BlockCopy(data, iv.Length, encrypted, 0, encrypted.Length);
-            Buffer.BlockCopy(data, iv.Length + encrypted.Length, tag, 0, tag.Length);
-
-            var plaintext = new byte[encrypted.Length];
-            using (var aes = new AesGcm(_chave, TamanhoTag))
-            {
-                aes.Decrypt(iv, encrypted, tag, plaintext, Array.Empty<byte>());
-            }
+            var plaintext = new byte[tamanhoCipher];
+            _aes.Decrypt(nonce, ciphertext, tag, plaintext);
 
             return plaintext;
         }
@@ -79,8 +70,8 @@ namespace GerenciadorDeSenhas.Servicos
         {
             VerificarNaoZerada();
 
-            using var hmac = new HMACSHA256(ChaveHmac());
-            return Convert.ToBase64String(hmac.ComputeHash(Encoding.UTF8.GetBytes(dados)));
+            var hash = HMACSHA256.HashData(ChaveHmac(), Encoding.UTF8.GetBytes(dados));
+            return Convert.ToBase64String(hash);
         }
 
         public bool VerificarHmacIntegridade(string dados, string? hmacBase64)
@@ -100,8 +91,7 @@ namespace GerenciadorDeSenhas.Servicos
                 return false;
             }
 
-            using var hmac = new HMACSHA256(ChaveHmac());
-            var calculado = hmac.ComputeHash(Encoding.UTF8.GetBytes(dados));
+            var calculado = HMACSHA256.HashData(ChaveHmac(), Encoding.UTF8.GetBytes(dados));
             return CryptographicOperations.FixedTimeEquals(calculado, recebido);
         }
 
@@ -113,6 +103,7 @@ namespace GerenciadorDeSenhas.Servicos
             CryptographicOperations.ZeroMemory(_chave);
             if (_chaveHmac != null)
                 CryptographicOperations.ZeroMemory(_chaveHmac);
+            _aes.Dispose();
             _zerada = true;
         }
 

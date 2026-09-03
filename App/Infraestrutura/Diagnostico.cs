@@ -1,17 +1,33 @@
+using System.Text.Json;
+
 namespace CofreDeSenhas
 {
     internal static class Diagnostico
     {
         private const long TamanhoMaximoBytes = 1_000_000;
 
-        private static string CaminhoLog => Path.Combine(CaminhosApp.PastaDados, "logs", "erros.log");
+        // Só os testes atribuem, pra não competir pelo erros.log real entre processos.
+        internal static string? CaminhoLogTestes;
+
+        private static string CaminhoLog =>
+            CaminhoLogTestes ?? Path.Combine(CaminhosApp.PastaDados, "logs", "erros.log");
 
         public static void Registrar(Exception ex, string? contexto = null)
         {
             var prefixoContexto = contexto != null ? $" [{contexto}]" : "";
-            var causa = ex.InnerException != null ? $" | Causa: {ex.InnerException.GetType().Name}: {Redigir(ex.InnerException.Message)}" : "";
-            Gravar($"{prefixoContexto} {ex.GetType().Name}: {Redigir(ex.Message)}{causa}");
+            var causa = ex.InnerException != null ? $" | Causa: {Descrever(ex.InnerException)}" : "";
+            Gravar($"{prefixoContexto} {Descrever(ex)}{causa}");
         }
+
+        // A Message de uma JsonException carrega um trecho do JSON sendo lido — e no caso
+        // de senhas.json.enc, dos backups e do config.json esse JSON já está descifrado em
+        // memória. Registra só o caminho estrutural e a posição, nunca a Message.
+        private static string Descrever(Exception ex) => ex switch
+        {
+            JsonException je => $"JsonException em {je.Path ?? "?"} " +
+                $"(linha {je.LineNumber?.ToString() ?? "?"}, pos {je.BytePositionInLine?.ToString() ?? "?"})",
+            _ => $"{ex.GetType().Name}: {Redigir(ex.Message)}"
+        };
 
         // Usado por eventos que não são exceções mas ainda merecem um rastro
         // persistente — ex.: um conflito de sincronização detectado. Sem isto, o único

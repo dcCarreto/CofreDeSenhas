@@ -179,6 +179,35 @@ public class PersistenciaLocalTests : IDisposable
         Assert.Empty(_persistencia.ListarBackups());
     }
 
+    [Fact]
+    public async Task CofreEhCopiaDeBackup_NoFluxoNormal_RetornaFalse()
+    {
+        var senhas = new List<Senha> { NovaSenhaDeTeste("Servico") };
+        await _persistencia.SalvarSenhasAsync(senhas, _chave);
+        await _persistencia.BackupAutomaticoAsync(senhas, _chave);
+
+        Assert.False(PersistenciaLocal.CofreEhCopiaDeBackup(_pastaTemp));
+    }
+
+    [Fact]
+    public async Task CofreEhCopiaDeBackup_QuandoOArquivoDoCofreEUmaCopiaDeBackup_RetornaTrue()
+    {
+        var senhas = new List<Senha> { NovaSenhaDeTeste("Servico") };
+        await _persistencia.SalvarSenhasAsync(senhas, _chave);
+        await _persistencia.BackupAutomaticoAsync(senhas, _chave);
+
+        var backup = _persistencia.ListarBackups()[0].Caminho;
+        File.Copy(backup, _caminhoSenhas, overwrite: true);
+
+        Assert.True(PersistenciaLocal.CofreEhCopiaDeBackup(_pastaTemp));
+    }
+
+    [Fact]
+    public void CofreEhCopiaDeBackup_SemCofreOuSemBackups_RetornaFalse()
+    {
+        Assert.False(PersistenciaLocal.CofreEhCopiaDeBackup(_pastaTemp));
+    }
+
     private Senha NovaSenhaDeTeste(string nomeServico) => new()
     {
         Id = Guid.NewGuid(),

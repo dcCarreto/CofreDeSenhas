@@ -52,6 +52,8 @@ namespace CofreDeSenhas
             ("Update.Error.AssetNotFound", "Archivo de actualización no encontrado para esta versión."),
             ("Update.Error.ChecksumUnavailable", "No se pudo verificar la integridad del archivo."),
             ("Update.Error.ChecksumMismatch", "Falló la verificación de integridad del archivo descargado."),
+            ("Update.Error.SignatureMissing", "Esta versión no incluye la firma de actualización. Descarga la nueva versión manualmente desde la página de lanzamientos."),
+            ("Update.Error.SignatureInvalid", "La firma de la actualización no coincide. El archivo podría haber sido manipulado: no lo instales."),
             ("Update.Dismiss", "Descartar aviso de actualización"),
             ("Icons.ConsentMessage", "Para mostrar el icono real de cada servicio, la aplicación consulta el servicio de iconos de Google enviando solo el dominio del sitio (por ejemplo, github.com). Ninguna contraseña, usuario u otro dato sale de tu equipo, y los iconos descargados se guardan en caché en el disco para evitar nuevas consultas.\n\n¿Activar la búsqueda de iconos en línea?"),
             ("Privacy.Enable", "Activar modo privacidad"), ("Privacy.Disable", "Desactivar modo privacidad"),
@@ -196,7 +198,7 @@ namespace CofreDeSenhas
             ("Login.Error.PasswordLength", "La contraseña debe tener al menos 8 caracteres."),
             ("Login.Error.PasswordMismatch", "Las contraseñas no coinciden."),
             ("Login.Error.MasterPasswordRequired", "Escribe la contraseña maestra."),
-            ("Login.Error.TooManyAttempts", "Demasiados intentos. Espera 5 segundos."),
+            ("Login.Error.TooManyAttempts", "Demasiados intentos seguidos. Espera un poco antes de volver a intentarlo - la espera aumenta con cada nueva ronda de errores."),
             ("Login.Error.WrongPassword", "Contraseña incorrecta. Intento {0} de 5."),
             ("Login.RestoreFromDatabase", "Restaurar desde una base de datos"),
             ("Login.RestoreTitle", "Restaurar caja"),
@@ -341,6 +343,8 @@ namespace CofreDeSenhas
             ("Db.Database", "Base de datos"), ("Db.User", "Usuario"), ("Db.Password", "Contraseña"),
             ("Db.RequireValidCertificate", "Exigir certificado válido del servidor"),
             ("Db.RequireValidCertificateHelp", "Desactivado (predeterminado): la conexión siempre está cifrada, pero acepta certificado autofirmado — común en base local o en la red interna. Actívalo para exigir un certificado validado por una autoridad confiable, recomendado para una base fuera de tu red."),
+            ("Db.RequireRowIntegrity", "Exigir firma de integridad en las filas"),
+            ("Db.RequireRowIntegrityHelp", "Activado (predeterminado): las filas de la base compartida sin una firma de integridad válida quedan fuera de la fusión en lugar de entrar en tu caja fuerte, y aparecen en la pantalla de conflictos de sincronización. Desactívalo solo si compartes esta base con dispositivos en una versión antigua de la aplicación, que todavía no escriben esa firma."),
             ("Db.SQLitePickerTitle", "Archivo de base SQLite"),
             ("Db.ConnectionSuccess", "Conexión exitosa."),
             ("Db.CreateTableTitle", "Crear tabla"),
@@ -348,6 +352,7 @@ namespace CofreDeSenhas
             ("Db.ConnectionCanceledNoTable", "Conexión cancelada: la tabla no existe."),
             ("Db.RestoreTableMissing", "Esta base de datos no tiene la caja esperada — la tabla no existe. Revisa los datos de conexión."),
             ("Db.RestoreNoAuthPublished", "Esta base de datos todavía no tiene una contraseña maestra publicada para restauración. Conecta primero, en esta base de datos, un dispositivo que ya tenga esta caja desbloqueada — la publicación ocurre sola la próxima vez que se conecte."),
+            ("Db.RestoreInvalidAuth", "Los parámetros de derivación de clave guardados en esta base de datos están fuera del rango aceptado. No se puede restaurar la caja fuerte desde ella."),
             ("Db.ErrorFileRequired", "Informa el archivo de la base."),
             ("Db.ErrorFieldsRequired", "Completa host, base de datos y usuario."),
             ("Db.ErrorInvalidPort", "Puerto no válido."),
@@ -550,6 +555,8 @@ namespace CofreDeSenhas
             ("Vault.Error.WrongKeyOrCorrupt", "No se pudo abrir la caja fuerte: la clave es incorrecta o el archivo se dañó."),
             ("Vault.Error.CorruptData", "El contenido de la caja fuerte está dañado."),
             ("Vault.Error.IOFailure", "No se pudo acceder al archivo de la caja fuerte."),
+            ("Vault.RestoredCopyTitle", "La caja fuerte puede haber sido restaurada"),
+            ("Vault.RestoredCopyWarning", "El archivo de la caja fuerte es una copia idéntica de uno de los backups. Esto ocurre cuando alguien copia un backup sobre la caja fuerte fuera de la aplicación, lo que revierte cambios recientes (contraseñas modificadas, elementos eliminados). Si no fuiste tú, considera cambiar tus contraseñas y revisar el equipo."),
             ("Vault.Error.BackupFailed", "No se pudo crear la copia de seguridad de la caja fuerte.")
         });
     }

@@ -7,6 +7,7 @@ using GerenciadorDeSenhas.Servicos;
 #if WINDOWS
 using Windows.Security.Credentials;
 using Windows.Security.Cryptography;
+using Windows.Security.Cryptography.DataProtection;
 #endif
 
 namespace CofreDeSenhas
@@ -113,7 +114,7 @@ namespace CofreDeSenhas
                 if (!Directory.Exists(pasta))
                     Directory.CreateDirectory(pasta);
 
-                File.WriteAllText(_caminhoRegistro, JsonSerializer.Serialize(registro));
+                File.WriteAllText(_caminhoRegistro, await ProtegerLocalAsync(JsonSerializer.Serialize(registro)));
                 return ResultadoBiometria.Ok();
             }
             catch (Exception ex)
@@ -139,9 +140,17 @@ namespace CofreDeSenhas
 
 #if WINDOWS
             RegistroBiometrico? registro;
+            var registroSemDpapi = false;
             try
             {
-                registro = JsonSerializer.Deserialize<RegistroBiometrico>(File.ReadAllText(_caminhoRegistro));
+                var conteudo = File.ReadAllText(_caminhoRegistro);
+                var json = await DesprotegerLocalAsync(conteudo);
+                if (json == null)
+                {
+                    json = conteudo;
+                    registroSemDpapi = true;
+                }
+                registro = JsonSerializer.Deserialize<RegistroBiometrico>(json);
             }
             catch (Exception ex)
             {
@@ -180,6 +189,12 @@ namespace CofreDeSenhas
                         CryptographicOperations.ZeroMemory(chave);
                     await DesabilitarAsync();
                     return ResultadoBiometria.Falha(Idioma.Texto("Biometric.InvalidRegistration"));
+                }
+
+                if (registroSemDpapi)
+                {
+                    try { File.WriteAllText(_caminhoRegistro, await ProtegerLocalAsync(JsonSerializer.Serialize(registro))); }
+                    catch { }
                 }
 
                 return ResultadoBiometria.Ok(chave);
@@ -303,6 +318,32 @@ namespace CofreDeSenhas
         private static byte[] DerivarChaveEnvelope(byte[] assinatura) => SHA256.HashData(assinatura);
 
 #if WINDOWS
+        // Camada extra por cima do envelope: amarra o biometria.dat à conta do Windows
+        // (DPAPI "LOCAL=user"). Copiar o arquivo pra outra conta ou máquina não abre nada
+        // nem antes de chegar na assinatura do Windows Hello.
+        internal static async Task<string> ProtegerLocalAsync(string texto)
+        {
+            var provedor = new DataProtectionProvider("LOCAL=user");
+            var entrada = CryptographicBuffer.ConvertStringToBinary(texto, BinaryStringEncoding.Utf8);
+            var protegido = await provedor.ProtectAsync(entrada);
+            return CryptographicBuffer.EncodeToBase64String(protegido);
+        }
+
+        internal static async Task<string?> DesprotegerLocalAsync(string conteudo)
+        {
+            try
+            {
+                var provedor = new DataProtectionProvider();
+                var entrada = CryptographicBuffer.DecodeFromBase64String(conteudo);
+                var aberto = await provedor.UnprotectAsync(entrada);
+                return CryptographicBuffer.ConvertBinaryToString(BinaryStringEncoding.Utf8, aberto);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
         private static async Task<(KeyCredentialStatus Status, byte[]? Assinatura)> AssinarAsync(
             KeyCredential credencial, byte[] desafio)
         {

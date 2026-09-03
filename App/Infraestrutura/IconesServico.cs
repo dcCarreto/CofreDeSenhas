@@ -188,6 +188,26 @@ namespace CofreDeSenhas
             new(new[] { "malwarebytes" }, "MW", 0xFF0047FF, Dominio: "malwarebytes.com"),
         };
 
+        private sealed record EntradaPreparada(string Texto, uint Fundo, uint Frente, string? Dominio,
+            string[] Tokens, string[] Frases);
+
+        private static readonly EntradaPreparada[] BancoPreparado = PrepararBanco();
+
+        private static EntradaPreparada[] PrepararBanco()
+        {
+            var preparadas = new EntradaPreparada[Banco.Length];
+            for (int i = 0; i < Banco.Length; i++)
+            {
+                var e = Banco[i];
+                var normalizados = e.Aliases.Select(Normalizar).ToArray();
+                preparadas[i] = new EntradaPreparada(
+                    e.Texto, e.Fundo, e.Frente, e.Dominio,
+                    normalizados.Where(a => !a.Contains(' ')).ToArray(),
+                    normalizados.Where(a => a.Contains(' ')).ToArray());
+            }
+            return preparadas;
+        }
+
         private static readonly TimeSpan TempoLimiteRequisicao = TimeSpan.FromSeconds(5);
         private static readonly TimeSpan EsperaAposFalha = TimeSpan.FromMinutes(5);
         private const int MaxBytesIcone = 512 * 1024;
@@ -220,9 +240,16 @@ namespace CofreDeSenhas
             string normalizado = Normalizar(servico);
             var tokens = normalizado.Split(' ', StringSplitOptions.RemoveEmptyEntries).ToHashSet();
 
-            foreach (var entrada in Banco)
+            foreach (var entrada in BancoPreparado)
             {
-                if (entrada.Aliases.Any(alias => Combina(normalizado, tokens, alias)))
+                bool bate = false;
+                foreach (var token in entrada.Tokens)
+                    if (tokens.Contains(token)) { bate = true; break; }
+                if (!bate)
+                    foreach (var frase in entrada.Frases)
+                        if (normalizado.Contains(frase, StringComparison.Ordinal)) { bate = true; break; }
+
+                if (bate)
                 {
                     var fundo = Acessibilidade.CorDecorativa(Color.FromUInt32(entrada.Fundo));
                     var frente = Acessibilidade.Daltonismo == TipoDaltonismo.Nenhum
@@ -396,14 +423,6 @@ namespace CofreDeSenhas
                 hash = hash * 31 + c;
 
             return Acessibilidade.CorAvatarFallback((uint)hash);
-        }
-
-        private static bool Combina(string normalizado, HashSet<string> tokens, string alias)
-        {
-            string chave = Normalizar(alias);
-            return chave.Contains(' ')
-                ? normalizado.Contains(chave, StringComparison.Ordinal)
-                : tokens.Contains(chave);
         }
 
         private static string? ExtrairDominio(string? texto)

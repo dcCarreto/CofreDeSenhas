@@ -6,6 +6,80 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+## [2.2.3] - 2026-09-03
+
+Patch de manutenção em cima da 2.2.2: uma varredura de segurança de todo o
+código fechou nove pontos — a maioria dependente de pré-condições fortes
+(atacante com escrita no banco compartilhado ou no diretório de dados, MITM
+de TLS com certificado confiável), sem funcionalidade nova. Inclui também a
+otimização de performance da lista, da rolagem e da partida.
+
+### Melhorado
+- Lista principal virtualizada e com caches: rolagem, filtro e abertura do
+  cofre ficam mais rápidos em cofres grandes.
+
+### Segurança
+- O app instalado passa a ser instância única: abrir de novo enquanto já
+  está rodando traz a janela existente para a frente (Windows) em vez de
+  subir um segundo processo sobre o mesmo cofre — dois processos gravando
+  `senhas.json.enc` ao mesmo tempo podiam perder alterações. Debug, testes
+  e verify (`COFRE_BASE`) continuam podendo rodar cópias em paralelo.
+- Ao abrir, o aplicativo avisa se o `senhas.json.enc` for uma cópia idêntica
+  de um dos arquivos em `backups/` — sinal de que alguém restaurou um backup
+  por cima do cofre por fora do app (rollback manual, que reverte senhas
+  trocadas e itens removidos). Não é anti-rollback completo (um atacante com a
+  própria cópia antiga do arquivo dribla), mas cobre o caso óbvio; o
+  `THREAT_MODEL.md` explica o limite.
+- O `biometria.dat` (envelope da chave do cofre para desbloqueio por Windows
+  Hello) passa a ser protegido por DPAPI amarrado à conta do Windows, por cima
+  da cifra que já existia. Copiar o arquivo para outra conta ou máquina não
+  abre mais nada, nem antes de chegar na assinatura do Windows Hello. Um
+  `biometria.dat` de uma versão anterior é migrado sozinho no próximo
+  desbloqueio bem-sucedido.
+- O log de erros (`logs/erros.log`) parou de gravar a mensagem de uma
+  `JsonException`. Quando `senhas.json.enc`, um backup ou o `config.json`
+  chegavam corrompidos, o erro de parsing acontecia depois da descriptografia
+  e a mensagem podia ecoar um trecho do JSON já em texto puro (nome de
+  serviço, usuário, URL, nota, host do banco). Agora registra só o caminho
+  estrutural e a posição do erro, nunca o conteúdo.
+- O bloqueio da tela de login depois de 5 senhas erradas seguidas passa a
+  escalar: 5 s, depois 30 s, 2 min, 10 min, 30 min e, daí em diante, 1 h a
+  cada nova rodada de 5 erros. Antes eram 5 s fixos e a contagem zerava a
+  cada expiração, então dava para testar ~5 senhas a cada 5 s
+  indefinidamente na própria tela de login. Um login correto zera a escala.
+- No Windows, copiar uma senha, um TOTP, um usuário ou qualquer campo do cofre
+  marca o conteúdo para não entrar no Histórico da Área de Transferência (Win+V)
+  nem no Cloud Clipboard. Antes, a limpeza automática apagava só o conteúdo
+  atual — o que já tinha ido para o histórico ou sincronizado para a nuvem
+  continuava lá, dando uma falsa sensação de que a senha some depois dos
+  segundos configurados.
+- Conexão a um banco externo ganha a opção "Exigir assinatura de integridade
+  nas linhas", ligada por padrão em conexões novas. Com ela ligada, uma linha
+  do banco compartilhado sem HMAC não entra mais na mesclagem — fica de fora
+  do cofre e aparece na tela de conflitos de sincronização. Antes, uma linha
+  sem HMAC era tratada como confiável e mesclada mesmo assim (só registrava um
+  aviso), então quem tivesse acesso de escrita ao banco podia forjar campos em
+  texto puro — trocar a URL de uma credencial por um site de phishing, por
+  exemplo — ou reverter uma senha para um valor antigo, bastando não gravar o
+  HMAC. A opção fica desligada em "Restaurar de um banco" e pode ser desligada
+  à mão para um banco compartilhado com dispositivos numa versão antiga do app.
+- Os parâmetros de derivação de chave (memória, iterações e paralelismo do
+  Argon2id; iterações do PBKDF2) lidos de fontes externas — arquivo de
+  exportação `.gsenhas`, cabeçalho do `sincronizacao.dat` e a tabela de auth
+  de um banco compartilhado — passam a ser validados contra tetos sãos antes
+  de alimentar o KDF. Um arquivo ou linha de banco adulterado pedindo, por
+  exemplo, alguns terabytes de memória travava ou derrubava o aplicativo por
+  esgotamento de recursos ao importar, ao sincronizar ou ao restaurar de um
+  banco; agora falha rápido com uma mensagem de arquivo inválido.
+- O atualizador em um clique passa a exigir uma assinatura criptográfica destacada
+  de `CHECKSUMS.txt`, conferida contra uma chave pública fixada no aplicativo, antes
+  de executar o instalador, o portátil ou o AppImage baixado. Até agora a única
+  barreira era o hash SHA256 de um `CHECKSUMS.txt` sem assinatura — um intermediário
+  de TLS com certificado confiável, ou um comprometimento da release, trocaria o
+  arquivo de hashes junto com o binário e o aplicativo instalaria código arbitrário
+  sem aviso. Sem assinatura válida na release, a atualização automática é recusada e
+  a página de lançamentos é aberta para download manual.
+
 ## [2.2.2] - 2026-08-27
 
 Rodada de endurecimento em cima da 2.2.1: uma auditoria sistemática de todo o

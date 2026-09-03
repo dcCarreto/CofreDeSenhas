@@ -24,6 +24,10 @@ namespace CofreDeSenhas.Janelas
         // ficavam disponíveis pra repovoar o painel.
         private readonly Dictionary<string, string> _camposExtrasAcumulados = new();
 
+        // Pra JanelaPrincipal inserir a entrada nova na lista em memória em vez de
+        // recarregar tudo do repositório.
+        public Senha? SenhaCriada { get; private set; }
+
         public JanelaCriarSenha(IServicoSenha servicoSenha, string? senhaGerada = null)
         {
             _servicoSenha = servicoSenha ?? throw new ArgumentNullException(nameof(servicoSenha));
@@ -147,7 +151,7 @@ namespace CofreDeSenhas.Janelas
 
                 var (categoria, etiquetas) = CategoriasUI.LerCategoriaEEtiquetas(CmbCategoria.SelectedIndex, TxtEtiquetas.Text);
                 var tipo = TemplatesCredencial.ObterTipo(CmbTipo.SelectedIndex);
-                await _servicoSenha.CriarSenhaAsync(
+                SenhaCriada = await _servicoSenha.CriarSenhaAsync(
                     TxtNomeServico.Text!,
                     TxtUsuario.Text!,
                     TxtSenha.Text!,

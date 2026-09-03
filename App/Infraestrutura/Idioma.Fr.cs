@@ -52,6 +52,8 @@ namespace CofreDeSenhas
             ("Update.Error.AssetNotFound", "Fichier de mise à jour introuvable pour cette version."),
             ("Update.Error.ChecksumUnavailable", "Impossible de vérifier l'intégrité du fichier."),
             ("Update.Error.ChecksumMismatch", "La vérification d'intégrité du fichier téléchargé a échoué."),
+            ("Update.Error.SignatureMissing", "Cette version n'inclut pas la signature de mise à jour. Téléchargez la nouvelle version manuellement depuis la page des versions."),
+            ("Update.Error.SignatureInvalid", "La signature de la mise à jour ne correspond pas. Le fichier a peut-être été altéré - ne l'installez pas."),
             ("Update.Dismiss", "Ignorer l'avis de mise à jour"),
             ("Icons.ConsentMessage", "Pour afficher l'icône réelle de chaque service, l'application interroge le service d'icônes de Google en envoyant uniquement le domaine du site (par exemple, github.com). Aucun mot de passe, identifiant ou autre donnée ne quitte votre ordinateur, et les icônes téléchargées sont mises en cache sur le disque pour éviter de nouvelles requêtes.\n\nActiver la récupération d'icônes en ligne ?"),
             ("Privacy.Enable", "Activer le mode confidentialité"), ("Privacy.Disable", "Désactiver le mode confidentialité"),
@@ -197,7 +199,7 @@ namespace CofreDeSenhas
             ("Login.Error.PasswordLength", "Le mot de passe doit contenir au moins 8 caractères."),
             ("Login.Error.PasswordMismatch", "Les mots de passe ne correspondent pas."),
             ("Login.Error.MasterPasswordRequired", "Saisissez le mot de passe maître."),
-            ("Login.Error.TooManyAttempts", "Trop de tentatives. Attendez 5 secondes."),
+            ("Login.Error.TooManyAttempts", "Trop de tentatives d'affilée. Attendez un peu avant de réessayer - le délai augmente à chaque nouvelle série d'échecs."),
             ("Login.Error.WrongPassword", "Mot de passe incorrect. Tentative {0} sur 5."),
             ("Login.RestoreFromDatabase", "Restaurer depuis une base de données"),
             ("Login.RestoreTitle", "Restaurer le coffre"),
@@ -343,6 +345,8 @@ namespace CofreDeSenhas
             ("Db.Database", "Base de données"), ("Db.User", "Utilisateur"), ("Db.Password", "Mot de passe"),
             ("Db.RequireValidCertificate", "Exiger un certificat de serveur valide"),
             ("Db.RequireValidCertificateHelp", "Désactivé (par défaut) : la connexion est toujours chiffrée, mais accepte un certificat auto-signé — courant pour une base locale ou sur le réseau interne. Activez pour exiger un certificat validé par une autorité de confiance, recommandé pour une base hors de votre réseau."),
+            ("Db.RequireRowIntegrity", "Exiger une signature d'intégrité sur les lignes"),
+            ("Db.RequireRowIntegrityHelp", "Activé (par défaut) : les lignes de la base partagée sans signature d'intégrité valide sont écartées de la fusion au lieu d'entrer dans votre coffre, et apparaissent dans l'écran des conflits de synchronisation. Désactivez uniquement si vous partagez cette base avec des appareils utilisant une ancienne version de l'application, qui n'écrivent pas encore cette signature."),
             ("Db.SQLitePickerTitle", "Fichier de base SQLite"),
             ("Db.ConnectionSuccess", "Connexion réussie."),
             ("Db.CreateTableTitle", "Créer la table"),
@@ -350,6 +354,7 @@ namespace CofreDeSenhas
             ("Db.ConnectionCanceledNoTable", "Connexion annulée : la table n'existe pas."),
             ("Db.RestoreTableMissing", "Cette base de données n'a pas le coffre attendu — la table n'existe pas. Vérifiez les informations de connexion."),
             ("Db.RestoreNoAuthPublished", "Cette base de données n'a pas encore de mot de passe maître publié pour la restauration. Connectez d'abord, sur cette base de données, un appareil qui a déjà ce coffre déverrouillé — la publication se fait automatiquement à sa prochaine connexion."),
+            ("Db.RestoreInvalidAuth", "Les paramètres de dérivation de clé enregistrés dans cette base de données sont hors de la plage acceptée. Le coffre ne peut pas en être restauré."),
             ("Db.ErrorFileRequired", "Indiquez le fichier de base."),
             ("Db.ErrorFieldsRequired", "Remplissez hôte, base de données et utilisateur."),
             ("Db.ErrorInvalidPort", "Port invalide."),
@@ -551,6 +556,8 @@ namespace CofreDeSenhas
             ("Vault.Error.WrongKeyOrCorrupt", "Impossible d'ouvrir le coffre : la clé est incorrecte ou le fichier a été corrompu."),
             ("Vault.Error.CorruptData", "Le contenu du coffre est corrompu."),
             ("Vault.Error.IOFailure", "Impossible d'accéder au fichier du coffre."),
+            ("Vault.RestoredCopyTitle", "Le coffre a peut-être été restauré"),
+            ("Vault.RestoredCopyWarning", "Le fichier du coffre est une copie identique de l'une des sauvegardes. Cela arrive quand quelqu'un copie une sauvegarde par-dessus le coffre en dehors de l'application, ce qui annule les modifications récentes (mots de passe changés, éléments supprimés). Si ce n'est pas vous, envisagez de changer vos mots de passe et de vérifier l'ordinateur."),
             ("Vault.Error.BackupFailed", "Impossible de créer la sauvegarde du coffre.")
         });
     }

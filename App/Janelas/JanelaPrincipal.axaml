@@ -694,10 +694,21 @@
                   </Border>
 
                   <Grid>
-                    <ScrollViewer HorizontalScrollBarVisibility="Auto">
-                      <StackPanel Name="PainelLista"
-                                  AutomationProperties.Name="{DynamicResource A11y.ResultsList}" />
-                    </ScrollViewer>
+                    <c:ListaVirtualizada Name="PainelLista"
+                                         AutomationProperties.Name="{DynamicResource A11y.ResultsList}">
+                      <ItemsControl.Template>
+                        <ControlTemplate>
+                          <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                            <ItemsPresenter ItemsPanel="{TemplateBinding ItemsPanel}" />
+                          </ScrollViewer>
+                        </ControlTemplate>
+                      </ItemsControl.Template>
+                      <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                          <VirtualizingStackPanel />
+                        </ItemsPanelTemplate>
+                      </ItemsControl.ItemsPanel>
+                    </c:ListaVirtualizada>
                     <StackPanel Name="LblVazio"
                                 HorizontalAlignment="Center" VerticalAlignment="Center"
                                 Spacing="16" IsVisible="False"

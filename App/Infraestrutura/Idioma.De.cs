@@ -52,6 +52,8 @@ namespace CofreDeSenhas
             ("Update.Error.AssetNotFound", "Aktualisierungsdatei für diese Version nicht gefunden."),
             ("Update.Error.ChecksumUnavailable", "Die Integrität der Datei konnte nicht überprüft werden."),
             ("Update.Error.ChecksumMismatch", "Die Integritätsprüfung der heruntergeladenen Datei ist fehlgeschlagen."),
+            ("Update.Error.SignatureMissing", "Diese Version enthält keine Update-Signatur. Laden Sie die neue Version manuell von der Release-Seite herunter."),
+            ("Update.Error.SignatureInvalid", "Die Update-Signatur stimmt nicht. Die Datei wurde möglicherweise manipuliert - nicht installieren."),
             ("Update.Dismiss", "Update-Hinweis ausblenden"),
             ("Icons.ConsentMessage", "Um das echte Symbol jedes Dienstes anzuzeigen, fragt die App den Favicon-Dienst von Google ab und sendet dabei nur die Domain der Website (zum Beispiel github.com). Kein Passwort, Benutzername oder sonstige Daten verlassen Ihren Computer, und heruntergeladene Symbole werden auf der Festplatte zwischengespeichert, um erneute Abfragen zu vermeiden.\n\nOnline-Symbole aktivieren?"),
             ("Privacy.Enable", "Privatsphärenmodus aktivieren"), ("Privacy.Disable", "Privatsphärenmodus deaktivieren"),
@@ -196,7 +198,7 @@ namespace CofreDeSenhas
             ("Login.Error.PasswordLength", "Das Passwort muss mindestens 8 Zeichen lang sein."),
             ("Login.Error.PasswordMismatch", "Die Passwörter stimmen nicht überein."),
             ("Login.Error.MasterPasswordRequired", "Geben Sie das Master-Passwort ein."),
-            ("Login.Error.TooManyAttempts", "Zu viele Versuche. Warten Sie 5 Sekunden."),
+            ("Login.Error.TooManyAttempts", "Zu viele Versuche hintereinander. Warten Sie einen Moment, bevor Sie es erneut versuchen - die Wartezeit wächst mit jeder weiteren Fehlerrunde."),
             ("Login.Error.WrongPassword", "Falsches Passwort. Versuch {0} von 5."),
             ("Login.RestoreFromDatabase", "Aus einer Datenbank wiederherstellen"),
             ("Login.RestoreTitle", "Tresor wiederherstellen"),
@@ -341,6 +343,8 @@ namespace CofreDeSenhas
             ("Db.Database", "Datenbank"), ("Db.User", "Benutzer"), ("Db.Password", "Passwort"),
             ("Db.RequireValidCertificate", "Gültiges Serverzertifikat verlangen"),
             ("Db.RequireValidCertificateHelp", "Aus (Standard): Die Verbindung ist immer verschlüsselt, akzeptiert aber ein selbstsigniertes Zertifikat — üblich bei einer lokalen Datenbank oder im internen Netzwerk. Aktivieren, um ein von einer vertrauenswürdigen Stelle validiertes Zertifikat zu verlangen, empfohlen für eine Datenbank außerhalb Ihres Netzwerks."),
+            ("Db.RequireRowIntegrity", "Integritätssignatur für Zeilen verlangen"),
+            ("Db.RequireRowIntegrityHelp", "Ein (Standard): Zeilen der gemeinsamen Datenbank ohne gültige Integritätssignatur bleiben von der Zusammenführung ausgeschlossen, statt in Ihren Tresor zu gelangen, und erscheinen im Bildschirm für Synchronisierungskonflikte. Nur ausschalten, wenn Sie diese Datenbank mit Geräten teilen, die eine ältere Version der App verwenden, die diese Signatur noch nicht schreibt."),
             ("Db.SQLitePickerTitle", "SQLite-Datenbankdatei"),
             ("Db.ConnectionSuccess", "Verbindung erfolgreich."),
             ("Db.CreateTableTitle", "Tabelle erstellen"),
@@ -348,6 +352,7 @@ namespace CofreDeSenhas
             ("Db.ConnectionCanceledNoTable", "Verbindung abgebrochen: Die Tabelle existiert nicht."),
             ("Db.RestoreTableMissing", "Diese Datenbank hat nicht den erwarteten Tresor — die Tabelle existiert nicht. Überprüfen Sie die Verbindungsdaten."),
             ("Db.RestoreNoAuthPublished", "Diese Datenbank hat noch kein veröffentlichtes Master-Passwort zur Wiederherstellung. Verbinden Sie zuerst ein Gerät, das diesen Tresor bereits entsperrt hat, mit dieser Datenbank — die Veröffentlichung erfolgt automatisch bei der nächsten Verbindung."),
+            ("Db.RestoreInvalidAuth", "Die in dieser Datenbank gespeicherten Parameter zur Schlüsselableitung liegen außerhalb des zulässigen Bereichs. Der Tresor kann daraus nicht wiederhergestellt werden."),
             ("Db.ErrorFileRequired", "Geben Sie die Datenbankdatei an."),
             ("Db.ErrorFieldsRequired", "Füllen Sie Host, Datenbank und Benutzer aus."),
             ("Db.ErrorInvalidPort", "Ungültiger Port."),
@@ -549,6 +554,8 @@ namespace CofreDeSenhas
             ("Vault.Error.WrongKeyOrCorrupt", "Der Tresor konnte nicht geöffnet werden: Der Schlüssel ist falsch oder die Datei wurde beschädigt."),
             ("Vault.Error.CorruptData", "Der Inhalt des Tresors ist beschädigt."),
             ("Vault.Error.IOFailure", "Auf die Tresordatei konnte nicht zugegriffen werden."),
+            ("Vault.RestoredCopyTitle", "Der Tresor wurde möglicherweise wiederhergestellt"),
+            ("Vault.RestoredCopyWarning", "Die Tresordatei ist eine Byte-für-Byte-Kopie einer der Sicherungen. Das passiert, wenn jemand außerhalb der App eine Sicherung über den Tresor kopiert, wodurch aktuelle Änderungen (geänderte Passwörter, entfernte Einträge) rückgängig gemacht werden. Falls Sie das nicht waren, sollten Sie Ihre Passwörter ändern und den Computer prüfen."),
             ("Vault.Error.BackupFailed", "Die Sicherung des Tresors konnte nicht erstellt werden.")
         });
     }

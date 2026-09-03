@@ -70,6 +70,8 @@ namespace CofreDeSenhas
             ("Update.Error.AssetNotFound", "Arquivo de atualização não encontrado nesta versão."),
             ("Update.Error.ChecksumUnavailable", "Não foi possível verificar a integridade do arquivo."),
             ("Update.Error.ChecksumMismatch", "A verificação de integridade do arquivo baixado falhou."),
+            ("Update.Error.SignatureMissing", "Esta versão não traz a assinatura de atualização. Baixe a nova versão manualmente pela página de lançamentos."),
+            ("Update.Error.SignatureInvalid", "A assinatura da atualização não confere. O arquivo pode ter sido adulterado — não instale."),
             ("Update.Dismiss", "Dispensar aviso de atualização"),
             ("Icons.ConsentMessage", "Para exibir o ícone real de cada serviço, o aplicativo consulta o serviço de ícones do Google enviando apenas o domínio do site (por exemplo, github.com). Nenhuma senha, usuário ou outro dado sai do seu computador, e os ícones baixados ficam em cache no disco para evitar novas consultas.\n\nDeseja ativar a busca de ícones online?"),
             ("Privacy.Enable", "Ativar modo privacidade"),
@@ -241,7 +243,7 @@ namespace CofreDeSenhas
             ("Login.Error.PasswordLength", "A senha deve ter pelo menos 8 caracteres."),
             ("Login.Error.PasswordMismatch", "As senhas não coincidem."),
             ("Login.Error.MasterPasswordRequired", "Digite a senha mestra."),
-            ("Login.Error.TooManyAttempts", "Muitas tentativas. Aguarde 5 segundos."),
+            ("Login.Error.TooManyAttempts", "Muitas tentativas seguidas. Espere um pouco antes de tentar de novo — a espera aumenta a cada nova rodada de erros."),
             ("Login.Error.WrongPassword", "Senha incorreta. Tentativa {0} de 5."),
             ("Login.RestoreFromDatabase", "Restaurar de um banco de dados"),
             ("Login.RestoreTitle", "Restaurar cofre"),
@@ -405,6 +407,8 @@ namespace CofreDeSenhas
             ("Db.Password", "Senha"),
             ("Db.RequireValidCertificate", "Exigir certificado válido do servidor"),
             ("Db.RequireValidCertificateHelp", "Desligado (padrão): a conexão é sempre cifrada, mas aceita certificado autoassinado — comum em banco local ou na rede interna. Ligue para exigir um certificado validado por uma autoridade confiável, recomendado para banco fora da sua rede."),
+            ("Db.RequireRowIntegrity", "Exigir assinatura de integridade nas linhas"),
+            ("Db.RequireRowIntegrityHelp", "Ligado (padrão): linhas do banco compartilhado sem uma assinatura de integridade válida ficam de fora da mesclagem em vez de entrar no seu cofre, e aparecem na tela de conflitos de sincronização. Desligue só se você compartilha este banco com dispositivos numa versão antiga do aplicativo, que ainda não gravam essa assinatura."),
             ("Db.SQLitePickerTitle", "Arquivo do banco SQLite"),
             ("Db.ConnectionSuccess", "Conexão bem-sucedida."),
             ("Db.CreateTableTitle", "Criar tabela"),
@@ -412,6 +416,7 @@ namespace CofreDeSenhas
             ("Db.ConnectionCanceledNoTable", "Conexão cancelada: a tabela não existe."),
             ("Db.RestoreTableMissing", "Este banco não tem o cofre esperado — a tabela não existe. Confira os dados de conexão."),
             ("Db.RestoreNoAuthPublished", "Este banco ainda não tem uma senha mestra publicada para restauração. Conecte primeiro, neste banco, um dispositivo que já tenha este cofre desbloqueado — a publicação acontece sozinha na próxima vez que ele conectar."),
+            ("Db.RestoreInvalidAuth", "Os parâmetros de derivação de chave guardados neste banco estão fora da faixa aceita. Não é possível restaurar o cofre a partir dele."),
             ("Db.ErrorFileRequired", "Informe o arquivo do banco."),
             ("Db.ErrorFieldsRequired", "Preencha host, banco de dados e usuário."),
             ("Db.ErrorInvalidPort", "Porta inválida."),
@@ -641,6 +646,8 @@ namespace CofreDeSenhas
             ("Vault.Error.WrongKeyOrCorrupt", "Não foi possível abrir o cofre: a chave está incorreta ou o arquivo foi corrompido."),
             ("Vault.Error.CorruptData", "O conteúdo do cofre está corrompido."),
             ("Vault.Error.IOFailure", "Não foi possível acessar o arquivo do cofre."),
+            ("Vault.RestoredCopyTitle", "O cofre pode ter sido restaurado"),
+            ("Vault.RestoredCopyWarning", "O arquivo do cofre é uma cópia idêntica de um dos backups. Isso acontece quando alguém copia um backup por cima do cofre por fora do aplicativo — o que reverte alterações recentes (senhas trocadas, itens removidos). Se não foi você, considere trocar as senhas e verificar o computador."),
             ("Vault.Error.BackupFailed", "Não foi possível criar o backup do cofre.")
         });
     }

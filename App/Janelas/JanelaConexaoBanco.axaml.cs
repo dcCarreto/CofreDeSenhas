@@ -25,6 +25,7 @@ namespace CofreDeSenhas.Janelas
         private TextBox? _txtUsuario;
         private TextBox? _txtSenha;
         private CustomToggle? _toggleCertificado;
+        private CustomToggle? _toggleIntegridade;
 
         public ConexaoBanco? Conexao { get; private set; }
 
@@ -56,6 +57,7 @@ namespace CofreDeSenhas.Janelas
             var usuarioAtual = _txtUsuario?.Text;
             var senhaAtual = _txtSenha?.Text;
             var certificadoAtual = _toggleCertificado?.Checked;
+            var integridadeAtual = _toggleIntegridade?.Checked;
 
             Campos.Children.Clear();
             var provedor = ProvedorBanco.De(_tipo);
@@ -96,12 +98,21 @@ namespace CofreDeSenhas.Janelas
 
                 _toggleCertificado = AdicionarToggleCertificado(
                     certificadoAtual ?? (temPerfil && perfil!.ExigirCertificadoValido));
+
+                _toggleIntegridade = AdicionarToggleIntegridade(
+                    integridadeAtual ?? (temPerfil ? perfil!.ExigirIntegridade : !_modoRestauracao));
             }
         }
 
-        private CustomToggle AdicionarToggleCertificado(bool valor)
+        private CustomToggle AdicionarToggleCertificado(bool valor) =>
+            AdicionarToggle("Db.RequireValidCertificate", "Db.RequireValidCertificateHelp", valor);
+
+        private CustomToggle AdicionarToggleIntegridade(bool valor) =>
+            AdicionarToggle("Db.RequireRowIntegrity", "Db.RequireRowIntegrityHelp", valor);
+
+        private CustomToggle AdicionarToggle(string rotuloChave, string ajudaChave, bool valor)
         {
-            var rotulo = Idioma.Texto("Db.RequireValidCertificate");
+            var rotulo = Idioma.Texto(rotuloChave);
 
             var linha = new Grid
             {
@@ -119,7 +130,7 @@ namespace CofreDeSenhas.Janelas
 
             var toggle = new CustomToggle { Checked = valor, VerticalAlignment = VerticalAlignment.Center };
             AutomationProperties.SetName(toggle, rotulo);
-            AutomationProperties.SetHelpText(toggle, Idioma.Texto("Db.RequireValidCertificateHelp"));
+            AutomationProperties.SetHelpText(toggle, Idioma.Texto(ajudaChave));
             Grid.SetColumn(toggle, 1);
 
             linha.Children.Add(texto);
@@ -128,7 +139,7 @@ namespace CofreDeSenhas.Janelas
 
             var ajuda = new TextBlock
             {
-                Text = Idioma.Texto("Db.RequireValidCertificateHelp"),
+                Text = Idioma.Texto(ajudaChave),
                 FontSize = 11,
                 TextWrapping = TextWrapping.Wrap,
                 Foreground = Tema.Pincel(Tema.TextSecondary),
@@ -292,7 +303,8 @@ namespace CofreDeSenhas.Janelas
                 Banco = banco,
                 Usuario = usuario,
                 SenhaServidor = _txtSenha?.Text ?? "",
-                ExigirCertificadoValido = _toggleCertificado?.Checked ?? false
+                ExigirCertificadoValido = _toggleCertificado?.Checked ?? false,
+                ExigirIntegridade = _toggleIntegridade?.Checked ?? !_modoRestauracao
             };
         }
 
