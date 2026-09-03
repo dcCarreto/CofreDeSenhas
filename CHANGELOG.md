@@ -7,6 +7,12 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 ## [Não lançado]
 
 ### Segurança
+- O `biometria.dat` (envelope da chave do cofre para desbloqueio por Windows
+  Hello) passa a ser protegido por DPAPI amarrado à conta do Windows, por cima
+  da cifra que já existia. Copiar o arquivo para outra conta ou máquina não
+  abre mais nada, nem antes de chegar na assinatura do Windows Hello. Um
+  `biometria.dat` de uma versão anterior é migrado sozinho no próximo
+  desbloqueio bem-sucedido.
 - O log de erros (`logs/erros.log`) parou de gravar a mensagem de uma
   `JsonException`. Quando `senhas.json.enc`, um backup ou o `config.json`
   chegavam corrompidos, o erro de parsing acontecia depois da descriptografia

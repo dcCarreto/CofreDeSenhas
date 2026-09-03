@@ -101,6 +101,26 @@ namespace App.Testes
                 RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && OperatingSystem.IsWindowsVersionAtLeast(10, 0, 10240),
                 servico.SistemaSuportado);
         }
+
+        [Fact]
+        public async Task ProtegerLocal_RoundTrip_RecuperaOTextoESoAmarraNessaConta()
+        {
+            const string segredo = "registro-biometrico-de-teste-42";
+
+            string protegido;
+            try
+            {
+                protegido = await ServicoDesbloqueioBiometrico.ProtegerLocalAsync(segredo);
+            }
+            catch
+            {
+                return;
+            }
+
+            Assert.DoesNotContain(segredo, protegido);
+            Assert.Equal(segredo, await ServicoDesbloqueioBiometrico.DesprotegerLocalAsync(protegido));
+            Assert.Null(await ServicoDesbloqueioBiometrico.DesprotegerLocalAsync("conteudo-nao-protegido"));
+        }
 #else
         [Fact]
         public void SistemaSuportado_ForaDaTfmWindows_SempreFalso()

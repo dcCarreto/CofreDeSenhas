@@ -133,7 +133,9 @@ rejeitado como entrada inválida em vez de esgotar a memória do dispositivo que
 (`biometria.dat`), nada disso sincroniza. A chave do cofre fica cifrada com uma chave
 derivada da assinatura de uma credencial do Windows Hello, cuja chave privada mora no TPM;
 o envelope só abre depois de uma autenticação biométrica bem-sucedida do sistema
-operacional. A senha mestra continua sempre disponível como alternativa — biometria nunca
+operacional. Por cima disso, o `biometria.dat` é protegido por DPAPI amarrado à conta do
+Windows — copiá-lo para outra conta ou máquina não abre nada, nem antes de chegar na
+assinatura do Windows Hello. A senha mestra continua sempre disponível como alternativa — biometria nunca
 substitui, só complementa. Se a chave do cofre muda (troca de senha mestra ou migração do
 algoritmo de derivação), o vínculo antigo se autodesabilita em vez de continuar concedendo
 acesso com uma chave desatualizada.
