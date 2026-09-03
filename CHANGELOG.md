@@ -6,6 +6,18 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+## [2.2.3] - 2026-09-03
+
+Patch de manutenção em cima da 2.2.2: uma varredura de segurança de todo o
+código fechou nove pontos — a maioria dependente de pré-condições fortes
+(atacante com escrita no banco compartilhado ou no diretório de dados, MITM
+de TLS com certificado confiável), sem funcionalidade nova. Inclui também a
+otimização de performance da lista, da rolagem e da partida.
+
+### Melhorado
+- Lista principal virtualizada e com caches: rolagem, filtro e abertura do
+  cofre ficam mais rápidos em cofres grandes.
+
 ### Segurança
 - O app instalado passa a ser instância única: abrir de novo enquanto já
   está rodando traz a janela existente para a frente (Windows) em vez de
