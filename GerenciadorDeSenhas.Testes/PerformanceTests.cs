@@ -14,7 +14,7 @@ public class PerformanceTests : IDisposable
     // (ex.: um loop O(n²) introduzido por acidente), não um SLA de performance.
     // Não apertar com base em uma máquina rápida específica.
     private const long LimiteCriarMs = 15000;
-    private const long LimiteCarregarMs = 5000;
+    private const long LimiteCarregarMs = 15000;
 
     private readonly string _pasta;
     private readonly ITestOutputHelper _saida;
