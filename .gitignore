@@ -541,8 +541,12 @@ cache_senhas.json
 *.pfx
 *.p12
 *.jks
-# Exceção: a chave PÚBLICA de verificação das releases é para ser versionada
+*.asc
+*.gpg
+*.rev
+# Exceção: as chaves PÚBLICAS de verificação das releases são para ser versionadas
 !update-signing-public.pem
+!update-signing-gpg-public.asc
 
 # Tokens & Secrets
 .env.local
