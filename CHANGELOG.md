@@ -7,6 +7,11 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 ## [Não lançado]
 
 ### Segurança
+- O app instalado passa a ser instância única: abrir de novo enquanto já
+  está rodando traz a janela existente para a frente (Windows) em vez de
+  subir um segundo processo sobre o mesmo cofre — dois processos gravando
+  `senhas.json.enc` ao mesmo tempo podiam perder alterações. Debug, testes
+  e verify (`COFRE_BASE`) continuam podendo rodar cópias em paralelo.
 - Ao abrir, o aplicativo avisa se o `senhas.json.enc` for uma cópia idêntica
   de um dos arquivos em `backups/` — sinal de que alguém restaurou um backup
   por cima do cofre por fora do app (rollback manual, que reverte senhas
