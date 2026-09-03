@@ -34,18 +34,24 @@ foi baixado. Toda release traz, além dos binários:
   mesma chave que o atualizador embutido exige antes de aplicar qualquer
   atualização. A chave pública correspondente está versionada no repositório em
   [`update-signing-public.pem`](update-signing-public.pem).
-- `CHECKSUMS.txt.asc` — assinatura GPG destacada do `CHECKSUMS.txt` (presente a
-  partir do momento em que a chave GPG de release estiver configurada).
+- `CHECKSUMS.txt.asc` — assinatura GPG destacada do `CHECKSUMS.txt`. A chave
+  pública está versionada em
+  [`update-signing-gpg-public.asc`](update-signing-gpg-public.asc); a impressão
+  digital é `A5C8 5888 D40B 03F8 A91E  38F2 9366 CF1E 74DE 2C7D`.
 
-Conferir o hash e a assinatura RSA:
+Conferir o hash e as assinaturas:
 
 ```sh
 # 1. o binário bate com o hash publicado
 sha256sum -c CHECKSUMS.txt --ignore-missing
 
-# 2. o CHECKSUMS.txt foi assinado pela chave do projeto
+# 2. o CHECKSUMS.txt foi assinado pela chave RSA do projeto
 openssl dgst -sha256 -verify update-signing-public.pem \
   -signature CHECKSUMS.txt.sig CHECKSUMS.txt
+
+# 3. alternativa: conferir a assinatura GPG
+gpg --import update-signing-gpg-public.asc
+gpg --verify CHECKSUMS.txt.asc CHECKSUMS.txt
 ```
 
 No Windows, o passo 1 equivale a `Get-FileHash <arquivo> -Algorithm SHA256` e

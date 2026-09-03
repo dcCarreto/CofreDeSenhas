@@ -200,6 +200,8 @@ jobs:
       contents: write
       id-token: write
       attestations: write
+    env:
+      VT_API_KEY: ${{ secrets.VT_API_KEY }}
     steps:
       - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
@@ -312,3 +314,21 @@ jobs:
           generate_release_notes: false
           body_path: release-notes.md
           files: dist/*
+
+      - name: Enviar artefatos ao VirusTotal
+        # Opcional e best-effort: sem o secret VT_API_KEY o passo é pulado, e uma
+        # falha do VirusTotal (cota diária, tamanho de arquivo ou rate limit da
+        # conta gratuita) não derruba a publicação. Com update_release_body, os
+        # links dos relatórios entram no corpo da release já publicada.
+        if: ${{ env.VT_API_KEY != '' }}
+        continue-on-error: true
+        uses: crazy-max/ghaction-virustotal@936d8c5c00afe97d3d9a1af26d017cfdf26800a2 # v5.0.0
+        with:
+          vt_api_key: ${{ secrets.VT_API_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          update_release_body: true
+          request_rate: 4
+          files: |
+            dist/CofreDeSenhas-Setup-*.exe
+            dist/CofreDeSenhas-*-win-x64-portatil.exe
+            dist/GeradorDeSenhas-*-win-x64-portatil.exe
