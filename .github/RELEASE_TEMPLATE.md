@@ -46,17 +46,28 @@ no Linux). Instalar por cima de uma versão anterior preserva o cofre
 existente, mas ter um backup independente é sempre mais seguro antes de
 qualquer atualização.
 
-## Verificando a integridade dos arquivos
+## Verificando a integridade e a procedência dos arquivos
 
 Todo arquivo desta release tem seu hash SHA256 listado em `CHECKSUMS.txt`,
-também anexado a esta release. Para conferir:
+também anexado a esta release. Para conferir o hash:
 
 - Windows (PowerShell): `Get-FileHash .\arquivo-baixado -Algorithm SHA256`
 - Linux/macOS: `sha256sum -c CHECKSUMS.txt` (executado na pasta onde os
   arquivos foram baixados)
 
-Compare o valor obtido com o que consta em `CHECKSUMS.txt`. Os arquivos ainda
-não são assinados digitalmente (assinatura de código no Windows exige um
-certificado pago e está avaliada como item futuro do roadmap); o hash SHA256
-é, por enquanto, a forma de confirmar que o arquivo baixado é exatamente o
-que foi publicado nesta release, sem alteração no caminho.
+Além do hash, a release traz outras camadas de verificação, todas descritas no
+[SECURITY.md](../SECURITY.md#confiança-nos-binários-e-verificação-dos-downloads):
+
+- `CHECKSUMS.txt.sig` — assinatura RSA-4096 destacada do `CHECKSUMS.txt`, a
+  mesma chave que o atualizador embutido exige (`openssl dgst -verify`).
+- `CHECKSUMS.txt.asc` — assinatura GPG destacada do `CHECKSUMS.txt`
+  (`gpg --verify`); a chave pública e a impressão digital estão no `SECURITY.md`.
+- *Attestation* de proveniência SLSA/Sigstore por artefato
+  (`gh attestation verify <arquivo> --repo dcCarreto/CofreDeSenhas`).
+- Relatório do VirusTotal dos executáveis do Windows, com os links anexados ao
+  final desta release.
+
+Os executáveis ainda não têm assinatura de código do Windows (Authenticode
+exige um certificado pago, avaliado como item futuro do roadmap); as camadas
+acima são a forma de confirmar que o arquivo baixado é exatamente o que foi
+publicado nesta release, sem alteração no caminho.
