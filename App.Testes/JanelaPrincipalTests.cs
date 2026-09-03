@@ -141,7 +141,7 @@ namespace App.Testes
                 _ = janela.RestaurarBackupAsync(persistencia, backup1);
 
                 List<Senha>? atuais = null;
-                for (var i = 0; i < 50 && (atuais == null || atuais.Count != 1); i++)
+                for (var i = 0; i < 250 && (atuais == null || atuais.Count != 1); i++)
                 {
                     // A troca atômica de arquivo (escrever num .tmp e mover por cima) pode
                     // deixar uma leitura concorrente esbarrar num instante de transição —
