@@ -3,6 +3,7 @@ using CofreDeSenhas;
 
 namespace App.Testes
 {
+    [Collection("Preferencias")]
     public class DiagnosticoTests : IDisposable
     {
         private readonly string _log;

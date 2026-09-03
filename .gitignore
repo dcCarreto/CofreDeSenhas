@@ -541,6 +541,8 @@ cache_senhas.json
 *.pfx
 *.p12
 *.jks
+# Exceção: a chave PÚBLICA de verificação das releases é para ser versionada
+!update-signing-public.pem
 
 # Tokens & Secrets
 .env.local

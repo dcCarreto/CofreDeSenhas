@@ -3,6 +3,7 @@ using Xunit;
 
 namespace App.Testes
 {
+    [Collection("Preferencias")]
     public class HistoricoPontuacaoSegurancaTests
     {
         [Fact]

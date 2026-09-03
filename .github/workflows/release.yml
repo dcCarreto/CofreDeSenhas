@@ -265,6 +265,36 @@ jobs:
           rm -f chave-assinatura.pem chave-assinatura.pub
           echo "CHECKSUMS.txt.sig gerado."
 
+      - name: Assinar CHECKSUMS.txt com GPG
+        # Assinatura complementar à RSA acima, na convenção que as ferramentas de
+        # linha de comando do Linux esperam (gpg --verify). É opcional: sem o
+        # secret GPG_PRIVATE_KEY o passo se ignora sem falhar — quem valida a
+        # atualização automática continua conferindo a assinatura RSA.
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        run: |
+          if [ -z "$GPG_PRIVATE_KEY" ]; then
+            echo "Secret GPG_PRIVATE_KEY não configurado — pulando a assinatura GPG (opcional)."
+            exit 0
+          fi
+          GNUPGHOME="$(mktemp -d)"
+          export GNUPGHOME
+          chmod 700 "$GNUPGHOME"
+          printf '%s\n' "$GPG_PRIVATE_KEY" | gpg --batch --quiet --import
+          fpr=$(gpg --batch --with-colons --list-secret-keys | awk -F: '/^fpr:/ {print $10; exit}')
+          if [ -z "$fpr" ]; then
+            echo "Não consegui ler a impressão digital da chave GPG importada." >&2
+            exit 1
+          fi
+          gpg --batch --yes --pinentry-mode loopback --passphrase "$GPG_PASSPHRASE" \
+            --local-user "$fpr" --armor --detach-sign --output dist/CHECKSUMS.txt.asc dist/CHECKSUMS.txt
+          gpg --batch --verify dist/CHECKSUMS.txt.asc dist/CHECKSUMS.txt
+          gpg --batch --armor --export "$fpr" > dist/CofreDeSenhas-gpg-public-key.asc
+          gpgconf --kill gpg-agent || true
+          rm -rf "$GNUPGHOME"
+          echo "CHECKSUMS.txt.asc gerado (chave GPG $fpr)."
+
       - name: Montar notas da release
         run: python3 .github/scripts/montar_notas_release.py "${{ needs.verificar-versao.outputs.versao }}"
 

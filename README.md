@@ -8,17 +8,18 @@ em C# com .NET 10 e Avalonia, com uma única base de código para todas as
 plataformas.
 
 [![CI](https://github.com/dcCarreto/CofreDeSenhas/actions/workflows/ci.yml/badge.svg)](https://github.com/dcCarreto/CofreDeSenhas/actions/workflows/ci.yml)
-![Licença](https://img.shields.io/badge/licen%C3%A7a-MIT-blue)
+![Licença](https://img.shields.io/badge/licen%C3%A7a-PolyForm%20Noncommercial-blue)
 ![Plataforma](https://img.shields.io/badge/plataforma-Windows%2010%2F11%20%7C%20Linux-0078D6)
 ![.NET](https://img.shields.io/badge/.NET-10-512BD4)
-![Versão](https://img.shields.io/badge/vers%C3%A3o-2.2.2-success)
+![Versão](https://img.shields.io/badge/vers%C3%A3o-2.2.3-success)
 
-Este é um projeto de código aberto e software livre, distribuído sob a licença
-MIT. Você pode usá-lo, estudá-lo, modificá-lo e compartilhá-lo livremente.
+Este é um projeto de código aberto, gratuito e sem fins comerciais, distribuído
+sob a licença PolyForm Noncommercial 1.0.0. Você pode usá-lo, estudá-lo,
+modificá-lo e compartilhá-lo livremente para qualquer finalidade não comercial.
 
 ## Sumário
 
-- [Sobre o projeto e o software livre](#sobre-o-projeto-e-o-software-livre)
+- [Sobre o projeto e o código aberto](#sobre-o-projeto-e-o-código-aberto)
 - [Visão geral](#visão-geral)
 - [Capturas de tela](#capturas-de-tela)
 - [Funcionalidades](#funcionalidades)
@@ -37,7 +38,7 @@ MIT. Você pode usá-lo, estudá-lo, modificá-lo e compartilhá-lo livremente.
 - [Como contribuir](#como-contribuir)
 - [Licença](#licença)
 
-## Sobre o projeto e o software livre
+## Sobre o projeto e o código aberto
 
 Sempre acreditei que boas ferramentas deveriam estar ao alcance de qualquer
 pessoa. Aprendi a programar apoiado em software livre, lendo o código de quem
@@ -48,18 +49,20 @@ construir.
 
 O Cofre de Senhas nasce dessa mesma convicção. Segurança e privacidade não
 deveriam ser privilégio de quem pode pagar por elas, e por isso decidi que este
-projeto seria aberto, gratuito e livre para usar, examinar, modificar e
-distribuir. Acredito que acessibilidade e segurança caminham juntas: um programa
-que protege as senhas das pessoas precisa ser inspecionável por elas. Um código
-que qualquer um pode auditar é, no fim, um código em que se pode confiar.
+projeto seria aberto e gratuito para usar, examinar, modificar e distribuir sem
+fins comerciais. Acredito que acessibilidade e segurança caminham juntas: um
+programa que protege as senhas das pessoas precisa ser inspecionável por elas. Um
+código que qualquer um pode auditar é, no fim, um código em que se pode confiar.
 
 Se este projeto for útil para você, use-o sem receios. Se quiser melhorá-lo,
 seja bem-vindo. Ele foi feito para servir a todos.
 
-Este aplicativo nasceu livre e continuará livre. Nenhuma evolução futura muda
-isso: o código-fonte permanece aberto sob a licença MIT, sem versões pagas, sem
-recursos escondidos atrás de assinatura e sem coleta de dados. Cada nova etapa
-do projeto é construída respeitando esse compromisso.
+Este aplicativo nasceu aberto e gratuito e continuará assim. Nenhuma evolução
+futura muda isso: o código-fonte permanece aberto sob a licença PolyForm
+Noncommercial 1.0.0 — livre para estudar, modificar e redistribuir, vedado o uso
+comercial —, sem versões pagas, sem recursos escondidos atrás de assinatura e sem
+coleta de dados. Cada nova etapa do projeto é construída respeitando esse
+compromisso.
 
 ## Visão geral
 
@@ -679,7 +682,10 @@ orientações simples:
 
 ## Licença
 
-Distribuído sob a licença MIT. Consulte o arquivo [LICENSE](LICENSE) para os
-termos completos. Em resumo: você pode usar, copiar, modificar e distribuir este
-software, inclusive em projetos comerciais, desde que mantenha o aviso de
-copyright e a permissão originais.
+Distribuído sob a licença [PolyForm Noncommercial 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0).
+Consulte o arquivo [LICENSE](LICENSE) para os termos completos. Em resumo: você
+pode usar, copiar, estudar, modificar e redistribuir este software livremente
+para qualquer finalidade **não comercial**, mantendo o aviso de copyright e estes
+termos. Uso comercial — vender o programa, cobrar por ele ou embuti-lo em um
+produto ou serviço pago — não é permitido. O aplicativo é gratuito e assim
+permanecerá.

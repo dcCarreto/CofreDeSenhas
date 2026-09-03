@@ -9,7 +9,7 @@
 #ifndef MyAppVersion
   #define MyAppVersion "2.0.0"
 #endif
-#define MyAppPublisher "dcCarreto"
+#define MyAppPublisher "Denis Cristino Cantagallo Carreto"
 #define MyAppURL "https://github.com/dcCarreto/CofreDeSenhas"
 #define MyAppExeName "CofreDeSenhas.exe"
 #define MyAppId "{{B4E1F5A0-6C3D-4E8A-9F2B-7D3C1A5E8B90}"
@@ -20,6 +20,7 @@ AppId={#MyAppId}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
+AppCopyright=Copyright © 2026 {#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}/releases

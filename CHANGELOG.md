@@ -6,6 +6,25 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+### Alterado
+- Licença migrada de MIT para PolyForm Noncommercial 1.0.0: o código-fonte
+  continua aberto para estudar, modificar e redistribuir, agora com uso
+  comercial vedado. O aplicativo é e continuará gratuito.
+
+### Segurança
+- O `SECURITY.md` passou a documentar como verificar a autenticidade dos
+  binários de uma release sem depender do aviso do sistema operacional: hash
+  SHA-256, assinatura RSA destacada do `CHECKSUMS.txt` conferida contra a chave
+  pública agora versionada no repositório (`update-signing-public.pem`) e a
+  prova de proveniência SLSA. Fica registrado também que os binários não têm
+  certificado de assinatura de código pago e como prosseguir apesar do aviso do
+  SmartScreen no Windows.
+- O workflow de release passou a gerar uma assinatura GPG destacada do
+  `CHECKSUMS.txt` (`CHECKSUMS.txt.asc`) quando há chave de assinatura
+  configurada.
+- Os metadados de autor e copyright dos executáveis e do instalador passaram a
+  trazer o nome completo do responsável no lugar de um identificador curto.
+
 ## [2.2.3] - 2026-09-03
 
 Patch de manutenção em cima da 2.2.2: uma varredura de segurança de todo o

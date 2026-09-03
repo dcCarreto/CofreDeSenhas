@@ -13,7 +13,7 @@ import sys
 import pathlib
 
 PACKAGE_IDENTIFIER = "dcCarreto.CofreDeSenhas"
-PUBLISHER = "dcCarreto"
+PUBLISHER = "Denis Cristino Cantagallo Carreto"
 PACKAGE_NAME = "Cofre de Senhas"
 REPO_URL = "https://github.com/dcCarreto/CofreDeSenhas"
 MANIFEST_VERSION = "1.6.0"
@@ -62,8 +62,9 @@ PublisherUrl: {REPO_URL}
 PublisherSupportUrl: {REPO_URL}/issues
 PackageName: {PACKAGE_NAME}
 PackageUrl: {REPO_URL}
-License: MIT
+License: PolyForm Noncommercial 1.0.0
 LicenseUrl: {REPO_URL}/blob/prod/LICENSE
+Copyright: Copyright © 2026 Denis Cristino Cantagallo Carreto
 ShortDescription: Gerenciador de senhas local, com cofre cifrado (AES-256-GCM) e sincronização opcional por banco de dados ou pasta compartilhada.
 Tags:
   - password-manager

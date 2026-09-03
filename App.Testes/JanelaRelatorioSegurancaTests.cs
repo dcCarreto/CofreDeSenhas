@@ -10,6 +10,7 @@ using GerenciadorDeSenhas.Servicos;
 
 namespace App.Testes
 {
+    [Collection("Preferencias")]
     public class JanelaRelatorioSegurancaTests
     {
         [AvaloniaFact]
