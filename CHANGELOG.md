@@ -7,6 +7,12 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 ## [Não lançado]
 
 ### Segurança
+- Ao abrir, o aplicativo avisa se o `senhas.json.enc` for uma cópia idêntica
+  de um dos arquivos em `backups/` — sinal de que alguém restaurou um backup
+  por cima do cofre por fora do app (rollback manual, que reverte senhas
+  trocadas e itens removidos). Não é anti-rollback completo (um atacante com a
+  própria cópia antiga do arquivo dribla), mas cobre o caso óbvio; o
+  `THREAT_MODEL.md` explica o limite.
 - O `biometria.dat` (envelope da chave do cofre para desbloqueio por Windows
   Hello) passa a ser protegido por DPAPI amarrado à conta do Windows, por cima
   da cifra que já existia. Copiar o arquivo para outra conta ou máquina não

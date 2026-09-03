@@ -554,6 +554,8 @@ namespace CofreDeSenhas
             ("Vault.Error.WrongKeyOrCorrupt", "Impossibile aprire la cassaforte: la chiave è errata o il file è stato danneggiato."),
             ("Vault.Error.CorruptData", "Il contenuto della cassaforte è danneggiato."),
             ("Vault.Error.IOFailure", "Impossibile accedere al file della cassaforte."),
+            ("Vault.RestoredCopyTitle", "La cassaforte potrebbe essere stata ripristinata"),
+            ("Vault.RestoredCopyWarning", "Il file della cassaforte è una copia identica di uno dei backup. Succede quando qualcuno copia un backup sopra la cassaforte fuori dall'applicazione, annullando le modifiche recenti (password cambiate, elementi rimossi). Se non sei stato tu, valuta di cambiare le password e di controllare il computer."),
             ("Vault.Error.BackupFailed", "Impossibile creare il backup della cassaforte.")
         });
     }

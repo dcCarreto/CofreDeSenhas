@@ -556,6 +556,8 @@ namespace CofreDeSenhas
             ("Vault.Error.WrongKeyOrCorrupt", "Impossible d'ouvrir le coffre : la clé est incorrecte ou le fichier a été corrompu."),
             ("Vault.Error.CorruptData", "Le contenu du coffre est corrompu."),
             ("Vault.Error.IOFailure", "Impossible d'accéder au fichier du coffre."),
+            ("Vault.RestoredCopyTitle", "Le coffre a peut-être été restauré"),
+            ("Vault.RestoredCopyWarning", "Le fichier du coffre est une copie identique de l'une des sauvegardes. Cela arrive quand quelqu'un copie une sauvegarde par-dessus le coffre en dehors de l'application, ce qui annule les modifications récentes (mots de passe changés, éléments supprimés). Si ce n'est pas vous, envisagez de changer vos mots de passe et de vérifier l'ordinateur."),
             ("Vault.Error.BackupFailed", "Impossible de créer la sauvegarde du coffre.")
         });
     }

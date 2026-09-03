@@ -646,6 +646,8 @@ namespace CofreDeSenhas
             ("Vault.Error.WrongKeyOrCorrupt", "Não foi possível abrir o cofre: a chave está incorreta ou o arquivo foi corrompido."),
             ("Vault.Error.CorruptData", "O conteúdo do cofre está corrompido."),
             ("Vault.Error.IOFailure", "Não foi possível acessar o arquivo do cofre."),
+            ("Vault.RestoredCopyTitle", "O cofre pode ter sido restaurado"),
+            ("Vault.RestoredCopyWarning", "O arquivo do cofre é uma cópia idêntica de um dos backups. Isso acontece quando alguém copia um backup por cima do cofre por fora do aplicativo — o que reverte alterações recentes (senhas trocadas, itens removidos). Se não foi você, considere trocar as senhas e verificar o computador."),
             ("Vault.Error.BackupFailed", "Não foi possível criar o backup do cofre.")
         });
     }

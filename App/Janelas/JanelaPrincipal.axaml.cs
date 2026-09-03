@@ -353,7 +353,23 @@ namespace CofreDeSenhas.Janelas
             }
 
             await CarregarSenhasAsync();
+            await AvisarSeCofreForCopiaDeBackupAsync();
             _ = VerificarBackupAgendadoAsync();
+        }
+
+        private async Task AvisarSeCofreForCopiaDeBackupAsync()
+        {
+            try
+            {
+                if (PersistenciaLocal.CofreEhCopiaDeBackup())
+                    await CaixaMensagem.MostrarAsync(this,
+                        Idioma.Texto("Vault.RestoredCopyWarning"),
+                        Idioma.Texto("Vault.RestoredCopyTitle"),
+                        TipoMensagem.Aviso);
+            }
+            catch
+            {
+            }
         }
 
         private async Task VerificarBackupAgendadoAsync()

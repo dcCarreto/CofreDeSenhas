@@ -234,5 +234,34 @@ namespace GerenciadorDeSenhas.Servicos
                 return false;
             }
         }
+
+        // Cada Criptografar gera um nonce novo, então o senhas.json.enc e qualquer backup
+        // seu nunca coincidem byte a byte pelo caminho normal — nem depois de "Restaurar
+        // backup" (que redecifra e regrava). Se coincidirem, alguém copiou um backup por
+        // cima do arquivo do cofre por fora do aplicativo (rollback manual).
+        public static bool CofreEhCopiaDeBackup(string? pastaApp = null)
+        {
+            try
+            {
+                var pasta = pastaApp ?? AmbienteCofre.PastaDados;
+                var caminhoCofre = Path.Combine(pasta, "senhas.json.enc");
+                var pastaBackup = Path.Combine(pasta, "backups");
+
+                if (!File.Exists(caminhoCofre) || !Directory.Exists(pastaBackup))
+                    return false;
+
+                var hashCofre = Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(caminhoCofre)));
+
+                foreach (var backup in Directory.GetFiles(pastaBackup, "senhas_backup_*.json.enc"))
+                    if (Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(backup))) == hashCofre)
+                        return true;
+
+                return false;
+            }
+            catch
+            {
+                return false;
+            }
+        }
     }
 }

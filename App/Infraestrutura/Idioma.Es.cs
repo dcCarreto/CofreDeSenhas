@@ -555,6 +555,8 @@ namespace CofreDeSenhas
             ("Vault.Error.WrongKeyOrCorrupt", "No se pudo abrir la caja fuerte: la clave es incorrecta o el archivo se dañó."),
             ("Vault.Error.CorruptData", "El contenido de la caja fuerte está dañado."),
             ("Vault.Error.IOFailure", "No se pudo acceder al archivo de la caja fuerte."),
+            ("Vault.RestoredCopyTitle", "La caja fuerte puede haber sido restaurada"),
+            ("Vault.RestoredCopyWarning", "El archivo de la caja fuerte es una copia idéntica de uno de los backups. Esto ocurre cuando alguien copia un backup sobre la caja fuerte fuera de la aplicación, lo que revierte cambios recientes (contraseñas modificadas, elementos eliminados). Si no fuiste tú, considera cambiar tus contraseñas y revisar el equipo."),
             ("Vault.Error.BackupFailed", "No se pudo crear la copia de seguridad de la caja fuerte.")
         });
     }

@@ -632,6 +632,8 @@ namespace CofreDeSenhas
             ("Vault.Error.WrongKeyOrCorrupt", "Could not open the vault: the key is wrong or the file was corrupted."),
             ("Vault.Error.CorruptData", "The vault content is corrupted."),
             ("Vault.Error.IOFailure", "Could not access the vault file."),
+            ("Vault.RestoredCopyTitle", "The vault may have been restored"),
+            ("Vault.RestoredCopyWarning", "The vault file is a byte-for-byte copy of one of the backups. This happens when someone copies a backup over the vault outside the app, which reverts recent changes (changed passwords, removed items). If this wasn't you, consider changing your passwords and checking the computer."),
             ("Vault.Error.BackupFailed", "Could not create the vault backup.")
         });
     }

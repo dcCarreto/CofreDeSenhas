@@ -29,6 +29,15 @@ recuperação (ver "Fora de escopo" no `ROADMAP.md`). Adulterar o arquivo cifrad
 e rejeitado alto e claro (`InvalidOperationException`), não faz o cofre carregar dado
 corrompido silenciosamente.
 
+O que o AEAD **não** cobre é *rollback*: quem tem escrita no diretório de dados pode
+sobrescrever `senhas.json.enc` com uma cópia antiga, ainda válida, e reverter alterações
+recentes (uma senha trocada, um item removido). Anti-rollback de verdade exige um contador
+monotônico em armazenamento confiável fora do alcance de quem tampera (TPM, servidor) — fora
+do modelo de um app de desktop sem privilégio elevado. O que o aplicativo faz é detectar o
+caso óbvio: se o `senhas.json.enc` for uma cópia byte a byte de um dos arquivos em
+`backups/`, ele avisa na abertura que o cofre parece ter sido restaurado por fora do app.
+Um atacante que guarde a própria cópia antiga do arquivo dribla essa checagem.
+
 ### Alguém com acesso à memória do processo enquanto o cofre está aberto
 
 **Este é o ponto mais fraco do modelo hoje, e vale ser dito sem rodeio.** Enquanto o cofre

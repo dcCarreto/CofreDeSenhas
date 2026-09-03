@@ -554,6 +554,8 @@ namespace CofreDeSenhas
             ("Vault.Error.WrongKeyOrCorrupt", "Der Tresor konnte nicht geöffnet werden: Der Schlüssel ist falsch oder die Datei wurde beschädigt."),
             ("Vault.Error.CorruptData", "Der Inhalt des Tresors ist beschädigt."),
             ("Vault.Error.IOFailure", "Auf die Tresordatei konnte nicht zugegriffen werden."),
+            ("Vault.RestoredCopyTitle", "Der Tresor wurde möglicherweise wiederhergestellt"),
+            ("Vault.RestoredCopyWarning", "Die Tresordatei ist eine Byte-für-Byte-Kopie einer der Sicherungen. Das passiert, wenn jemand außerhalb der App eine Sicherung über den Tresor kopiert, wodurch aktuelle Änderungen (geänderte Passwörter, entfernte Einträge) rückgängig gemacht werden. Falls Sie das nicht waren, sollten Sie Ihre Passwörter ändern und den Computer prüfen."),
             ("Vault.Error.BackupFailed", "Die Sicherung des Tresors konnte nicht erstellt werden.")
         });
     }
