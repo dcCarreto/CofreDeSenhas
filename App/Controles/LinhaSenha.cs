@@ -94,21 +94,9 @@ namespace CofreDeSenhas.Controles
         public event EventHandler<Senha>? SolicitouDetalhes;
         public event EventHandler<Senha>? SelecaoAlterada;
 
-        // Com a lista virtualizada, a linha em edição pode ser desrealizada ao rolar
-        // pra fora de vista antes de o usuário confirmar. JanelaPrincipal escuta o
-        // rascunho a cada tecla e reabre a edição quando a linha volta — ver
-        // CriarLinhaSenha. RascunhoServicoAlterado dispara enquanto a edição está
-        // viva; EdicaoServicoFinalizada quando ela termina (confirma ou cancela),
-        // pra JanelaPrincipal descartar o rascunho pendente.
         public event EventHandler<string>? RascunhoServicoAlterado;
         public event EventHandler? EdicaoServicoFinalizada;
 
-        // A lista recicla ~20 LinhaSenha entre centenas de posições ao rolar. Vincular
-        // reaplica os dados da nova Senha e zera todo estado transitório da linha
-        // (senha revelada, edição, timers de feedback) — nada pode vazar de uma
-        // entrada pra outra. EstadoExternoNecessario pede à JanelaPrincipal os dados
-        // que ela guarda por Id (seleção em lote, nível de força, auditoria,
-        // vazamentos, larguras de coluna, rascunho de edição pendente).
         public event EventHandler? EstadoExternoNecessario;
 
         public void DefinirSelecionada(bool selecionada)
@@ -231,15 +219,9 @@ namespace CofreDeSenhas.Controles
                 Vincular(nova);
         }
 
-        // ListaVirtualizada chama isto antes de tirar a linha da árvore pra reciclar.
-        // Marca que o LostFocus que vem a seguir (do _txtServico perdendo o foco ao
-        // sair de vista) NÃO é o usuário confirmando — o rascunho já está guardado na
-        // JanelaPrincipal e a edição reabre quando a linha voltar.
+        // O LostFocus seguinte é a virtualização tirando a linha, não o usuário confirmando.
         internal void PrepararReciclagem() => _reciclando = true;
 
-        // E isto quando a linha volta a ser realizada. Senha nova: Vincular reaplica
-        // tudo. Mesma senha (a lista virtualizou e desvirtualizou sem o filtro mudar):
-        // só re-sincroniza o estado externo e sai do modo reciclando.
         internal void AoRealizar(Senha s)
         {
             _reciclando = false;
@@ -249,11 +231,8 @@ namespace CofreDeSenhas.Controles
                 EstadoExternoNecessario?.Invoke(this, EventArgs.Empty);
         }
 
-        // Reaproveita a linha pra outra entrada quando a lista virtualizada a recicla.
-        // Ordem importa: zerar todo estado transitório ANTES de trocar _senha, senão
-        // um rascunho/senha revelada da entrada anterior vaza pra nova. O rascunho de
-        // edição não confirmado não se perde — JanelaPrincipal já o guarda por Id via
-        // RascunhoServicoAlterado e o reabre pelo EstadoExternoNecessario abaixo.
+        // Ordem importa: zerar o estado transitório antes de trocar _senha, senão dados
+        // da entrada anterior vazam pra nova.
         private void Vincular(Senha nova)
         {
             _reciclando = false;
@@ -797,11 +776,7 @@ namespace CofreDeSenhas.Controles
 
         private async void Servico_LostFocus(object? sender, RoutedEventArgs e)
         {
-            // _reciclando / GetVisualRoot() == null: a linha está saindo de vista
-            // (virtualização), não é o usuário clicando fora pra confirmar. Deixa a
-            // edição viva pra JanelaPrincipal preservar o rascunho e reabrir quando a
-            // linha voltar — sem isto, rolar durante uma renomeação não confirmada ora
-            // confirmava, ora descartava o texto em silêncio.
+            // Saindo de vista (virtualização) não é confirmação — mantém a edição viva pro rascunho.
             if (_editandoServico && !_reciclando && this.GetVisualRoot() != null)
                 await ConfirmarEdicaoServicoAsync();
         }
@@ -960,9 +935,6 @@ namespace CofreDeSenhas.Controles
 
         private static void DefinirIconeImagem(Button botao, string chave, IBrush? cor = null)
         {
-            // Reaproveita o Icone existente em vez de instanciar um Path novo — no
-            // caminho de reciclagem da lista virtualizada isto roda a cada linha
-            // rolada, e cada Icone novo é um Shape com geometria e transição próprias.
             if (botao.Content is Icone ico)
             {
                 ico.Preenchido = false;

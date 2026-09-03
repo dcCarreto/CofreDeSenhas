@@ -25,9 +25,8 @@ namespace CofreDeSenhas
         private const string NomeChecksums = "CHECKSUMS.txt";
         private const string NomeAssinaturaChecksums = "CHECKSUMS.txt.sig";
 
-        // Par da chave privada guardada no secret UPDATE_SIGNING_KEY do workflow de release.
-        // Trocar as duas juntas: uma release assinada com a chave nova não é aceita por um
-        // aplicativo que ainda carrega a pública antiga aqui.
+        // Par da privada no secret UPDATE_SIGNING_KEY. Trocar as duas juntas — uma release
+        // assinada com a chave nova quebra em quem ainda tem a pública antiga.
         private const string ChavePublicaAtualizacao = """
             -----BEGIN PUBLIC KEY-----
             MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAtP2TJOKW43UqVpBhMVjJ

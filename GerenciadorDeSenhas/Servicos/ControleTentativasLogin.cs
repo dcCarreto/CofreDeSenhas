@@ -11,11 +11,8 @@ namespace GerenciadorDeSenhas.Servicos
     {
         public const int LimiteTentativas = 5;
 
-        // Duração do bloqueio a cada nova rodada de LimiteTentativas erros seguidos sem
-        // um login bem-sucedido no meio: 5s, depois 30s, 2min, 10min, 30min, e daí em
-        // diante 1h. Sem essa escala, o bloqueio fixo de 5s deixava um atacante na tela
-        // de login testar ~5 senhas a cada 5s indefinidamente. Um login correto zera a
-        // escala (RegistrarSucesso apaga o arquivo).
+        // Bloqueio por rodada de LimiteTentativas erros seguidos; um bloqueio fixo deixava
+        // testar ~5 senhas a cada 5s pra sempre. RegistrarSucesso zera a escala.
         public static readonly TimeSpan[] Escalada =
         {
             TimeSpan.FromSeconds(5),
@@ -53,9 +50,8 @@ namespace GerenciadorDeSenhas.Servicos
         {
             var estado = Ler();
 
-            // Um bloqueio anterior já expirado começa uma rodada nova de contagem, mas
-            // Rodadas fica de pé — a punição da próxima rodada escala a partir daí, do
-            // contrário bastava esperar cada 5s expirar pra ter sempre mais 5 tentativas.
+            // Bloqueio expirado zera Tentativas mas NÃO Rodadas — senão bastava esperar
+            // cada bloqueio expirar pra ter tentativas de novo sem escalar a punição.
             if (estado.BloqueadoAteUtc is { } ateAnterior && ateAnterior <= DateTime.UtcNow)
             {
                 estado.Tentativas = 0;
