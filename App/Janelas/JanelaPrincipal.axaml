@@ -39,6 +39,13 @@
             </StackPanel>
 
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0">
+              <Button Name="BtnAjuda" Classes="janela"
+                      ToolTip.Tip="{DynamicResource Ajuda.BotaoTooltip}"
+                      AutomationProperties.Name="{DynamicResource Ajuda.BotaoTooltip}"
+                      Click="Ajuda_Click">
+                <c:Icone Width="{StaticResource TamIconeMenu}" Height="{StaticResource TamIconeMenu}"
+                       Chave="IconeInfo" />
+              </Button>
               <Button Name="BtnConfig" Classes="janela"
                       ToolTip.Tip="{DynamicResource Settings.Tooltip}"
                       AutomationProperties.Name="{DynamicResource Settings.Tooltip}">
@@ -46,6 +53,13 @@
                        Chave="IconeConfiguracoes" />
                 <Button.Flyout>
                   <MenuFlyout Placement="BottomEdgeAlignedRight">
+                    <MenuItem Header="{DynamicResource Config.Open}" Click="Configuracoes_Click">
+                      <MenuItem.Icon>
+                        <c:Icone Width="{StaticResource TamIconeMenu}" Height="{StaticResource TamIconeMenu}"
+                               Chave="IconeConfiguracoes" />
+                      </MenuItem.Icon>
+                    </MenuItem>
+                    <Separator />
                     <MenuItem Classes="secao" Header="{DynamicResource Settings.SectionSecurity}" />
                     <MenuItem Header="{DynamicResource Settings.ChangeMasterPassword}" Click="AlterarSenhaMestra_Click">
                       <MenuItem.Icon>
@@ -177,6 +191,12 @@
                     </MenuItem>
                     <Separator />
                     <MenuItem Classes="secao" Header="{DynamicResource Settings.SectionHelp}" />
+                    <MenuItem Header="{DynamicResource Ajuda.Abrir}" Click="Ajuda_Click">
+                      <MenuItem.Icon>
+                        <c:Icone Width="{StaticResource TamIconeMenu}" Height="{StaticResource TamIconeMenu}"
+                               Chave="IconeInfo" />
+                      </MenuItem.Icon>
+                    </MenuItem>
                     <MenuItem Header="{DynamicResource Settings.KeyboardShortcuts}" Click="AtalhosTeclado_Click">
                       <MenuItem.Icon>
                         <c:Icone Width="{StaticResource TamIconeMenu}" Height="{StaticResource TamIconeMenu}"
@@ -630,7 +650,7 @@
                               PointerPressed="RedimensionarColuna_PointerPressed"
                               PointerMoved="RedimensionarColuna_PointerMoved"
                               PointerReleased="RedimensionarColuna_PointerReleased" />
-                      <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center"
+                      <StackPanel Name="CabUsuario" Grid.Column="3" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center"
                                   Margin="4,0,0,0" Cursor="Hand" Tag="Usuario" Background="Transparent"
                                   Focusable="True"
                                   PointerPressed="OrdenarColuna_PointerPressed"
@@ -643,13 +663,13 @@
                         <TextBlock Name="SetaOrdenacaoUsuario" FontSize="9" IsVisible="False"
                                    Foreground="{DynamicResource TextHeader}" />
                       </StackPanel>
-                      <Border Grid.Column="4" Background="Transparent" Cursor="SizeWestEast"
+                      <Border Name="DivUsuario" Grid.Column="4" Background="Transparent" Cursor="SizeWestEast"
                               BorderBrush="{DynamicResource Separator}" BorderThickness="1,0,0,0"
                               Tag="Usuario"
                               PointerPressed="RedimensionarColuna_PointerPressed"
                               PointerMoved="RedimensionarColuna_PointerMoved"
                               PointerReleased="RedimensionarColuna_PointerReleased" />
-                      <StackPanel Grid.Column="5" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center"
+                      <StackPanel Name="CabCategoria" Grid.Column="5" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center"
                                   Cursor="Hand" Tag="Categoria" Background="Transparent"
                                   Focusable="True"
                                   PointerPressed="OrdenarColuna_PointerPressed"
@@ -662,13 +682,13 @@
                         <TextBlock Name="SetaOrdenacaoCategoria" FontSize="9" IsVisible="False"
                                    Foreground="{DynamicResource TextHeader}" />
                       </StackPanel>
-                      <Border Grid.Column="6" Background="Transparent" Cursor="SizeWestEast"
+                      <Border Name="DivCategoria" Grid.Column="6" Background="Transparent" Cursor="SizeWestEast"
                               BorderBrush="{DynamicResource Separator}" BorderThickness="1,0,0,0"
                               Tag="Categoria"
                               PointerPressed="RedimensionarColuna_PointerPressed"
                               PointerMoved="RedimensionarColuna_PointerMoved"
                               PointerReleased="RedimensionarColuna_PointerReleased" />
-                      <StackPanel Grid.Column="7" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center"
+                      <StackPanel Name="CabForca" Grid.Column="7" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center"
                                   Cursor="Hand" Tag="Forca" Background="Transparent"
                                   Focusable="True"
                                   PointerPressed="OrdenarColuna_PointerPressed"
@@ -681,7 +701,7 @@
                         <TextBlock Name="SetaOrdenacaoForca" FontSize="9" IsVisible="False"
                                    Foreground="{DynamicResource TextHeader}" />
                       </StackPanel>
-                      <Border Grid.Column="8" Background="Transparent" Cursor="SizeWestEast"
+                      <Border Name="DivForca" Grid.Column="8" Background="Transparent" Cursor="SizeWestEast"
                               BorderBrush="{DynamicResource Separator}" BorderThickness="1,0,0,0"
                               Tag="Data"
                               PointerPressed="RedimensionarColuna_PointerPressed"
@@ -826,7 +846,8 @@
                 </Border>
 
                 <ScrollViewer HorizontalScrollBarVisibility="Disabled">
-                  <StackPanel Margin="20,10,20,18" Spacing="14">
+                  <Grid Name="CorpoDetalhe" Margin="20,10,20,18" ColumnDefinitions="*" RowDefinitions="Auto,Auto">
+                    <StackPanel Name="ColunaDetalheA" Spacing="14">
                     <StackPanel HorizontalAlignment="Center" Spacing="10">
                       <Border Name="AvatarDetalhe" Width="68" Height="68" CornerRadius="18">
                         <TextBlock Name="TxtAvatarDetalhe"
@@ -928,7 +949,9 @@
                         </Grid>
                       </Border>
                     </StackPanel>
+                    </StackPanel>
 
+                    <StackPanel Name="ColunaDetalheB" Grid.Row="1" Spacing="14" Margin="0,14,0,0">
                     <StackPanel Spacing="6">
                       <TextBlock Text="{DynamicResource Entry.Category}" FontSize="12" Foreground="{DynamicResource TextSecondary}" />
                       <ComboBox Name="CmbDetalheCategoria" Classes="campo" HorizontalAlignment="Stretch" Height="38"
@@ -980,7 +1003,8 @@
                       <TextBlock Name="LblDetalheCopiaUsuario" FontSize="11" Foreground="{DynamicResource TextTertiary}" TextWrapping="Wrap" />
                       <TextBlock Name="LblDetalheCopiaTotp" FontSize="11" Foreground="{DynamicResource TextTertiary}" TextWrapping="Wrap" />
                     </StackPanel>
-                  </StackPanel>
+                    </StackPanel>
+                  </Grid>
                 </ScrollViewer>
               </DockPanel>
             </Border>

@@ -33,6 +33,7 @@ namespace CofreDeSenhas.Janelas
             InitializeComponent();
             Icon = Recursos.IconeApp();
             Acessibilidade.Vincular(this);
+            this.AtalhoAjuda("gerador");
 
             AtualizarCategorias();
             CmbCategoria.SelectedIndex = (int)Categoria.Personal;

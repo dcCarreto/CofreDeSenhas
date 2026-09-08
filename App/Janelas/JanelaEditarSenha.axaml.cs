@@ -41,6 +41,7 @@ namespace CofreDeSenhas.Janelas
             InitializeComponent();
             Icon = Recursos.IconeApp();
             Acessibilidade.Vincular(this);
+            this.AtalhoAjuda("organizacao");
             Acessibilidade.RegistrarAnunciador(this, LblAnuncioLeitorTela);
 
             AtualizarTitulo();

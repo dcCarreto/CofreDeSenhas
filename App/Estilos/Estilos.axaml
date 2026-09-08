@@ -306,7 +306,7 @@
   </Style>
 
   <Style Selector="Button.nav-item">
-    <Setter Property="MinHeight" Value="44" />
+    <Setter Property="MinHeight" Value="{DynamicResource AlturaNavItem}" />
     <Setter Property="Background" Value="Transparent" />
     <Setter Property="Foreground" Value="{DynamicResource TextSecondary}" />
     <Setter Property="FontSize" Value="{StaticResource TamCorpo}" />
@@ -375,12 +375,12 @@
     <Setter Property="RenderTransform" Value="scale(0.94)" />
   </Style>
   <Style Selector="Button.fab /template/ ContentPresenter#PART_ContentPresenter">
-    <Setter Property="BoxShadow" Value="{StaticResource FabShadow}" />
+    <Setter Property="BoxShadow" Value="{DynamicResource FabShadow}" />
   </Style>
   <Style Selector="Button.fab:pointerover /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource AccentHover}" />
     <Setter Property="Foreground" Value="White" />
-    <Setter Property="BoxShadow" Value="{StaticResource FabShadow}" />
+    <Setter Property="BoxShadow" Value="{DynamicResource FabShadow}" />
   </Style>
 
   <Style Selector="TextBox.campo">
@@ -389,7 +389,7 @@
     <Setter Property="BorderBrush" Value="{DynamicResource InputBorder}" />
     <Setter Property="BorderThickness" Value="1" />
     <Setter Property="CornerRadius" Value="{StaticResource RadiusInput}" />
-    <Setter Property="MinHeight" Value="44" />
+    <Setter Property="MinHeight" Value="{DynamicResource AlturaCampo}" />
     <Setter Property="Padding" Value="14,12" />
     <Setter Property="FontSize" Value="{StaticResource TamCorpo}" />
     <Setter Property="VerticalContentAlignment" Value="Center" />
@@ -438,7 +438,7 @@
     <Setter Property="BorderBrush" Value="{DynamicResource InputBorder}" />
     <Setter Property="BorderThickness" Value="1" />
     <Setter Property="CornerRadius" Value="{StaticResource RadiusInput}" />
-    <Setter Property="MinHeight" Value="44" />
+    <Setter Property="MinHeight" Value="{DynamicResource AlturaCampo}" />
     <Setter Property="Padding" Value="12,0" />
     <Setter Property="FontSize" Value="{StaticResource TamCorpo}" />
     <Setter Property="VerticalContentAlignment" Value="Center" />
@@ -507,6 +507,20 @@
   </Style>
   <Style Selector="Button:disabled controles|Icone">
     <Setter Property="Opacity" Value="0.4" />
+  </Style>
+
+  <Style Selector="Button.link-ajuda">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="MinHeight" Value="0" />
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="Foreground" Value="{DynamicResource AccentText}" />
+  </Style>
+  <Style Selector="Button.link-ajuda:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource AccentPrimary}" />
+    <Setter Property="TextBlock.TextDecorations" Value="Underline" />
   </Style>
 
 </Styles>

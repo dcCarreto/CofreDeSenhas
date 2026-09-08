@@ -58,6 +58,7 @@ namespace CofreDeSenhas.Controles
         private Grid _grid = null!;
         private StackPanel _acoes = null!;
         private StackPanel _painelForca = null!;
+        private Control _celulaForca = null!;
         private TextBlock _lblAuditoria = null!;
         private Border[] _segmentosForca = Array.Empty<Border>();
         private Button _estrela = null!;
@@ -171,7 +172,7 @@ namespace CofreDeSenhas.Controles
             _onRenomearServico = onRenomearServico;
             _onRegistrarCopia = onRegistrarCopia;
 
-            Height = 52;
+            Height = Acessibilidade.AlturaLinhaLista;
             Background = Tema.Pincel(Tema.CardBackground);
             BorderBrush = Tema.Pincel(Tema.Separator);
             BorderThickness = new Thickness(0, 0, 0, 1);
@@ -602,6 +603,7 @@ namespace CofreDeSenhas.Controles
             };
             celula.Children.Add(_painelForca);
             celula.Children.Add(_lblAuditoria);
+            _celulaForca = celula;
             return celula;
         }
 
@@ -849,9 +851,19 @@ namespace CofreDeSenhas.Controles
 
             _grid.ColumnDefinitions[1].Width = new GridLength(servico);
             _grid.ColumnDefinitions[3].Width = new GridLength(usuario);
+            _grid.ColumnDefinitions[4].Width = new GridLength(usuario > 0 ? 6 : 0);
             _grid.ColumnDefinitions[5].Width = new GridLength(categoria);
+            _grid.ColumnDefinitions[6].Width = new GridLength(categoria > 0 ? 6 : 0);
             _grid.ColumnDefinitions[7].Width = new GridLength(data);
+            _grid.ColumnDefinitions[8].Width = new GridLength(data > 0 ? 6 : 0);
             _grid.ColumnDefinitions[9].Width = new GridLength(acoes);
+
+            if (_lblUsuario != null)
+                _lblUsuario.IsVisible = usuario > 0;
+            if (_painelCategoria != null)
+                _painelCategoria.IsVisible = categoria > 0;
+            if (_celulaForca != null)
+                _celulaForca.IsVisible = data > 0;
         }
 
         private static Button CriarBotaoAcaoImagem(string chave, string dica)

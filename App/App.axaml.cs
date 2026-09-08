@@ -34,11 +34,19 @@ namespace CofreDeSenhas
             Idioma.Definir(Preferencias.Idioma);
             Acessibilidade.Hidratar(
                 ResolverDaltonismo(Preferencias.Daltonismo),
+                ResolverModoTema(Preferencias.ModoTema),
+                ResolverCorDestaque(Preferencias.CorDestaque),
+                ResolverDensidade(Preferencias.Densidade),
+                ResolverLayoutDetalhe(Preferencias.LayoutDetalhe),
                 Preferencias.AltoContraste,
                 Preferencias.EscalaInterface,
                 Preferencias.ReduzirAnimacoes,
                 Preferencias.LeitorTela);
+            Acessibilidade.HidratarColunas(Preferencias.ColunasLista);
             Acessibilidade.Aplicar();
+            if (PlatformSettings != null)
+                PlatformSettings.ColorValuesChanged += (s, e) =>
+                    Avalonia.Threading.Dispatcher.UIThread.Post(Acessibilidade.ReavaliarTemaDoSistema);
             Idioma.Alterado += (s, e) => AtualizarTextosBandeja();
 
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
@@ -52,6 +60,18 @@ namespace CofreDeSenhas
 
         private static TipoDaltonismo ResolverDaltonismo(string? valor) =>
             Enum.TryParse<TipoDaltonismo>(valor, out var tipo) ? tipo : TipoDaltonismo.Nenhum;
+
+        private static ModoTema ResolverModoTema(string? valor) =>
+            Enum.TryParse<ModoTema>(valor, out var modo) ? modo : ModoTema.Escuro;
+
+        private static CorDestaque ResolverCorDestaque(string? valor) =>
+            Enum.TryParse<CorDestaque>(valor, out var cor) ? cor : CorDestaque.Ambar;
+
+        private static Densidade ResolverDensidade(string? valor) =>
+            Enum.TryParse<Densidade>(valor, out var d) ? d : Densidade.Confortavel;
+
+        private static LayoutDetalhe ResolverLayoutDetalhe(string? valor) =>
+            Enum.TryParse<LayoutDetalhe>(valor, out var l) ? l : LayoutDetalhe.Lateral;
 
         private async void AbrirCofre(IClassicDesktopStyleApplicationLifetime desktop, byte[] chave, string? senhaMestraPlano)
         {

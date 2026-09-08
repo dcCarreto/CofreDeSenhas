@@ -10,6 +10,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Media.Transformation;
 using Avalonia.Platform.Storage;
@@ -158,6 +159,9 @@ namespace CofreDeSenhas.Janelas
             Acessibilidade.RegistrarAnunciador(this, LblAnuncioLeitorTela);
             ConfigurarAcessibilidadeLeitorTela();
 
+            RestaurarOrdenacao();
+            AplicarLayoutDetalhe();
+
             PainelLista.FabricaLinha = CriarLinhaSenha;
             PainelLista.FabricaLixeira = CriarLinhaLixeira;
 
@@ -194,6 +198,7 @@ namespace CofreDeSenhas.Janelas
             Idioma.Alterado += IdiomaGlobal_Alterado;
             Acessibilidade.Alterado += Acessibilidade_Alterado;
             AddHandler(KeyDownEvent, Atalho_KeyDown, RoutingStrategies.Tunnel);
+            this.AtalhoAjuda("introducao");
             _timerSincronizacao = new DispatcherTimer();
             _timerSincronizacao.Tick += async (s, e) => await SincronizarAsync(silencioso: true);
             AjustarTimerSincronizacao();
@@ -333,6 +338,36 @@ namespace CofreDeSenhas.Janelas
         {
             var dlg = new JanelaAtalhosTeclado();
             await AbrirDialogoAsync<bool>(dlg);
+        }
+
+        private void Ajuda_Click(object? sender, RoutedEventArgs e) => JanelaAjuda.AbrirOuFocar(this);
+
+        private async void Configuracoes_Click(object? sender, RoutedEventArgs e)
+        {
+            var vazio = new RoutedEventArgs();
+            var acoes = new AcoesConfiguracoes
+            {
+                AlterarSenhaMestra = () => AlterarSenhaMestra_Click(this, vazio),
+                RegerarQr = () => RegerarQrCode_Click(this, vazio),
+                AlternarWindowsHello = () => Biometria_Click(this, vazio),
+                BloquearAgora = () => BloquearAgora_Click(this, vazio),
+                Backup = () => Backup_Click(this, vazio),
+                Sincronizacao = () => Sincronizacao_Click(this, vazio),
+                ImportarCsv = () => ImportarCsv_Click(this, vazio),
+                ConectarBanco = () => ConectarBanco_Click(this, vazio),
+                DesconectarBanco = () => DesconectarBanco_Click(this, vazio),
+                AtalhosTeclado = () => AtalhosTeclado_Click(this, vazio),
+                AbrirManual = () => JanelaAjuda.AbrirOuFocar(this),
+                DefinirBloqueioAutomatico = AplicarBloqueioAutomatico,
+                DefinirVerificarAtualizacoes = AplicarVerificarAtualizacoes,
+                WindowsHelloSuportado = _biometria.SistemaSuportado,
+                WindowsHelloAtivo = _biometria.EstaHabilitado,
+                BancoConectado = _conectadoAoBanco
+            };
+
+            var dlg = new JanelaConfiguracoes(acoes);
+            await AbrirDialogoAsync<bool>(dlg);
+            dlg.AcaoPendente?.Invoke();
         }
 
         private async Task IniciarAsync()
@@ -580,19 +615,44 @@ namespace CofreDeSenhas.Janelas
             }
         }
 
+        private (double Servico, double Usuario, double Categoria, double Forca) LargurasEfetivas()
+        {
+            var colunas = Acessibilidade.ColunasLista;
+            double usuario = colunas.HasFlag(ColunasLista.Usuario) ? _larguraUsuario : 0;
+            double categoria = colunas.HasFlag(ColunasLista.Categoria) ? _larguraCategoria : 0;
+            double forca = colunas.HasFlag(ColunasLista.Forca) ? _larguraData : 0;
+            double servico = _larguraServico
+                + (_larguraUsuario - usuario) + (_larguraCategoria - categoria) + (_larguraData - forca);
+            return (servico, usuario, categoria, forca);
+        }
+
         private void AplicarLargurasColunas()
         {
             if (GridCabecalhoTabela == null)
                 return;
 
-            GridCabecalhoTabela.ColumnDefinitions[1].Width = new GridLength(_larguraServico);
-            GridCabecalhoTabela.ColumnDefinitions[3].Width = new GridLength(_larguraUsuario);
-            GridCabecalhoTabela.ColumnDefinitions[5].Width = new GridLength(_larguraCategoria);
-            GridCabecalhoTabela.ColumnDefinitions[7].Width = new GridLength(_larguraData);
+            var colunas = Acessibilidade.ColunasLista;
+            bool usuarioVisivel = colunas.HasFlag(ColunasLista.Usuario);
+            bool categoriaVisivel = colunas.HasFlag(ColunasLista.Categoria);
+            bool forcaVisivel = colunas.HasFlag(ColunasLista.Forca);
+
+            var (servico, usuario, categoria, forca) = LargurasEfetivas();
+
+            GridCabecalhoTabela.ColumnDefinitions[1].Width = new GridLength(servico);
+            GridCabecalhoTabela.ColumnDefinitions[3].Width = new GridLength(usuario);
+            GridCabecalhoTabela.ColumnDefinitions[4].Width = new GridLength(usuarioVisivel ? 6 : 0);
+            GridCabecalhoTabela.ColumnDefinitions[5].Width = new GridLength(categoria);
+            GridCabecalhoTabela.ColumnDefinitions[6].Width = new GridLength(categoriaVisivel ? 6 : 0);
+            GridCabecalhoTabela.ColumnDefinitions[7].Width = new GridLength(forca);
+            GridCabecalhoTabela.ColumnDefinitions[8].Width = new GridLength(forcaVisivel ? 6 : 0);
             GridCabecalhoTabela.ColumnDefinitions[9].Width = new GridLength(_larguraAcoes);
 
+            CabUsuario.IsVisible = DivUsuario.IsVisible = usuarioVisivel;
+            CabCategoria.IsVisible = DivCategoria.IsVisible = categoriaVisivel;
+            CabForca.IsVisible = DivForca.IsVisible = forcaVisivel;
+
             foreach (var linha in _linhasSenha)
-                linha.DefinirLargurasColunas(_larguraServico, _larguraUsuario, _larguraCategoria, _larguraData, _larguraAcoes);
+                linha.DefinirLargurasColunas(servico, usuario, categoria, forca, _larguraAcoes);
         }
 
         private void Minimizar_Click(object? sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
@@ -697,10 +757,15 @@ namespace CofreDeSenhas.Janelas
             if (sender is not MenuItem item)
                 return;
 
-            Preferencias.VerificarAtualizacoes = item.IsChecked;
+            AplicarVerificarAtualizacoes(item.IsChecked);
+        }
+
+        internal void AplicarVerificarAtualizacoes(bool ligado)
+        {
+            Preferencias.VerificarAtualizacoes = ligado;
             Preferencias.Salvar();
 
-            if (item.IsChecked)
+            if (ligado)
                 _ = VerificarAtualizacaoAsync();
             else
                 OcultarAvisoAtualizacao();
@@ -974,6 +1039,9 @@ namespace CofreDeSenhas.Janelas
             Gerador.AtualizarTema();
             PintarFiltroFavoritos();
             AtualizarNavegacao();
+            AplicarLayoutDetalhe();
+            if (_largurasIniciaisAplicadas)
+                AplicarLargurasColunas();
             AtualizarDetalheVisual();
             AtualizarHistoricoDetalhes();
             FiltrarSenhas();
@@ -1132,7 +1200,8 @@ namespace CofreDeSenhas.Janelas
         private void AplicarEstadoLinha(LinhaSenha linha)
         {
             var senha = linha.Senha;
-            linha.DefinirLargurasColunas(_larguraServico, _larguraUsuario, _larguraCategoria, _larguraData, _larguraAcoes);
+            var larguras = LargurasEfetivas();
+            linha.DefinirLargurasColunas(larguras.Servico, larguras.Usuario, larguras.Categoria, larguras.Forca, _larguraAcoes);
             linha.DefinirModoPrivacidade(_modoPrivacidade);
             linha.DefinirSelecionada(_selecionados.Contains(senha.Id));
 
@@ -2206,8 +2275,38 @@ namespace CofreDeSenhas.Janelas
         {
             _ordenacaoDescendente = !_ordenacaoDescendente;
             _somenteRecentes = false;
+            PersistirOrdenacao();
             AtualizarNavegacao();
             FiltrarSenhas();
+        }
+
+        private void RestaurarOrdenacao()
+        {
+            if (Enum.TryParse<ColunaOrdenacao>(Preferencias.OrdenacaoColuna, out var coluna))
+                _colunaOrdenacao = coluna;
+            _ordenacaoDescendente = Preferencias.OrdenacaoDescendente;
+        }
+
+        private void PersistirOrdenacao()
+        {
+            Preferencias.OrdenacaoColuna = _colunaOrdenacao.ToString();
+            Preferencias.OrdenacaoDescendente = _ordenacaoDescendente;
+            Preferencias.Salvar();
+        }
+
+        private void AplicarLayoutDetalhe()
+        {
+            bool inferior = Acessibilidade.LayoutDetalhe == LayoutDetalhe.Inferior;
+
+            PainelDetalhes.HorizontalAlignment = inferior ? HorizontalAlignment.Stretch : HorizontalAlignment.Right;
+            PainelDetalhes.VerticalAlignment = inferior ? VerticalAlignment.Bottom : VerticalAlignment.Stretch;
+            PainelDetalhes.Width = inferior ? double.NaN : 340;
+            PainelDetalhes.Height = inferior ? 320 : double.NaN;
+
+            CorpoDetalhe.ColumnDefinitions = new ColumnDefinitions(inferior ? "*,28,*" : "*");
+            Grid.SetRow(ColunaDetalheB, inferior ? 0 : 1);
+            Grid.SetColumn(ColunaDetalheB, inferior ? 2 : 0);
+            ColunaDetalheB.Margin = inferior ? new Thickness(0) : new Thickness(0, 14, 0, 0);
         }
 
         private void OrdenarColuna_PointerPressed(object? sender, PointerPressedEventArgs e)
@@ -2241,6 +2340,7 @@ namespace CofreDeSenhas.Janelas
                 _ordenacaoDescendente = false;
             }
             _somenteRecentes = false;
+            PersistirOrdenacao();
 
             AtualizarNavegacao();
             FiltrarSenhas();
@@ -3805,6 +3905,11 @@ namespace CofreDeSenhas.Janelas
             if (sender is not MenuItem item || item.Tag is not string tag || !int.TryParse(tag, out var minutos))
                 return;
 
+            AplicarBloqueioAutomatico(minutos);
+        }
+
+        internal void AplicarBloqueioAutomatico(int minutos)
+        {
             Preferencias.MinutosBloqueio = minutos;
             Preferencias.Salvar();
             _monitor.Ajustar(minutos);

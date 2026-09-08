@@ -36,12 +36,21 @@ namespace CofreDeSenhas
         private const int SegundosLimpezaClipboardPadrao = 30;
         private const string FrequenciaBackupPadrao = "Semanal";
         private const int MaximoBackupsPadrao = 10;
+        private const int ColunasListaPadrao = (int)global::CofreDeSenhas.ColunasLista.Todas;
 
         private class Dados
         {
             public PerfilBanco? UltimoBanco { get; set; }
             public int MinutosBloqueio { get; set; } = MinutosBloqueioPadrao;
             public string? Idioma { get; set; }
+            public string? ModoTema { get; set; }
+            public string? CorDestaque { get; set; }
+            public string? Densidade { get; set; }
+            public string? LayoutDetalhe { get; set; }
+            public string? OrdenacaoColuna { get; set; }
+            public bool OrdenacaoDescendente { get; set; }
+            public int ColunasLista { get; set; } = ColunasListaPadrao;
+            public List<PerfilAparencia>? PerfisAparencia { get; set; }
             public string? Daltonismo { get; set; }
             public bool AltoContraste { get; set; }
             public double EscalaInterface { get; set; } = EscalaInterfacePadrao;
@@ -62,6 +71,14 @@ namespace CofreDeSenhas
         public static PerfilBanco? UltimoBanco { get; set; }
         public static int MinutosBloqueio { get; set; } = MinutosBloqueioPadrao;
         public static string? Idioma { get; set; }
+        public static string? ModoTema { get; set; }
+        public static string? CorDestaque { get; set; }
+        public static string? Densidade { get; set; }
+        public static string? LayoutDetalhe { get; set; }
+        public static string? OrdenacaoColuna { get; set; }
+        public static bool OrdenacaoDescendente { get; set; }
+        public static int ColunasLista { get; set; } = ColunasListaPadrao;
+        public static List<PerfilAparencia>? PerfisAparencia { get; set; }
         public static string? Daltonismo { get; set; }
         public static bool AltoContraste { get; set; }
         public static double EscalaInterface { get; set; } = EscalaInterfacePadrao;
@@ -93,6 +110,14 @@ namespace CofreDeSenhas
                         UltimoBanco = d.UltimoBanco;
                         MinutosBloqueio = d.MinutosBloqueio;
                         Idioma = d.Idioma;
+                        ModoTema = d.ModoTema;
+                        CorDestaque = d.CorDestaque;
+                        Densidade = d.Densidade;
+                        LayoutDetalhe = d.LayoutDetalhe;
+                        OrdenacaoColuna = d.OrdenacaoColuna;
+                        OrdenacaoDescendente = d.OrdenacaoDescendente;
+                        ColunasLista = d.ColunasLista;
+                        PerfisAparencia = d.PerfisAparencia;
                         Daltonismo = d.Daltonismo;
                         AltoContraste = d.AltoContraste;
                         EscalaInterface = d.EscalaInterface <= 0 ? EscalaInterfacePadrao : d.EscalaInterface;
@@ -121,7 +146,7 @@ namespace CofreDeSenhas
             {
                 var dir = Path.GetDirectoryName(_caminho)!;
                 if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
-                File.WriteAllText(_caminho, JsonSerializer.Serialize(new Dados { UltimoBanco = UltimoBanco, MinutosBloqueio = MinutosBloqueio, Idioma = Idioma, Daltonismo = Daltonismo, AltoContraste = AltoContraste, EscalaInterface = EscalaInterface, ReduzirAnimacoes = ReduzirAnimacoes, LeitorTela = LeitorTela, IconesOnline = IconesOnline, SegundosLimpezaClipboard = SegundosLimpezaClipboard, FrequenciaBackup = FrequenciaBackup, MaximoBackups = MaximoBackups, RegistrarHistoricoUso = RegistrarHistoricoUso, VerificarAtualizacoes = VerificarAtualizacoes, VersaoDispensada = VersaoDispensada, Sincronizacao = Sincronizacao }));
+                File.WriteAllText(_caminho, JsonSerializer.Serialize(new Dados { UltimoBanco = UltimoBanco, MinutosBloqueio = MinutosBloqueio, Idioma = Idioma, ModoTema = ModoTema, CorDestaque = CorDestaque, Densidade = Densidade, LayoutDetalhe = LayoutDetalhe, OrdenacaoColuna = OrdenacaoColuna, OrdenacaoDescendente = OrdenacaoDescendente, ColunasLista = ColunasLista, PerfisAparencia = PerfisAparencia, Daltonismo = Daltonismo, AltoContraste = AltoContraste, EscalaInterface = EscalaInterface, ReduzirAnimacoes = ReduzirAnimacoes, LeitorTela = LeitorTela, IconesOnline = IconesOnline, SegundosLimpezaClipboard = SegundosLimpezaClipboard, FrequenciaBackup = FrequenciaBackup, MaximoBackups = MaximoBackups, RegistrarHistoricoUso = RegistrarHistoricoUso, VerificarAtualizacoes = VerificarAtualizacoes, VersaoDispensada = VersaoDispensada, Sincronizacao = Sincronizacao }));
             }
             catch (Exception ex)
             {

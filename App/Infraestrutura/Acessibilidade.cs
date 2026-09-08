@@ -4,6 +4,8 @@ using Avalonia;
 using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Media;
+using Avalonia.Platform;
+using Avalonia.Styling;
 using Avalonia.Threading;
 using GerenciadorDeSenhas.Modelos;
 
@@ -16,6 +18,45 @@ namespace CofreDeSenhas
         Deuteranopia,
         Tritanopia,
         Monocromacia
+    }
+
+    public enum ModoTema
+    {
+        Sistema,
+        Claro,
+        Escuro
+    }
+
+    public enum CorDestaque
+    {
+        Ambar,
+        Azul,
+        Verde,
+        Ameixa,
+        Terracota,
+        Grafite
+    }
+
+    public enum Densidade
+    {
+        Confortavel,
+        Compacto
+    }
+
+    public enum LayoutDetalhe
+    {
+        Lateral,
+        Inferior
+    }
+
+    [Flags]
+    public enum ColunasLista
+    {
+        Nenhuma = 0,
+        Usuario = 1,
+        Categoria = 2,
+        Forca = 4,
+        Todas = Usuario | Categoria | Forca
     }
 
     internal enum CorVisual
@@ -62,10 +103,26 @@ namespace CofreDeSenhas
         public const double EscalaMaior = 1.30;
 
         public static TipoDaltonismo Daltonismo { get; private set; } = TipoDaltonismo.Nenhum;
+        public static ModoTema Modo { get; private set; } = ModoTema.Escuro;
+        public static CorDestaque Destaque { get; private set; } = CorDestaque.Ambar;
+        public static Densidade Densidade { get; private set; } = Densidade.Confortavel;
+        public static LayoutDetalhe LayoutDetalhe { get; private set; } = LayoutDetalhe.Lateral;
+        public static ColunasLista ColunasLista { get; private set; } = ColunasLista.Todas;
+
+        public static bool DestaqueDisponivel => Daltonismo == TipoDaltonismo.Nenhum;
+
+        public static double AlturaLinhaLista => Densidade == Densidade.Compacto ? 46 : 52;
         public static bool AltoContraste { get; private set; }
         public static double Escala { get; private set; } = EscalaNormal;
         public static bool ReduzirAnimacoes { get; private set; }
         public static bool LeitorTela { get; private set; }
+
+        public static bool TemaClaroEfetivo => Modo switch
+        {
+            ModoTema.Claro => true,
+            ModoTema.Escuro => false,
+            _ => Application.Current?.PlatformSettings?.GetColorValues().ThemeVariant == PlatformThemeVariant.Light
+        };
 
         public static event EventHandler? Alterado;
 
@@ -280,6 +337,105 @@ namespace CofreDeSenhas
             (CorVisual.StatusWarning, 0xFFC6CBD3),
             (CorVisual.StatusConnected, 0xFFE5E7EB));
 
+        private static readonly IReadOnlyDictionary<CorVisual, uint> PadraoClaro = D(
+            (CorVisual.WorkspaceBackground, 0xFFF7F4EF),
+            (CorVisual.CardBackground, 0xFFFFFFFF),
+            (CorVisual.CardBorder, 0xFFE6DFD1),
+            (CorVisual.TitleBar, 0xFFF1ECE2),
+            (CorVisual.TitleBarBorder, 0xFFE0D8C7),
+            (CorVisual.InputBackground, 0xFFFBF8F2),
+            (CorVisual.InputBorder, 0xFFD8CDB8),
+            (CorVisual.RowHover, 0xFFF1EADD),
+            (CorVisual.Separator, 0xFFEAE2D3),
+            (CorVisual.Footer, 0xFFF1ECE2),
+            (CorVisual.AccentPrimary, 0xFF9C7322),
+            (CorVisual.AccentHover, 0xFF7F5C16),
+            (CorVisual.AccentLight, 0xFFF3E8CD),
+            (CorVisual.AccentText, 0xFF785713),
+            (CorVisual.TextPrimary, 0xFF2A2317),
+            (CorVisual.TextSecondary, 0xFF6A6051),
+            (CorVisual.TextTertiary, 0xFF938878),
+            (CorVisual.TextHeader, 0xFF938878),
+            (CorVisual.TrailInactive, 0xFFDDD3C1),
+            (CorVisual.ToggleOff, 0xFFCFC4AF),
+            (CorVisual.HoverBackground, 0xFFF1EADD),
+            (CorVisual.IconHoverBackground, 0xFFEFE6D3),
+            (CorVisual.FavoriteColor, 0xFFD5901F),
+            (CorVisual.FavoriteBorderColor, 0xFFC9BB9F),
+            (CorVisual.StrengthWeak, 0xFFC0392B),
+            (CorVisual.StrengthMedium, 0xFFB07714),
+            (CorVisual.StrengthStrong, 0xFF4F7942),
+            (CorVisual.StrengthExcellent, 0xFF3A6FA0),
+            (CorVisual.CloseButtonHover, 0xFFE5484D),
+            (CorVisual.CloseButtonPressed, 0xFFC93A3E),
+            (CorVisual.StatusLocal, 0xFF4F7942),
+            (CorVisual.StatusWarning, 0xFFB07714),
+            (CorVisual.StatusConnected, 0xFF3A6FA0));
+
+        private static readonly IReadOnlyDictionary<TipoDaltonismo, IReadOnlyDictionary<CorVisual, uint>> AjustesDaltonismoClaro =
+            new Dictionary<TipoDaltonismo, IReadOnlyDictionary<CorVisual, uint>>
+            {
+                [TipoDaltonismo.Protanopia] = D(
+                    (CorVisual.AccentPrimary, 0xFF006398), (CorVisual.AccentHover, 0xFF004E78),
+                    (CorVisual.AccentLight, 0xFFDCEBF4), (CorVisual.AccentText, 0xFF00527D),
+                    (CorVisual.FavoriteColor, 0xFFB57E00), (CorVisual.FavoriteBorderColor, 0xFFAEB7C1),
+                    (CorVisual.StrengthWeak, 0xFFB3540A), (CorVisual.StrengthMedium, 0xFFB57E00),
+                    (CorVisual.StrengthStrong, 0xFF007A5A), (CorVisual.StrengthExcellent, 0xFF006398),
+                    (CorVisual.StatusLocal, 0xFF007A5A), (CorVisual.StatusWarning, 0xFFB57E00),
+                    (CorVisual.StatusConnected, 0xFF006398)),
+                [TipoDaltonismo.Deuteranopia] = D(
+                    (CorVisual.AccentPrimary, 0xFF006398), (CorVisual.AccentHover, 0xFF004E78),
+                    (CorVisual.AccentLight, 0xFFDCEBF4), (CorVisual.AccentText, 0xFF00527D),
+                    (CorVisual.FavoriteColor, 0xFFB57E00), (CorVisual.FavoriteBorderColor, 0xFFAEB7C1),
+                    (CorVisual.StrengthWeak, 0xFFB3540A), (CorVisual.StrengthMedium, 0xFFB57E00),
+                    (CorVisual.StrengthStrong, 0xFF006398), (CorVisual.StrengthExcellent, 0xFF9A377E),
+                    (CorVisual.StatusLocal, 0xFF006398), (CorVisual.StatusWarning, 0xFFB57E00),
+                    (CorVisual.StatusConnected, 0xFF006398)),
+                [TipoDaltonismo.Tritanopia] = D(
+                    (CorVisual.AccentPrimary, 0xFFB0166F), (CorVisual.AccentHover, 0xFF8C1258),
+                    (CorVisual.AccentLight, 0xFFFBE4F0), (CorVisual.AccentText, 0xFF96105E),
+                    (CorVisual.FavoriteColor, 0xFF2E7D32), (CorVisual.FavoriteBorderColor, 0xFFB6A0B4),
+                    (CorVisual.StrengthWeak, 0xFFC0392B), (CorVisual.StrengthMedium, 0xFFC05A00),
+                    (CorVisual.StrengthStrong, 0xFF2E7D32), (CorVisual.StrengthExcellent, 0xFF8E24AA),
+                    (CorVisual.StatusLocal, 0xFF2E7D32), (CorVisual.StatusWarning, 0xFFC05A00),
+                    (CorVisual.StatusConnected, 0xFFB0166F)),
+                [TipoDaltonismo.Monocromacia] = D(
+                    (CorVisual.AccentPrimary, 0xFF3B3B3B), (CorVisual.AccentHover, 0xFF222222),
+                    (CorVisual.AccentLight, 0xFFE4E4E4), (CorVisual.AccentText, 0xFF333333),
+                    (CorVisual.FavoriteColor, 0xFF4D4D4D), (CorVisual.FavoriteBorderColor, 0xFFBDBDBD),
+                    (CorVisual.StrengthWeak, 0xFF1A1A1A), (CorVisual.StrengthMedium, 0xFF595959),
+                    (CorVisual.StrengthStrong, 0xFF8C8C8C), (CorVisual.StrengthExcellent, 0xFFBFBFBF),
+                    (CorVisual.StatusLocal, 0xFF595959), (CorVisual.StatusWarning, 0xFF8C8C8C),
+                    (CorVisual.StatusConnected, 0xFF3B3B3B))
+            };
+
+        private static readonly Dictionary<TipoDaltonismo, IReadOnlyDictionary<CorVisual, uint>> _claroMesclado = new();
+
+        private static readonly IReadOnlyDictionary<CorDestaque, (uint[] Escuro, uint[] Claro)> Destaques =
+            new Dictionary<CorDestaque, (uint[], uint[])>
+            {
+                [CorDestaque.Azul] = (
+                    new uint[] { 0xFF5B9BD5, 0xFF4A82B4, 0xFF1E2E3D, 0xFF9FC7E8 },
+                    new uint[] { 0xFF2F6FB0, 0xFF245A93, 0xFFDCEAF6, 0xFF1F5486 }),
+                [CorDestaque.Verde] = (
+                    new uint[] { 0xFF6FB07A, 0xFF5A9166, 0xFF1F3222, 0xFFA7D3AE },
+                    new uint[] { 0xFF3B7D48, 0xFF2E6339, 0xFFDCEFDF, 0xFF2A5C34 }),
+                [CorDestaque.Ameixa] = (
+                    new uint[] { 0xFFA986C9, 0xFF8C6BAB, 0xFF2E2438, 0xFFCBB0DE },
+                    new uint[] { 0xFF7B4EA8, 0xFF63407F, 0xFFEEE3F5, 0xFF5B3A7E }),
+                [CorDestaque.Terracota] = (
+                    new uint[] { 0xFFCC7A5C, 0xFFA8624A, 0xFF3A241C, 0xFFE4A98F },
+                    new uint[] { 0xFFB0553A, 0xFF8C4530, 0xFFF6E4DC, 0xFF96432E }),
+                [CorDestaque.Grafite] = (
+                    new uint[] { 0xFF9AA3AE, 0xFF7E8792, 0xFF2A2E33, 0xFFC2C9D1 },
+                    new uint[] { 0xFF5B6470, 0xFF48505A, 0xFFE6E8EB, 0xFF444B54 })
+            };
+
+        private static readonly CorVisual[] ChavesDestaque =
+            { CorVisual.AccentPrimary, CorVisual.AccentHover, CorVisual.AccentLight, CorVisual.AccentText };
+
+        private static readonly Dictionary<(CorDestaque, bool), IReadOnlyDictionary<CorVisual, uint>> _comDestaque = new();
+
         private static readonly IReadOnlyDictionary<Categoria, (uint Bg, uint Fg)> CategoriasPadrao = DCat(
             (Categoria.Personal, 0xFFFBEDE0, 0xFFA0551C),
             (Categoria.Work, 0xFFE7E9F7, 0xFF3B4FA0),
@@ -336,14 +492,96 @@ namespace CofreDeSenhas
             public double Valor = EscalaNormal;
         }
 
-        public static void Hidratar(TipoDaltonismo daltonismo, bool altoContraste, double escala, bool reduzirAnimacoes,
-            bool leitorTela)
+        public static void Hidratar(TipoDaltonismo daltonismo, ModoTema modo, CorDestaque destaque, Densidade densidade,
+            LayoutDetalhe layoutDetalhe, bool altoContraste, double escala, bool reduzirAnimacoes, bool leitorTela)
         {
             Daltonismo = daltonismo;
+            Modo = modo;
+            Destaque = destaque;
+            Densidade = densidade;
+            LayoutDetalhe = layoutDetalhe;
             AltoContraste = altoContraste;
             Escala = NormalizarEscala(escala);
             ReduzirAnimacoes = reduzirAnimacoes;
             LeitorTela = leitorTela;
+        }
+
+        public static void DefinirModoTema(ModoTema modo)
+        {
+            if (Modo == modo)
+                return;
+
+            Modo = modo;
+            Aplicar();
+            Alterado?.Invoke(null, EventArgs.Empty);
+        }
+
+        public static void AplicarPerfil(ModoTema modo, CorDestaque destaque, Densidade densidade, LayoutDetalhe layout,
+            TipoDaltonismo daltonismo, bool altoContraste, double escala, bool reduzirAnimacoes)
+        {
+            Modo = modo;
+            Destaque = destaque;
+            Densidade = densidade;
+            LayoutDetalhe = layout;
+            Daltonismo = daltonismo;
+            AltoContraste = altoContraste;
+            Escala = NormalizarEscala(escala);
+            ReduzirAnimacoes = reduzirAnimacoes;
+
+            Aplicar();
+            Alterado?.Invoke(null, EventArgs.Empty);
+        }
+
+        public static void DefinirCorDestaque(CorDestaque destaque)
+        {
+            if (Destaque == destaque)
+                return;
+
+            Destaque = destaque;
+            Aplicar();
+            Alterado?.Invoke(null, EventArgs.Empty);
+        }
+
+        public static void DefinirDensidade(Densidade densidade)
+        {
+            if (Densidade == densidade)
+                return;
+
+            Densidade = densidade;
+            Aplicar();
+            Alterado?.Invoke(null, EventArgs.Empty);
+        }
+
+        public static void DefinirLayoutDetalhe(LayoutDetalhe layout)
+        {
+            if (LayoutDetalhe == layout)
+                return;
+
+            LayoutDetalhe = layout;
+            Alterado?.Invoke(null, EventArgs.Empty);
+        }
+
+        public static void HidratarColunas(int valor) => ColunasLista = (ColunasLista)valor;
+
+        public static void SelecionarColunaLista(ColunasLista coluna, bool visivel)
+        {
+            var novo = visivel ? ColunasLista | coluna : ColunasLista & ~coluna;
+            if (ColunasLista == novo)
+                return;
+
+            ColunasLista = novo;
+            Preferencias.ColunasLista = (int)novo;
+            Preferencias.Salvar();
+            Alterado?.Invoke(null, EventArgs.Empty);
+        }
+
+        public static void ReavaliarTemaDoSistema()
+        {
+            if (Modo != ModoTema.Sistema)
+                return;
+
+            Aplicar();
+            Alterado?.Invoke(null, EventArgs.Empty);
         }
 
         public static void DefinirDaltonismo(TipoDaltonismo tipo)
@@ -401,6 +639,46 @@ namespace CofreDeSenhas
 
             DefinirDaltonismo(tipo);
             Preferencias.Daltonismo = tipo.ToString();
+            Preferencias.Salvar();
+        }
+
+        public static void SelecionarModoTema(string? tag)
+        {
+            if (!Enum.TryParse<ModoTema>(tag, ignoreCase: true, out var modo))
+                return;
+
+            DefinirModoTema(modo);
+            Preferencias.ModoTema = modo.ToString();
+            Preferencias.Salvar();
+        }
+
+        public static void SelecionarCorDestaque(string? tag)
+        {
+            if (!Enum.TryParse<CorDestaque>(tag, ignoreCase: true, out var destaque))
+                return;
+
+            DefinirCorDestaque(destaque);
+            Preferencias.CorDestaque = destaque.ToString();
+            Preferencias.Salvar();
+        }
+
+        public static void SelecionarDensidade(string? tag)
+        {
+            if (!Enum.TryParse<Densidade>(tag, ignoreCase: true, out var densidade))
+                return;
+
+            DefinirDensidade(densidade);
+            Preferencias.Densidade = densidade.ToString();
+            Preferencias.Salvar();
+        }
+
+        public static void SelecionarLayoutDetalhe(string? tag)
+        {
+            if (!Enum.TryParse<LayoutDetalhe>(tag, ignoreCase: true, out var layout))
+                return;
+
+            DefinirLayoutDetalhe(layout);
+            Preferencias.LayoutDetalhe = layout.ToString();
             Preferencias.Salvar();
         }
 
@@ -493,10 +771,10 @@ namespace CofreDeSenhas
                 leitorTela.IsChecked = LeitorTela;
         }
 
-        public static Color TextoPrincipal() => Color.FromUInt32(0xFFFFFFFF);
-        public static Color TextoSecundario() => Color.FromUInt32(0xFFE4E4E9);
-        public static Color TextoTerciario() => Color.FromUInt32(0xFFCFCFD6);
-        public static Color Borda() => Color.FromUInt32(0xFFFFFFFF);
+        public static Color TextoPrincipal() => Color.FromUInt32(TemaClaroEfetivo ? 0xFF000000 : 0xFFFFFFFF);
+        public static Color TextoSecundario() => Color.FromUInt32(TemaClaroEfetivo ? 0xFF1B1B1B : 0xFFE4E4E9);
+        public static Color TextoTerciario() => Color.FromUInt32(TemaClaroEfetivo ? 0xFF333333 : 0xFFCFCFD6);
+        public static Color Borda() => Color.FromUInt32(TemaClaroEfetivo ? 0xFF000000 : 0xFFFFFFFF);
 
         internal static Color Cor(CorVisual cor)
         {
@@ -505,7 +783,7 @@ namespace CofreDeSenhas
 
             var valores = ValoresTema();
             if (!valores.TryGetValue(cor, out var argb))
-                argb = PadraoEscuro[cor];
+                argb = (TemaClaroEfetivo ? PadraoClaro : PadraoEscuro)[cor];
 
             return Color.FromUInt32(argb);
         }
@@ -555,8 +833,17 @@ namespace CofreDeSenhas
             if (app == null)
                 return;
 
+            app.RequestedThemeVariant = TemaClaroEfetivo ? ThemeVariant.Light : ThemeVariant.Dark;
+
             foreach (var (chave, cor) in RecursosTema)
                 app.Resources[chave] = new SolidColorBrush(Cor(cor));
+
+            var brilho = Cor(CorVisual.AccentPrimary);
+            app.Resources["FabShadow"] = BoxShadows.Parse($"0 4 14 0 #55{brilho.R:X2}{brilho.G:X2}{brilho.B:X2}");
+
+            bool compacto = Densidade == Densidade.Compacto;
+            app.Resources["AlturaCampo"] = compacto ? 38.0 : 44.0;
+            app.Resources["AlturaNavItem"] = compacto ? 38.0 : 44.0;
         }
 
         public static void Vincular(Window janela)
@@ -677,14 +964,52 @@ namespace CofreDeSenhas
             return EscalaNormal;
         }
 
-        private static IReadOnlyDictionary<CorVisual, uint> ValoresTema() => Daltonismo switch
+        private static IReadOnlyDictionary<CorVisual, uint> ValoresTema()
         {
-            TipoDaltonismo.Protanopia => ProtanopiaEscuro,
-            TipoDaltonismo.Deuteranopia => DeuteranopiaEscuro,
-            TipoDaltonismo.Tritanopia => TritanopiaEscuro,
-            TipoDaltonismo.Monocromacia => MonocromaciaEscuro,
-            _ => PadraoEscuro
-        };
+            var baseTema = TemaClaroEfetivo
+                ? ClaroPara(Daltonismo)
+                : Daltonismo switch
+                {
+                    TipoDaltonismo.Protanopia => ProtanopiaEscuro,
+                    TipoDaltonismo.Deuteranopia => DeuteranopiaEscuro,
+                    TipoDaltonismo.Tritanopia => TritanopiaEscuro,
+                    TipoDaltonismo.Monocromacia => MonocromaciaEscuro,
+                    _ => PadraoEscuro
+                };
+
+            if (Daltonismo != TipoDaltonismo.Nenhum || Destaque == CorDestaque.Ambar || !Destaques.ContainsKey(Destaque))
+                return baseTema;
+
+            var chave = (Destaque, TemaClaroEfetivo);
+            if (_comDestaque.TryGetValue(chave, out var pronto))
+                return pronto;
+
+            var (escuro, claro) = Destaques[Destaque];
+            var overrides = TemaClaroEfetivo ? claro : escuro;
+
+            var combinado = new Dictionary<CorVisual, uint>(baseTema);
+            for (int i = 0; i < ChavesDestaque.Length; i++)
+                combinado[ChavesDestaque[i]] = overrides[i];
+
+            _comDestaque[chave] = combinado;
+            return combinado;
+        }
+
+        private static IReadOnlyDictionary<CorVisual, uint> ClaroPara(TipoDaltonismo daltonismo)
+        {
+            if (daltonismo == TipoDaltonismo.Nenhum || !AjustesDaltonismoClaro.TryGetValue(daltonismo, out var ajustes))
+                return PadraoClaro;
+
+            if (_claroMesclado.TryGetValue(daltonismo, out var pronto))
+                return pronto;
+
+            var combinado = new Dictionary<CorVisual, uint>(PadraoClaro);
+            foreach (var (chave, valor) in ajustes)
+                combinado[chave] = valor;
+
+            _claroMesclado[daltonismo] = combinado;
+            return combinado;
+        }
 
         private static bool TentarCorAltoContraste(CorVisual cor, out Color resultado)
         {
