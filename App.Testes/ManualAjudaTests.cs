@@ -42,22 +42,34 @@ namespace App.Testes
             Assert.Equal("faq", ManualAjuda.NormalizarId("faq"));
         }
 
-        [Fact]
-        public void Ingles_TemConteudoProprioParaTodosOsTopicos()
+        [Theory]
+        [InlineData("en")]
+        [InlineData("es")]
+        [InlineData("fr")]
+        [InlineData("de")]
+        [InlineData("it")]
+        public void CadaIdioma_TemConteudoProprioParaTodosOsTopicos(string idioma)
         {
+            var pt = new Regex(@"\[[^\]]+\]\((?<chave>[^)]+)\)");
+
             foreach (var (id, _) in ManualAjuda.Topicos)
             {
-                var en = ManualAjuda.Conteudo(id, "en");
-                var pt = ManualAjuda.Conteudo(id, "pt-BR");
-                Assert.False(string.IsNullOrWhiteSpace(en), $"'{id}' sem conteúdo em inglês");
-                Assert.NotEqual(pt, en);
+                var traduzido = ManualAjuda.Conteudo(id, idioma);
+                var portugues = ManualAjuda.Conteudo(id, "pt-BR");
+
+                Assert.False(string.IsNullOrWhiteSpace(traduzido), $"'{id}' sem conteúdo em '{idioma}'");
+                Assert.NotEqual(portugues, traduzido);
+
+                var alvosPt = pt.Matches(portugues).Select(m => m.Groups["chave"].Value).OrderBy(x => x);
+                var alvosTr = pt.Matches(traduzido).Select(m => m.Groups["chave"].Value).OrderBy(x => x);
+                Assert.Equal(alvosPt, alvosTr);
             }
         }
 
         [Fact]
         public void IdiomaSemManual_CaiNoPortugues()
         {
-            Assert.Equal(ManualAjuda.Conteudo("introducao", "pt-BR"), ManualAjuda.Conteudo("introducao", "de"));
+            Assert.Equal(ManualAjuda.Conteudo("introducao", "pt-BR"), ManualAjuda.Conteudo("introducao", "ja"));
         }
     }
 }
