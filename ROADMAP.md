@@ -864,6 +864,106 @@ dados, ou intermediário de TLS com certificado confiável.
   existente para a frente em vez de subir um segundo processo sobre o mesmo
   cofre.
 
+### Versão 2.2.4
+
+Primeira leva pensada para quem usa o cofre sem experiência com código, mais
+um passe de acabamento na interface. Sem mudança no formato do cofre nem no
+modelo de ameaça. A licença passou a PolyForm Noncommercial 1.0.0 — o código
+continua aberto para estudar, modificar e redistribuir, uso comercial vedado,
+o aplicativo continua gratuito.
+
+#### Manual embutido
+
+- 15 tópicos cobrindo do primeiro acesso ao FAQ, nos seis idiomas da
+  interface (pt-BR, en, es, fr, de, it), embutidos no assembly. Renderizador
+  próprio — títulos, listas, ênfase, código, citações e links entre tópicos
+  com hit-test — sem dependência externa. Janela não-modal de instância
+  única que se reconstrói ao trocar idioma ou tema. Abre pelo "?" da barra de
+  título, pelo menu Ajuda ou por F1, e cada janela abre no tópico da sua
+  tela.
+
+#### Configurações numa janela só
+
+- A engrenagem abre uma janela com trilha de abas — Aparência, Comportamento,
+  Segurança, Backup e sincronização, Acessibilidade, Ajuda — e uma aba "Zona
+  de perigo" para limpar ou excluir o cofre com reautenticação. O que estava
+  espalhado num menu suspenso ficou reunido; as ações que dependem de estado
+  da janela principal (senha mestra, QR, Windows Hello, backup, sincronização,
+  importação de CSV, banco) continuam funcionando via delegates. "Ícones
+  online dos serviços" virou uma opção da aba Comportamento, com o mesmo
+  aviso de consentimento.
+
+#### Aparência
+
+- Tema Claro, Escuro ou Sistema, com paleta clara neutra e o
+  `RequestedThemeVariant` acompanhando para os controles do Fluent seguirem.
+  Seis cores de destaque com par claro/escuro; no modo escuro a cor escolhida
+  retinta a cromagem inteira — fundos, bordas, hovers, separadores — não só
+  os quatro tons de accent. Âmbar continua a identidade e o modo daltônico
+  tem prioridade.
+- Densidade Confortável ou Compacta (altura de linha e de campos); painel de
+  detalhes ao lado ou embaixo da lista, com duas colunas no modo embaixo;
+  colunas Usuário, Categoria e Força ocultáveis; ordenação da lista
+  persistida entre sessões. Perfis de aparência — predefinidos (Clássico
+  escuro, Claro compacto, Alto contraste) e salvos pelo usuário — aplicam
+  tudo num clique. Tudo gravado no `config.json` e restaurado na
+  inicialização.
+
+#### Acessibilidade
+
+- Nível de contraste automático, padrão, médio ou alto — o médio reforça só
+  o texto, o alto reforça texto e bordas. Movimento automático, completo,
+  reduzido ou sem animação. Tamanho do texto em seis passos até 200%. No modo
+  automático, contraste, movimento e escala seguem a configuração de
+  acessibilidade do Windows e reagem a mudanças ao vivo.
+- Fonte de leitura opcional Atkinson Hyperlegible (embutida, licença OFL),
+  além de serifada e monoespaçada; espaçamento entre letras; realce de foco
+  reforçado; sublinhado permanente de links.
+- Aviso com contagem regressiva antes do bloqueio automático por
+  inatividade, com opção de adiar (WCAG 2.2, Tempo Suficiente).
+
+#### Anúncios em voz
+
+- O provedor UIA do Windows no Avalonia 11.3 não expõe live region, então um
+  anúncio dinâmico nunca chegava a um leitor de tela. A fala passou a usar um
+  sintetizador neural embutido no próprio aplicativo (Piper via sherpa-onnx,
+  reprodução por PortAudio), sem depender do TTS do sistema. A voz de cada
+  idioma da interface (~64 MB) é baixada sob demanda na primeira ativação e
+  guardada no perfil; enquanto não estiver baixada, o anúncio fica só no
+  toast visível. Modo leitor de tela com três níveis de verbosidade e
+  leitura de ações em voz alta.
+
+#### Acabamento visual
+
+- Passe no sistema de design, sem mudança de comportamento. Sombras de
+  elevação mais leves e difusas no lugar do par escuro pesado; entrelinha nas
+  classes de texto, que quebravam linha muito apertadas; título da tela do
+  cofre em serifada, igual aos títulos de diálogo e à marca do login;
+  cabeçalhos da lista e da navegação de 10 para 11 px. Ícones de ação da
+  linha menos apagados em repouso e revelados com transição; o campo de texto
+  não "pula" mais 0,5 px ao receber foco; realce de toque uniforme entre
+  botão primário, secundário e de ícone. O brilho do botão flutuante do
+  gerador ficou contido dentro do recorte arredondado da janela — o ajuste da
+  versão anterior só tinha resolvido o recorte da barra de navegação.
+
+#### Verificação dos binários
+
+- O `SECURITY.md` passou a documentar como conferir a autenticidade de uma
+  release sem depender do aviso do sistema operacional: hash SHA-256,
+  assinatura RSA destacada do `CHECKSUMS.txt` contra a chave pública agora
+  versionada no repositório, assinatura GPG destacada quando há chave
+  configurada, e a prova de proveniência SLSA. Os metadados de autor e
+  copyright dos executáveis e do instalador passaram a trazer o nome completo
+  do responsável.
+
+#### Dependências
+
+- Novos pacotes: `org.k2fsa.sherpa.onnx`, `PortAudioSharp2`, `SharpZipLib`;
+  as RIDs não usadas dos meta-pacotes nativos foram excluídas do restore.
+  Fontes Atkinson Hyperlegible adicionadas em `App/Ativos/Fontes` (licença
+  OFL). `NOTICE` e `README` atualizados com os componentes de terceiros e o
+  novo comportamento da acessibilidade.
+
 ## Planejado
 
 Ideias e melhorias consideradas para versões futuras, agrupadas por prioridade:

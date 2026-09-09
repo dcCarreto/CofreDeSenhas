@@ -11,7 +11,7 @@ plataformas.
 ![Licença](https://img.shields.io/badge/licen%C3%A7a-PolyForm%20Noncommercial-blue)
 ![Plataforma](https://img.shields.io/badge/plataforma-Windows%2010%2F11%20%7C%20Linux-0078D6)
 ![.NET](https://img.shields.io/badge/.NET-10-512BD4)
-![Versão](https://img.shields.io/badge/vers%C3%A3o-2.2.3-success)
+![Versão](https://img.shields.io/badge/vers%C3%A3o-2.2.4-success)
 
 Este é um projeto de código aberto, gratuito e sem fins comerciais, distribuído
 sob a licença PolyForm Noncommercial 1.0.0. Você pode usá-lo, estudá-lo,
@@ -85,9 +85,11 @@ mestra, permitindo criar e copiar senhas antes mesmo de abrir o cofre.
 ## Capturas de tela
 
 A tela principal reúne a barra lateral de navegação, a lista de credenciais e o
-status do cofre no rodapé, na identidade visual "cofre, latão escovado": tema
-escuro único, com latão escovado como destaque e tipografia serifada nos
-títulos. As imagens abaixo usam dados fictícios apenas para demonstração.
+status do cofre no rodapé, na identidade visual padrão "cofre, latão escovado":
+tema escuro de carvão quente, com latão escovado como destaque e tipografia
+serifada nos títulos — a aba Aparência das Configurações oferece tema claro,
+outras cores de destaque e densidade compacta. As imagens abaixo usam dados
+fictícios apenas para demonstração.
 
 ![Cofre de Senhas: barra lateral, lista de credenciais e rodapé](docs/captura-cofre.png)
 
@@ -299,12 +301,17 @@ cofre, tudo calculado localmente e sem enviar nada para fora:
 ### Interface
 
 - Janela sem moldura, com cantos arredondados e redimensionamento livre.
-- Identidade visual própria "cofre, latão escovado": tema escuro único (sem
-  alternância de tema), paleta de carvão quente com latão escovado como único
-  destaque, tipografia serifada nos títulos (corpo do texto em Plus Jakarta
-  Sans), cantos mais quadrados e um pequeno rebite de latão decorativo no item
-  de navegação ativo e no medidor de força. Catálogo de ícones de traço único
-  e consistente em toda a interface.
+- Identidade visual própria "cofre, latão escovado": por padrão, tema escuro de
+  carvão quente com latão escovado como destaque, tipografia serifada nos
+  títulos (corpo do texto em Plus Jakarta Sans), cantos mais quadrados e um
+  pequeno rebite de latão decorativo no item de navegação ativo e no medidor de
+  força. A aba Aparência das Configurações oferece tema Claro, Escuro ou
+  Sistema, seis cores de destaque, densidade Confortável ou Compacta, posição
+  do painel de detalhes e perfis de aparência salvos. Catálogo de ícones de
+  traço único e consistente em toda a interface.
+- Manual embutido nos seis idiomas da interface, com 15 tópicos do primeiro
+  acesso ao FAQ, aberto pelo botão "?" na barra de título, pelo menu Ajuda ou
+  pela tecla F1 — que abre no tópico da tela atual.
 - Modo privacidade: um botão na barra de título (ou o atalho `Ctrl+H`) oculta
   de uma vez o nome do serviço, o usuário, a categoria/etiquetas e o avatar de
   cada credencial na lista, substituindo tudo por marcadores neutros — útil em
@@ -340,9 +347,10 @@ cofre, tudo calculado localmente e sem enviar nada para fora:
   ambiente gráfico oferece suporte).
 - Mesma interface e comportamento no Windows e no Linux.
 
-O menu de configurações reúne a alteração da senha mestra, o bloqueio automático,
-o idioma, a acessibilidade, a importação de CSV, a conexão a banco de dados e o
-Windows Hello:
+A janela de Configurações reúne, em abas, a aparência, o comportamento (senha
+mestra, bloqueio automático, idioma, ícones online), a segurança e o Windows
+Hello, o backup e a sincronização, a acessibilidade e a ajuda, além de uma aba
+"Zona de perigo" para limpar ou excluir o cofre:
 
 ![Menu de configurações do aplicativo](docs/configuracoes.png)
 

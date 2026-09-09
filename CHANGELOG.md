@@ -6,6 +6,59 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+## [2.2.4] - 2026-09-09
+
+Primeira leva de recursos pensada para quem usa o cofre sem familiaridade
+com código: um manual embutido em seis idiomas com F1 contextual, uma janela
+de Configurações única reunindo o que estava espalhado no menu, e controle
+fino de aparência (tema claro, cor de destaque, densidade, layout, perfis) e
+de acessibilidade (contraste, movimento, tamanho do texto, fonte de leitura,
+avisos falados). Sai também um passe de acabamento visual em toda a
+interface. Sem mudança no formato do cofre nem no modelo de ameaça.
+
+### Adicionado
+- Manual embutido: 15 tópicos, do primeiro acesso ao FAQ, em português,
+  inglês, espanhol, francês, alemão e italiano. Abre pelo botão "?" da barra
+  de título, pelo menu Ajuda ou por F1, que leva ao tópico da tela atual.
+  Janela não-modal de instância única, com renderizador próprio e links
+  entre tópicos.
+- Janela de Configurações única, com abas Aparência, Comportamento,
+  Segurança, Backup e sincronização, Acessibilidade e Ajuda, mais uma aba
+  "Zona de perigo" para limpar ou excluir o cofre com reautenticação.
+- Aparência personalizável: tema Claro, Escuro ou Sistema (com paleta clara
+  neutra); seis cores de destaque com par claro/escuro — no modo escuro a
+  cor escolhida retinta a interface inteira, não só o accent; densidade
+  Confortável ou Compacta; painel de detalhes ao lado da lista ou embaixo
+  dela; colunas Usuário, Categoria e Força ocultáveis; ordenação da lista
+  lembrada entre sessões; perfis de aparência (predefinidos e salvos pelo
+  usuário) que aplicam tudo num clique.
+- Acessibilidade ampliada: nível de contraste automático/padrão/médio/alto;
+  movimento automático/completo/reduzido/sem animação; tamanho do texto em
+  seis passos até 200%. No modo automático, contraste, movimento e escala
+  seguem as configurações do Windows e reagem ao vivo. Fonte de leitura
+  opcional Atkinson Hyperlegible (embutida), além de serifada e
+  monoespaçada; espaçamento entre letras; realce de foco reforçado;
+  sublinhado permanente de links.
+- Aviso com contagem regressiva antes do bloqueio automático por
+  inatividade, com opção de adiar (WCAG 2.2).
+- Anúncios falados: modo leitor de tela com três níveis de verbosidade e
+  leitura de ações em voz alta, com um sintetizador neural embutido no
+  próprio aplicativo — não depende do TTS do sistema. A voz de cada idioma
+  (~64 MB) é baixada sob demanda na primeira ativação; até lá, os avisos
+  ficam só no toast visível.
+
+### Melhorado
+- Passe de acabamento visual em toda a interface: sombras de cartão e
+  diálogo mais leves e difusas; entrelinha nas classes de texto; título da
+  tela do cofre em serifada, igual aos diálogos; cabeçalhos da lista e da
+  navegação um pouco maiores; ícones de ação da linha menos apagados em
+  repouso e revelados com transição; fim do "pulo" do campo de texto ao
+  receber foco; realce de toque consistente entre botões; brilho do botão
+  flutuante do gerador contido dentro da janela.
+- "Ícones online dos serviços" virou uma opção da aba Comportamento, com o
+  mesmo aviso de consentimento de antes.
+- O "+" do botão "Nova senha" agora é branco, legível em qualquer tema.
+
 ### Alterado
 - Licença migrada de MIT para PolyForm Noncommercial 1.0.0: o código-fonte
   continua aberto para estudar, modificar e redistribuir, agora com uso
