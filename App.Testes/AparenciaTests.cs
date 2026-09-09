@@ -12,6 +12,8 @@ namespace App.Testes
         {
             Acessibilidade.Hidratar(TipoDaltonismo.Nenhum, ModoTema.Escuro, CorDestaque.Ambar, Densidade.Confortavel,
                 LayoutDetalhe.Lateral, false, Acessibilidade.EscalaNormal, false, false);
+            Acessibilidade.HidratarExpert(NivelContraste.Padrao, NivelMovimento.Completo, FonteLeitura.Padrao,
+                EspacamentoTexto.Normal, VerbosidadeLeitor.Normal, false, false, false, false, false);
             Acessibilidade.HidratarColunas((int)ColunasLista.Todas);
             Preferencias.PerfisAparencia = null;
             Preferencias.ColunasLista = (int)ColunasLista.Todas;

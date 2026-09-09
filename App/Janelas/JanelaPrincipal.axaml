@@ -32,7 +32,7 @@
                      Stroke="{DynamicResource TextPrimary}"
                      Chave="IconeCadeado" />
               <TextBlock Text="{DynamicResource App.Title}"
-                         FontFamily="{StaticResource FonteDisplay}"
+                         FontFamily="{DynamicResource FonteDisplay}"
                          FontSize="16" FontWeight="Bold"
                          Foreground="{DynamicResource TextPrimary}"
                          VerticalAlignment="Center" />
@@ -48,179 +48,10 @@
               </Button>
               <Button Name="BtnConfig" Classes="janela"
                       ToolTip.Tip="{DynamicResource Settings.Tooltip}"
-                      AutomationProperties.Name="{DynamicResource Settings.Tooltip}">
+                      AutomationProperties.Name="{DynamicResource Settings.Tooltip}"
+                      Click="Configuracoes_Click">
                 <c:Icone Width="{StaticResource TamIconeMenu}" Height="{StaticResource TamIconeMenu}"
                        Chave="IconeConfiguracoes" />
-                <Button.Flyout>
-                  <MenuFlyout Placement="BottomEdgeAlignedRight">
-                    <MenuItem Header="{DynamicResource Config.Open}" Click="Configuracoes_Click">
-                      <MenuItem.Icon>
-                        <c:Icone Width="{StaticResource TamIconeMenu}" Height="{StaticResource TamIconeMenu}"
-                               Chave="IconeConfiguracoes" />
-                      </MenuItem.Icon>
-                    </MenuItem>
-                    <Separator />
-                    <MenuItem Classes="secao" Header="{DynamicResource Settings.SectionSecurity}" />
-                    <MenuItem Header="{DynamicResource Settings.ChangeMasterPassword}" Click="AlterarSenhaMestra_Click">
-                      <MenuItem.Icon>
-                        <c:Icone Width="{StaticResource TamIconeMenu}" Height="{StaticResource TamIconeMenu}"
-                               Chave="IconeCofre" />
-                      </MenuItem.Icon>
-                    </MenuItem>
-                    <MenuItem Header="{DynamicResource Settings.RegenerateQr}" Click="RegerarQrCode_Click">
-                      <MenuItem.Icon>
-                        <c:Icone Width="{StaticResource TamIconeMenu}" Height="{StaticResource TamIconeMenu}"
-                               Chave="IconeQrCode" />
-                      </MenuItem.Icon>
-                    </MenuItem>
-                    <MenuItem Name="MenuBiometria" Header="{DynamicResource Settings.EnableWindowsHello}" Click="Biometria_Click">
-                      <MenuItem.Icon>
-                        <c:Icone Width="{StaticResource TamIconeMenu}" Height="{StaticResource TamIconeMenu}"
-                               Chave="IconeWindowsHello" />
-                      </MenuItem.Icon>
-                    </MenuItem>
-                    <MenuItem Name="MenuBloqueio" Header="{DynamicResource Settings.AutoLock}">
-                      <MenuItem.Icon>
-                        <c:Icone Width="{StaticResource TamIconeMenu}" Height="{StaticResource TamIconeMenu}"
-                               Chave="IconeBloqueioAutomatico" />
-                      </MenuItem.Icon>
-                      <MenuItem Header="{DynamicResource Settings.Disabled}" ToggleType="Radio" Tag="0" Click="Bloqueio_Alterado" />
-                      <MenuItem Header="{DynamicResource Settings.AfterOneMinute}" ToggleType="Radio" Tag="1" Click="Bloqueio_Alterado" />
-                      <MenuItem Header="{DynamicResource Settings.AfterMinutes5}" ToggleType="Radio" Tag="5" Click="Bloqueio_Alterado" />
-                      <MenuItem Header="{DynamicResource Settings.AfterMinutes15}" ToggleType="Radio" Tag="15" Click="Bloqueio_Alterado" />
-                      <MenuItem Header="{DynamicResource Settings.AfterMinutes30}" ToggleType="Radio" Tag="30" Click="Bloqueio_Alterado" />
-                    </MenuItem>
-                    <MenuItem Name="MenuLimpezaClipboard" Header="{DynamicResource Settings.ClipboardClear}">
-                      <MenuItem.Icon>
-                        <c:Icone Width="{StaticResource TamIconeMenu}" Height="{StaticResource TamIconeMenu}"
-                               Chave="IconeCopiar" />
-                      </MenuItem.Icon>
-                      <MenuItem Header="{DynamicResource Settings.Disabled}" ToggleType="Radio" Tag="0" Click="LimpezaClipboard_Alterada" />
-                      <MenuItem Header="{DynamicResource Settings.ClipboardClear.After15}" ToggleType="Radio" Tag="15" Click="LimpezaClipboard_Alterada" />
-                      <MenuItem Header="{DynamicResource Settings.ClipboardClear.After30}" ToggleType="Radio" Tag="30" Click="LimpezaClipboard_Alterada" />
-                      <MenuItem Header="{DynamicResource Settings.ClipboardClear.After60}" ToggleType="Radio" Tag="60" Click="LimpezaClipboard_Alterada" />
-                    </MenuItem>
-                    <MenuItem Header="{DynamicResource Settings.LockNow}" Click="BloquearAgora_Click">
-                      <MenuItem.Icon>
-                        <c:Icone Width="{StaticResource TamIconeMenu}" Height="{StaticResource TamIconeMenu}"
-                               Chave="IconeBloquearAgora" />
-                      </MenuItem.Icon>
-                    </MenuItem>
-                    <Separator />
-                    <MenuItem Classes="secao" Header="{DynamicResource Settings.SectionAppearance}" />
-                    <MenuItem Name="MenuIdioma" Header="{DynamicResource Settings.Language}">
-                      <MenuItem.Icon>
-                        <c:Icone Width="{StaticResource TamIconeMenu}" Height="{StaticResource TamIconeMenu}"
-                               Chave="IconeIdioma" />
-                      </MenuItem.Icon>
-                      <MenuItem Header="Português (Brasil)" ToggleType="Radio" Tag="pt-BR" Click="Idioma_Alterado" />
-                      <MenuItem Header="English" ToggleType="Radio" Tag="en" Click="Idioma_Alterado" />
-                      <MenuItem Header="Español" ToggleType="Radio" Tag="es" Click="Idioma_Alterado" />
-                      <MenuItem Header="Français" ToggleType="Radio" Tag="fr" Click="Idioma_Alterado" />
-                      <MenuItem Header="Deutsch" ToggleType="Radio" Tag="de" Click="Idioma_Alterado" />
-                      <MenuItem Header="Italiano" ToggleType="Radio" Tag="it" Click="Idioma_Alterado" />
-                    </MenuItem>
-                    <MenuItem Name="MenuAcessibilidade" Header="{DynamicResource Access.Title}">
-                      <MenuItem.Icon>
-                        <c:Icone Width="{StaticResource TamIconeMenu}" Height="{StaticResource TamIconeMenu}"
-                               Chave="IconeAcessibilidade" />
-                      </MenuItem.Icon>
-                      <MenuItem Name="MenuDaltonismo" Header="{DynamicResource Access.Colorblind}">
-                        <MenuItem Header="{DynamicResource Access.None}" ToggleType="Radio" Tag="Nenhum" Click="Daltonismo_Alterado" />
-                        <MenuItem Header="{DynamicResource Access.Protanopia}" ToggleType="Radio" Tag="Protanopia" Click="Daltonismo_Alterado" />
-                        <MenuItem Header="{DynamicResource Access.Deuteranopia}" ToggleType="Radio" Tag="Deuteranopia" Click="Daltonismo_Alterado" />
-                        <MenuItem Header="{DynamicResource Access.Tritanopia}" ToggleType="Radio" Tag="Tritanopia" Click="Daltonismo_Alterado" />
-                        <MenuItem Header="{DynamicResource Access.Monochromacy}" ToggleType="Radio" Tag="Monocromacia" Click="Daltonismo_Alterado" />
-                      </MenuItem>
-                      <MenuItem Name="MenuEscala" Header="{DynamicResource Access.TextSize}">
-                        <MenuItem Header="{DynamicResource Access.TextNormal}" ToggleType="Radio" Tag="1.0" Click="Escala_Alterada" />
-                        <MenuItem Header="{DynamicResource Access.TextLarge}" ToggleType="Radio" Tag="1.15" Click="Escala_Alterada" />
-                        <MenuItem Header="{DynamicResource Access.TextLarger}" ToggleType="Radio" Tag="1.30" Click="Escala_Alterada" />
-                      </MenuItem>
-                      <MenuItem Name="MenuAltoContraste" Header="{DynamicResource Access.HighContrast}" ToggleType="CheckBox" Click="AltoContraste_Alterado" />
-                      <MenuItem Name="MenuReduzirAnimacoes" Header="{DynamicResource Access.ReduceMotion}" ToggleType="CheckBox" Click="ReduzirAnimacoes_Alterado" />
-                      <MenuItem Name="MenuLeitorTela" Header="{DynamicResource Access.ScreenReader}" ToggleType="CheckBox" Click="LeitorTela_Alterado" />
-                    </MenuItem>
-                    <Separator />
-                    <MenuItem Classes="secao" Header="{DynamicResource Settings.SectionData}" />
-                    <MenuItem Header="{DynamicResource Settings.Backup}" Click="Backup_Click">
-                      <MenuItem.Icon>
-                        <c:Icone Width="{StaticResource TamIconeMenu}" Height="{StaticResource TamIconeMenu}"
-                               Chave="IconeExportar" />
-                      </MenuItem.Icon>
-                    </MenuItem>
-                    <MenuItem Header="{DynamicResource Settings.Sync}" Click="Sincronizacao_Click">
-                      <MenuItem.Icon>
-                        <c:Icone Width="{StaticResource TamIconeMenu}" Height="{StaticResource TamIconeMenu}"
-                               Chave="IconeSincronizacao" />
-                      </MenuItem.Icon>
-                    </MenuItem>
-                    <MenuItem Name="MenuIconesOnline" Header="{DynamicResource Settings.OnlineIcons}"
-                              ToggleType="CheckBox" Click="IconesOnline_Alterado"
-                              ToolTip.Tip="{DynamicResource Settings.OnlineIconsTooltip}" />
-                    <MenuItem Name="MenuHistoricoUso" Header="{DynamicResource Settings.TrackUsageHistory}"
-                              ToggleType="CheckBox" Click="HistoricoUso_Alterado"
-                              ToolTip.Tip="{DynamicResource Settings.TrackUsageHistoryTooltip}" />
-                    <MenuItem Name="MenuVerificarAtualizacoes" Header="{DynamicResource Settings.CheckUpdates}"
-                              ToggleType="CheckBox" Click="VerificarAtualizacoes_Alterado"
-                              ToolTip.Tip="{DynamicResource Settings.CheckUpdatesTooltip}">
-                      <MenuItem.Icon>
-                        <c:Icone Width="{StaticResource TamIconeMenu}" Height="{StaticResource TamIconeMenu}"
-                               Chave="IconeVerificarAtualizacoes" />
-                      </MenuItem.Icon>
-                    </MenuItem>
-                    <MenuItem Header="{DynamicResource Settings.ImportCsv}" Click="ImportarCsv_Click">
-                      <MenuItem.Icon>
-                        <c:Icone Width="{StaticResource TamIconeMenu}" Height="{StaticResource TamIconeMenu}"
-                               Chave="IconeImportarCsv" />
-                      </MenuItem.Icon>
-                    </MenuItem>
-                    <MenuItem Header="{DynamicResource Settings.ConnectDatabase}" Click="ConectarBanco_Click"
-                              ToolTip.Tip="{DynamicResource Settings.ConnectDatabaseTooltip}">
-                      <MenuItem.Icon>
-                        <c:Icone Width="{StaticResource TamIconeMenu}" Height="{StaticResource TamIconeMenu}"
-                               Chave="IconeBanco" />
-                      </MenuItem.Icon>
-                    </MenuItem>
-                    <MenuItem Name="MenuDesconectarBanco" Header="{DynamicResource Settings.DisconnectDatabase}"
-                              IsVisible="False" Click="DesconectarBanco_Click">
-                      <MenuItem.Icon>
-                        <c:Icone Width="{StaticResource TamIconeMenu}" Height="{StaticResource TamIconeMenu}"
-                               Chave="IconeBancoDesconectado" />
-                      </MenuItem.Icon>
-                    </MenuItem>
-                    <Separator />
-                    <MenuItem Classes="secao" Header="{DynamicResource Settings.SectionHelp}" />
-                    <MenuItem Header="{DynamicResource Ajuda.Abrir}" Click="Ajuda_Click">
-                      <MenuItem.Icon>
-                        <c:Icone Width="{StaticResource TamIconeMenu}" Height="{StaticResource TamIconeMenu}"
-                               Chave="IconeInfo" />
-                      </MenuItem.Icon>
-                    </MenuItem>
-                    <MenuItem Header="{DynamicResource Settings.KeyboardShortcuts}" Click="AtalhosTeclado_Click">
-                      <MenuItem.Icon>
-                        <c:Icone Width="{StaticResource TamIconeMenu}" Height="{StaticResource TamIconeMenu}"
-                               Chave="IconeAtalhoTeclado" />
-                      </MenuItem.Icon>
-                    </MenuItem>
-                    <Separator />
-                    <MenuItem Classes="secao" Header="{DynamicResource Settings.SectionDanger}" />
-                    <MenuItem Header="{DynamicResource Settings.ClearVault}" Click="LimparCofre_Click">
-                      <MenuItem.Icon>
-                        <c:Icone Width="{StaticResource TamIconeMenu}" Height="{StaticResource TamIconeMenu}"
-                               Chave="IconeExcluir" />
-                      </MenuItem.Icon>
-                    </MenuItem>
-                    <MenuItem Header="{DynamicResource Settings.DeleteVault}" Foreground="{DynamicResource StrengthWeak}"
-                              Click="ExcluirCofre_Click">
-                      <MenuItem.Icon>
-                        <c:Icone Width="{StaticResource TamIconeMenu}" Height="{StaticResource TamIconeMenu}"
-                               Stroke="{DynamicResource StrengthWeak}"
-                               Chave="IconeAviso" />
-                      </MenuItem.Icon>
-                    </MenuItem>
-                  </MenuFlyout>
-                </Button.Flyout>
               </Button>
               <Button Name="BtnPrivacidade" Classes="janela"
                       AutomationProperties.Name="{DynamicResource Privacy.Enable}"
@@ -272,21 +103,7 @@
                        Chave="IconeMenu" />
               </Button>
 
-              <Button Name="BtnFabGerador"
-                      DockPanel.Dock="Bottom"
-                      Width="60" Height="60"
-                      HorizontalAlignment="Left"
-                      Margin="0,0,0,16"
-                      Classes="fab"
-                      ToolTip.Tip="{DynamicResource Generator.Title}"
-                      AutomationProperties.Name="{DynamicResource Generator.Title}"
-                      Click="ToggleGerador_Click">
-                <c:Icone Name="IconeFabGerador"
-                       Width="{StaticResource TamIconeHero}" Height="{StaticResource TamIconeHero}"
-                       RenderTransformOrigin="0.5,0.5"
-                       Stroke="White"
-                       Chave="IconeChaveGerador" />
-              </Button>
+              <Panel Name="EspacoFab" DockPanel.Dock="Bottom" Height="76" />
 
               <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
               <StackPanel Margin="0,12,0,0" Spacing="4">
@@ -596,6 +413,7 @@
                             Click="NovaSenha_Click">
                       <StackPanel Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
                         <c:Icone Width="{StaticResource TamIconeToolbar}" Height="{StaticResource TamIconeToolbar}"
+                               Stroke="White" StrokeThickness="2.25"
                                Chave="IconeNovaSenha" />
                         <TextBlock Text="{DynamicResource Vault.NewPassword}" VerticalAlignment="Center" />
                       </StackPanel>
@@ -1066,6 +884,22 @@
               </StackPanel>
             </Border>
           </Grid>
+
+          <Canvas Grid.Column="0" Grid.ColumnSpan="2">
+            <Button Name="BtnFabGerador"
+                    Canvas.Left="24" Canvas.Bottom="30"
+                    Width="60" Height="60"
+                    Classes="fab"
+                    ToolTip.Tip="{DynamicResource Generator.Title}"
+                    AutomationProperties.Name="{DynamicResource Generator.Title}"
+                    Click="ToggleGerador_Click">
+              <c:Icone Name="IconeFabGerador"
+                     Width="{StaticResource TamIconeHero}" Height="{StaticResource TamIconeHero}"
+                     RenderTransformOrigin="0.5,0.5"
+                     Stroke="White"
+                     Chave="IconeChaveGerador" />
+            </Button>
+          </Canvas>
         </Grid>
       </DockPanel>
     </Border>
@@ -1083,5 +917,30 @@
                Opacity="0"
                IsHitTestVisible="False"
                AutomationProperties.LiveSetting="Assertive" />
+
+    <Border Name="ToastAcessibilidade"
+            IsVisible="False"
+            Opacity="0"
+            IsHitTestVisible="False"
+            HorizontalAlignment="Center" VerticalAlignment="Bottom"
+            Margin="0,0,0,58"
+            MaxWidth="520"
+            Padding="18,11"
+            CornerRadius="10"
+            Background="{DynamicResource TitleBar}"
+            BorderBrush="{DynamicResource AccentPrimary}"
+            BorderThickness="1"
+            BoxShadow="{StaticResource DialogShadow}">
+      <Border.Transitions>
+        <Transitions>
+          <DoubleTransition Property="Opacity" Duration="0:0:0.18" />
+        </Transitions>
+      </Border.Transitions>
+      <TextBlock Name="LblToastAcessibilidade"
+                 FontSize="13" FontWeight="SemiBold"
+                 TextWrapping="Wrap"
+                 TextAlignment="Center"
+                 Foreground="{DynamicResource TextPrimary}" />
+    </Border>
   </Grid>
 </Window>

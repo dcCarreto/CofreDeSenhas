@@ -23,8 +23,11 @@ namespace CofreDeSenhas.Janelas
         public required Action DesconectarBanco { get; init; }
         public required Action AtalhosTeclado { get; init; }
         public required Action AbrirManual { get; init; }
+        public required Action LimparCofre { get; init; }
+        public required Action ExcluirCofre { get; init; }
         public required Action<int> DefinirBloqueioAutomatico { get; init; }
         public required Action<bool> DefinirVerificarAtualizacoes { get; init; }
+        public required Action<bool> DefinirIconesOnline { get; init; }
         public bool WindowsHelloSuportado { get; init; }
         public bool WindowsHelloAtivo { get; init; }
         public bool BancoConectado { get; init; }
@@ -38,6 +41,9 @@ namespace CofreDeSenhas.Janelas
         private int _abaAtual;
         private bool _editandoPerfil;
         private string _rascunhoPerfil = "";
+        private Task? _baixandoVoz;
+        private double _progressoVoz;
+        private bool _erroVoz;
 
         public Action? AcaoPendente { get; private set; }
 
@@ -77,6 +83,7 @@ namespace CofreDeSenhas.Janelas
             AdicionarAba("IconeSincronizacao", "Config.Tab.BackupSync", ConstruirBackupSync());
             AdicionarAba("IconeAcessibilidade", "Config.Tab.Accessibility", ConstruirAcessibilidade());
             AdicionarAba("IconeAtalhoTeclado", "Config.Tab.Help", ConstruirAjuda());
+            AdicionarAba("IconeAviso", "Config.Tab.Danger", ConstruirZonaPerigo());
 
             _montando = false;
             SelecionarAba(Math.Clamp(_abaAtual, 0, _abas.Count - 1));
@@ -146,6 +153,18 @@ namespace CofreDeSenhas.Janelas
                 TextWrapping = TextWrapping.Wrap
             });
             return painel;
+        }
+
+        private void Secao(StackPanel painel, string chave)
+        {
+            painel.Children.Add(new TextBlock
+            {
+                Text = Idioma.Texto(chave).ToUpperInvariant(),
+                Foreground = Tema.Pincel(Tema.TextTertiary),
+                FontSize = 11,
+                FontWeight = FontWeight.Bold,
+                Margin = new Thickness(2, painel.Children.Count > 1 ? 14 : 0, 2, 2)
+            });
         }
 
         private Control ConstruirAparencia()
@@ -386,6 +405,11 @@ namespace CofreDeSenhas.Janelas
                 Preferencias.VerificarAtualizacoes,
                 valor => _acoes.DefinirVerificarAtualizacoes(valor)));
 
+            painel.Children.Add(LinhaCheck(
+                Idioma.Texto("Settings.OnlineIcons"), Idioma.Texto("Settings.OnlineIconsTooltip"),
+                Preferencias.IconesOnline,
+                IconesOnlineMudou));
+
             return painel;
         }
 
@@ -419,44 +443,210 @@ namespace CofreDeSenhas.Janelas
         {
             var painel = NovoPainel("Config.Accessibility.Intro");
 
+            Secao(painel, "Access.Section.Color");
+
             string[] tiposDaltonismo = { "Nenhum", "Protanopia", "Deuteranopia", "Tritanopia", "Monocromacia" };
-            string[] rotulosDaltonismo =
-            {
-                Idioma.Texto("Access.None"),
-                Idioma.Texto("Access.Protanopia"),
-                Idioma.Texto("Access.Deuteranopia"),
-                Idioma.Texto("Access.Tritanopia"),
-                Idioma.Texto("Access.Monochromacy")
-            };
             painel.Children.Add(LinhaCombo(
-                Idioma.Texto("Access.Colorblind"), null, rotulosDaltonismo,
+                Idioma.Texto("Access.Colorblind"), null,
+                new[]
+                {
+                    Idioma.Texto("Access.None"), Idioma.Texto("Access.Protanopia"), Idioma.Texto("Access.Deuteranopia"),
+                    Idioma.Texto("Access.Tritanopia"), Idioma.Texto("Access.Monochromacy")
+                },
                 Math.Max(0, Array.IndexOf(tiposDaltonismo, Acessibilidade.Daltonismo.ToString())),
                 indice => Acessibilidade.SelecionarDaltonismo(tiposDaltonismo[indice])));
 
-            string[] escalas = { "1.0", "1.15", "1.30" };
-            string[] rotulosEscala =
-            {
-                Idioma.Texto("Access.TextNormal"),
-                Idioma.Texto("Access.TextLarge"),
-                Idioma.Texto("Access.TextLarger")
-            };
-            int selEscala = 0;
+            string[] contrastes = { "Automatico", "Padrao", "Medio", "Alto" };
+            painel.Children.Add(LinhaCombo(
+                Idioma.Texto("Access.Contrast"), null,
+                new[]
+                {
+                    Idioma.Texto("Access.Contrast.Auto"), Idioma.Texto("Access.Contrast.Standard"),
+                    Idioma.Texto("Access.Contrast.Medium"), Idioma.Texto("Access.Contrast.High")
+                },
+                Math.Max(0, Array.IndexOf(contrastes, Acessibilidade.Contraste.ToString())),
+                indice => Acessibilidade.SelecionarContraste(contrastes[indice])));
+
+            painel.Children.Add(LinhaCheck(Idioma.Texto("Access.FocusRing"), null,
+                Acessibilidade.FocoReforcado, Acessibilidade.SelecionarFocoReforcado));
+
+            Secao(painel, "Access.Section.Text");
+
+            var escalas = Acessibilidade.EscalasDisponiveis;
+            var rotulosEscala = new string[escalas.Length + 1];
+            rotulosEscala[0] = Idioma.Texto("Access.TextAuto");
             for (int i = 0; i < escalas.Length; i++)
-                if (double.TryParse(escalas[i], NumberStyles.Any, CultureInfo.InvariantCulture, out var valor) &&
-                    Math.Abs(valor - Acessibilidade.Escala) < 0.001)
-                    selEscala = i;
+                rotulosEscala[i + 1] = ((int)Math.Round(escalas[i] * 100)) + "%";
+            int selEscala = 0;
+            if (!Acessibilidade.EscalaAutomatica)
+                for (int i = 0; i < escalas.Length; i++)
+                    if (Math.Abs(escalas[i] - Acessibilidade.Escala) < 0.001)
+                        selEscala = i + 1;
             painel.Children.Add(LinhaCombo(
                 Idioma.Texto("Access.TextSize"), null, rotulosEscala, selEscala,
-                indice => Acessibilidade.SelecionarEscala(escalas[indice])));
+                indice => Acessibilidade.SelecionarEscala(indice == 0
+                    ? "auto"
+                    : escalas[indice - 1].ToString(CultureInfo.InvariantCulture))));
 
-            painel.Children.Add(LinhaCheck(Idioma.Texto("Access.HighContrast"), null,
-                Acessibilidade.AltoContraste, Acessibilidade.SelecionarAltoContraste));
-            painel.Children.Add(LinhaCheck(Idioma.Texto("Access.ReduceMotion"), null,
-                Acessibilidade.ReduzirAnimacoes, Acessibilidade.SelecionarReducaoMovimento));
-            painel.Children.Add(LinhaCheck(Idioma.Texto("Access.ScreenReader"), null,
+            string[] fontes = { "Padrao", "Legivel", "Serifada", "Monoespacada" };
+            painel.Children.Add(LinhaCombo(
+                Idioma.Texto("Access.Font"), Idioma.Texto("Access.Font.Desc"),
+                new[]
+                {
+                    Idioma.Texto("Access.Font.Default"), Idioma.Texto("Access.Font.Readable"),
+                    Idioma.Texto("Access.Font.Serif"), Idioma.Texto("Access.Font.Mono")
+                },
+                Math.Max(0, Array.IndexOf(fontes, Acessibilidade.Fonte.ToString())),
+                indice => Acessibilidade.SelecionarFonte(fontes[indice])));
+
+            string[] espacamentos = { "Normal", "Medio", "Amplo" };
+            painel.Children.Add(LinhaCombo(
+                Idioma.Texto("Access.LetterSpacing"), null,
+                new[]
+                {
+                    Idioma.Texto("Access.LetterSpacing.Normal"), Idioma.Texto("Access.LetterSpacing.Medium"),
+                    Idioma.Texto("Access.LetterSpacing.Wide")
+                },
+                Math.Max(0, Array.IndexOf(espacamentos, Acessibilidade.Espacamento.ToString())),
+                indice => Acessibilidade.SelecionarEspacamento(espacamentos[indice])));
+
+            painel.Children.Add(LinhaCheck(Idioma.Texto("Access.UnderlineLinks"), null,
+                Acessibilidade.SublinharLinks, Acessibilidade.SelecionarSublinharLinks));
+
+            Secao(painel, "Access.Section.Motion");
+
+            string[] movimentos = { "Automatico", "Completo", "Reduzido", "SemAnimacao" };
+            painel.Children.Add(LinhaCombo(
+                Idioma.Texto("Access.Motion"), Idioma.Texto("Access.Motion.Desc"),
+                new[]
+                {
+                    Idioma.Texto("Access.Motion.Auto"), Idioma.Texto("Access.Motion.Full"),
+                    Idioma.Texto("Access.Motion.Reduced"), Idioma.Texto("Access.Motion.None")
+                },
+                Math.Max(0, Array.IndexOf(movimentos, Acessibilidade.Movimento.ToString())),
+                indice => Acessibilidade.SelecionarMovimento(movimentos[indice])));
+
+            painel.Children.Add(LinhaCheck(Idioma.Texto("Access.WarnBeforeLock"), Idioma.Texto("Access.WarnBeforeLock.Desc"),
+                Acessibilidade.AvisarAntesBloqueio, Acessibilidade.SelecionarAvisarAntesBloqueio));
+
+            Secao(painel, "Access.Section.Reader");
+
+            painel.Children.Add(LinhaCheck(Idioma.Texto("Access.ScreenReader"), Idioma.Texto("Access.ScreenReaderHelp"),
                 Acessibilidade.LeitorTela, Acessibilidade.SelecionarLeitorTela));
 
+            string[] verbosidades = { "Discreta", "Normal", "Detalhada" };
+            painel.Children.Add(LinhaCombo(
+                Idioma.Texto("Access.Verbosity"), null,
+                new[]
+                {
+                    Idioma.Texto("Access.Verbosity.Low"), Idioma.Texto("Access.Verbosity.Normal"),
+                    Idioma.Texto("Access.Verbosity.High")
+                },
+                Math.Max(0, Array.IndexOf(verbosidades, Acessibilidade.Verbosidade.ToString())),
+                indice => Acessibilidade.SelecionarVerbosidade(verbosidades[indice])));
+
+            painel.Children.Add(LinhaCheck(Idioma.Texto("Access.AnnounceActions"), Idioma.Texto("Access.AnnounceActions.Desc"),
+                Acessibilidade.AnunciarAcoes, Acessibilidade.SelecionarAnunciarAcoes));
+
+            if (Acessibilidade.AnunciarAcoes || Acessibilidade.LeitorTela)
+                painel.Children.Add(LinhaVozNeural());
+
             return painel;
+        }
+
+        private Control LinhaVozNeural()
+        {
+            var codigo = GerenciadorVozes.Curto(Idioma.Atual.Codigo);
+            var nomeIdioma = Idioma.Atual.NomeNativo;
+            var pilha = new StackPanel { Spacing = 8 };
+            var texto = new TextBlock
+            {
+                Foreground = Tema.Pincel(Tema.TextSecondary),
+                FontSize = 12.5,
+                TextWrapping = TextWrapping.Wrap
+            };
+            pilha.Children.Add(texto);
+
+            if (!GerenciadorVozes.Suportado(codigo))
+            {
+                texto.Text = Idioma.Formatar("Access.Voice.Unsupported", nomeIdioma);
+                return Envelope(pilha, Tema.TextTertiary);
+            }
+
+            if (GerenciadorVozes.Instalada(codigo))
+            {
+                texto.Text = Idioma.Formatar("Access.Voice.Ready", nomeIdioma);
+                return Envelope(pilha, Tema.StrengthStrong);
+            }
+
+            texto.Text = _erroVoz
+                ? Idioma.Texto("Access.Voice.Failed")
+                : Idioma.Formatar("Access.Voice.NeuralMissing", nomeIdioma, GerenciadorVozes.TamanhoMb(codigo));
+
+            var botao = new Button { Height = 32, FontSize = 12.5, HorizontalAlignment = HorizontalAlignment.Left };
+            botao.Classes.Add("secundario");
+
+            if (_baixandoVoz != null)
+            {
+                botao.IsEnabled = false;
+                botao.Content = Idioma.Formatar("Access.Voice.Downloading", (int)Math.Round(_progressoVoz * 100));
+            }
+            else
+            {
+                botao.Content = Idioma.Texto("Access.Voice.Download");
+                botao.Click += (s, e) => BaixarVoz(codigo);
+            }
+
+            pilha.Children.Add(botao);
+            return Envelope(pilha, Tema.StrengthMedium);
+        }
+
+        private Border Envelope(Control conteudo, Color cor) => new()
+        {
+            Padding = new Thickness(16, 14),
+            CornerRadius = new CornerRadius(12),
+            Background = Tema.Pincel(Tema.CardBackground),
+            BorderBrush = Tema.Pincel(cor),
+            BorderThickness = new Thickness(1),
+            Child = conteudo
+        };
+
+        private async void BaixarVoz(string codigo)
+        {
+            if (_baixandoVoz != null)
+                return;
+
+            _erroVoz = false;
+            _progressoVoz = 0;
+            var ultimo = -1;
+            var progresso = new Progress<double>(p =>
+            {
+                _progressoVoz = p;
+                var pct = (int)Math.Round(p * 100);
+                if (pct != ultimo && !_montando)
+                {
+                    ultimo = pct;
+                    Construir();
+                }
+            });
+
+            _baixandoVoz = GerenciadorVozes.BaixarAsync(codigo, progresso, CancellationToken.None);
+            Construir();
+
+            try
+            {
+                await _baixandoVoz;
+                Locucao.RedefinirVoz();
+            }
+            catch
+            {
+                _erroVoz = true;
+            }
+            finally
+            {
+                _baixandoVoz = null;
+                Construir();
+            }
         }
 
         private Control ConstruirAjuda()
@@ -465,6 +655,35 @@ namespace CofreDeSenhas.Janelas
             painel.Children.Add(LinhaAcao("IconeInfo", Idioma.Texto("Ajuda.Abrir"), null, _acoes.AbrirManual));
             painel.Children.Add(LinhaAcao("IconeAtalhoTeclado", Idioma.Texto("Settings.KeyboardShortcuts"), null, _acoes.AtalhosTeclado));
             return painel;
+        }
+
+        private Control ConstruirZonaPerigo()
+        {
+            var painel = NovoPainel("Config.Danger.Intro");
+            painel.Children.Add(LinhaAcao("IconeExcluir", Idioma.Texto("Settings.ClearVault"), null, _acoes.LimparCofre, perigoso: true));
+            painel.Children.Add(LinhaAcao("IconeAviso", Idioma.Texto("Settings.DeleteVault"), null, _acoes.ExcluirCofre, perigoso: true));
+            return painel;
+        }
+
+        private async void IconesOnlineMudou(bool ligado)
+        {
+            if (_montando)
+                return;
+
+            if (ligado)
+            {
+                var aceitou = await CaixaMensagem.ConfirmarAsync(this,
+                    Idioma.Texto("Icons.ConsentMessage"),
+                    Idioma.Texto("Settings.OnlineIcons"),
+                    TipoMensagem.Info);
+                if (!aceitou)
+                {
+                    Construir();
+                    return;
+                }
+            }
+
+            _acoes.DefinirIconesOnline(ligado);
         }
 
         private Control LinhaCombo(string rotulo, string? descricao, string[] opcoes, int selecionado, Action<int> aoSelecionar)
@@ -498,17 +717,22 @@ namespace CofreDeSenhas.Janelas
             return Linha(rotulo, descricao, chk);
         }
 
-        private Control LinhaAcao(string iconeChave, string rotulo, string? descricao, Action aoClicar)
+        private Control LinhaAcao(string iconeChave, string rotulo, string? descricao, Action aoClicar, bool perigoso = false)
         {
             var grade = new Grid { ColumnDefinitions = new ColumnDefinitions("Auto,14,*") };
-            grade.Children.Add(new Icone
+            var icone = new Icone
             {
                 Chave = iconeChave,
                 Width = 18,
                 Height = 18,
                 VerticalAlignment = VerticalAlignment.Center
-            });
+            };
+            if (perigoso)
+                icone.Stroke = Tema.Pincel(Tema.StrengthWeak);
+            grade.Children.Add(icone);
             var textos = TextosLinha(rotulo, descricao);
+            if (perigoso && textos.Children[0] is TextBlock titulo)
+                titulo.Foreground = Tema.Pincel(Tema.StrengthWeak);
             Grid.SetColumn(textos, 2);
             grade.Children.Add(textos);
 

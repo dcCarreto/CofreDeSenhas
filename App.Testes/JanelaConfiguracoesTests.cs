@@ -23,15 +23,18 @@ namespace App.Testes
             DesconectarBanco = () => { },
             AtalhosTeclado = () => { },
             AbrirManual = () => { },
+            LimparCofre = () => { },
+            ExcluirCofre = () => { },
             DefinirBloqueioAutomatico = _ => { },
             DefinirVerificarAtualizacoes = _ => { },
+            DefinirIconesOnline = _ => { },
             WindowsHelloSuportado = true,
             WindowsHelloAtivo = false,
             BancoConectado = false
         };
 
         [AvaloniaFact]
-        public async Task Abrir_MostraSeisAbas_ComUmPainelVisivel()
+        public async Task Abrir_MostraSeteAbas_ComUmPainelVisivel()
         {
             var janela = new JanelaConfiguracoes(Acoes());
             janela.Show();
@@ -40,8 +43,8 @@ namespace App.Testes
             var trilha = janela.Encontrar<StackPanel>("TrilhaAbas");
             var area = janela.Encontrar<Panel>("AreaConteudo");
 
-            Assert.Equal(6, trilha.Children.OfType<Button>().Count());
-            Assert.Equal(6, area.Children.Count);
+            Assert.Equal(7, trilha.Children.OfType<Button>().Count());
+            Assert.Equal(7, area.Children.Count);
             Assert.Single(area.Children, c => c.IsVisible);
         }
 

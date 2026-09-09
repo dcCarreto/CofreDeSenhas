@@ -310,9 +310,22 @@ cofre, tudo calculado localmente e sem enviar nada para fora:
   cada credencial na lista, substituindo tudo por marcadores neutros — útil em
   ambientes compartilhados ou capturas de tela. É um modo de sessão: começa
   sempre desativado ao abrir o cofre.
-- Recursos de acessibilidade: modos para daltonismo (protanopia, deuteranopia,
-  tritanopia e monocromacia), alto contraste, escala de fonte, redução de
-  animações e suporte aprimorado a leitores de tela.
+- Recursos de acessibilidade em nível de especialista, na aba Acessibilidade
+  das Configurações: modos para daltonismo (protanopia, deuteranopia,
+  tritanopia e monocromacia); nível de contraste (padrão/médio/alto); realce
+  de foco reforçado; tamanho do texto em seis passos até 200%; fonte de leitura
+  opcional Atkinson Hyperlegible (do Braille Institute, licença OFL); espaçamento
+  entre letras; sublinhado permanente de links; movimento (completo/reduzido/sem
+  animação); aviso com contagem regressiva antes do bloqueio automático
+  (WCAG 2.2); modo leitor de tela com três níveis de verbosidade e anúncio de
+  ações em voz alta. Contraste, movimento e escala têm a opção "Automático",
+  que segue as configurações de acessibilidade do Windows e reage a mudanças
+  ao vivo. Os anúncios em voz usam um mecanismo de síntese neural embutido no
+  próprio aplicativo (Piper, via sherpa-onnx) — não depende do TTS do sistema
+  operacional. A voz de cada idioma (~64 MB, uma por idioma da interface) é
+  baixada sob demanda na primeira vez que a fala é ativada e fica guardada no
+  perfil do aplicativo; enquanto não estiver baixada, os anúncios ficam só no
+  aviso visual.
 - Interface internacionalizada, com seleção persistida entre português do
   Brasil, inglês, espanhol, francês, alemão e italiano.
 - Layout do cofre com distribuição ajustada para priorizar a leitura do usuário,

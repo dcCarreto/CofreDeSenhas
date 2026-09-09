@@ -889,7 +889,6 @@ namespace App.Testes
             {
                 await janela.ConectarAsync(cfg, persistir: false, silencioso: true);
 
-                Assert.True(janela.Encontrar<MenuItem>("MenuDesconectarBanco").IsVisible);
                 Assert.Equal(Idioma.Formatar("Vault.Connection.Connected", cfg.Descricao), DescricaoConexao(janela));
 
                 // Prova que a janela passou a exibir o conteúdo do banco (não mais o
@@ -925,9 +924,8 @@ namespace App.Testes
 
             // silencioso: true evita popar um diálogo de erro que ficaria esperando
             // interação num teste headless. Nesse modo, uma falha de conexão cai no
-            // ramo "falha ao reconectar" de AtualizarEstadoConexao (não no "Local") —
-            // MenuDesconectarBanco também fica visível nesse caso, então o sinal
-            // confiável de "não conectou de verdade" é o texto do status.
+            // ramo "falha ao reconectar" de AtualizarEstadoConexao (não no "Local"),
+            // e o sinal confiável de "não conectou de verdade" é o texto do status.
             await janela.ConectarAsync(cfgInvalida, persistir: false, silencioso: true);
 
             Assert.Equal(Idioma.Texto("Vault.Connection.DatabaseUnavailable"), DescricaoConexao(janela));

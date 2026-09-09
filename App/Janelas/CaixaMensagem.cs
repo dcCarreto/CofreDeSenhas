@@ -13,6 +13,8 @@ namespace CofreDeSenhas.Janelas
     {
         private const int MaximoItensVisiveis = 50;
 
+        private readonly TextBlock _corpo;
+
         private CaixaMensagem(string texto, string titulo, TipoMensagem tipo, bool simNao, IReadOnlyList<string>? itens = null)
         {
             Title = titulo;
@@ -83,6 +85,7 @@ namespace CofreDeSenhas.Janelas
                 : AutomationLiveSetting.Polite);
             AutomationProperties.SetName(lblTexto, texto);
             lblTexto.Bind(TextBlock.ForegroundProperty, this.GetResourceObservable("TextPrimary"));
+            _corpo = lblTexto;
 
             var corpo = new DockPanel { Margin = new Thickness(24, 20, 24, 20) };
             DockPanel.SetDock(glifo, Dock.Left);
@@ -217,6 +220,40 @@ namespace CofreDeSenhas.Janelas
             try
             {
                 return await new CaixaMensagem(texto, titulo, tipo, simNao: true, itens).ShowDialog<bool>(dono);
+            }
+            finally
+            {
+                Scrim.Ocultar(dono);
+            }
+        }
+
+        // Confirmação com contagem regressiva: se o usuário não responder em
+        // `segundos`, fecha sozinha retornando false. `formato` recebe {0} = segundos
+        // restantes e alimenta tanto o corpo do diálogo quanto o leitor de tela.
+        public static async Task<bool> ConfirmarComTempoAsync(Window dono, string formato, string titulo, int segundos, TipoMensagem tipo = TipoMensagem.Aviso)
+        {
+            Scrim.Mostrar(dono);
+            try
+            {
+                var caixa = new CaixaMensagem(string.Format(formato, segundos), titulo, tipo, simNao: true);
+                var restante = segundos;
+                var timer = new Avalonia.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+                timer.Tick += (s, e) =>
+                {
+                    restante--;
+                    if (restante <= 0)
+                    {
+                        timer.Stop();
+                        caixa.Close(false);
+                        return;
+                    }
+                    var texto = string.Format(formato, restante);
+                    caixa._corpo.Text = texto;
+                    AutomationProperties.SetName(caixa._corpo, texto);
+                };
+                caixa.Opened += (s, e) => timer.Start();
+                caixa.Closed += (s, e) => timer.Stop();
+                return await caixa.ShowDialog<bool>(dono);
             }
             finally
             {

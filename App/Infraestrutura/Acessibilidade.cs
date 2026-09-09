@@ -49,6 +49,44 @@ namespace CofreDeSenhas
         Inferior
     }
 
+    public enum NivelContraste
+    {
+        Automatico,
+        Padrao,
+        Medio,
+        Alto
+    }
+
+    public enum NivelMovimento
+    {
+        Automatico,
+        Completo,
+        Reduzido,
+        SemAnimacao
+    }
+
+    public enum FonteLeitura
+    {
+        Padrao,
+        Legivel,
+        Serifada,
+        Monoespacada
+    }
+
+    public enum EspacamentoTexto
+    {
+        Normal,
+        Medio,
+        Amplo
+    }
+
+    public enum VerbosidadeLeitor
+    {
+        Discreta,
+        Normal,
+        Detalhada
+    }
+
     [Flags]
     public enum ColunasLista
     {
@@ -101,6 +139,9 @@ namespace CofreDeSenhas
         public const double EscalaNormal = 1.0;
         public const double EscalaGrande = 1.15;
         public const double EscalaMaior = 1.30;
+        public const double EscalaMaxima = 2.0;
+
+        public static readonly double[] EscalasDisponiveis = { 1.0, 1.15, 1.3, 1.5, 1.75, 2.0 };
 
         public static TipoDaltonismo Daltonismo { get; private set; } = TipoDaltonismo.Nenhum;
         public static ModoTema Modo { get; private set; } = ModoTema.Escuro;
@@ -112,10 +153,38 @@ namespace CofreDeSenhas
         public static bool DestaqueDisponivel => Daltonismo == TipoDaltonismo.Nenhum;
 
         public static double AlturaLinhaLista => Densidade == Densidade.Compacto ? 46 : 52;
-        public static bool AltoContraste { get; private set; }
+
+        public static NivelContraste Contraste { get; private set; } = NivelContraste.Padrao;
+        public static NivelMovimento Movimento { get; private set; } = NivelMovimento.Completo;
+        public static FonteLeitura Fonte { get; private set; } = FonteLeitura.Padrao;
+        public static EspacamentoTexto Espacamento { get; private set; } = EspacamentoTexto.Normal;
+        public static VerbosidadeLeitor Verbosidade { get; private set; } = VerbosidadeLeitor.Normal;
+        public static bool EscalaAutomatica { get; private set; }
+        public static bool SublinharLinks { get; private set; }
+        public static bool FocoReforcado { get; private set; }
+        public static bool AnunciarAcoes { get; private set; }
+        public static bool AvisarAntesBloqueio { get; private set; }
+
         public static double Escala { get; private set; } = EscalaNormal;
-        public static bool ReduzirAnimacoes { get; private set; }
         public static bool LeitorTela { get; private set; }
+
+        public static NivelContraste ContrasteEfetivo => Contraste == NivelContraste.Automatico
+            ? (AcessibilidadeSistema.AltoContraste ? NivelContraste.Alto : NivelContraste.Padrao)
+            : Contraste;
+
+        public static bool AltoContraste => ContrasteEfetivo == NivelContraste.Alto;
+        public static bool ContrasteMedio => ContrasteEfetivo == NivelContraste.Medio;
+
+        public static NivelMovimento MovimentoEfetivo => Movimento == NivelMovimento.Automatico
+            ? (AcessibilidadeSistema.ReduzirMovimento ? NivelMovimento.Reduzido : NivelMovimento.Completo)
+            : Movimento;
+
+        public static bool ReduzirAnimacoes => MovimentoEfetivo != NivelMovimento.Completo;
+        public static bool SemAnimacao => MovimentoEfetivo == NivelMovimento.SemAnimacao;
+
+        public static double EscalaEfetiva => EscalaAutomatica
+            ? NormalizarEscala(AcessibilidadeSistema.EscalaTextoOs)
+            : Escala;
 
         public static bool TemaClaroEfetivo => Modo switch
         {
@@ -128,6 +197,7 @@ namespace CofreDeSenhas
 
         private static readonly ConditionalWeakTable<Window, EscalaJanela> _escalas = new();
         private static readonly ConditionalWeakTable<Window, TextBlock> _anunciadores = new();
+        private static readonly ConditionalWeakTable<Window, ToastAcessibilidade> _toasts = new();
 
         private static readonly (string Chave, CorVisual Cor)[] RecursosTema =
         {
@@ -434,6 +504,86 @@ namespace CofreDeSenhas
         private static readonly CorVisual[] ChavesDestaque =
             { CorVisual.AccentPrimary, CorVisual.AccentHover, CorVisual.AccentLight, CorVisual.AccentText };
 
+        private static readonly IReadOnlyDictionary<CorDestaque, IReadOnlyDictionary<CorVisual, uint>> SuperficiesEscuras =
+            new Dictionary<CorDestaque, IReadOnlyDictionary<CorVisual, uint>>
+            {
+                [CorDestaque.Azul] = D(
+                    (CorVisual.WorkspaceBackground, 0xFF121319),
+                    (CorVisual.CardBackground, 0xFF1B1D25),
+                    (CorVisual.CardBorder, 0xFF2E323F),
+                    (CorVisual.TitleBar, 0xFF16171E),
+                    (CorVisual.TitleBarBorder, 0xFF282C37),
+                    (CorVisual.InputBackground, 0xFF1F222B),
+                    (CorVisual.InputBorder, 0xFF353A49),
+                    (CorVisual.RowHover, 0xFF1F222B),
+                    (CorVisual.Separator, 0xFF262A35),
+                    (CorVisual.Footer, 0xFF14161B),
+                    (CorVisual.TrailInactive, 0xFF2E3340),
+                    (CorVisual.ToggleOff, 0xFF393E4E),
+                    (CorVisual.HoverBackground, 0xFF21242D),
+                    (CorVisual.IconHoverBackground, 0xFF252934)),
+                [CorDestaque.Verde] = D(
+                    (CorVisual.WorkspaceBackground, 0xFF111513),
+                    (CorVisual.CardBackground, 0xFF1A201C),
+                    (CorVisual.CardBorder, 0xFF2D3630),
+                    (CorVisual.TitleBar, 0xFF151A17),
+                    (CorVisual.TitleBarBorder, 0xFF27302A),
+                    (CorVisual.InputBackground, 0xFF1F2521),
+                    (CorVisual.InputBorder, 0xFF343F38),
+                    (CorVisual.RowHover, 0xFF1E2521),
+                    (CorVisual.Separator, 0xFF252D28),
+                    (CorVisual.Footer, 0xFF131715),
+                    (CorVisual.TrailInactive, 0xFF2D3730),
+                    (CorVisual.ToggleOff, 0xFF37433B),
+                    (CorVisual.HoverBackground, 0xFF202722),
+                    (CorVisual.IconHoverBackground, 0xFF252C27)),
+                [CorDestaque.Ameixa] = D(
+                    (CorVisual.WorkspaceBackground, 0xFF161218),
+                    (CorVisual.CardBackground, 0xFF211B24),
+                    (CorVisual.CardBorder, 0xFF392E3D),
+                    (CorVisual.TitleBar, 0xFF1B161D),
+                    (CorVisual.TitleBarBorder, 0xFF322836),
+                    (CorVisual.InputBackground, 0xFF271F2A),
+                    (CorVisual.InputBorder, 0xFF423547),
+                    (CorVisual.RowHover, 0xFF271F2A),
+                    (CorVisual.Separator, 0xFF2F2633),
+                    (CorVisual.Footer, 0xFF19141A),
+                    (CorVisual.TrailInactive, 0xFF3A2E3E),
+                    (CorVisual.ToggleOff, 0xFF47394C),
+                    (CorVisual.HoverBackground, 0xFF29212C),
+                    (CorVisual.IconHoverBackground, 0xFF2F2532)),
+                [CorDestaque.Terracota] = D(
+                    (CorVisual.WorkspaceBackground, 0xFF18130E),
+                    (CorVisual.CardBackground, 0xFF241D15),
+                    (CorVisual.CardBorder, 0xFF3E3224),
+                    (CorVisual.TitleBar, 0xFF1D1711),
+                    (CorVisual.TitleBarBorder, 0xFF362C1F),
+                    (CorVisual.InputBackground, 0xFF2A2218),
+                    (CorVisual.InputBorder, 0xFF483A29),
+                    (CorVisual.RowHover, 0xFF2A2218),
+                    (CorVisual.Separator, 0xFF342A1E),
+                    (CorVisual.Footer, 0xFF1B160F),
+                    (CorVisual.TrailInactive, 0xFF3F3324),
+                    (CorVisual.ToggleOff, 0xFF4D3E2C),
+                    (CorVisual.HoverBackground, 0xFF2D241A),
+                    (CorVisual.IconHoverBackground, 0xFF33291D)),
+                [CorDestaque.Grafite] = D(
+                    (CorVisual.WorkspaceBackground, 0xFF141414),
+                    (CorVisual.CardBackground, 0xFF1E1E1F),
+                    (CorVisual.CardBorder, 0xFF333334),
+                    (CorVisual.TitleBar, 0xFF181819),
+                    (CorVisual.TitleBarBorder, 0xFF2D2D2E),
+                    (CorVisual.InputBackground, 0xFF232324),
+                    (CorVisual.InputBorder, 0xFF3B3B3D),
+                    (CorVisual.RowHover, 0xFF232324),
+                    (CorVisual.Separator, 0xFF2A2A2C),
+                    (CorVisual.Footer, 0xFF161617),
+                    (CorVisual.TrailInactive, 0xFF343435),
+                    (CorVisual.ToggleOff, 0xFF3F3F41),
+                    (CorVisual.HoverBackground, 0xFF252526),
+                    (CorVisual.IconHoverBackground, 0xFF2A2A2B))
+            };
+
         private static readonly Dictionary<(CorDestaque, bool), IReadOnlyDictionary<CorVisual, uint>> _comDestaque = new();
 
         private static readonly IReadOnlyDictionary<Categoria, (uint Bg, uint Fg)> CategoriasPadrao = DCat(
@@ -500,10 +650,26 @@ namespace CofreDeSenhas
             Destaque = destaque;
             Densidade = densidade;
             LayoutDetalhe = layoutDetalhe;
-            AltoContraste = altoContraste;
+            Contraste = altoContraste ? NivelContraste.Alto : NivelContraste.Padrao;
             Escala = NormalizarEscala(escala);
-            ReduzirAnimacoes = reduzirAnimacoes;
+            Movimento = reduzirAnimacoes ? NivelMovimento.Reduzido : NivelMovimento.Completo;
             LeitorTela = leitorTela;
+        }
+
+        public static void HidratarExpert(NivelContraste contraste, NivelMovimento movimento, FonteLeitura fonte,
+            EspacamentoTexto espacamento, VerbosidadeLeitor verbosidade, bool escalaAutomatica, bool sublinharLinks,
+            bool focoReforcado, bool anunciarAcoes, bool avisarAntesBloqueio)
+        {
+            Contraste = contraste;
+            Movimento = movimento;
+            Fonte = fonte;
+            Espacamento = espacamento;
+            Verbosidade = verbosidade;
+            EscalaAutomatica = escalaAutomatica;
+            SublinharLinks = sublinharLinks;
+            FocoReforcado = focoReforcado;
+            AnunciarAcoes = anunciarAcoes;
+            AvisarAntesBloqueio = avisarAntesBloqueio;
         }
 
         public static void DefinirModoTema(ModoTema modo)
@@ -524,9 +690,9 @@ namespace CofreDeSenhas
             Densidade = densidade;
             LayoutDetalhe = layout;
             Daltonismo = daltonismo;
-            AltoContraste = altoContraste;
+            Contraste = altoContraste ? NivelContraste.Alto : NivelContraste.Padrao;
             Escala = NormalizarEscala(escala);
-            ReduzirAnimacoes = reduzirAnimacoes;
+            Movimento = reduzirAnimacoes ? NivelMovimento.Reduzido : NivelMovimento.Completo;
 
             Aplicar();
             Alterado?.Invoke(null, EventArgs.Empty);
@@ -594,12 +760,15 @@ namespace CofreDeSenhas
             Alterado?.Invoke(null, EventArgs.Empty);
         }
 
-        public static void DefinirAltoContraste(bool ligado)
+        public static void DefinirAltoContraste(bool ligado) =>
+            DefinirContraste(ligado ? NivelContraste.Alto : NivelContraste.Padrao);
+
+        public static void DefinirContraste(NivelContraste nivel)
         {
-            if (AltoContraste == ligado)
+            if (Contraste == nivel)
                 return;
 
-            AltoContraste = ligado;
+            Contraste = nivel;
             Aplicar();
             Alterado?.Invoke(null, EventArgs.Empty);
         }
@@ -607,19 +776,100 @@ namespace CofreDeSenhas
         public static void DefinirEscala(double escala)
         {
             var nova = NormalizarEscala(escala);
-            if (Escala == nova)
+            if (Escala == nova && !EscalaAutomatica)
                 return;
 
             Escala = nova;
+            EscalaAutomatica = false;
             Alterado?.Invoke(null, EventArgs.Empty);
         }
 
-        public static void DefinirReducaoMovimento(bool ligado)
+        public static void DefinirEscalaAutomatica(bool ligado)
         {
-            if (ReduzirAnimacoes == ligado)
+            if (EscalaAutomatica == ligado)
                 return;
 
-            ReduzirAnimacoes = ligado;
+            EscalaAutomatica = ligado;
+            Alterado?.Invoke(null, EventArgs.Empty);
+        }
+
+        public static void DefinirReducaoMovimento(bool ligado) =>
+            DefinirMovimento(ligado ? NivelMovimento.Reduzido : NivelMovimento.Completo);
+
+        public static void DefinirMovimento(NivelMovimento nivel)
+        {
+            if (Movimento == nivel)
+                return;
+
+            Movimento = nivel;
+            Aplicar();
+            Alterado?.Invoke(null, EventArgs.Empty);
+        }
+
+        public static void DefinirFonte(FonteLeitura fonte)
+        {
+            if (Fonte == fonte)
+                return;
+
+            Fonte = fonte;
+            Aplicar();
+            Alterado?.Invoke(null, EventArgs.Empty);
+        }
+
+        public static void DefinirEspacamento(EspacamentoTexto espacamento)
+        {
+            if (Espacamento == espacamento)
+                return;
+
+            Espacamento = espacamento;
+            Aplicar();
+            Alterado?.Invoke(null, EventArgs.Empty);
+        }
+
+        public static void DefinirVerbosidade(VerbosidadeLeitor verbosidade)
+        {
+            if (Verbosidade == verbosidade)
+                return;
+
+            Verbosidade = verbosidade;
+            Alterado?.Invoke(null, EventArgs.Empty);
+        }
+
+        public static void DefinirSublinharLinks(bool ligado)
+        {
+            if (SublinharLinks == ligado)
+                return;
+
+            SublinharLinks = ligado;
+            Aplicar();
+            Alterado?.Invoke(null, EventArgs.Empty);
+        }
+
+        public static void DefinirFocoReforcado(bool ligado)
+        {
+            if (FocoReforcado == ligado)
+                return;
+
+            FocoReforcado = ligado;
+            Aplicar();
+            Alterado?.Invoke(null, EventArgs.Empty);
+        }
+
+        public static void DefinirAnunciarAcoes(bool ligado)
+        {
+            if (AnunciarAcoes == ligado)
+                return;
+
+            AnunciarAcoes = ligado;
+            Alterado?.Invoke(null, EventArgs.Empty);
+        }
+
+        public static void DefinirAvisarAntesBloqueio(bool ligado)
+        {
+            if (AvisarAntesBloqueio == ligado)
+                return;
+
+            AvisarAntesBloqueio = ligado;
             Alterado?.Invoke(null, EventArgs.Empty);
         }
 
@@ -629,6 +879,17 @@ namespace CofreDeSenhas
                 return;
 
             LeitorTela = ligado;
+            Alterado?.Invoke(null, EventArgs.Empty);
+        }
+
+        public static void ReavaliarSistema()
+        {
+            bool dependeDoSistema = Contraste == NivelContraste.Automatico ||
+                Movimento == NivelMovimento.Automatico || EscalaAutomatica;
+            if (!dependeDoSistema)
+                return;
+
+            Aplicar();
             Alterado?.Invoke(null, EventArgs.Empty);
         }
 
@@ -684,25 +945,112 @@ namespace CofreDeSenhas
 
         public static void SelecionarEscala(string? tag)
         {
+            if (string.Equals(tag, "auto", StringComparison.OrdinalIgnoreCase))
+            {
+                DefinirEscalaAutomatica(true);
+                Preferencias.EscalaAutomatica = true;
+                Preferencias.Salvar();
+                return;
+            }
+
             if (!double.TryParse(tag, NumberStyles.Any, CultureInfo.InvariantCulture, out var escala))
                 return;
 
             DefinirEscala(escala);
             Preferencias.EscalaInterface = Escala;
+            Preferencias.EscalaAutomatica = false;
             Preferencias.Salvar();
         }
 
         public static void SelecionarAltoContraste(bool ligado)
         {
             DefinirAltoContraste(ligado);
-            Preferencias.AltoContraste = AltoContraste;
+            Preferencias.NivelContraste = Contraste.ToString();
+            Preferencias.Salvar();
+        }
+
+        public static void SelecionarContraste(string? tag)
+        {
+            if (!Enum.TryParse<NivelContraste>(tag, ignoreCase: true, out var nivel))
+                return;
+
+            DefinirContraste(nivel);
+            Preferencias.NivelContraste = nivel.ToString();
             Preferencias.Salvar();
         }
 
         public static void SelecionarReducaoMovimento(bool ligado)
         {
             DefinirReducaoMovimento(ligado);
-            Preferencias.ReduzirAnimacoes = ReduzirAnimacoes;
+            Preferencias.NivelMovimento = Movimento.ToString();
+            Preferencias.Salvar();
+        }
+
+        public static void SelecionarMovimento(string? tag)
+        {
+            if (!Enum.TryParse<NivelMovimento>(tag, ignoreCase: true, out var nivel))
+                return;
+
+            DefinirMovimento(nivel);
+            Preferencias.NivelMovimento = nivel.ToString();
+            Preferencias.Salvar();
+        }
+
+        public static void SelecionarFonte(string? tag)
+        {
+            if (!Enum.TryParse<FonteLeitura>(tag, ignoreCase: true, out var fonte))
+                return;
+
+            DefinirFonte(fonte);
+            Preferencias.FonteLeitura = fonte.ToString();
+            Preferencias.Salvar();
+        }
+
+        public static void SelecionarEspacamento(string? tag)
+        {
+            if (!Enum.TryParse<EspacamentoTexto>(tag, ignoreCase: true, out var espacamento))
+                return;
+
+            DefinirEspacamento(espacamento);
+            Preferencias.EspacamentoTexto = espacamento.ToString();
+            Preferencias.Salvar();
+        }
+
+        public static void SelecionarVerbosidade(string? tag)
+        {
+            if (!Enum.TryParse<VerbosidadeLeitor>(tag, ignoreCase: true, out var verbosidade))
+                return;
+
+            DefinirVerbosidade(verbosidade);
+            Preferencias.VerbosidadeLeitor = verbosidade.ToString();
+            Preferencias.Salvar();
+        }
+
+        public static void SelecionarSublinharLinks(bool ligado)
+        {
+            DefinirSublinharLinks(ligado);
+            Preferencias.SublinharLinks = SublinharLinks;
+            Preferencias.Salvar();
+        }
+
+        public static void SelecionarFocoReforcado(bool ligado)
+        {
+            DefinirFocoReforcado(ligado);
+            Preferencias.FocoReforcado = FocoReforcado;
+            Preferencias.Salvar();
+        }
+
+        public static void SelecionarAnunciarAcoes(bool ligado)
+        {
+            DefinirAnunciarAcoes(ligado);
+            Preferencias.AnunciarAcoes = AnunciarAcoes;
+            Preferencias.Salvar();
+        }
+
+        public static void SelecionarAvisarAntesBloqueio(bool ligado)
+        {
+            DefinirAvisarAntesBloqueio(ligado);
+            Preferencias.AvisarAntesBloqueio = AvisarAntesBloqueio;
             Preferencias.Salvar();
         }
 
@@ -778,8 +1126,9 @@ namespace CofreDeSenhas
 
         internal static Color Cor(CorVisual cor)
         {
-            if (AltoContraste && TentarCorAltoContraste(cor, out var altoContraste))
-                return altoContraste;
+            var nivel = ContrasteEfetivo;
+            if (nivel >= NivelContraste.Medio && TentarCorContraste(cor, nivel, out var reforcada))
+                return reforcada;
 
             var valores = ValoresTema();
             if (!valores.TryGetValue(cor, out var argb))
@@ -839,12 +1188,45 @@ namespace CofreDeSenhas
                 app.Resources[chave] = new SolidColorBrush(Cor(cor));
 
             var brilho = Cor(CorVisual.AccentPrimary);
-            app.Resources["FabShadow"] = BoxShadows.Parse($"0 4 14 0 #55{brilho.R:X2}{brilho.G:X2}{brilho.B:X2}");
+            app.Resources["FabShadow"] = BoxShadows.Parse($"0 2 18 0 #55{brilho.R:X2}{brilho.G:X2}{brilho.B:X2}");
 
             bool compacto = Densidade == Densidade.Compacto;
             app.Resources["AlturaCampo"] = compacto ? 38.0 : 44.0;
             app.Resources["AlturaNavItem"] = compacto ? 38.0 : 44.0;
+
+            var (fontePadrao, fonteDisplay) = Fonte switch
+            {
+                FonteLeitura.Legivel => (FonteAtkinson, FonteAtkinson),
+                FonteLeitura.Serifada => (FonteSerifada, FonteSerifada),
+                FonteLeitura.Monoespacada => (FonteMonoStack, FonteMonoStack),
+                _ => (FontePadraoStack, FonteDisplayStack)
+            };
+            app.Resources["FontePadrao"] = FontFamily.Parse(fontePadrao);
+            app.Resources["FonteDisplay"] = FontFamily.Parse(fonteDisplay);
+
+            app.Resources["EspacamentoTexto"] = Espacamento switch
+            {
+                EspacamentoTexto.Amplo => 1.1,
+                EspacamentoTexto.Medio => 0.55,
+                _ => 0.0
+            };
+
+            app.Resources["EspessuraFoco"] = FocoReforcado ? new Thickness(3) : new Thickness(2);
+            app.Resources["MargemFoco"] = FocoReforcado ? new Thickness(-5) : new Thickness(-4);
+            app.Resources["CorFoco"] = new SolidColorBrush(FocoReforcado
+                ? Color.FromUInt32(TemaClaroEfetivo ? 0xFF000000 : 0xFFFFFFFF)
+                : Cor(CorVisual.AccentPrimary));
+
+            app.Resources["SublinhadoLink"] = SublinharLinks
+                ? Avalonia.Media.TextDecorations.Underline
+                : null;
         }
+
+        private const string FontePadraoStack = "avares://CofreDeSenhas/Ativos/Fontes/PlusJakartaSans#Plus Jakarta Sans, Inter";
+        private const string FonteDisplayStack = "Georgia, Constantia, Cambria, Noto Serif, DejaVu Serif, Liberation Serif, serif";
+        private const string FonteAtkinson = "avares://CofreDeSenhas/Ativos/Fontes/AtkinsonHyperlegible#Atkinson Hyperlegible, Plus Jakarta Sans, Inter";
+        private const string FonteSerifada = "Georgia, Constantia, Cambria, Noto Serif, DejaVu Serif, Liberation Serif, serif";
+        private const string FonteMonoStack = "DejaVu Sans Mono, Liberation Mono, Noto Sans Mono, Ubuntu Mono, Consolas, monospace";
 
         public static void Vincular(Window janela)
         {
@@ -873,13 +1255,34 @@ namespace CofreDeSenhas
             janela.Closed += (s, e) => _anunciadores.Remove(janela);
         }
 
+        public static void RegistrarToast(Window janela, Border host, TextBlock texto)
+        {
+            _toasts.Remove(janela);
+            _toasts.Add(janela, new ToastAcessibilidade(host, texto));
+            janela.Closed += (s, e) => _toasts.Remove(janela);
+        }
+
         public static void Anunciar(Control origem, string mensagem, bool assertivo = false, bool forcar = false)
         {
-            if ((!LeitorTela && !forcar) || string.IsNullOrWhiteSpace(mensagem))
+            if (!forcar && !LeitorTela && !AnunciarAcoes)
                 return;
 
-            if (TopLevel.GetTopLevel(origem) is not Window janela ||
-                !_anunciadores.TryGetValue(janela, out var anunciador))
+            if (!forcar && Verbosidade == VerbosidadeLeitor.Discreta && !assertivo)
+                return;
+
+            if (string.IsNullOrWhiteSpace(mensagem))
+                return;
+
+            if (TopLevel.GetTopLevel(origem) is not Window janela)
+                return;
+
+            if (AnunciarAcoes || forcar || (LeitorTela && assertivo))
+                Locucao.Falar(mensagem, assertivo || forcar);
+
+            if (_toasts.TryGetValue(janela, out var toast))
+                Dispatcher.UIThread.Post(() => toast.Mostrar(mensagem), DispatcherPriority.Background);
+
+            if (!_anunciadores.TryGetValue(janela, out var anunciador))
                 return;
 
             Dispatcher.UIThread.Post(() =>
@@ -897,11 +1300,42 @@ namespace CofreDeSenhas
             }, DispatcherPriority.Background);
         }
 
+        private sealed class ToastAcessibilidade
+        {
+            private readonly Border _host;
+            private readonly TextBlock _texto;
+            private readonly DispatcherTimer _timer;
+
+            public ToastAcessibilidade(Border host, TextBlock texto)
+            {
+                _host = host;
+                _texto = texto;
+                _host.IsVisible = false;
+                _host.Opacity = 0;
+                _timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2.8) };
+                _timer.Tick += (s, e) =>
+                {
+                    _timer.Stop();
+                    _host.Opacity = 0;
+                    _host.IsVisible = false;
+                };
+            }
+
+            public void Mostrar(string mensagem)
+            {
+                _texto.Text = mensagem;
+                _host.IsVisible = true;
+                _host.Opacity = 1;
+                _timer.Stop();
+                _timer.Start();
+            }
+        }
+
         private static void AplicarEscala(Window janela)
         {
             var estado = _escalas.GetOrCreateValue(janela);
             double anterior = estado.Valor;
-            double alvo = Escala;
+            double alvo = EscalaEfetiva;
 
             if (janela.Content is LayoutTransformControl atual)
             {
@@ -957,11 +1391,14 @@ namespace CofreDeSenhas
 
         private static double NormalizarEscala(double escala)
         {
-            if (escala >= EscalaMaior)
-                return EscalaMaior;
-            if (escala >= EscalaGrande)
-                return EscalaGrande;
-            return EscalaNormal;
+            if (double.IsNaN(escala) || escala <= EscalaNormal)
+                return EscalaNormal;
+
+            var alvo = EscalaNormal;
+            foreach (var passo in EscalasDisponiveis)
+                if (escala >= passo - 0.001)
+                    alvo = passo;
+            return alvo;
         }
 
         private static IReadOnlyDictionary<CorVisual, uint> ValoresTema()
@@ -988,6 +1425,11 @@ namespace CofreDeSenhas
             var overrides = TemaClaroEfetivo ? claro : escuro;
 
             var combinado = new Dictionary<CorVisual, uint>(baseTema);
+
+            if (!TemaClaroEfetivo && SuperficiesEscuras.TryGetValue(Destaque, out var superficies))
+                foreach (var (nome, valor) in superficies)
+                    combinado[nome] = valor;
+
             for (int i = 0; i < ChavesDestaque.Length; i++)
                 combinado[ChavesDestaque[i]] = overrides[i];
 
@@ -1011,7 +1453,7 @@ namespace CofreDeSenhas
             return combinado;
         }
 
-        private static bool TentarCorAltoContraste(CorVisual cor, out Color resultado)
+        private static bool TentarCorContraste(CorVisual cor, NivelContraste nivel, out Color resultado)
         {
             resultado = default;
             switch (cor)
@@ -1031,6 +1473,8 @@ namespace CofreDeSenhas
                 case CorVisual.Separator:
                 case CorVisual.TitleBarBorder:
                 case CorVisual.FavoriteBorderColor:
+                    if (nivel < NivelContraste.Alto)
+                        return false;
                     resultado = Borda();
                     return true;
                 default:

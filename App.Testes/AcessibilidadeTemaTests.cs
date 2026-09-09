@@ -15,6 +15,8 @@ namespace App.Testes
         {
             Acessibilidade.Hidratar(TipoDaltonismo.Nenhum, ModoTema.Escuro, CorDestaque.Ambar, Densidade.Confortavel,
                 LayoutDetalhe.Lateral, false, Acessibilidade.EscalaNormal, false, false);
+            Acessibilidade.HidratarExpert(NivelContraste.Padrao, NivelMovimento.Completo, FonteLeitura.Padrao,
+                EspacamentoTexto.Normal, VerbosidadeLeitor.Normal, false, false, false, false, false);
             Acessibilidade.HidratarColunas((int)ColunasLista.Todas);
         }
 
@@ -153,19 +155,46 @@ namespace App.Testes
         }
 
         [AvaloniaFact]
-        public void CorDestaque_TrocaOAccentNosDoisModos_SemMexerNoFundo()
+        public void CorDestaque_NoModoEscuro_RetintaAsSuperficies()
         {
             try
             {
+                Acessibilidade.DefinirModoTema(ModoTema.Escuro);
                 Acessibilidade.DefinirCorDestaque(CorDestaque.Azul);
 
-                Acessibilidade.DefinirModoTema(ModoTema.Escuro);
                 Assert.Equal(Color.FromUInt32(0xFF5B9BD5), Acessibilidade.Cor(CorVisual.AccentPrimary));
-                Assert.Equal(Color.FromUInt32(0xFF17130F), Acessibilidade.Cor(CorVisual.WorkspaceBackground));
+                Assert.Equal(Color.FromUInt32(0xFF121319), Acessibilidade.Cor(CorVisual.WorkspaceBackground));
+                Assert.Equal(Color.FromUInt32(0xFF1B1D25), Acessibilidade.Cor(CorVisual.CardBackground));
+                Assert.Equal(Color.FromUInt32(0xFF353A49), Acessibilidade.Cor(CorVisual.InputBorder));
+            }
+            finally { Restaurar(); }
+        }
 
+        [AvaloniaFact]
+        public void CorDestaque_Ambar_NaoRetintaAsSuperficies()
+        {
+            try
+            {
+                Acessibilidade.DefinirModoTema(ModoTema.Escuro);
+                Acessibilidade.DefinirCorDestaque(CorDestaque.Ambar);
+
+                Assert.Equal(Color.FromUInt32(0xFF17130F), Acessibilidade.Cor(CorVisual.WorkspaceBackground));
+                Assert.Equal(Color.FromUInt32(0xFF241C15), Acessibilidade.Cor(CorVisual.CardBackground));
+            }
+            finally { Restaurar(); }
+        }
+
+        [AvaloniaFact]
+        public void CorDestaque_NoModoClaro_TrocaSoOAccent()
+        {
+            try
+            {
                 Acessibilidade.DefinirModoTema(ModoTema.Claro);
+                Acessibilidade.DefinirCorDestaque(CorDestaque.Azul);
+
                 Assert.Equal(Color.FromUInt32(0xFF2F6FB0), Acessibilidade.Cor(CorVisual.AccentPrimary));
                 Assert.Equal(Color.FromUInt32(0xFFF7F4EF), Acessibilidade.Cor(CorVisual.WorkspaceBackground));
+                Assert.Equal(Color.FromUInt32(0xFFFFFFFF), Acessibilidade.Cor(CorVisual.CardBackground));
             }
             finally { Restaurar(); }
         }
@@ -181,6 +210,7 @@ namespace App.Testes
 
                 Assert.False(Acessibilidade.DestaqueDisponivel);
                 Assert.Equal(Color.FromUInt32(0xFF56B4E9), Acessibilidade.Cor(CorVisual.AccentPrimary));
+                Assert.Equal(Color.FromUInt32(0xFF0F151A), Acessibilidade.Cor(CorVisual.WorkspaceBackground));
             }
             finally { Restaurar(); }
         }
