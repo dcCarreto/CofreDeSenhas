@@ -5,13 +5,13 @@
   <FluentTheme />
 
   <Style Selector="Window">
-    <Setter Property="FontFamily" Value="{StaticResource FontePadrao}" />
+    <Setter Property="FontFamily" Value="{DynamicResource FontePadrao}" />
   </Style>
   <Style Selector="FlyoutPresenter">
-    <Setter Property="FontFamily" Value="{StaticResource FontePadrao}" />
+    <Setter Property="FontFamily" Value="{DynamicResource FontePadrao}" />
   </Style>
   <Style Selector="MenuFlyoutPresenter">
-    <Setter Property="FontFamily" Value="{StaticResource FontePadrao}" />
+    <Setter Property="FontFamily" Value="{DynamicResource FontePadrao}" />
     <Setter Property="MinWidth" Value="300" />
     <Setter Property="Background" Value="{DynamicResource CardBackground}" />
     <Setter Property="BorderBrush" Value="{DynamicResource CardBorder}" />
@@ -19,40 +19,42 @@
     <Setter Property="CornerRadius" Value="12" />
     <Setter Property="Padding" Value="6,6" />
   </Style>
-  <Style Selector="MenuItem.secao">
-    <Setter Property="IsHitTestVisible" Value="False" />
-    <Setter Property="Focusable" Value="False" />
-    <Setter Property="FontSize" Value="10" />
-    <Setter Property="FontWeight" Value="Bold" />
-    <Setter Property="Foreground" Value="{DynamicResource TextHeader}" />
-    <Setter Property="Padding" Value="10,10,10,4" />
-    <Setter Property="MinHeight" Value="0" />
-  </Style>
   <Style Selector="ContextMenu">
-    <Setter Property="FontFamily" Value="{StaticResource FontePadrao}" />
+    <Setter Property="FontFamily" Value="{DynamicResource FontePadrao}" />
   </Style>
   <Style Selector="ToolTip">
-    <Setter Property="FontFamily" Value="{StaticResource FontePadrao}" />
+    <Setter Property="FontFamily" Value="{DynamicResource FontePadrao}" />
+  </Style>
+
+  <Style Selector="TextBlock">
+    <Setter Property="LetterSpacing" Value="{DynamicResource EspacamentoTexto}" />
+  </Style>
+  <Style Selector="TextBox.campo">
+    <Setter Property="LetterSpacing" Value="{DynamicResource EspacamentoTexto}" />
   </Style>
 
   <Style Selector="TextBlock.display">
-    <Setter Property="FontFamily" Value="{StaticResource FonteDisplay}" />
+    <Setter Property="FontFamily" Value="{DynamicResource FonteDisplay}" />
     <Setter Property="FontSize" Value="{StaticResource TamDisplay}" />
     <Setter Property="FontWeight" Value="Bold" />
+    <Setter Property="LineHeight" Value="31" />
   </Style>
   <Style Selector="TextBlock.titulo">
-    <Setter Property="FontFamily" Value="{StaticResource FonteDisplay}" />
+    <Setter Property="FontFamily" Value="{DynamicResource FonteDisplay}" />
     <Setter Property="FontSize" Value="{StaticResource TamTitulo}" />
     <Setter Property="FontWeight" Value="Bold" />
+    <Setter Property="LineHeight" Value="26" />
   </Style>
   <Style Selector="TextBlock.subtitulo">
-    <Setter Property="FontFamily" Value="{StaticResource FonteDisplay}" />
+    <Setter Property="FontFamily" Value="{DynamicResource FonteDisplay}" />
     <Setter Property="FontSize" Value="{StaticResource TamSubtitulo}" />
     <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="LineHeight" Value="21" />
   </Style>
   <Style Selector="TextBlock.corpo">
     <Setter Property="FontSize" Value="{StaticResource TamCorpo}" />
     <Setter Property="FontWeight" Value="Normal" />
+    <Setter Property="LineHeight" Value="21" />
   </Style>
   <Style Selector="TextBlock.rotulo">
     <Setter Property="FontSize" Value="{StaticResource TamRotulo}" />
@@ -62,12 +64,14 @@
   <Style Selector="TextBlock.legenda">
     <Setter Property="FontSize" Value="{StaticResource TamLegenda}" />
     <Setter Property="FontWeight" Value="Normal" />
+    <Setter Property="LineHeight" Value="16" />
   </Style>
 
   <Style Selector="Button, ToggleButton, RepeatButton, CheckBox, RadioButton, ToggleSwitch, ComboBox, ComboBoxItem, ListBoxItem, TextBox, Slider, TabItem, MenuItem">
     <Setter Property="FocusAdorner">
       <FocusAdornerTemplate>
-        <Border BorderBrush="{DynamicResource AccentPrimary}" BorderThickness="2" CornerRadius="6" Margin="-4" />
+        <Border BorderBrush="{DynamicResource CorFoco}" BorderThickness="{DynamicResource EspessuraFoco}"
+                CornerRadius="6" Margin="{DynamicResource MargemFoco}" />
       </FocusAdornerTemplate>
     </Setter>
   </Style>
@@ -75,7 +79,8 @@
   <Style Selector="controles|LinhaSenha">
     <Setter Property="FocusAdorner">
       <FocusAdornerTemplate>
-        <Border BorderBrush="{DynamicResource AccentPrimary}" BorderThickness="2" CornerRadius="10" Margin="-2" />
+        <Border BorderBrush="{DynamicResource CorFoco}" BorderThickness="{DynamicResource EspessuraFoco}"
+                CornerRadius="10" Margin="-2" />
       </FocusAdornerTemplate>
     </Setter>
   </Style>
@@ -103,7 +108,7 @@
     <Setter Property="Cursor" Value="Hand" />
     <Setter Property="Transitions">
       <Transitions>
-        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.08" />
+        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.11" Easing="CubicEaseOut" />
       </Transitions>
     </Setter>
   </Style>
@@ -137,11 +142,24 @@
     <Setter Property="Padding" Value="20,10" />
     <Setter Property="HorizontalContentAlignment" Value="Center" />
     <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
+    <Setter Property="RenderTransform" Value="scale(1)" />
     <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="Transitions">
+      <Transitions>
+        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.11" Easing="CubicEaseOut" />
+      </Transitions>
+    </Setter>
   </Style>
   <Style Selector="Button.secundario:pointerover /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource HoverBackground}" />
     <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
+  </Style>
+  <Style Selector="Button.secundario:pointerover">
+    <Setter Property="BorderBrush" Value="{DynamicResource AccentPrimary}" />
+  </Style>
+  <Style Selector="Button.secundario:pressed">
+    <Setter Property="RenderTransform" Value="scale(0.985)" />
   </Style>
   <Style Selector="Button.secundario:disabled">
     <Setter Property="Opacity" Value="0.4" />
@@ -159,6 +177,10 @@
     <Setter Property="Cursor" Value="Hand" />
   </Style>
   <Style Selector="Button.icone:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource IconHoverBackground}" />
+    <Setter Property="Foreground" Value="{DynamicResource AccentPrimary}" />
+  </Style>
+  <Style Selector="Button.icone:pressed /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource IconHoverBackground}" />
     <Setter Property="Foreground" Value="{DynamicResource AccentPrimary}" />
   </Style>
@@ -306,7 +328,7 @@
   </Style>
 
   <Style Selector="Button.nav-item">
-    <Setter Property="MinHeight" Value="44" />
+    <Setter Property="MinHeight" Value="{DynamicResource AlturaNavItem}" />
     <Setter Property="Background" Value="Transparent" />
     <Setter Property="Foreground" Value="{DynamicResource TextSecondary}" />
     <Setter Property="FontSize" Value="{StaticResource TamCorpo}" />
@@ -364,23 +386,23 @@
     <Setter Property="Cursor" Value="Hand" />
     <Setter Property="Transitions">
       <Transitions>
-        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.1" />
+        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.13" Easing="CubicEaseOut" />
       </Transitions>
     </Setter>
   </Style>
   <Style Selector="Button.fab:pointerover">
-    <Setter Property="RenderTransform" Value="scale(1.06)" />
+    <Setter Property="RenderTransform" Value="scale(1.05)" />
   </Style>
   <Style Selector="Button.fab:pressed">
-    <Setter Property="RenderTransform" Value="scale(0.94)" />
+    <Setter Property="RenderTransform" Value="scale(0.96)" />
   </Style>
   <Style Selector="Button.fab /template/ ContentPresenter#PART_ContentPresenter">
-    <Setter Property="BoxShadow" Value="{StaticResource FabShadow}" />
+    <Setter Property="BoxShadow" Value="{DynamicResource FabShadow}" />
   </Style>
   <Style Selector="Button.fab:pointerover /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource AccentHover}" />
     <Setter Property="Foreground" Value="White" />
-    <Setter Property="BoxShadow" Value="{StaticResource FabShadow}" />
+    <Setter Property="BoxShadow" Value="{DynamicResource FabShadow}" />
   </Style>
 
   <Style Selector="TextBox.campo">
@@ -389,7 +411,7 @@
     <Setter Property="BorderBrush" Value="{DynamicResource InputBorder}" />
     <Setter Property="BorderThickness" Value="1" />
     <Setter Property="CornerRadius" Value="{StaticResource RadiusInput}" />
-    <Setter Property="MinHeight" Value="44" />
+    <Setter Property="MinHeight" Value="{DynamicResource AlturaCampo}" />
     <Setter Property="Padding" Value="14,12" />
     <Setter Property="FontSize" Value="{StaticResource TamCorpo}" />
     <Setter Property="VerticalContentAlignment" Value="Center" />
@@ -408,7 +430,6 @@
   <Style Selector="TextBox.campo:focus /template/ Border#PART_BorderElement">
     <Setter Property="Background" Value="{DynamicResource InputBackground}" />
     <Setter Property="BorderBrush" Value="{DynamicResource AccentPrimary}" />
-    <Setter Property="BorderThickness" Value="1.5" />
   </Style>
   <Style Selector="TextBox.campo.erro /template/ Border#PART_BorderElement">
     <Setter Property="BorderBrush" Value="{DynamicResource StrengthWeak}" />
@@ -438,7 +459,7 @@
     <Setter Property="BorderBrush" Value="{DynamicResource InputBorder}" />
     <Setter Property="BorderThickness" Value="1" />
     <Setter Property="CornerRadius" Value="{StaticResource RadiusInput}" />
-    <Setter Property="MinHeight" Value="44" />
+    <Setter Property="MinHeight" Value="{DynamicResource AlturaCampo}" />
     <Setter Property="Padding" Value="12,0" />
     <Setter Property="FontSize" Value="{StaticResource TamCorpo}" />
     <Setter Property="VerticalContentAlignment" Value="Center" />
@@ -507,6 +528,23 @@
   </Style>
   <Style Selector="Button:disabled controles|Icone">
     <Setter Property="Opacity" Value="0.4" />
+  </Style>
+
+  <Style Selector="Button.link-ajuda">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="MinHeight" Value="0" />
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="Foreground" Value="{DynamicResource AccentText}" />
+  </Style>
+  <Style Selector="Button.link-ajuda TextBlock">
+    <Setter Property="TextDecorations" Value="{DynamicResource SublinhadoLink}" />
+  </Style>
+  <Style Selector="Button.link-ajuda:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource AccentPrimary}" />
+    <Setter Property="TextBlock.TextDecorations" Value="Underline" />
   </Style>
 
 </Styles>

@@ -1,12 +1,24 @@
 using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.VisualTree;
+using CofreDeSenhas.Janelas;
 
 namespace CofreDeSenhas
 {
     internal static class JanelaExtensoes
     {
+        public static void AtalhoAjuda(this Window janela, string topico) =>
+            janela.AddHandler(InputElement.KeyDownEvent, (s, e) =>
+            {
+                if (e.Key != Key.F1)
+                    return;
+
+                e.Handled = true;
+                JanelaAjuda.AbrirOuFocar(janela, topico);
+            }, RoutingStrategies.Tunnel);
+
         public static void MostrarErroInline(this Window janela, TextBlock rotulo, string mensagem, TextBox? focoAposErro = null)
         {
             rotulo.Text = mensagem;

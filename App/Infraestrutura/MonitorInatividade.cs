@@ -10,6 +10,14 @@ namespace CofreDeSenhas
         private readonly DispatcherTimer _relogio;
         private DateTime _ultimaAtividade = DateTime.UtcNow;
         internal TimeSpan _limite;
+        private bool _avisando;
+
+        // Aviso de antecedência (WCAG 2.2 "Tempo Suficiente"): recebe os segundos
+        // restantes e devolve true se o usuário quer continuar conectado. Só entra
+        // em ação enquanto AvisoHabilitado devolver true.
+        public Func<int, Task<bool>>? AoAvisar { get; set; }
+        public Func<bool>? AvisoHabilitado { get; set; }
+        public TimeSpan Antecedencia { get; set; } = TimeSpan.FromSeconds(20);
 
         public MonitorInatividade(InputElement alvo, Action aoExpirar)
         {
@@ -54,13 +62,42 @@ namespace CofreDeSenhas
 
         private void Registrar(object? sender, RoutedEventArgs e) => _ultimaAtividade = DateTime.UtcNow;
 
-        internal void Verificar(object? sender, EventArgs e)
+        internal async void Verificar(object? sender, EventArgs e)
         {
-            if (_limite <= TimeSpan.Zero || DateTime.UtcNow - _ultimaAtividade < _limite)
+            if (_limite <= TimeSpan.Zero || _avisando)
                 return;
 
-            _relogio.Stop();
-            _aoExpirar();
+            var ocioso = DateTime.UtcNow - _ultimaAtividade;
+            var restante = _limite - ocioso;
+
+            if (restante <= TimeSpan.Zero)
+            {
+                _relogio.Stop();
+                _aoExpirar();
+                return;
+            }
+
+            if (AoAvisar == null || restante > Antecedencia || AvisoHabilitado?.Invoke() != true)
+                return;
+
+            _avisando = true;
+            try
+            {
+                var ficar = await AoAvisar((int)Math.Ceiling(restante.TotalSeconds));
+                if (ficar)
+                {
+                    _ultimaAtividade = DateTime.UtcNow;
+                }
+                else
+                {
+                    _relogio.Stop();
+                    _aoExpirar();
+                }
+            }
+            finally
+            {
+                _avisando = false;
+            }
         }
     }
 }

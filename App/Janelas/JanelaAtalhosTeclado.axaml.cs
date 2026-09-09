@@ -14,12 +14,26 @@ namespace CofreDeSenhas.Janelas
             InitializeComponent();
             Icon = Recursos.IconeApp();
             Acessibilidade.Vincular(this);
+            this.AtalhoAjuda("atalhos");
 
             MontarLinhas();
 
             this.FecharComEsc();
 
+            Idioma.Alterado += Refazer;
+            Acessibilidade.Alterado += Refazer;
+            Closed += (s, e) =>
+            {
+                Idioma.Alterado -= Refazer;
+                Acessibilidade.Alterado -= Refazer;
+            };
             Opened += (s, e) => BtnFechar.Focus();
+        }
+
+        private void Refazer(object? sender, EventArgs e)
+        {
+            PainelLinhas.Children.Clear();
+            MontarLinhas();
         }
 
         private void MontarLinhas()

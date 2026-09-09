@@ -7,3 +7,23 @@ https://github.com/dcCarreto/CofreDeSenhas
 Distribuído sob a licença PolyForm Noncommercial License 1.0.0.
 Consulte o arquivo LICENSE para os termos completos. O uso comercial não é
 permitido; o aplicativo é e continuará gratuito.
+
+---
+
+Componentes de terceiros
+
+- Plus Jakarta Sans — SIL Open Font License 1.1 (App/Ativos/Fontes/PlusJakartaSans/OFL.txt).
+- Atkinson Hyperlegible — © 2020 Braille Institute of America, Inc.,
+  SIL Open Font License 1.1 (App/Ativos/Fontes/AtkinsonHyperlegible/OFL.txt).
+- sherpa-onnx e org.k2fsa.sherpa.onnx — © k2-fsa / Xiaomi Corporation,
+  licença Apache 2.0. Inclui ONNX Runtime (© Microsoft, licença MIT).
+- PortAudioSharp2 e PortAudio — licença MIT.
+- SharpZipLib — © ICSharpCode, licença MIT.
+- QRCoder — licença MIT.
+- Avalonia — licença MIT.
+
+Vozes de síntese de fala (Piper, baixadas sob demanda das releases do
+sherpa-onnx, não incluídas no instalador): treinadas a partir de conjuntos de
+dados públicos; cada voz traz seu próprio MODEL_CARD com a licença
+correspondente (MIT, CC0, CC-BY ou similar). O fonemizador espeak-ng-data
+que acompanha as vozes é licenciado sob GPLv3.

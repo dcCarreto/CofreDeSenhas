@@ -889,7 +889,6 @@ namespace App.Testes
             {
                 await janela.ConectarAsync(cfg, persistir: false, silencioso: true);
 
-                Assert.True(janela.Encontrar<MenuItem>("MenuDesconectarBanco").IsVisible);
                 Assert.Equal(Idioma.Formatar("Vault.Connection.Connected", cfg.Descricao), DescricaoConexao(janela));
 
                 // Prova que a janela passou a exibir o conteúdo do banco (não mais o
@@ -925,9 +924,8 @@ namespace App.Testes
 
             // silencioso: true evita popar um diálogo de erro que ficaria esperando
             // interação num teste headless. Nesse modo, uma falha de conexão cai no
-            // ramo "falha ao reconectar" de AtualizarEstadoConexao (não no "Local") —
-            // MenuDesconectarBanco também fica visível nesse caso, então o sinal
-            // confiável de "não conectou de verdade" é o texto do status.
+            // ramo "falha ao reconectar" de AtualizarEstadoConexao (não no "Local"),
+            // e o sinal confiável de "não conectou de verdade" é o texto do status.
             await janela.ConectarAsync(cfgInvalida, persistir: false, silencioso: true);
 
             Assert.Equal(Idioma.Texto("Vault.Connection.DatabaseUnavailable"), DescricaoConexao(janela));
@@ -1613,6 +1611,93 @@ namespace App.Testes
             await TesteUtil.AguardarAsync(() => false, tentativas: 5);
 
             Assert.Equal(Idioma.Texto("Update.Now"), janela.Encontrar<TextBlock>("LblBtnAtualizarAgora").Text);
+        }
+
+        [AvaloniaFact]
+        public async Task LayoutDetalhe_Inferior_AncoraOPainelEmbaixoComLarguraTotal()
+        {
+            var original = Preferencias.LayoutDetalhe;
+            try
+            {
+                Preferencias.LayoutDetalhe = "Inferior";
+                Acessibilidade.DefinirLayoutDetalhe(LayoutDetalhe.Inferior);
+
+                var (servico, chave) = CriarServico();
+                var janela = new JanelaPrincipal(servico, chave);
+                janela.Show();
+                await TesteUtil.AguardarAsync(() => false, tentativas: 5);
+
+                var painel = janela.Encontrar<Border>("PainelDetalhes");
+                Assert.Equal(Avalonia.Layout.VerticalAlignment.Bottom, painel.VerticalAlignment);
+                Assert.Equal(Avalonia.Layout.HorizontalAlignment.Stretch, painel.HorizontalAlignment);
+                Assert.True(painel.Height >= 300);
+                Assert.True(double.IsNaN(painel.Width));
+
+                var corpo = janela.Encontrar<Grid>("CorpoDetalhe");
+                Assert.Equal(3, corpo.ColumnDefinitions.Count);
+                Assert.Equal(2, Grid.GetColumn(janela.Encontrar<StackPanel>("ColunaDetalheB")));
+            }
+            finally
+            {
+                Preferencias.LayoutDetalhe = original;
+                Preferencias.Salvar();
+                Acessibilidade.DefinirLayoutDetalhe(LayoutDetalhe.Lateral);
+            }
+        }
+
+        [AvaloniaFact]
+        public async Task ColunasLista_OcultarCategoria_ZeraColunaEEsconderCabecalho()
+        {
+            var original = Acessibilidade.ColunasLista;
+            try
+            {
+                var (servico, chave) = CriarServico();
+                var janela = new JanelaPrincipal(servico, chave);
+                janela.Show();
+                await TesteUtil.AguardarAsync(() => janela.Encontrar<Grid>("GridCabecalhoTabela").Bounds.Width > 0, tentativas: 30);
+
+                Assert.True(janela.Encontrar<StackPanel>("CabCategoria").IsVisible);
+
+                Acessibilidade.SelecionarColunaLista(ColunasLista.Categoria, false);
+                await TesteUtil.AguardarAsync(() => false, tentativas: 5);
+
+                Assert.False(janela.Encontrar<StackPanel>("CabCategoria").IsVisible);
+                Assert.False(janela.Encontrar<Border>("DivCategoria").IsVisible);
+                Assert.Equal(0, janela.Encontrar<Grid>("GridCabecalhoTabela").ColumnDefinitions[5].Width.Value);
+                Assert.True(janela.Encontrar<StackPanel>("CabUsuario").IsVisible);
+            }
+            finally
+            {
+                Acessibilidade.SelecionarColunaLista(ColunasLista.Categoria, original.HasFlag(ColunasLista.Categoria));
+            }
+        }
+
+        [AvaloniaFact]
+        public async Task Ordenacao_RestauraColunaEDirecaoSalvas()
+        {
+            var (oc, od) = (Preferencias.OrdenacaoColuna, Preferencias.OrdenacaoDescendente);
+            try
+            {
+                Preferencias.OrdenacaoColuna = "Usuario";
+                Preferencias.OrdenacaoDescendente = true;
+                Preferencias.Salvar();
+
+                var (servico, chave) = CriarServico();
+                var janela = new JanelaPrincipal(servico, chave);
+                janela.Show();
+                await TesteUtil.AguardarAsync(() => false, tentativas: 5);
+
+                var seta = janela.Encontrar<TextBlock>("SetaOrdenacaoUsuario");
+                Assert.True(seta.IsVisible);
+                Assert.Equal("▼", seta.Text);
+                Assert.False(janela.Encontrar<TextBlock>("SetaOrdenacaoServico").IsVisible);
+            }
+            finally
+            {
+                Preferencias.OrdenacaoColuna = oc;
+                Preferencias.OrdenacaoDescendente = od;
+                Preferencias.Salvar();
+            }
         }
     }
 }

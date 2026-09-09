@@ -10,6 +10,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Media.Transformation;
 using Avalonia.Platform.Storage;
@@ -156,7 +157,11 @@ namespace CofreDeSenhas.Janelas
             Icon = Recursos.IconeApp();
             Acessibilidade.Vincular(this);
             Acessibilidade.RegistrarAnunciador(this, LblAnuncioLeitorTela);
+            Acessibilidade.RegistrarToast(this, ToastAcessibilidade, LblToastAcessibilidade);
             ConfigurarAcessibilidadeLeitorTela();
+
+            RestaurarOrdenacao();
+            AplicarLayoutDetalhe();
 
             PainelLista.FabricaLinha = CriarLinhaSenha;
             PainelLista.FabricaLixeira = CriarLinhaLixeira;
@@ -174,26 +179,15 @@ namespace CofreDeSenhas.Janelas
             AtualizarNavegacao();
             AtualizarContador();
             AtualizarEstadoConexao(null);
-            MarcarIdiomaSelecionado();
-            AtualizarMenuBiometria();
 
             _monitor = new MonitorInatividade(this, () => _aoBloquear?.Invoke());
             _monitor.Ajustar(Preferencias.MinutosBloqueio);
-            BtnConfig.Flyout!.Opened += (s, e) =>
-            {
-                MarcarBloqueioSelecionado(Preferencias.MinutosBloqueio);
-                MarcarLimpezaClipboardSelecionada(Preferencias.SegundosLimpezaClipboard);
-                MarcarIdiomaSelecionado();
-                MarcarAcessibilidadeSelecionada();
-                ConfigurarAcessibilidadeLeitorTela();
-                AtualizarMenuBiometria();
-                MenuIconesOnline.IsChecked = Preferencias.IconesOnline;
-                MenuHistoricoUso.IsChecked = Preferencias.RegistrarHistoricoUso;
-                MenuVerificarAtualizacoes.IsChecked = Preferencias.VerificarAtualizacoes;
-            };
+            _monitor.AvisoHabilitado = () => Acessibilidade.AvisarAntesBloqueio;
+            _monitor.AoAvisar = AvisarAntesDoBloqueioAsync;
             Idioma.Alterado += IdiomaGlobal_Alterado;
             Acessibilidade.Alterado += Acessibilidade_Alterado;
             AddHandler(KeyDownEvent, Atalho_KeyDown, RoutingStrategies.Tunnel);
+            this.AtalhoAjuda("introducao");
             _timerSincronizacao = new DispatcherTimer();
             _timerSincronizacao.Tick += async (s, e) => await SincronizarAsync(silencioso: true);
             AjustarTimerSincronizacao();
@@ -333,6 +327,39 @@ namespace CofreDeSenhas.Janelas
         {
             var dlg = new JanelaAtalhosTeclado();
             await AbrirDialogoAsync<bool>(dlg);
+        }
+
+        private void Ajuda_Click(object? sender, RoutedEventArgs e) => JanelaAjuda.AbrirOuFocar(this);
+
+        private async void Configuracoes_Click(object? sender, RoutedEventArgs e)
+        {
+            var vazio = new RoutedEventArgs();
+            var acoes = new AcoesConfiguracoes
+            {
+                AlterarSenhaMestra = () => AlterarSenhaMestra_Click(this, vazio),
+                RegerarQr = () => RegerarQrCode_Click(this, vazio),
+                AlternarWindowsHello = () => Biometria_Click(this, vazio),
+                BloquearAgora = () => BloquearAgora_Click(this, vazio),
+                Backup = () => Backup_Click(this, vazio),
+                Sincronizacao = () => Sincronizacao_Click(this, vazio),
+                ImportarCsv = () => ImportarCsv_Click(this, vazio),
+                ConectarBanco = () => ConectarBanco_Click(this, vazio),
+                DesconectarBanco = () => DesconectarBanco_Click(this, vazio),
+                AtalhosTeclado = () => AtalhosTeclado_Click(this, vazio),
+                AbrirManual = () => JanelaAjuda.AbrirOuFocar(this),
+                LimparCofre = () => LimparCofre_Click(this, vazio),
+                ExcluirCofre = () => ExcluirCofre_Click(this, vazio),
+                DefinirBloqueioAutomatico = AplicarBloqueioAutomatico,
+                DefinirVerificarAtualizacoes = AplicarVerificarAtualizacoes,
+                DefinirIconesOnline = AplicarIconesOnline,
+                WindowsHelloSuportado = _biometria.SistemaSuportado,
+                WindowsHelloAtivo = _biometria.EstaHabilitado,
+                BancoConectado = _conectadoAoBanco || _falhaReconexaoAtual
+            };
+
+            var dlg = new JanelaConfiguracoes(acoes);
+            await AbrirDialogoAsync<bool>(dlg);
+            dlg.AcaoPendente?.Invoke();
         }
 
         private async Task IniciarAsync()
@@ -580,19 +607,44 @@ namespace CofreDeSenhas.Janelas
             }
         }
 
+        private (double Servico, double Usuario, double Categoria, double Forca) LargurasEfetivas()
+        {
+            var colunas = Acessibilidade.ColunasLista;
+            double usuario = colunas.HasFlag(ColunasLista.Usuario) ? _larguraUsuario : 0;
+            double categoria = colunas.HasFlag(ColunasLista.Categoria) ? _larguraCategoria : 0;
+            double forca = colunas.HasFlag(ColunasLista.Forca) ? _larguraData : 0;
+            double servico = _larguraServico
+                + (_larguraUsuario - usuario) + (_larguraCategoria - categoria) + (_larguraData - forca);
+            return (servico, usuario, categoria, forca);
+        }
+
         private void AplicarLargurasColunas()
         {
             if (GridCabecalhoTabela == null)
                 return;
 
-            GridCabecalhoTabela.ColumnDefinitions[1].Width = new GridLength(_larguraServico);
-            GridCabecalhoTabela.ColumnDefinitions[3].Width = new GridLength(_larguraUsuario);
-            GridCabecalhoTabela.ColumnDefinitions[5].Width = new GridLength(_larguraCategoria);
-            GridCabecalhoTabela.ColumnDefinitions[7].Width = new GridLength(_larguraData);
+            var colunas = Acessibilidade.ColunasLista;
+            bool usuarioVisivel = colunas.HasFlag(ColunasLista.Usuario);
+            bool categoriaVisivel = colunas.HasFlag(ColunasLista.Categoria);
+            bool forcaVisivel = colunas.HasFlag(ColunasLista.Forca);
+
+            var (servico, usuario, categoria, forca) = LargurasEfetivas();
+
+            GridCabecalhoTabela.ColumnDefinitions[1].Width = new GridLength(servico);
+            GridCabecalhoTabela.ColumnDefinitions[3].Width = new GridLength(usuario);
+            GridCabecalhoTabela.ColumnDefinitions[4].Width = new GridLength(usuarioVisivel ? 6 : 0);
+            GridCabecalhoTabela.ColumnDefinitions[5].Width = new GridLength(categoria);
+            GridCabecalhoTabela.ColumnDefinitions[6].Width = new GridLength(categoriaVisivel ? 6 : 0);
+            GridCabecalhoTabela.ColumnDefinitions[7].Width = new GridLength(forca);
+            GridCabecalhoTabela.ColumnDefinitions[8].Width = new GridLength(forcaVisivel ? 6 : 0);
             GridCabecalhoTabela.ColumnDefinitions[9].Width = new GridLength(_larguraAcoes);
 
+            CabUsuario.IsVisible = DivUsuario.IsVisible = usuarioVisivel;
+            CabCategoria.IsVisible = DivCategoria.IsVisible = categoriaVisivel;
+            CabForca.IsVisible = DivForca.IsVisible = forcaVisivel;
+
             foreach (var linha in _linhasSenha)
-                linha.DefinirLargurasColunas(_larguraServico, _larguraUsuario, _larguraCategoria, _larguraData, _larguraAcoes);
+                linha.DefinirLargurasColunas(servico, usuario, categoria, forca, _larguraAcoes);
         }
 
         private void Minimizar_Click(object? sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
@@ -602,22 +654,9 @@ namespace CofreDeSenhas.Janelas
 
         private void Fechar_Click(object? sender, RoutedEventArgs e) => Close();
 
-        private void Idioma_Alterado(object? sender, RoutedEventArgs e)
-        {
-            if (sender is not MenuItem item || item.Tag is not string codigo ||
-                string.Equals(codigo, Idioma.Atual.Codigo, StringComparison.OrdinalIgnoreCase))
-                return;
-
-            Idioma.Definir(codigo);
-            Preferencias.Idioma = Idioma.Atual.Codigo;
-            Preferencias.Salvar();
-        }
-
         private async void IdiomaGlobal_Alterado(object? sender, EventArgs e)
         {
             AtualizarBotaoPrivacidade();
-            MarcarIdiomaSelecionado();
-            AtualizarMenuBiometria();
             AtualizarFiltroOrganizacao();
             AtualizarEstadoConexao(_descricaoConexaoAtual, _falhaReconexaoAtual);
             ConfigurarAcessibilidadeLeitorTela();
@@ -636,71 +675,22 @@ namespace CofreDeSenhas.Janelas
                 LblAtualizacaoDisponivel.Text = Idioma.Formatar("Update.Available", _versaoDisponivel);
         }
 
-        private void MarcarIdiomaSelecionado()
+        internal void AplicarIconesOnline(bool ligado)
         {
-            if (MenuIdioma == null)
-                return;
-
-            foreach (var item in MenuIdioma.Items.OfType<MenuItem>())
-                item.IsChecked = item.Tag is string codigo &&
-                    string.Equals(codigo, Idioma.Atual.Codigo, StringComparison.OrdinalIgnoreCase);
-        }
-
-        private void Daltonismo_Alterado(object? sender, RoutedEventArgs e) => Acessibilidade.TratarClickDaltonismo(sender);
-
-        private void Escala_Alterada(object? sender, RoutedEventArgs e) => Acessibilidade.TratarClickEscala(sender);
-
-        private void AltoContraste_Alterado(object? sender, RoutedEventArgs e) => Acessibilidade.TratarClickAltoContraste(sender);
-
-        private void ReduzirAnimacoes_Alterado(object? sender, RoutedEventArgs e) => Acessibilidade.TratarClickReducaoMovimento(sender);
-
-        private async void IconesOnline_Alterado(object? sender, RoutedEventArgs e)
-        {
-            if (sender is not MenuItem item)
-                return;
-
-            if (item.IsChecked)
-            {
-                var aceitou = await CaixaMensagem.ConfirmarAsync(this,
-                    Idioma.Texto("Icons.ConsentMessage"),
-                    Idioma.Texto("Settings.OnlineIcons"),
-                    TipoMensagem.Info);
-                if (!aceitou)
-                {
-                    item.IsChecked = false;
-                    return;
-                }
-
-                Preferencias.IconesOnline = true;
-            }
-            else
-            {
-                Preferencias.IconesOnline = false;
+            Preferencias.IconesOnline = ligado;
+            if (!ligado)
                 IconesServico.LimparCache();
-            }
 
             Preferencias.Salvar();
             FiltrarSenhas();
         }
 
-        private void HistoricoUso_Alterado(object? sender, RoutedEventArgs e)
+        internal void AplicarVerificarAtualizacoes(bool ligado)
         {
-            if (sender is not MenuItem item)
-                return;
-
-            Preferencias.RegistrarHistoricoUso = item.IsChecked;
-            Preferencias.Salvar();
-        }
-
-        private void VerificarAtualizacoes_Alterado(object? sender, RoutedEventArgs e)
-        {
-            if (sender is not MenuItem item)
-                return;
-
-            Preferencias.VerificarAtualizacoes = item.IsChecked;
+            Preferencias.VerificarAtualizacoes = ligado;
             Preferencias.Salvar();
 
-            if (item.IsChecked)
+            if (ligado)
                 _ = VerificarAtualizacaoAsync();
             else
                 OcultarAvisoAtualizacao();
@@ -962,18 +952,15 @@ namespace CofreDeSenhas.Janelas
             _notasVersaoDisponivel = null;
         }
 
-        private void LeitorTela_Alterado(object? sender, RoutedEventArgs e) => Acessibilidade.TratarClickLeitorTela(this, sender);
-
-        private void MarcarAcessibilidadeSelecionada() =>
-            Acessibilidade.MarcarMenus(MenuDaltonismo, MenuEscala, MenuAltoContraste, MenuReduzirAnimacoes,
-                MenuLeitorTela);
-
         private void Acessibilidade_Alterado(object? sender, EventArgs e)
         {
             ConfigurarAcessibilidadeLeitorTela();
             Gerador.AtualizarTema();
             PintarFiltroFavoritos();
             AtualizarNavegacao();
+            AplicarLayoutDetalhe();
+            if (_largurasIniciaisAplicadas)
+                AplicarLargurasColunas();
             AtualizarDetalheVisual();
             AtualizarHistoricoDetalhes();
             FiltrarSenhas();
@@ -981,7 +968,6 @@ namespace CofreDeSenhas.Janelas
 
         private void ConfigurarAcessibilidadeLeitorTela()
         {
-            AutomationProperties.SetHelpText(MenuLeitorTela, Idioma.Texto("Access.ScreenReaderHelp"));
             AutomationProperties.SetHelpText(TxtBusca, Idioma.Texto("A11y.OptionalField"));
             AutomationProperties.SetHelpText(CmbCategoria, Idioma.Texto("A11y.OptionalField"));
             AutomationProperties.SetName(PainelLista, Idioma.Texto("A11y.ResultsList"));
@@ -1132,7 +1118,8 @@ namespace CofreDeSenhas.Janelas
         private void AplicarEstadoLinha(LinhaSenha linha)
         {
             var senha = linha.Senha;
-            linha.DefinirLargurasColunas(_larguraServico, _larguraUsuario, _larguraCategoria, _larguraData, _larguraAcoes);
+            var larguras = LargurasEfetivas();
+            linha.DefinirLargurasColunas(larguras.Servico, larguras.Usuario, larguras.Categoria, larguras.Forca, _larguraAcoes);
             linha.DefinirModoPrivacidade(_modoPrivacidade);
             linha.DefinirSelecionada(_selecionados.Contains(senha.Id));
 
@@ -2058,10 +2045,11 @@ namespace CofreDeSenhas.Janelas
                     }
                 };
             NavRail.Width = _navColapsada ? 64 : 224;
+            EspacoFab.Height = _navColapsada ? 56 : 76;
             BtnFabGerador.Width = _navColapsada ? 40 : 60;
             BtnFabGerador.Height = _navColapsada ? 40 : 60;
             BtnFabGerador.CornerRadius = new CornerRadius(_navColapsada ? 20 : 30);
-            BtnFabGerador.Margin = new Thickness(0, 0, 0, 16);
+            Canvas.SetLeft(BtnFabGerador, _navColapsada ? 14 : 24);
             IconeFabGerador.Width = _navColapsada ? 20 : 30;
             IconeFabGerador.Height = _navColapsada ? 20 : 30;
 
@@ -2206,8 +2194,38 @@ namespace CofreDeSenhas.Janelas
         {
             _ordenacaoDescendente = !_ordenacaoDescendente;
             _somenteRecentes = false;
+            PersistirOrdenacao();
             AtualizarNavegacao();
             FiltrarSenhas();
+        }
+
+        private void RestaurarOrdenacao()
+        {
+            if (Enum.TryParse<ColunaOrdenacao>(Preferencias.OrdenacaoColuna, out var coluna))
+                _colunaOrdenacao = coluna;
+            _ordenacaoDescendente = Preferencias.OrdenacaoDescendente;
+        }
+
+        private void PersistirOrdenacao()
+        {
+            Preferencias.OrdenacaoColuna = _colunaOrdenacao.ToString();
+            Preferencias.OrdenacaoDescendente = _ordenacaoDescendente;
+            Preferencias.Salvar();
+        }
+
+        private void AplicarLayoutDetalhe()
+        {
+            bool inferior = Acessibilidade.LayoutDetalhe == LayoutDetalhe.Inferior;
+
+            PainelDetalhes.HorizontalAlignment = inferior ? HorizontalAlignment.Stretch : HorizontalAlignment.Right;
+            PainelDetalhes.VerticalAlignment = inferior ? VerticalAlignment.Bottom : VerticalAlignment.Stretch;
+            PainelDetalhes.Width = inferior ? double.NaN : 340;
+            PainelDetalhes.Height = inferior ? 320 : double.NaN;
+
+            CorpoDetalhe.ColumnDefinitions = new ColumnDefinitions(inferior ? "*,28,*" : "*");
+            Grid.SetRow(ColunaDetalheB, inferior ? 0 : 1);
+            Grid.SetColumn(ColunaDetalheB, inferior ? 2 : 0);
+            ColunaDetalheB.Margin = inferior ? new Thickness(0) : new Thickness(0, 14, 0, 0);
         }
 
         private void OrdenarColuna_PointerPressed(object? sender, PointerPressedEventArgs e)
@@ -2241,6 +2259,7 @@ namespace CofreDeSenhas.Janelas
                 _ordenacaoDescendente = false;
             }
             _somenteRecentes = false;
+            PersistirOrdenacao();
 
             AtualizarNavegacao();
             FiltrarSenhas();
@@ -3765,7 +3784,6 @@ namespace CofreDeSenhas.Janelas
                     return;
 
                 await _biometria.DesabilitarAsync();
-                AtualizarMenuBiometria();
                 await CaixaMensagem.MostrarAsync(this,
                     Idioma.Texto("Biometric.Disabled"),
                     Idioma.Texto("Biometric.Title"));
@@ -3773,7 +3791,6 @@ namespace CofreDeSenhas.Janelas
             }
 
             var resultado = await _biometria.HabilitarAsync(this, _chaveMestra);
-            AtualizarMenuBiometria();
             if (resultado.Sucesso)
             {
                 await CaixaMensagem.MostrarAsync(this,
@@ -3789,55 +3806,22 @@ namespace CofreDeSenhas.Janelas
             }
         }
 
-        private void AtualizarMenuBiometria()
+        internal void AplicarBloqueioAutomatico(int minutos)
         {
-            if (MenuBiometria == null)
-                return;
-
-            MenuBiometria.IsVisible = _biometria.SistemaSuportado;
-            MenuBiometria.Header = Idioma.Texto(_biometria.EstaHabilitado
-                ? "Settings.DisableWindowsHello"
-                : "Settings.EnableWindowsHello");
-        }
-
-        private void Bloqueio_Alterado(object? sender, RoutedEventArgs e)
-        {
-            if (sender is not MenuItem item || item.Tag is not string tag || !int.TryParse(tag, out var minutos))
-                return;
-
             Preferencias.MinutosBloqueio = minutos;
             Preferencias.Salvar();
             _monitor.Ajustar(minutos);
-            MarcarBloqueioSelecionado(minutos);
             AtualizarEstadoConexao(_descricaoConexaoAtual, _falhaReconexaoAtual);
         }
 
-        private void MarcarBloqueioSelecionado(int minutos)
+        private async Task<bool> AvisarAntesDoBloqueioAsync(int segundos)
         {
-            if (MenuBloqueio == null)
-                return;
+            if (OwnedWindows.Count > 0)
+                return true;
 
-            foreach (var item in MenuBloqueio.Items.OfType<MenuItem>())
-                item.IsChecked = item.Tag is string tag && int.TryParse(tag, out var m) && m == minutos;
-        }
-
-        private void LimpezaClipboard_Alterada(object? sender, RoutedEventArgs e)
-        {
-            if (sender is not MenuItem item || item.Tag is not string tag || !int.TryParse(tag, out var segundos))
-                return;
-
-            Preferencias.SegundosLimpezaClipboard = segundos;
-            Preferencias.Salvar();
-            MarcarLimpezaClipboardSelecionada(segundos);
-        }
-
-        private void MarcarLimpezaClipboardSelecionada(int segundos)
-        {
-            if (MenuLimpezaClipboard == null)
-                return;
-
-            foreach (var item in MenuLimpezaClipboard.Items.OfType<MenuItem>())
-                item.IsChecked = item.Tag is string tag && int.TryParse(tag, out var s) && s == segundos;
+            Acessibilidade.Anunciar(this, Idioma.Formatar("Access.LockWarning", segundos), assertivo: true, forcar: true);
+            return await CaixaMensagem.ConfirmarComTempoAsync(this,
+                Idioma.Texto("Access.LockWarning"), Idioma.Texto("Settings.AutoLock"), segundos);
         }
 
         private async void ConectarBanco_Click(object? sender, RoutedEventArgs e)
@@ -4044,19 +4028,16 @@ namespace CofreDeSenhas.Janelas
             {
                 conexao = Idioma.Formatar("Vault.Connection.Connected", descricao);
                 PontoConexao.Fill = Tema.Pincel(Tema.StatusConnected);
-                MenuDesconectarBanco.IsVisible = true;
             }
             else if (falhaReconexao)
             {
                 conexao = Idioma.Texto("Vault.Connection.DatabaseUnavailable");
                 PontoConexao.Fill = Tema.Pincel(Tema.StatusWarning);
-                MenuDesconectarBanco.IsVisible = true;
             }
             else
             {
                 conexao = Idioma.Texto("Vault.Connection.Local");
                 PontoConexao.Fill = Tema.Pincel(Tema.StatusLocal);
-                MenuDesconectarBanco.IsVisible = false;
             }
 
             LblConexao.Text = TextoBloqueioAutomatico();

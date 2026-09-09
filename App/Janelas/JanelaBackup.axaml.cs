@@ -36,6 +36,7 @@ namespace CofreDeSenhas.Janelas
             InitializeComponent();
             Icon = Recursos.IconeApp();
             Acessibilidade.Vincular(this);
+            this.AtalhoAjuda("backup");
 
             LblAvisoBanco.IsVisible = !permiteRestaurar;
 

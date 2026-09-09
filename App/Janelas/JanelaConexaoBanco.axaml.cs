@@ -37,6 +37,7 @@ namespace CofreDeSenhas.Janelas
             InitializeComponent();
             Icon = Recursos.IconeApp();
             Acessibilidade.Vincular(this);
+            this.AtalhoAjuda("banco-de-dados");
             Acessibilidade.RegistrarAnunciador(this, LblAnuncioLeitorTela);
 
             MontarFormulario();

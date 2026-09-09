@@ -1,0 +1,74 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:c="using:CofreDeSenhas.Controles"
+        x:Class="CofreDeSenhas.Janelas.JanelaAjuda"
+        Title="{DynamicResource Ajuda.Titulo}"
+        Width="880" Height="640"
+        MinWidth="720" MinHeight="480"
+        SystemDecorations="None"
+        Background="Transparent"
+        TransparencyLevelHint="Transparent"
+        WindowStartupLocation="CenterOwner"
+        RenderOptions.BitmapInterpolationMode="HighQuality">
+
+  <Border CornerRadius="{StaticResource RadiusDialogo}"
+          ClipToBounds="True"
+          Background="{DynamicResource WorkspaceBackground}"
+          BorderBrush="{DynamicResource CardBorder}"
+          BorderThickness="1">
+
+    <DockPanel>
+      <Border DockPanel.Dock="Top"
+              Height="56"
+              Background="{DynamicResource TitleBar}"
+              BorderBrush="{DynamicResource TitleBarBorder}"
+              BorderThickness="0,0,0,1"
+              PointerPressed="Arrastar">
+        <Grid>
+          <StackPanel Orientation="Horizontal" Spacing="9" Margin="24,0,60,0" VerticalAlignment="Center">
+            <c:Icone Width="{StaticResource TamIconeToolbar}" Height="{StaticResource TamIconeToolbar}" Chave="IconeInfo" />
+            <TextBlock Text="{DynamicResource Ajuda.Titulo}"
+                       Classes="titulo"
+                       Foreground="{DynamicResource TextPrimary}"
+                       VerticalAlignment="Center"
+                       AutomationProperties.HeadingLevel="1"
+                       TextTrimming="CharacterEllipsis" />
+          </StackPanel>
+          <Button Name="BtnFechar"
+                  Classes="fechar-dialogo"
+                  AutomationProperties.Name="{DynamicResource Access.Close}"
+                  HorizontalAlignment="Right" VerticalAlignment="Center"
+                  Margin="0,0,14,0"
+                  Click="Fechar_Click">
+            <c:Icone Width="{StaticResource TamIconeToolbar}" Height="{StaticResource TamIconeToolbar}" Chave="IconeFechar" />
+          </Button>
+        </Grid>
+      </Border>
+
+      <Border DockPanel.Dock="Left"
+              Width="244"
+              Background="{DynamicResource TitleBar}"
+              BorderBrush="{DynamicResource TitleBarBorder}"
+              BorderThickness="0,0,1,0">
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+          <StackPanel Name="TrilhaTopicos" Margin="10,14" Spacing="2" />
+        </ScrollViewer>
+      </Border>
+
+      <DockPanel>
+        <TextBlock Name="TxtTitulo"
+                   DockPanel.Dock="Top"
+                   Classes="titulo"
+                   FontSize="{StaticResource TamSubtitulo}"
+                   Foreground="{DynamicResource TextPrimary}"
+                   Margin="32,22,32,4"
+                   AutomationProperties.HeadingLevel="2"
+                   AutomationProperties.LiveSetting="Polite"
+                   TextWrapping="Wrap" />
+        <ScrollViewer Name="Rolagem" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+          <StackPanel Name="AreaConteudo" Margin="32,10,32,28" />
+        </ScrollViewer>
+      </DockPanel>
+    </DockPanel>
+  </Border>
+</Window>

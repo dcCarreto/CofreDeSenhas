@@ -37,6 +37,7 @@ namespace CofreDeSenhas.Janelas
             InitializeComponent();
             Icon = Recursos.IconeApp();
             Acessibilidade.Vincular(this);
+            this.AtalhoAjuda("senha-mestra");
             Acessibilidade.RegistrarAnunciador(this, LblAnuncioLeitorTela);
 
             Gerador.PermiteSalvar = false;

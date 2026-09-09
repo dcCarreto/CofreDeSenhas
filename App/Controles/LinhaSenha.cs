@@ -1,5 +1,7 @@
 using System.Globalization;
 using Avalonia;
+using Avalonia.Animation;
+using Avalonia.Animation.Easings;
 using Avalonia.Automation;
 using Avalonia.Automation.Peers;
 using Avalonia.Controls;
@@ -58,6 +60,7 @@ namespace CofreDeSenhas.Controles
         private Grid _grid = null!;
         private StackPanel _acoes = null!;
         private StackPanel _painelForca = null!;
+        private Control _celulaForca = null!;
         private TextBlock _lblAuditoria = null!;
         private Border[] _segmentosForca = Array.Empty<Border>();
         private Button _estrela = null!;
@@ -76,6 +79,8 @@ namespace CofreDeSenhas.Controles
         internal const string MascaraPrivacidade = "••••••••";
 
         private bool _pointerSobre;
+
+        private const double OpacidadeAcoesRepouso = 0.66;
 
         public Senha Senha => _senha;
         public bool Selecionada { get; private set; }
@@ -171,7 +176,7 @@ namespace CofreDeSenhas.Controles
             _onRenomearServico = onRenomearServico;
             _onRegistrarCopia = onRegistrarCopia;
 
-            Height = 52;
+            Height = Acessibilidade.AlturaLinhaLista;
             Background = Tema.Pincel(Tema.CardBackground);
             BorderBrush = Tema.Pincel(Tema.Separator);
             BorderThickness = new Thickness(0, 0, 0, 1);
@@ -282,7 +287,7 @@ namespace CofreDeSenhas.Controles
         private void AtualizarOpacidadeAcoes()
         {
             if (_acoes != null)
-                _acoes.Opacity = _pointerSobre || IsFocused ? 1 : 0.55;
+                _acoes.Opacity = _pointerSobre || IsFocused ? 1 : OpacidadeAcoesRepouso;
         }
 
         private Grid MontarLayout()
@@ -387,8 +392,18 @@ namespace CofreDeSenhas.Controles
                 Spacing = 4,
                 VerticalAlignment = VerticalAlignment.Center,
                 HorizontalAlignment = HorizontalAlignment.Center,
-                Opacity = 0.55
+                Opacity = OpacidadeAcoesRepouso
             };
+            if (!Acessibilidade.ReduzirAnimacoes)
+                _acoes.Transitions = new Transitions
+                {
+                    new DoubleTransition
+                    {
+                        Property = OpacityProperty,
+                        Duration = TimeSpan.FromMilliseconds(120),
+                        Easing = new CubicEaseOut()
+                    }
+                };
             _acoes.Children.Add(_btnOlho);
             _acoes.Children.Add(_btnCopiar);
 
@@ -602,6 +617,7 @@ namespace CofreDeSenhas.Controles
             };
             celula.Children.Add(_painelForca);
             celula.Children.Add(_lblAuditoria);
+            _celulaForca = celula;
             return celula;
         }
 
@@ -849,9 +865,19 @@ namespace CofreDeSenhas.Controles
 
             _grid.ColumnDefinitions[1].Width = new GridLength(servico);
             _grid.ColumnDefinitions[3].Width = new GridLength(usuario);
+            _grid.ColumnDefinitions[4].Width = new GridLength(usuario > 0 ? 6 : 0);
             _grid.ColumnDefinitions[5].Width = new GridLength(categoria);
+            _grid.ColumnDefinitions[6].Width = new GridLength(categoria > 0 ? 6 : 0);
             _grid.ColumnDefinitions[7].Width = new GridLength(data);
+            _grid.ColumnDefinitions[8].Width = new GridLength(data > 0 ? 6 : 0);
             _grid.ColumnDefinitions[9].Width = new GridLength(acoes);
+
+            if (_lblUsuario != null)
+                _lblUsuario.IsVisible = usuario > 0;
+            if (_painelCategoria != null)
+                _painelCategoria.IsVisible = categoria > 0;
+            if (_celulaForca != null)
+                _celulaForca.IsVisible = data > 0;
         }
 
         private static Button CriarBotaoAcaoImagem(string chave, string dica)

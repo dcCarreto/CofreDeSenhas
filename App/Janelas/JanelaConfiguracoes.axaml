@@ -1,0 +1,73 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:c="using:CofreDeSenhas.Controles"
+        x:Class="CofreDeSenhas.Janelas.JanelaConfiguracoes"
+        Title="{DynamicResource Config.Title}"
+        Width="800" Height="660"
+        MinWidth="700" MinHeight="540"
+        SystemDecorations="None"
+        Background="Transparent"
+        TransparencyLevelHint="Transparent"
+        WindowStartupLocation="CenterOwner"
+        RenderOptions.BitmapInterpolationMode="HighQuality">
+
+  <Border CornerRadius="{StaticResource RadiusDialogo}"
+          ClipToBounds="True"
+          Background="{DynamicResource WorkspaceBackground}"
+          BorderBrush="{DynamicResource CardBorder}"
+          BorderThickness="1">
+
+    <DockPanel>
+      <Border DockPanel.Dock="Top"
+              Height="56"
+              Background="{DynamicResource TitleBar}"
+              BorderBrush="{DynamicResource TitleBarBorder}"
+              BorderThickness="0,0,0,1"
+              PointerPressed="Arrastar">
+        <Grid>
+          <TextBlock Text="{DynamicResource Config.Title}"
+                     Classes="titulo"
+                     Foreground="{DynamicResource TextPrimary}"
+                     VerticalAlignment="Center"
+                     AutomationProperties.HeadingLevel="1"
+                     Margin="24,0,60,0"
+                     TextTrimming="CharacterEllipsis" />
+          <Button Name="BtnFechar"
+                  Classes="fechar-dialogo"
+                  AutomationProperties.Name="{DynamicResource Access.Close}"
+                  HorizontalAlignment="Right" VerticalAlignment="Center"
+                  Margin="0,0,14,0"
+                  Click="Fechar_Click">
+            <c:Icone Width="{StaticResource TamIconeToolbar}" Height="{StaticResource TamIconeToolbar}" Chave="IconeFechar" />
+          </Button>
+        </Grid>
+      </Border>
+
+      <Border DockPanel.Dock="Bottom"
+              Height="66"
+              Background="{DynamicResource Footer}"
+              BorderBrush="{DynamicResource CardBorder}"
+              BorderThickness="0,1,0,0">
+        <Button Classes="secundario"
+                Content="{DynamicResource Common.Close}"
+                MinWidth="{StaticResource LarguraBotaoRodape}" Height="40"
+                HorizontalAlignment="Right" VerticalAlignment="Center" Margin="24,0"
+                Click="Fechar_Click" />
+      </Border>
+
+      <Border DockPanel.Dock="Left"
+              Width="238"
+              Background="{DynamicResource TitleBar}"
+              BorderBrush="{DynamicResource TitleBarBorder}"
+              BorderThickness="0,0,1,0">
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+          <StackPanel Name="TrilhaAbas" Margin="10,16" Spacing="4" />
+        </ScrollViewer>
+      </Border>
+
+      <ScrollViewer Name="RolagemConteudo" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <Panel Name="AreaConteudo" Margin="30,26,30,26" />
+      </ScrollViewer>
+    </DockPanel>
+  </Border>
+</Window>
