@@ -1188,7 +1188,7 @@ namespace CofreDeSenhas
                 app.Resources[chave] = new SolidColorBrush(Cor(cor));
 
             var brilho = Cor(CorVisual.AccentPrimary);
-            app.Resources["FabShadow"] = BoxShadows.Parse($"0 2 18 0 #55{brilho.R:X2}{brilho.G:X2}{brilho.B:X2}");
+            app.Resources["FabShadow"] = BoxShadows.Parse($"0 3 16 -2 #4D{brilho.R:X2}{brilho.G:X2}{brilho.B:X2}");
 
             bool compacto = Densidade == Densidade.Compacto;
             app.Resources["AlturaCampo"] = compacto ? 38.0 : 44.0;

@@ -1,5 +1,7 @@
 using System.Globalization;
 using Avalonia;
+using Avalonia.Animation;
+using Avalonia.Animation.Easings;
 using Avalonia.Automation;
 using Avalonia.Automation.Peers;
 using Avalonia.Controls;
@@ -77,6 +79,8 @@ namespace CofreDeSenhas.Controles
         internal const string MascaraPrivacidade = "••••••••";
 
         private bool _pointerSobre;
+
+        private const double OpacidadeAcoesRepouso = 0.66;
 
         public Senha Senha => _senha;
         public bool Selecionada { get; private set; }
@@ -283,7 +287,7 @@ namespace CofreDeSenhas.Controles
         private void AtualizarOpacidadeAcoes()
         {
             if (_acoes != null)
-                _acoes.Opacity = _pointerSobre || IsFocused ? 1 : 0.55;
+                _acoes.Opacity = _pointerSobre || IsFocused ? 1 : OpacidadeAcoesRepouso;
         }
 
         private Grid MontarLayout()
@@ -388,8 +392,18 @@ namespace CofreDeSenhas.Controles
                 Spacing = 4,
                 VerticalAlignment = VerticalAlignment.Center,
                 HorizontalAlignment = HorizontalAlignment.Center,
-                Opacity = 0.55
+                Opacity = OpacidadeAcoesRepouso
             };
+            if (!Acessibilidade.ReduzirAnimacoes)
+                _acoes.Transitions = new Transitions
+                {
+                    new DoubleTransition
+                    {
+                        Property = OpacityProperty,
+                        Duration = TimeSpan.FromMilliseconds(120),
+                        Easing = new CubicEaseOut()
+                    }
+                };
             _acoes.Children.Add(_btnOlho);
             _acoes.Children.Add(_btnCopiar);
 

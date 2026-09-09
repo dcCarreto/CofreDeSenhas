@@ -37,20 +37,24 @@
     <Setter Property="FontFamily" Value="{DynamicResource FonteDisplay}" />
     <Setter Property="FontSize" Value="{StaticResource TamDisplay}" />
     <Setter Property="FontWeight" Value="Bold" />
+    <Setter Property="LineHeight" Value="31" />
   </Style>
   <Style Selector="TextBlock.titulo">
     <Setter Property="FontFamily" Value="{DynamicResource FonteDisplay}" />
     <Setter Property="FontSize" Value="{StaticResource TamTitulo}" />
     <Setter Property="FontWeight" Value="Bold" />
+    <Setter Property="LineHeight" Value="26" />
   </Style>
   <Style Selector="TextBlock.subtitulo">
     <Setter Property="FontFamily" Value="{DynamicResource FonteDisplay}" />
     <Setter Property="FontSize" Value="{StaticResource TamSubtitulo}" />
     <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="LineHeight" Value="21" />
   </Style>
   <Style Selector="TextBlock.corpo">
     <Setter Property="FontSize" Value="{StaticResource TamCorpo}" />
     <Setter Property="FontWeight" Value="Normal" />
+    <Setter Property="LineHeight" Value="21" />
   </Style>
   <Style Selector="TextBlock.rotulo">
     <Setter Property="FontSize" Value="{StaticResource TamRotulo}" />
@@ -60,6 +64,7 @@
   <Style Selector="TextBlock.legenda">
     <Setter Property="FontSize" Value="{StaticResource TamLegenda}" />
     <Setter Property="FontWeight" Value="Normal" />
+    <Setter Property="LineHeight" Value="16" />
   </Style>
 
   <Style Selector="Button, ToggleButton, RepeatButton, CheckBox, RadioButton, ToggleSwitch, ComboBox, ComboBoxItem, ListBoxItem, TextBox, Slider, TabItem, MenuItem">
@@ -103,7 +108,7 @@
     <Setter Property="Cursor" Value="Hand" />
     <Setter Property="Transitions">
       <Transitions>
-        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.08" />
+        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.11" Easing="CubicEaseOut" />
       </Transitions>
     </Setter>
   </Style>
@@ -137,11 +142,24 @@
     <Setter Property="Padding" Value="20,10" />
     <Setter Property="HorizontalContentAlignment" Value="Center" />
     <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
+    <Setter Property="RenderTransform" Value="scale(1)" />
     <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="Transitions">
+      <Transitions>
+        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.11" Easing="CubicEaseOut" />
+      </Transitions>
+    </Setter>
   </Style>
   <Style Selector="Button.secundario:pointerover /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource HoverBackground}" />
     <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
+  </Style>
+  <Style Selector="Button.secundario:pointerover">
+    <Setter Property="BorderBrush" Value="{DynamicResource AccentPrimary}" />
+  </Style>
+  <Style Selector="Button.secundario:pressed">
+    <Setter Property="RenderTransform" Value="scale(0.985)" />
   </Style>
   <Style Selector="Button.secundario:disabled">
     <Setter Property="Opacity" Value="0.4" />
@@ -159,6 +177,10 @@
     <Setter Property="Cursor" Value="Hand" />
   </Style>
   <Style Selector="Button.icone:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource IconHoverBackground}" />
+    <Setter Property="Foreground" Value="{DynamicResource AccentPrimary}" />
+  </Style>
+  <Style Selector="Button.icone:pressed /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource IconHoverBackground}" />
     <Setter Property="Foreground" Value="{DynamicResource AccentPrimary}" />
   </Style>
@@ -364,15 +386,15 @@
     <Setter Property="Cursor" Value="Hand" />
     <Setter Property="Transitions">
       <Transitions>
-        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.1" />
+        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.13" Easing="CubicEaseOut" />
       </Transitions>
     </Setter>
   </Style>
   <Style Selector="Button.fab:pointerover">
-    <Setter Property="RenderTransform" Value="scale(1.06)" />
+    <Setter Property="RenderTransform" Value="scale(1.05)" />
   </Style>
   <Style Selector="Button.fab:pressed">
-    <Setter Property="RenderTransform" Value="scale(0.94)" />
+    <Setter Property="RenderTransform" Value="scale(0.96)" />
   </Style>
   <Style Selector="Button.fab /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="BoxShadow" Value="{DynamicResource FabShadow}" />
@@ -408,7 +430,6 @@
   <Style Selector="TextBox.campo:focus /template/ Border#PART_BorderElement">
     <Setter Property="Background" Value="{DynamicResource InputBackground}" />
     <Setter Property="BorderBrush" Value="{DynamicResource AccentPrimary}" />
-    <Setter Property="BorderThickness" Value="1.5" />
   </Style>
   <Style Selector="TextBox.campo.erro /template/ Border#PART_BorderElement">
     <Setter Property="BorderBrush" Value="{DynamicResource StrengthWeak}" />

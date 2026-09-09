@@ -103,7 +103,7 @@
                        Chave="IconeMenu" />
               </Button>
 
-              <Panel Name="EspacoFab" DockPanel.Dock="Bottom" Height="76" />
+              <Panel Name="EspacoFab" DockPanel.Dock="Bottom" Height="84" />
 
               <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
               <StackPanel Margin="0,12,0,0" Spacing="4">
@@ -155,7 +155,7 @@
                 <Border Height="1" Background="{DynamicResource Separator}" Margin="8,14,8,12" />
 
                 <TextBlock Name="LblCategoriasNav" Text="{DynamicResource Nav.Categories}"
-                           FontSize="10" FontWeight="Bold"
+                           FontSize="11" FontWeight="Bold"
                            Foreground="{DynamicResource TextHeader}"
                            Margin="12,0,0,6" />
                 <Button Name="BtnCatPessoal" Classes="nav-item" Tag="Personal" Click="NavCategoria_Click"
@@ -271,7 +271,7 @@
                 <DockPanel Margin="28,22,28,0">
                   <Grid DockPanel.Dock="Top" Height="50" ColumnDefinitions="Auto,Auto,*,Auto">
                     <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
-                      <TextBlock Name="LblTituloVault" Text="{DynamicResource Vault.Header}" FontSize="21" FontWeight="Bold"
+                      <TextBlock Name="LblTituloVault" Text="{DynamicResource Vault.Header}" Classes="titulo"
                                  Foreground="{DynamicResource TextPrimary}" VerticalAlignment="Center"
                                  AutomationProperties.HeadingLevel="1" />
                       <Border CornerRadius="{StaticResource RadiusPill}"
@@ -457,7 +457,7 @@
                                   AutomationProperties.ControlTypeOverride="Button"
                                   AutomationProperties.Name="{DynamicResource Vault.Table.Service}"
                                   AutomationProperties.HelpText="{DynamicResource A11y.SortByColumn}">
-                        <TextBlock Text="{DynamicResource Vault.Table.Service}" FontSize="10" FontWeight="Bold"
+                        <TextBlock Text="{DynamicResource Vault.Table.Service}" FontSize="11" FontWeight="Bold"
                                    Foreground="{DynamicResource TextHeader}" />
                         <TextBlock Name="SetaOrdenacaoServico" FontSize="9" IsVisible="False"
                                    Foreground="{DynamicResource TextHeader}" />
@@ -476,7 +476,7 @@
                                   AutomationProperties.ControlTypeOverride="Button"
                                   AutomationProperties.Name="{DynamicResource Vault.Table.User}"
                                   AutomationProperties.HelpText="{DynamicResource A11y.SortByColumn}">
-                        <TextBlock Text="{DynamicResource Vault.Table.User}" FontSize="10" FontWeight="Bold"
+                        <TextBlock Text="{DynamicResource Vault.Table.User}" FontSize="11" FontWeight="Bold"
                                    Foreground="{DynamicResource TextHeader}" />
                         <TextBlock Name="SetaOrdenacaoUsuario" FontSize="9" IsVisible="False"
                                    Foreground="{DynamicResource TextHeader}" />
@@ -495,7 +495,7 @@
                                   AutomationProperties.ControlTypeOverride="Button"
                                   AutomationProperties.Name="{DynamicResource Vault.Table.Category}"
                                   AutomationProperties.HelpText="{DynamicResource A11y.SortByColumn}">
-                        <TextBlock Text="{DynamicResource Vault.Table.Category}" FontSize="10" FontWeight="Bold"
+                        <TextBlock Text="{DynamicResource Vault.Table.Category}" FontSize="11" FontWeight="Bold"
                                    Foreground="{DynamicResource TextHeader}" />
                         <TextBlock Name="SetaOrdenacaoCategoria" FontSize="9" IsVisible="False"
                                    Foreground="{DynamicResource TextHeader}" />
@@ -514,7 +514,7 @@
                                   AutomationProperties.ControlTypeOverride="Button"
                                   AutomationProperties.Name="{DynamicResource Vault.Table.Strength}"
                                   AutomationProperties.HelpText="{DynamicResource A11y.SortByColumn}">
-                        <TextBlock Text="{DynamicResource Vault.Table.Strength}" FontSize="10" FontWeight="Bold"
+                        <TextBlock Text="{DynamicResource Vault.Table.Strength}" FontSize="11" FontWeight="Bold"
                                    Foreground="{DynamicResource TextHeader}" />
                         <TextBlock Name="SetaOrdenacaoForca" FontSize="9" IsVisible="False"
                                    Foreground="{DynamicResource TextHeader}" />
@@ -525,7 +525,7 @@
                               PointerPressed="RedimensionarColuna_PointerPressed"
                               PointerMoved="RedimensionarColuna_PointerMoved"
                               PointerReleased="RedimensionarColuna_PointerReleased" />
-                      <TextBlock Text="{DynamicResource Vault.Table.Actions}" FontSize="10" FontWeight="Bold"
+                      <TextBlock Text="{DynamicResource Vault.Table.Actions}" FontSize="11" FontWeight="Bold"
                                  Foreground="{DynamicResource TextHeader}"
                                  HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Column="9" />
                     </Grid>
@@ -695,7 +695,7 @@
                                    TextTrimming="CharacterEllipsis"
                                    VerticalAlignment="Center" />
                       </Border>
-                      <Button Classes="plano" Padding="4,2" FontSize="12"
+                      <Button Classes="plano" Padding="4,2" FontSize="12" FontWeight="Normal"
                               Content="{DynamicResource Details.FullEdit}"
                               Click="EdicaoCompletaDetalhes_Click" />
                     </StackPanel>
@@ -887,7 +887,7 @@
 
           <Canvas Grid.Column="0" Grid.ColumnSpan="2">
             <Button Name="BtnFabGerador"
-                    Canvas.Left="24" Canvas.Bottom="30"
+                    Canvas.Left="30" Canvas.Bottom="34"
                     Width="60" Height="60"
                     Classes="fab"
                     ToolTip.Tip="{DynamicResource Generator.Title}"
