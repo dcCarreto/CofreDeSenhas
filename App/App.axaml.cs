@@ -109,7 +109,7 @@ namespace CofreDeSenhas
 
         private async void AbrirCofre(IClassicDesktopStyleApplicationLifetime desktop, byte[] chave, string? senhaMestraPlano)
         {
-            var criptografia = new ServicoCriptografia(chave);
+            var criptografia = new ServicoCriptografia(chave, travarNaMemoria: true);
             var persistencia = new PersistenciaLocal(criptografia);
             var repositorio = new RepositorioSenha(persistencia, chave);
             var servicoSenha = new ServicoSenha(repositorio, criptografia);

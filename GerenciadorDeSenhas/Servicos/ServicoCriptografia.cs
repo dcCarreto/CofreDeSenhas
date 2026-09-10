@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -11,17 +12,25 @@ namespace GerenciadorDeSenhas.Servicos
         private static readonly byte[] InfoChaveHmac = Encoding.UTF8.GetBytes("CofreDeSenhas.IntegridadeBanco.v1");
 
         private readonly byte[] _chave;
+        // Fixa a chave numa página travada na RAM quando o dono é a instância de
+        // sessão do cofre (travarNaMemoria); os usos efêmeros não pinam nada.
+        private GCHandle _pino;
         // AesGcm reusado em vez de um por chamada. Seguro porque o app é single-thread
         // (sem Task.Run); descartado em ZerarChave.
         private readonly AesGcm _aes;
         private byte[]? _chaveHmac;
         private bool _zerada;
 
-        public ServicoCriptografia(byte[] chave)
+        public ServicoCriptografia(byte[] chave, bool travarNaMemoria = false)
         {
             if (chave.Length != 32)
                 throw new ArgumentException("Chave deve ter 256 bits (32 bytes)");
             _chave = chave;
+            if (travarNaMemoria)
+            {
+                _pino = GCHandle.Alloc(_chave, GCHandleType.Pinned);
+                MemoriaTravada.Travar(_pino.AddrOfPinnedObject(), (nuint)_chave.Length);
+            }
             _aes = new AesGcm(chave, TamanhoTag);
         }
 
@@ -102,6 +111,11 @@ namespace GerenciadorDeSenhas.Servicos
             if (_chaveHmac != null)
                 CryptographicOperations.ZeroMemory(_chaveHmac);
             _aes.Dispose();
+            if (_pino.IsAllocated)
+            {
+                MemoriaTravada.Destravar(_pino.AddrOfPinnedObject(), (nuint)_chave.Length);
+                _pino.Free();
+            }
             _zerada = true;
         }
 
