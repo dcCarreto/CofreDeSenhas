@@ -1,4 +1,3 @@
-using System.Text.RegularExpressions;
 using Avalonia.Media;
 
 namespace CofreDeSenhas
@@ -7,15 +6,39 @@ namespace CofreDeSenhas
     {
         public static int Calcular(string senha)
         {
-            int forca = 0;
             if (string.IsNullOrEmpty(senha)) return 0;
+
+            bool temMaiuscula = false, temMinuscula = false, temDigito = false, temNaoAlfanumerico = false;
+            int palavras = 0, tamanhoParte = 0;
+            bool parteSoLetras = true;
+
+            foreach (var c in senha)
+            {
+                if (c >= 'A' && c <= 'Z') temMaiuscula = true;
+                else if (c >= 'a' && c <= 'z') temMinuscula = true;
+                else if (c >= '0' && c <= '9') temDigito = true;
+                else temNaoAlfanumerico = true;
+
+                if (c is '-' or '_' or '.' or ' ')
+                {
+                    if (tamanhoParte >= 3 && parteSoLetras) palavras++;
+                    tamanhoParte = 0;
+                    parteSoLetras = true;
+                }
+                else
+                {
+                    tamanhoParte++;
+                    if (!char.IsLetter(c)) parteSoLetras = false;
+                }
+            }
+            if (tamanhoParte >= 3 && parteSoLetras) palavras++;
+
+            int forca = 0;
             if (senha.Length >= 8) forca++;
             if (senha.Length >= 12) forca++;
-            if (Regex.IsMatch(senha, "[A-Z]") && Regex.IsMatch(senha, "[a-z]")) forca++;
-            if (Regex.IsMatch(senha, "[0-9]")) forca++;
+            if (temMaiuscula && temMinuscula) forca++;
+            if (temDigito) forca++;
 
-            var partes = senha.Split(new[] { '-', '_', '.', ' ' }, StringSplitOptions.RemoveEmptyEntries);
-            int palavras = partes.Count(p => p.Length >= 3 && p.All(char.IsLetter));
             bool ehPassphrase = palavras >= 4;
             if (ehPassphrase)
                 forca = Math.Max(forca, Math.Min(4, palavras - 1));
@@ -26,7 +49,7 @@ namespace CofreDeSenhas
             // (ServicoAuditoriaSenha.SenhaForteParaAuditoria exige símbolo pra senhas
             // que não são passphrase). Passphrase continua isenta, mesmo critério do
             // relatório (EhPassphraseForte).
-            if (!ehPassphrase && forca >= 4 && !Regex.IsMatch(senha, @"[^A-Za-z0-9]"))
+            if (!ehPassphrase && forca >= 4 && !temNaoAlfanumerico)
                 forca = 3;
 
             return Math.Min(forca, 4);

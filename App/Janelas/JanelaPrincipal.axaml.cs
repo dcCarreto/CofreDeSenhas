@@ -195,7 +195,7 @@ namespace CofreDeSenhas.Janelas
             _timerBusca.Tick += (s, e) =>
             {
                 _timerBusca.Stop();
-                FiltrarSenhas();
+                FiltrarSenhas(reordenar: false);
             };
 
             // VerificarBackupAgendadoAsync só rodava uma vez, na abertura da janela —
@@ -672,7 +672,7 @@ namespace CofreDeSenhas.Janelas
                 linha.IniciarEdicaoServico(pendente.Texto);
         }
 
-        private void Filtro_Alterado(object? sender, SelectionChangedEventArgs e) => FiltrarSenhas();
+        private void Filtro_Alterado(object? sender, SelectionChangedEventArgs e) => FiltrarSenhas(reordenar: false);
 
         private void Busca_Alterada(object? sender, TextChangedEventArgs e)
         {
@@ -680,30 +680,43 @@ namespace CofreDeSenhas.Janelas
             _timerBusca.Start();
         }
 
-        private void FiltrarSenhas()
+        // reordenar: false quando a chamada não pode mudar a ordem — a busca (roda a
+        // cada tecla, depois do debounce) e a troca dos filtros de categoria/etiqueta
+        // só escondem itens. Nesses casos, poupa o Sort da lista inteira; a ordem já
+        // está boa do último FiltrarSenhas que reordenou.
+        private void FiltrarSenhas(bool reordenar = true)
         {
             if (PainelLista == null) return;
 
             _timerBusca.Stop();
 
+            if (reordenar)
+                // CompararLinha desempata por Id: List.Sort é instável e sem isso a lista "pula".
+                _senhasAtuais.Sort(CompararLinha);
+
             var termo = (TxtBusca.Text ?? "").Trim();
             var categoriaFiltro = (CmbCategoria.SelectedItem as FiltroOrganizacao)?.Categoria;
             var etiquetaFiltro = (CmbEtiqueta.SelectedItem as FiltroOrganizacao)?.Etiqueta;
 
-            var filtradas = _senhasAtuais
-                .Where(s => string.IsNullOrEmpty(termo) ||
-                    s.NomeServico.Contains(termo, StringComparison.OrdinalIgnoreCase) ||
-                    s.Usuario.Contains(termo, StringComparison.OrdinalIgnoreCase) ||
-                    s.Etiquetas.Any(e => e.Contains(termo, StringComparison.OrdinalIgnoreCase)))
-                .Where(s => categoriaFiltro == null || s.Categoria == categoriaFiltro)
-                .Where(s => etiquetaFiltro == null ||
-                    s.Etiquetas.Any(e => string.Equals(e, etiquetaFiltro, StringComparison.OrdinalIgnoreCase)))
-                .Where(s => !_somenteFavoritos || s.Favorito)
-                .Where(s => _filtroSeguranca == null || SenhaTemProblema(s, _filtroSeguranca.Value))
-                .ToList();
-
-            // CompararLinha desempata por Id: List.Sort é instável e sem isso a lista "pula".
-            filtradas.Sort(CompararLinha);
+            var filtradas = new List<Senha>(_senhasAtuais.Count);
+            foreach (var s in _senhasAtuais)
+            {
+                if (!string.IsNullOrEmpty(termo) &&
+                    !s.NomeServico.Contains(termo, StringComparison.OrdinalIgnoreCase) &&
+                    !s.Usuario.Contains(termo, StringComparison.OrdinalIgnoreCase) &&
+                    !s.Etiquetas.Any(e => e.Contains(termo, StringComparison.OrdinalIgnoreCase)))
+                    continue;
+                if (categoriaFiltro != null && s.Categoria != categoriaFiltro)
+                    continue;
+                if (etiquetaFiltro != null &&
+                    !s.Etiquetas.Any(e => string.Equals(e, etiquetaFiltro, StringComparison.OrdinalIgnoreCase)))
+                    continue;
+                if (_somenteFavoritos && !s.Favorito)
+                    continue;
+                if (_filtroSeguranca != null && !SenhaTemProblema(s, _filtroSeguranca.Value))
+                    continue;
+                filtradas.Add(s);
+            }
 
             _senhasFiltradasAtuais = filtradas;
             AtualizarLista(filtradas);
