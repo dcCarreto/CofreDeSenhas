@@ -25,7 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\GerenciadorDeSenhas\GerenciadorDeSenhas.csproj" />
+    <ProjectReference Include="..\GerenciadorDeSenhas.Core\GerenciadorDeSenhas.Core.csproj" />
   </ItemGroup>
 
 </Project>

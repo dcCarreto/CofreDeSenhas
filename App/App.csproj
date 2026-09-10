@@ -67,7 +67,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\GerenciadorDeSenhas\GerenciadorDeSenhas.csproj" />
+    <ProjectReference Include="..\GerenciadorDeSenhas.Core\GerenciadorDeSenhas.Core.csproj" />
+    <ProjectReference Include="..\GerenciadorDeSenhas.Integracoes\GerenciadorDeSenhas.Integracoes.csproj" />
   </ItemGroup>
 
 </Project>
