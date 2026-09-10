@@ -340,6 +340,9 @@ namespace CofreDeSenhas.Janelas
             {
                 AlterarSenhaMestra = () => AlterarSenhaMestra_Click(this, vazio),
                 RegerarQr = () => RegerarQrCode_Click(this, vazio),
+                ChaveRecuperacaoAtivarOuGerar = AtivarOuGerarChaveRecuperacao,
+                ChaveRecuperacaoDesativar = DesativarChaveRecuperacao,
+                ChaveRecuperacaoAtiva = new ServicoRecuperacao().EstaHabilitada(),
                 AlternarWindowsHello = () => Biometria_Click(this, vazio),
                 BloquearAgora = () => BloquearAgora_Click(this, vazio),
                 Backup = () => Backup_Click(this, vazio),

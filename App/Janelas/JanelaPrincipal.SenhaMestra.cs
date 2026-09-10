@@ -92,6 +92,7 @@ namespace CofreDeSenhas.Janelas
             var biometriaEstavaHabilitada = _biometria.EstaHabilitado;
             await _biometria.DesabilitarAsync();
             await QrBackup.OferecerSalvarAsync(this, dlg.NovaSenha);
+            await RecuperacaoUi.RenovarAposTrocaDeSenhaAsync(this, chaveNova);
 
             var mensagem = Idioma.Texto("Master.ChangedRestart");
             if (biometriaEstavaHabilitada)
@@ -191,6 +192,31 @@ namespace CofreDeSenhas.Janelas
                 return;
 
             await QrBackup.OferecerSalvarAsync(this, dlg.SenhaConfirmada);
+        }
+
+        private async void AtivarOuGerarChaveRecuperacao()
+        {
+            // Re-auth com a senha mestra antes de expor / rotacionar o segredo.
+            var dlg = new JanelaConfirmarSenhaMestra(
+                Idioma.Texto("Recovery.SettingsRow"),
+                Idioma.Texto("Recovery.RecoverInstruction"),
+                Idioma.Texto("Recovery.Enable"));
+            if (!await AbrirDialogoAsync<bool>(dlg))
+                return;
+
+            var segredo = new ServicoRecuperacao().Habilitar(_chaveMestra);
+            await CaixaMensagem.MostrarAsync(this, Idioma.Texto("Recovery.Saved"),
+                Idioma.Texto("Recovery.SettingsRow"), TipoMensagem.Info);
+            await RecuperacaoUi.MostrarChaveAsync(this, segredo);
+        }
+
+        private async void DesativarChaveRecuperacao()
+        {
+            var confirmou = await CaixaMensagem.ConfirmarAsync(this,
+                Idioma.Texto("Recovery.DisableConfirm"),
+                Idioma.Texto("Recovery.SettingsRow"), TipoMensagem.Aviso);
+            if (confirmou)
+                new ServicoRecuperacao().Desabilitar();
         }
 
         // internal só pra teste chamar direto sem precisar abrir o MenuFlyout de

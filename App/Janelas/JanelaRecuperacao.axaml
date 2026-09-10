@@ -1,0 +1,88 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:c="using:CofreDeSenhas.Controles"
+        x:Class="CofreDeSenhas.Janelas.JanelaRecuperacao"
+        Width="460"
+        SizeToContent="Height"
+        CanResize="False"
+        SystemDecorations="None"
+        Background="Transparent"
+        TransparencyLevelHint="Transparent"
+        WindowStartupLocation="CenterOwner"
+        RenderOptions.BitmapInterpolationMode="HighQuality">
+
+  <Border CornerRadius="{StaticResource RadiusDialogo}"
+          ClipToBounds="True"
+          Background="{DynamicResource CardBackground}"
+          BorderBrush="{DynamicResource CardBorder}"
+          BorderThickness="1">
+
+    <DockPanel>
+      <TextBlock Name="LblAnuncioLeitorTela" DockPanel.Dock="Top" Width="1" Height="1" Opacity="0"
+                 IsHitTestVisible="False" Focusable="False" />
+
+      <Border DockPanel.Dock="Top" Height="56"
+              BorderBrush="{DynamicResource CardBorder}" BorderThickness="0,0,0,1"
+              PointerPressed="Arrastar">
+        <Grid>
+          <TextBlock Text="{DynamicResource Recovery.RecoverTitle}"
+                     Classes="titulo"
+                     Foreground="{DynamicResource TextPrimary}"
+                     VerticalAlignment="Center"
+                     AutomationProperties.HeadingLevel="1"
+                     Margin="24,0,60,0"
+                     TextTrimming="CharacterEllipsis" />
+          <Button Classes="fechar-dialogo"
+                  AutomationProperties.Name="{DynamicResource Access.Close}"
+                  HorizontalAlignment="Right" VerticalAlignment="Center"
+                  Margin="0,0,14,0"
+                  Click="Cancelar_Click">
+            <c:Icone Width="{StaticResource TamIconeToolbar}" Height="{StaticResource TamIconeToolbar}" Chave="IconeFechar" />
+          </Button>
+        </Grid>
+      </Border>
+
+      <Border DockPanel.Dock="Bottom" Height="72"
+              BorderBrush="{DynamicResource CardBorder}" BorderThickness="0,1,0,0">
+        <StackPanel Orientation="Horizontal" Spacing="10"
+                    HorizontalAlignment="Right" VerticalAlignment="Center" Margin="24,0">
+          <Button Name="BtnRecuperar" Classes="primario" Content="{DynamicResource Recovery.Recover}"
+                  MinWidth="140" Height="40" Click="Recuperar_Click" />
+          <Button Classes="secundario" Content="{DynamicResource Common.Cancel}"
+                  MinWidth="120" Height="40" Click="Cancelar_Click" />
+        </StackPanel>
+      </Border>
+
+      <StackPanel Margin="24,18,24,16" Spacing="4">
+        <TextBlock Text="{DynamicResource Recovery.RecoverInstruction}"
+                   FontSize="12"
+                   Foreground="{DynamicResource TextSecondary}"
+                   TextWrapping="Wrap"
+                   Margin="0,0,0,12" />
+
+        <TextBlock Text="{DynamicResource Recovery.KeyField}" Classes="legenda" />
+        <TextBox Name="TxtChave" Classes="campo" Margin="0,0,0,10"
+                 AcceptsReturn="False"
+                 AutomationProperties.Name="{DynamicResource Recovery.KeyField}"
+                 AutomationProperties.IsRequiredForForm="True" />
+
+        <TextBlock Text="{DynamicResource Recovery.NewPassword}" Classes="legenda" />
+        <TextBox Name="TxtNovaSenha" Classes="campo" PasswordChar="●" Margin="0,0,0,8"
+                 AutomationProperties.Name="{DynamicResource Recovery.NewPassword}"
+                 AutomationProperties.IsRequiredForForm="True" />
+
+        <TextBlock Text="{DynamicResource Recovery.ConfirmPassword}" Classes="legenda" />
+        <TextBox Name="TxtConfirmar" Classes="campo" PasswordChar="●" Margin="0,0,0,8"
+                 AutomationProperties.Name="{DynamicResource Recovery.ConfirmPassword}"
+                 AutomationProperties.IsRequiredForForm="True" />
+
+        <TextBlock Name="LblErro"
+                   FontSize="12"
+                   Foreground="{DynamicResource StrengthWeak}"
+                   TextWrapping="Wrap"
+                   AutomationProperties.LiveSetting="Assertive"
+                   MinHeight="34" />
+      </StackPanel>
+    </DockPanel>
+  </Border>
+</Window>

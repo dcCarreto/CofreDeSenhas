@@ -14,6 +14,9 @@ namespace CofreDeSenhas.Janelas
     {
         public required Action AlterarSenhaMestra { get; init; }
         public required Action RegerarQr { get; init; }
+        public required Action ChaveRecuperacaoAtivarOuGerar { get; init; }
+        public required Action ChaveRecuperacaoDesativar { get; init; }
+        public bool ChaveRecuperacaoAtiva { get; init; }
         public required Action AlternarWindowsHello { get; init; }
         public required Action BloquearAgora { get; init; }
         public required Action Backup { get; init; }
@@ -418,6 +421,11 @@ namespace CofreDeSenhas.Janelas
             var painel = NovoPainel("Config.Security.Intro");
             painel.Children.Add(LinhaAcao("IconeCofre", Idioma.Texto("Settings.ChangeMasterPassword"), null, _acoes.AlterarSenhaMestra));
             painel.Children.Add(LinhaAcao("IconeQrCode", Idioma.Texto("Settings.RegenerateQr"), null, _acoes.RegerarQr));
+            painel.Children.Add(LinhaAcao("IconeCadeado", Idioma.Texto("Recovery.SettingsRow"),
+                Idioma.Texto(_acoes.ChaveRecuperacaoAtiva ? "Recovery.SettingsHelpOn" : "Recovery.SettingsHelpOff"),
+                _acoes.ChaveRecuperacaoAtivarOuGerar));
+            if (_acoes.ChaveRecuperacaoAtiva)
+                painel.Children.Add(LinhaAcao("IconeAviso", Idioma.Texto("Recovery.Disable"), null, _acoes.ChaveRecuperacaoDesativar, perigoso: true));
             if (_acoes.WindowsHelloSuportado)
                 painel.Children.Add(LinhaAcao("IconeWindowsHello",
                     Idioma.Texto(_acoes.WindowsHelloAtivo ? "Settings.DisableWindowsHello" : "Settings.EnableWindowsHello"),

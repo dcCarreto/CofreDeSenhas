@@ -144,6 +144,16 @@
                     IsVisible="False"
                     Content="{DynamicResource Login.RestoreFromDatabase}"
                     Click="RestaurarBanco_Click" />
+
+            <Button Name="BtnEsqueciSenha"
+                    Classes="link-ajuda"
+                    TabIndex="7"
+                    HorizontalAlignment="Center"
+                    Margin="0,12,0,0"
+                    IsVisible="False"
+                    Click="EsqueciSenha_Click">
+              <TextBlock Text="{DynamicResource Recovery.ForgotLink}" />
+            </Button>
           </StackPanel>
           </ScrollViewer>
 

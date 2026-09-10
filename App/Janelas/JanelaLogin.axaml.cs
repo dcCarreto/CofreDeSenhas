@@ -54,6 +54,7 @@ namespace CofreDeSenhas.Janelas
             Medidor.IsVisible = _primeiroAcesso;
             LblPrimeiroAcessoAviso.IsVisible = _primeiroAcesso;
             BtnRestaurarBanco.IsVisible = _primeiroAcesso;
+            BtnEsqueciSenha.IsVisible = !_primeiroAcesso && new ServicoRecuperacao(_auth.PastaApp).EstaHabilitada();
             TxtSenha.TextChanged += (s, e) =>
             {
                 if (_primeiroAcesso) Medidor.Avaliar(TxtSenha.Text);
@@ -140,6 +141,21 @@ namespace CofreDeSenhas.Janelas
         }
 
         private async void RestaurarBanco_Click(object? sender, RoutedEventArgs e) => await RestaurarDeBancoAsync();
+
+        private async void EsqueciSenha_Click(object? sender, RoutedEventArgs e)
+        {
+            var dlg = new JanelaRecuperacao(_auth);
+            await AbrirDialogoAsync<object?>(dlg);
+            if (!dlg.Recuperado)
+                return;
+
+            TxtSenha.Text = "";
+            LblErro.Text = "";
+            await CaixaMensagem.MostrarAsync(this,
+                Idioma.Texto("Recovery.RecoverInstruction"),
+                Idioma.Texto("Recovery.RecoverTitle"), TipoMensagem.Info);
+            TxtSenha.Focus();
+        }
 
         private async Task RestaurarDeBancoAsync()
         {
@@ -367,6 +383,7 @@ namespace CofreDeSenhas.Janelas
                     }
 
                     await QrBackup.OferecerSalvarAsync(this, senha);
+                    await RecuperacaoUi.OferecerNaCriacaoAsync(this, chave, _auth.PastaApp);
                     await OferecerBiometriaAsync(chave);
                     manterDesabilitado = true;
                     _aoAutenticar(chave, senha);
