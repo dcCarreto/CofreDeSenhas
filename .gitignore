@@ -585,4 +585,3 @@ RELATORIO-QA.md
 
 # Este repositório tem um projeto cuja pasta termina em ".Core" — não é core dump.
 !GerenciadorDeSenhas.Core/
-!GerenciadorDeSenhas.Core/**
