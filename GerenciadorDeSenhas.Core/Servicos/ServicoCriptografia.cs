@@ -34,11 +34,33 @@ namespace GerenciadorDeSenhas.Servicos
             _aes = new AesGcm(chave, TamanhoTag);
         }
 
-        public string Criptografar(string plaintext) =>
-            Convert.ToBase64String(CriptografarBytes(Encoding.UTF8.GetBytes(plaintext)));
+        public string Criptografar(string plaintext)
+        {
+            // O byte[] do texto claro é uma cópia zerável do segredo — apaga assim
+            // que vira ciphertext, em vez de deixá-la virar lixo no heap.
+            var claro = Encoding.UTF8.GetBytes(plaintext);
+            try
+            {
+                return Convert.ToBase64String(CriptografarBytes(claro));
+            }
+            finally
+            {
+                CryptographicOperations.ZeroMemory(claro);
+            }
+        }
 
-        public string Descriptografar(string ciphertextBase64) =>
-            Encoding.UTF8.GetString(DescriptografarBytes(Convert.FromBase64String(ciphertextBase64)));
+        public string Descriptografar(string ciphertextBase64)
+        {
+            var claro = DescriptografarBytes(Convert.FromBase64String(ciphertextBase64));
+            try
+            {
+                return Encoding.UTF8.GetString(claro);
+            }
+            finally
+            {
+                CryptographicOperations.ZeroMemory(claro);
+            }
+        }
 
         public byte[] CriptografarBytes(byte[] plaintext)
         {
