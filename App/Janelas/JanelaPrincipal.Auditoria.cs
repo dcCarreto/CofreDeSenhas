@@ -43,7 +43,7 @@ namespace CofreDeSenhas.Janelas
             try
             {
                 var resultado = ExecutarAuditoria();
-                FiltrarSenhas();
+                FiltrarSenhas(reordenar: false);
                 AtualizarContador();
 
                 await CaixaMensagem.MostrarAsync(this, MontarMensagemAuditoria(resultado), Idioma.Texto("Message.AuditTitle"),
