@@ -10,7 +10,7 @@ namespace App.Testes
         public void VerificarAtualizacoes_QuandoOConfigNaoTemAChave_FicaDesligado()
         {
             var caminho = Path.Combine(CaminhosApp.PastaDados, "config.json");
-            var original = File.Exists(caminho) ? File.ReadAllText(caminho) : null;
+            var arquivoOriginal = File.Exists(caminho) ? File.ReadAllText(caminho) : null;
             try
             {
                 Directory.CreateDirectory(CaminhosApp.PastaDados);
@@ -23,11 +23,14 @@ namespace App.Testes
             }
             finally
             {
-                if (original != null)
-                    File.WriteAllText(caminho, original);
-                else
-                    File.Delete(caminho);
+                // Recarrega a partir do estado original (ou de um "{}" = tudo no
+                // padrão, o mesmo efeito de não haver config) para não deixar
+                // nenhum estático global de Preferencias sujo para o próximo teste
+                // da coleção.
+                File.WriteAllText(caminho, arquivoOriginal ?? "{}");
                 Preferencias.Carregar();
+                if (arquivoOriginal == null)
+                    File.Delete(caminho);
             }
         }
     }
