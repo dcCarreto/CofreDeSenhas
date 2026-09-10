@@ -11,7 +11,6 @@ plataformas.
 ![Licença](https://img.shields.io/badge/licen%C3%A7a-PolyForm%20Noncommercial-blue)
 ![Plataforma](https://img.shields.io/badge/plataforma-Windows%2010%2F11%20%7C%20Linux-0078D6)
 ![.NET](https://img.shields.io/badge/.NET-10-512BD4)
-![Versão](https://img.shields.io/badge/vers%C3%A3o-2.2.4-success)
 
 Este é um projeto de código aberto, gratuito e sem fins comerciais, distribuído
 sob a licença PolyForm Noncommercial 1.0.0. Você pode usá-lo, estudá-lo,
@@ -34,7 +33,6 @@ modificá-lo e compartilhá-lo livremente para qualquer finalidade não comercia
 - [Testes](#testes)
 - [Geração do executável](#geração-do-executável)
 - [Armazenamento de dados](#armazenamento-de-dados)
-- [Roadmap](#roadmap)
 - [Como contribuir](#como-contribuir)
 - [Licença](#licença)
 
@@ -358,13 +356,13 @@ Hello, o backup e a sincronização, a acessibilidade e a ajuda, além de uma ab
 
 - O item "Verificar atualizações" no menu de configurações (ligado por padrão)
   consulta a release mais recente do GitHub a cada abertura do cofre. Havendo
-  versão nova, a barra inferior mostra um botão "Atualizar agora".
+  uma atualização, a barra inferior mostra um botão "Atualizar agora".
 - No Windows, o botão baixa o instalador (ou o executável portátil, conforme
   como o cofre está rodando); no Linux, funciona rodando como **AppImage**
   (baixa o `.AppImage` novo). Em ambos os casos, confere o hash SHA256 contra
   o `CHECKSUMS.txt` da própria release e, só se bater, aplica a atualização
   sozinho: instala em modo silencioso, troca o executável portátil ou o
-  AppImage no lugar, fecha o cofre e reabre a versão nova automaticamente —
+  AppImage no lugar, fecha o cofre e reabre a versão atualizada automaticamente —
   sem instalador para rodar na mão.
 - Qualquer falha (sem internet, checksum não bate, arquivo não encontrado) ou
   fora de um desses dois cenários (por exemplo, rodando do `.tar.gz`
@@ -418,8 +416,8 @@ A forma mais simples de usar o programa é baixar o executável pronto na págin
 
 No Windows:
 
-1. Acesse a [última versão](../../releases/latest).
-2. Baixe o instalador `CofreDeSenhas-Setup-X.Y.Z.exe`.
+1. Acesse a [última release](../../releases/latest).
+2. Baixe o instalador `CofreDeSenhas-Setup-*.exe`.
 3. Execute e siga o assistente. Não é preciso ser administrador: por padrão o
    programa é instalado só para o usuário atual, com atalho no menu iniciar
    (e, opcionalmente, na área de trabalho) e entrada em "Aplicativos e
@@ -429,10 +427,30 @@ No Windows:
    baixar e executar.
 
 Quem só quer gerar senhas, sem abrir o cofre, pode baixar
-`GeradorDeSenhas-X.Y.Z-win-x64-portatil.exe` na mesma [página de
+`GeradorDeSenhas-*-win-x64-portatil.exe` na mesma [página de
 releases](../../releases/latest): é o mesmo gerador do Cofre, num executável
 autocontido à parte, sem instalador e sem nenhuma das regras do cofre (sem
 senha mestra, sem salvar nada).
+
+### Linha de comando (`cofre`)
+
+Cada release também traz `cofre` — um executável de linha de comando
+**somente-leitura** (`cofre-*-win-x64.exe` / `cofre-*-linux-x64`), para
+automação e uso por teclado, sem abrir a janela:
+
+```
+cofre listar
+cofre buscar github
+cofre mostrar "Banco do Brasil"
+cofre copiar github            # põe a senha na área de transferência e a apaga depois
+cofre gerar --frase --palavras 5
+```
+
+A senha mestra é pedida no terminal a cada comando que abre o cofre; nada é
+armazenado, e o bloqueio por tentativas erradas é o mesmo do aplicativo. O CLI
+nunca imprime uma senha do cofre — ela só sai pela área de transferência. Não
+cria nem edita credenciais (isso é só pelo aplicativo). Aponta para o mesmo
+cofre do app; `COFRE_BASE=<pasta>` usa outro. Veja `cofre --help`.
 
 Cada release gera também os manifests necessários para publicação no
 `winget` (gerenciador de pacotes do Windows), como um passo em direção a
@@ -447,13 +465,13 @@ pergunta explicitamente se você também quer apagar esses dados, com a opção
 padrão sendo manter.
 
 No Linux, a forma mais simples é o **AppImage**: baixe
-`CofreDeSenhas-X.Y.Z-x86_64.AppImage` na [última versão](../../releases/latest),
+`CofreDeSenhas-*-x86_64.AppImage` na [última release](../../releases/latest),
 dê permissão de execução e rode — não precisa instalar o .NET nem nada além
 disso:
 
 ```
-chmod +x CofreDeSenhas-X.Y.Z-x86_64.AppImage
-./CofreDeSenhas-X.Y.Z-x86_64.AppImage
+chmod +x CofreDeSenhas-*-x86_64.AppImage
+./CofreDeSenhas-*-x86_64.AppImage
 ```
 
 Funciona em qualquer distribuição x86_64 recente, com integração automática de
@@ -481,8 +499,7 @@ Pacotes `.deb` e Flatpak foram avaliados e ficaram de fora por enquanto: exigem
 manter um repositório próprio (ou publicação no Flathub) para atualizações
 automáticas, o que não compensa o esforço com um único mantenedor e o AppImage
 já cobre o caso de uso de "baixar e rodar" sem depender de gerenciador de
-pacotes. Fica como possibilidade futura se houver demanda (veja o
-[roadmap](ROADMAP.md)).
+pacotes. Fica como possibilidade futura se houver demanda.
 
 No primeiro uso, o programa pedirá a criação de uma senha mestra. Guarde-a com
 cuidado: ela é a única forma de abrir o cofre. Um cofre exportado (`.gsenhas`)
@@ -493,9 +510,9 @@ uso para trazer o cofre inteiro daquele banco, sem precisar recriar nada.
 
 ### Verificando a integridade dos arquivos
 
-Toda release publicada a partir desta versão inclui um `CHECKSUMS.txt` com o
-hash SHA256 de cada arquivo disponibilizado. Depois de baixar, é possível
-conferir que o arquivo não foi alterado no caminho:
+Toda release inclui um `CHECKSUMS.txt` com o hash SHA256 de cada arquivo
+disponibilizado. Depois de baixar, é possível conferir que o arquivo não foi
+alterado no caminho:
 
 ```
 # Windows (PowerShell)
@@ -507,7 +524,7 @@ sha256sum -c CHECKSUMS.txt
 
 Compare o valor calculado com o que consta em `CHECKSUMS.txt`.
 
-A partir da versão 2.1.0, cada arquivo publicado também tem uma *attestation*
+Cada arquivo publicado também tem uma *attestation*
 de proveniência (SLSA/Sigstore) — uma prova assinada de que aquele arquivo
 exato foi gerado pelo workflow de release deste repositório, a partir de um
 commit específico, e não montado ou alterado por fora dele. É uma garantia
@@ -520,9 +537,9 @@ gh attestation verify arquivo-baixado --owner dcCarreto
 ```
 
 Os arquivos ainda não são assinados digitalmente (Authenticode, no caso do
-Windows) — isso exige um certificado pago e é um item avaliado para o futuro
-(veja o [roadmap](ROADMAP.md)) — então hash + attestation são, por enquanto,
-as formas de verificação disponíveis.
+Windows) — isso exige um certificado pago e é um item avaliado para o futuro —
+então hash + attestation são, por enquanto, as formas de verificação
+disponíveis.
 
 ## Estrutura do projeto
 
@@ -534,6 +551,9 @@ CofreDeSenhas.sln
 │  ├─ Infraestrutura/            Tema, preferências, recursos e utilitários
 │  ├─ Ativos/                    Ícone do aplicativo
 │  └─ distribuicao/              Scripts e atalhos de instalação (Linux e Windows)
+├─ Gerador/                      Gerador de senhas standalone (Avalonia)
+├─ Cli/                          Executável de linha de comando `cofre`
+│                                (somente-leitura; referencia só o domínio)
 ├─ GerenciadorDeSenhas/          Biblioteca de domínio
 │  ├─ Modelos/                   Entidades (Senha, Categoria, SenhaExportada,
 │  │                             TipoBanco, ConexaoBanco)
@@ -542,12 +562,15 @@ CofreDeSenhas.sln
 │  └─ Servicos/                  Criptografia, persistência, autenticação,
 │                                exportação, verificação de vazamento, conexão
 │                                a banco de dados e regras
-└─ GerenciadorDeSenhas.Testes/   Testes automatizados (xUnit)
+├─ GerenciadorDeSenhas.Testes/   Testes de domínio (xUnit)
+├─ App.Testes/                   Testes da interface (xUnit + Avalonia headless)
+└─ Cli.Testes/                   Testes do CLI (xUnit)
 ```
 
 A solução separa a interface (projeto `App`) da lógica de domínio (projeto
 `GerenciadorDeSenhas`). Isso mantém as regras de negócio e a criptografia
-independentes da camada gráfica e permite testá-las de forma isolada.
+independentes da camada gráfica e permite testá-las de forma isolada — o CLI
+(`Cli`) consome o mesmo domínio sem nenhuma dependência de UI.
 
 ## Arquitetura
 
@@ -640,7 +663,7 @@ dotnet publish App/App.csproj -f net10.0 -c Release -r linux-x64 --self-containe
 
 ### Instalador do Windows
 
-O instalador (`CofreDeSenhas-Setup-X.Y.Z.exe`) é gerado com o
+O instalador (`CofreDeSenhas-Setup-*.exe`) é gerado com o
 [Inno Setup](https://jrsoftware.org/isinfo.php) a partir do executável já
 publicado. Com o Inno Setup instalado (`winget install JRSoftware.InnoSetup`),
 rode:
@@ -650,9 +673,9 @@ rode:
 ```
 
 O script publica o aplicativo (mesmo comando acima) e compila
-`App/distribuicao/cofre-de-senhas.iss`, deixando o instalador em `dist/`. A
-versão é lida automaticamente de `App/App.csproj` (ou pode ser informada com
-`-Versao X.Y.Z`).
+`App/distribuicao/cofre-de-senhas.iss`, deixando o instalador em `dist/`. O
+nome do arquivo leva a data de hoje como carimbo (ou o valor passado em
+`-Versao`).
 
 O instalador não exige privilégios de administrador (instala só para o
 usuário atual, em `%LocalAppData%\Programs\Cofre de Senhas`, com opção de
@@ -685,11 +708,6 @@ uma compilação de Debug), os dados vão para `GerenciadorSenhas.dev/` ao lado
 da pasta acima — nunca para a pasta do aplicativo instalado. A suíte de testes
 usa uma pasta temporária descartável, apagada ao final. Só o binário publicado
 para release usa `GerenciadorSenhas/`.
-
-## Roadmap
-
-As funcionalidades já concluídas e as planejadas para o futuro estão descritas em
-[ROADMAP.md](ROADMAP.md).
 
 ## Como contribuir
 

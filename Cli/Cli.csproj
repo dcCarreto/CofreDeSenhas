@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+
+    <AssemblyName>cofre</AssemblyName>
+    <RootNamespace>CofreDeSenhas.Cli</RootNamespace>
+    <!-- Sem número de versão, igual ao resto do projeto: carimbo de data por
+         atualização. O pipeline sobrepõe com -p:Version. -->
+    <Version>$([System.DateTime]::UtcNow.ToString('yyyy.M.d'))</Version>
+    <Product>Cofre de Senhas (linha de comando)</Product>
+    <Authors>Denis Cristino Cantagallo Carreto</Authors>
+    <Company>Denis Cristino Cantagallo Carreto</Company>
+    <Description>Interface de linha de comando somente-leitura do Cofre de Senhas: listar, buscar, mostrar e copiar credenciais, mais o gerador de senhas.</Description>
+    <Copyright>Copyright © 2026 Denis Cristino Cantagallo Carreto</Copyright>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Cli.Testes" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GerenciadorDeSenhas\GerenciadorDeSenhas.csproj" />
+  </ItemGroup>
+
+</Project>
