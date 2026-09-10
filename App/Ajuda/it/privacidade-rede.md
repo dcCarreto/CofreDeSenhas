@@ -14,7 +14,7 @@ cassaforte mostra solo le iniziali e non tocca mai la rete.
 ## Controllo aggiornamenti
 
 Quando è attivo, interroga la pagina delle release del progetto per
-avvisarti se c'è una versione più recente. Niente viene scaricato
+avvisarti se c'è un aggiornamento. Niente viene scaricato
 automaticamente, e non viene inviato nulla oltre a quella richiesta.
 Disattivato per impostazione predefinita.
 

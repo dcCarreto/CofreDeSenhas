@@ -25,7 +25,7 @@ Cenário: um pen drive, backup, ou o computador roubado/perdido enquanto o cofre
 fechado. `senhas.json.enc` é cifrado por inteiro com AES-256-GCM; `auth.dat` guarda só o
 salt e um verificador (hash da chave derivada), nunca a chave em si nem a senha mestra.
 Sem a senha mestra, o conteúdo não é recuperável — não existe backdoor nem chave mestra de
-recuperação (ver "Fora de escopo" no `ROADMAP.md`). Adulterar o arquivo cifrado é detectado
+recuperação, e isso é deliberado, não uma lacuna a fechar. Adulterar o arquivo cifrado é detectado
 e rejeitado alto e claro (`InvalidOperationException`), não faz o cofre carregar dado
 corrompido silenciosamente.
 
@@ -41,15 +41,18 @@ Um atacante que guarde a própria cópia antiga do arquivo dribla essa checagem.
 ### Alguém com acesso à memória do processo enquanto o cofre está aberto
 
 **Este é o ponto mais fraco do modelo hoje, e vale ser dito sem rodeio.** Enquanto o cofre
-está desbloqueado, a chave mestra vive como um `byte[]` comum na memória gerenciada do
-processo — sem `SecureString`, sem travar a página contra swap (`mlock`/`VirtualLock`), sem
-proteção contra hibernação. Ela só é zerada (`CryptographicOperations.ZeroMemory`) ao
-bloquear ou fechar o cofre. Um atacante capaz de anexar um depurador, tirar um dump do
-processo, ou vasculhar um arquivo de swap/hibernação **enquanto o cofre está aberto**
-consegue, em tese, extrair a chave ou dados decifrados momentaneamente em memória. Isso não
-é uma falha específica do cofre — é uma limitação inerente a rodar em um processo de
-usuário comum, sem elevar privilégios nem depender de hardware dedicado (TPM/enclave) para
-guardar segredos em uso — mas é real, e por isso listada aqui em vez de deixada implícita.
+está desbloqueado, a chave mestra vive como um `byte[]` na memória gerenciada do processo,
+sem `SecureString`. A página que a contém é travada na RAM física (`VirtualLock` no Windows,
+`mlock` no Linux/macOS, via `MemoriaTravada`) para não ir parar no arquivo de swap nem no de
+hibernação — melhor esforço: se a chamada falhar por cota de memória travável, o cofre segue
+sem essa proteção. A chave é zerada (`CryptographicOperations.ZeroMemory`) ao bloquear ou
+fechar o cofre. Ainda assim, um atacante capaz de anexar um depurador ou tirar um dump do
+processo **enquanto o cofre está aberto** consegue, em tese, extrair a chave ou dados
+decifrados momentaneamente em memória; e a cópia da chave mantida pela janela principal
+para backup/biometria ainda não é travada do mesmo jeito. Isso não é uma falha específica
+do cofre — é uma limitação inerente a rodar em um processo de usuário comum, sem elevar
+privilégios nem depender de hardware dedicado (TPM/enclave) para guardar segredos em uso —
+mas é real, e por isso listada aqui em vez de deixada implícita.
 
 ### Atacante de rede
 
@@ -57,7 +60,7 @@ O cofre não fala com nenhum serviço externo por padrão, fora duas exceções 
 delimitadas: a verificação de senha comprometida (Have I Been Pwned, por k-anonymity — só
 os 5 primeiros caracteres do hash SHA-1 da senha saem da máquina) e a busca de ícones reais
 por favicon (desligada por padrão, exige consentimento explícito, envia só o domínio do
-serviço). A checagem de nova versão é uma leitura pública da API do GitHub, sem enviar nada
+serviço). A checagem de atualização é uma leitura pública da API do GitHub, sem enviar nada
 além da própria consulta. Não há telemetria de nenhum tipo. Um atacante observando o
 tráfego de rede não vê senhas, usuários ou qualquer conteúdo do cofre em trânsito.
 
@@ -185,13 +188,15 @@ acesso com uma chave desatualizada.
   Essa mesma chave pública RSA está versionada no repositório (`update-signing-public.pem`)
   para conferência manual da assinatura, e a release ainda carrega uma assinatura GPG
   destacada do `CHECKSUMS.txt` quando há chave configurada; o `SECURITY.md` descreve os
-  passos. Assinatura de código (Authenticode) no instalador Windows segue como item futuro
-  do roadmap, hoje sem certificado disponível — é o que eliminaria o aviso de "editor
-  desconhecido" do SmartScreen.
+  passos. Assinatura de código (Authenticode) no instalador e nos executáveis do Windows
+  já está montada no pipeline de release (`App/distribuicao/assinar-windows.ps1`),
+  mas inativa: falta um certificado de assinatura (com custo anual). Configurados
+  os secrets `WINDOWS_CERT_BASE64`/`WINDOWS_CERT_PASSWORD`, toda build passa a sair
+  assinada — é o que eliminaria o aviso de "editor desconhecido" do SmartScreen.
 
 ## Como isso evolui
 
-Este documento reflete o desenho atual, não uma promessa estática. À medida que o roadmap
+Este documento reflete o desenho atual, não uma promessa estática. À medida que o projeto
 avança — chave de hardware (FIDO2/YubiKey), por exemplo — as seções acima devem ser
 revisadas para refletir o que muda. Encontrou algo que deveria estar aqui e não está? Veja
 como reportar em [SECURITY.md](SECURITY.md).

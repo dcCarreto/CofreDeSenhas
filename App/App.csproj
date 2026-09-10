@@ -9,7 +9,11 @@
 
     <AssemblyName>CofreDeSenhas</AssemblyName>
     <RootNamespace>CofreDeSenhas</RootNamespace>
-    <Version>2.2.4</Version>
+    <!-- O produto não tem número de versão; o que sobra é um carimbo de data por
+         atualização, só para rastreabilidade e para o atualizador embutido comparar
+         "mais nova". O pipeline de release passa -p:Version com a data exata (e o
+         sufixo .N quando há mais de uma no mesmo dia); localmente vale a data de hoje. -->
+    <Version>$([System.DateTime]::UtcNow.ToString('yyyy.M.d'))</Version>
     <Product>Cofre de Senhas</Product>
     <Authors>Denis Cristino Cantagallo Carreto</Authors>
     <Company>Denis Cristino Cantagallo Carreto</Company>

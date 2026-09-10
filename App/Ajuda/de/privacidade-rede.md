@@ -16,7 +16,7 @@ das Netzwerk nie an.
 ## Nach Updates suchen
 
 Ist dies aktiv, wird die Release-Seite des Projekts abgefragt, um Sie auf
-eine neuere Version hinzuweisen. Es wird nichts automatisch
+ein Update hinzuweisen. Es wird nichts automatisch
 heruntergeladen, und außer dieser Abfrage wird nichts gesendet.
 Standardmäßig aus.
 

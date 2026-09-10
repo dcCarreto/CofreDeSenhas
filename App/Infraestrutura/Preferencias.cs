@@ -71,7 +71,7 @@ namespace CofreDeSenhas
             public string FrequenciaBackup { get; set; } = FrequenciaBackupPadrao;
             public int MaximoBackups { get; set; } = MaximoBackupsPadrao;
             public bool RegistrarHistoricoUso { get; set; } = true;
-            public bool VerificarAtualizacoes { get; set; } = true;
+            public bool VerificarAtualizacoes { get; set; }
             public string? VersaoDispensada { get; set; }
             public PerfilSincronizacao? Sincronizacao { get; set; }
         }
@@ -109,7 +109,7 @@ namespace CofreDeSenhas
         public static string FrequenciaBackup { get; set; } = FrequenciaBackupPadrao;
         public static int MaximoBackups { get; set; } = MaximoBackupsPadrao;
         public static bool RegistrarHistoricoUso { get; set; } = true;
-        public static bool VerificarAtualizacoes { get; set; } = true;
+        public static bool VerificarAtualizacoes { get; set; }
         public static string? VersaoDispensada { get; set; }
         public static PerfilSincronizacao? Sincronizacao { get; set; }
 

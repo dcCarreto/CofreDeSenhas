@@ -14,7 +14,7 @@ desactivado, la caja muestra solo iniciales y no toca la red.
 ## Buscar actualizaciones
 
 Cuando está activo, consulta la página de versiones del proyecto para
-avisarte si hay una versión más nueva. No se descarga nada
+avisarte si hay una actualización. No se descarga nada
 automáticamente, y no se envía nada más que esa consulta. Desactivado por
 defecto.
 

@@ -2,10 +2,11 @@
 
 ## Versões suportadas
 
-O Cofre de Senhas segue lançamentos únicos, sem branches de manutenção paralelas:
-correções de segurança são aplicadas somente à versão mais recente, disponível nas
+O Cofre de Senhas não tem número de versão: é um produto único, atualizado como
+updates comuns, sem branches de manutenção paralelas. Correções de segurança
+entram na release mais recente, disponível nas
 [releases do GitHub](https://github.com/dcCarreto/CofreDeSenhas/releases). O próprio
-aplicativo pode avisar sobre novas versões pelo menu de configurações
+aplicativo pode avisar sobre atualizações pelo menu de configurações
 ("Verificar atualizações"), recurso opcional e desligado por padrão.
 
 ## Confiança nos binários e verificação dos downloads
@@ -15,14 +16,17 @@ repositório e publicados por Denis Cristino Cantagallo Carreto, autor e
 responsável pelo projeto. Eles **não são assinados com um certificado de
 assinatura de código pago** — este é um projeto pessoal, gratuito e sem fins
 comerciais, e um certificado desses tem custo anual e verificação por uma
-autoridade certificadora. Na prática:
+autoridade certificadora. O passo de assinatura Authenticode já existe no
+pipeline (`App/distribuicao/assinar-windows.ps1`) e passa a valer assim que os
+secrets `WINDOWS_CERT_BASE64`/`WINDOWS_CERT_PASSWORD` forem configurados. Até lá,
+na prática:
 
 - **Windows**: ao executar o instalador ou o portátil pela primeira vez, o
   SmartScreen pode mostrar "O Windows protegeu o computador" e o controle de
   conta de usuário pode exibir "Editor: desconhecido". Para prosseguir, clique
   em "Mais informações" e depois em "Executar assim mesmo". A reputação do
   SmartScreen tende a se acumular sozinha conforme mais gente baixa a mesma
-  versão.
+  release.
 - **Linux**: o `.AppImage` precisa de permissão de execução (`chmod +x`) e não
   há, por ora, pacote assinado em repositório de distribuição nem loja.
 
@@ -82,7 +86,9 @@ público até haver uma correção.
 
 Ao reportar, inclua o quanto conseguir:
 
-- Versão do aplicativo e sistema operacional (Windows ou Linux).
+- Sistema operacional (Windows ou Linux), como o aplicativo foi instalado e a
+  data da release em uso (no Windows, "Programas e Recursos"; no Linux, o nome
+  do arquivo do AppImage).
 - Passos para reproduzir o problema.
 - Impacto esperado — o que um atacante conseguiria fazer.
 - Prova de conceito, se houver, sem incluir dados reais de nenhum cofre.

@@ -17,51 +17,45 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  verificar-versao:
-    name: Verificar se há uma versão nova para lançar
+  versao:
+    name: Carimbar a atualização com a data de hoje
     runs-on: ubuntu-latest
     outputs:
       versao: ${{ steps.versao.outputs.versao }}
-      deve_lancar: ${{ steps.check.outputs.deve_lancar }}
+      publicar: ${{ steps.versao.outputs.publicar }}
     steps:
       - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
-      - name: Determinar versão
+      - name: Determinar o carimbo da atualização
         id: versao
+        # O produto não tem número de versão. Cada push em prod publica uma
+        # atualização carimbada com a data (UTC); quando já houve uma release
+        # hoje, cai para .1, .2… O carimbo serve só para rastreabilidade e para
+        # o atualizador embutido comparar "mais nova".
         run: |
-          ocorrencias=$(grep -c '<Version>' App/App.csproj || true)
-          if [ "$ocorrencias" -ne 1 ]; then
-            echo "Esperava exatamente uma tag <Version> em App/App.csproj, encontrei $ocorrencias." >&2
-            exit 1
+          sha="${{ github.sha }}"
+          if git ls-remote --tags origin 'refs/tags/v*' | grep -qE "^${sha}[[:space:]]"; then
+            echo "Commit ${sha} já tem uma tag v* — re-execução do workflow, nada a publicar."
+            echo "publicar=false" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
 
-          versao=$(grep -oP '(?<=<Version>)[^<]+' App/App.csproj)
-          if [ -z "$versao" ]; then
-            echo "Não foi possível determinar a versão em App/App.csproj." >&2
-            exit 1
-          fi
+          base="$(date -u +%Y.%-m.%-d)"
+          versao="$base"
+          n=0
+          while git ls-remote --exit-code --tags origin "refs/tags/v${versao}" > /dev/null 2>&1; do
+            n=$((n + 1))
+            versao="${base}.${n}"
+          done
           echo "versao=$versao" >> "$GITHUB_OUTPUT"
-
-      - name: Verificar se essa versão já foi lançada
-        id: check
-        run: |
-          if git ls-remote --exit-code --tags origin "refs/tags/v${{ steps.versao.outputs.versao }}" > /dev/null 2>&1; then
-            echo "Versão v${{ steps.versao.outputs.versao }} já foi lançada antes, nada a fazer."
-            echo "deve_lancar=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "Versão v${{ steps.versao.outputs.versao }} é nova, vou lançar."
-            echo "deve_lancar=true" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Verificar seção da versão no CHANGELOG.md
-        if: steps.check.outputs.deve_lancar == 'true'
-        run: python3 .github/scripts/montar_notas_release.py "${{ steps.versao.outputs.versao }}" --check-only
+          echo "publicar=true" >> "$GITHUB_OUTPUT"
+          echo "Vou publicar a atualização v${versao}."
 
   testar:
     name: Compilar e testar antes de lançar
-    needs: verificar-versao
-    if: needs.verificar-versao.outputs.deve_lancar == 'true'
+    needs: versao
+    if: needs.versao.outputs.publicar == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -93,8 +87,8 @@ jobs:
 
   build-windows:
     name: Gerar artefatos do Windows
-    needs: [ verificar-versao, testar ]
-    if: needs.verificar-versao.outputs.deve_lancar == 'true' && needs.testar.result == 'success'
+    needs: [ versao, testar ]
+    if: needs.versao.outputs.publicar == 'true'
     runs-on: windows-latest
     steps:
       - name: Checkout
@@ -122,8 +116,14 @@ jobs:
           }
 
       - name: Publicar executável e gerar instalador
+        # Os secrets WINDOWS_CERT_* ativam a assinatura Authenticode dentro do
+        # gerar-instalador.ps1 (executável e instalador). Sem eles, o passo de
+        # assinatura não faz nada — mesma convenção da assinatura GPG opcional.
         shell: pwsh
-        run: .\App\distribuicao\gerar-instalador.ps1 -Versao "${{ needs.verificar-versao.outputs.versao }}"
+        env:
+          WINDOWS_CERT_BASE64: ${{ secrets.WINDOWS_CERT_BASE64 }}
+          WINDOWS_CERT_PASSWORD: ${{ secrets.WINDOWS_CERT_PASSWORD }}
+        run: .\App\distribuicao\gerar-instalador.ps1 -Versao "${{ needs.versao.outputs.versao }}"
 
       - name: Publicar o gerador de senhas standalone
         # Só o executável portátil autocontido, sem instalador próprio: é uma
@@ -134,14 +134,42 @@ jobs:
             -f net10.0-windows10.0.19041.0 -c Release -r win-x64 `
             --self-contained true `
             -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true `
+            -p:Version=${{ needs.versao.outputs.versao }} `
             -o publish-gerador
+
+      - name: Assinar o gerador standalone (Authenticode, opcional)
+        shell: pwsh
+        env:
+          WINDOWS_CERT_BASE64: ${{ secrets.WINDOWS_CERT_BASE64 }}
+          WINDOWS_CERT_PASSWORD: ${{ secrets.WINDOWS_CERT_PASSWORD }}
+        run: .\App\distribuicao\assinar-windows.ps1 publish-gerador\GeradorDeSenhas.exe
+
+      - name: Publicar o CLI
+        # Executável de linha de comando somente-leitura (listar/buscar/mostrar/
+        # copiar/gerar). Referencia só o núcleo, sem Avalonia.
+        shell: pwsh
+        run: |
+          dotnet publish Cli\Cli.csproj `
+            -f net10.0 -c Release -r win-x64 `
+            --self-contained true `
+            -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true `
+            -p:Version=${{ needs.versao.outputs.versao }} `
+            -o publish-cli
+
+      - name: Assinar o CLI (Authenticode, opcional)
+        shell: pwsh
+        env:
+          WINDOWS_CERT_BASE64: ${{ secrets.WINDOWS_CERT_BASE64 }}
+          WINDOWS_CERT_PASSWORD: ${{ secrets.WINDOWS_CERT_PASSWORD }}
+        run: .\App\distribuicao\assinar-windows.ps1 publish-cli\cofre.exe
 
       - name: Empacotar os executáveis portáteis
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path dist | Out-Null
-          Copy-Item "publish\CofreDeSenhas.exe" "dist\CofreDeSenhas-${{ needs.verificar-versao.outputs.versao }}-win-x64-portatil.exe"
-          Copy-Item "publish-gerador\GeradorDeSenhas.exe" "dist\GeradorDeSenhas-${{ needs.verificar-versao.outputs.versao }}-win-x64-portatil.exe"
+          Copy-Item "publish\CofreDeSenhas.exe" "dist\CofreDeSenhas-${{ needs.versao.outputs.versao }}-win-x64-portatil.exe"
+          Copy-Item "publish-gerador\GeradorDeSenhas.exe" "dist\GeradorDeSenhas-${{ needs.versao.outputs.versao }}-win-x64-portatil.exe"
+          Copy-Item "publish-cli\cofre.exe" "dist\cofre-${{ needs.versao.outputs.versao }}-win-x64.exe"
 
       - name: Enviar artefatos do Windows
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
@@ -152,8 +180,8 @@ jobs:
 
   build-linux:
     name: Gerar artefato do Linux
-    needs: [ verificar-versao, testar ]
-    if: needs.verificar-versao.outputs.deve_lancar == 'true' && needs.testar.result == 'success'
+    needs: [ versao, testar ]
+    if: needs.versao.outputs.publicar == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -169,17 +197,25 @@ jobs:
       - name: Publicar (linux-x64, autocontido)
         run: |
           dotnet publish App/App.csproj -f net10.0 -c Release -r linux-x64 \
-            --self-contained true -o publish-linux
+            --self-contained true -p:Version=${{ needs.versao.outputs.versao }} -o publish-linux
+
+      - name: Publicar o CLI (linux-x64)
+        run: |
+          dotnet publish Cli/Cli.csproj -f net10.0 -c Release -r linux-x64 \
+            --self-contained true -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true \
+            -p:Version=${{ needs.versao.outputs.versao }} -o publish-cli
 
       - name: Empacotar em tar.gz
         run: |
           mkdir -p dist
-          tar -czf "dist/CofreDeSenhas-${{ needs.verificar-versao.outputs.versao }}-linux-x64.tar.gz" -C publish-linux .
+          tar -czf "dist/CofreDeSenhas-${{ needs.versao.outputs.versao }}-linux-x64.tar.gz" -C publish-linux .
+          cp publish-cli/cofre "dist/cofre-${{ needs.versao.outputs.versao }}-linux-x64"
+          chmod +x "dist/cofre-${{ needs.versao.outputs.versao }}-linux-x64"
 
       - name: Gerar AppImage
         run: |
           chmod +x App/distribuicao/gerar-appimage.sh
-          ./App/distribuicao/gerar-appimage.sh "${{ needs.verificar-versao.outputs.versao }}"
+          ./App/distribuicao/gerar-appimage.sh "${{ needs.versao.outputs.versao }}"
 
       - name: Enviar artefato do Linux
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
@@ -190,11 +226,8 @@ jobs:
 
   publicar-release:
     name: Publicar release
-    needs: [ verificar-versao, build-windows, build-linux ]
-    if: |
-      needs.verificar-versao.outputs.deve_lancar == 'true' &&
-      needs.build-windows.result == 'success' &&
-      needs.build-linux.result == 'success'
+    needs: [ versao, build-windows, build-linux ]
+    if: needs.versao.outputs.publicar == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -224,8 +257,8 @@ jobs:
           mkdir -p dist
           dotnet tool install --global CycloneDX --version 6.2.0
           dotnet-CycloneDX CofreDeSenhas.sln -o dist -sn CofreDeSenhas \
-            -sv "${{ needs.verificar-versao.outputs.versao }}" -F Json \
-            -fn "CofreDeSenhas-${{ needs.verificar-versao.outputs.versao }}-sbom.json"
+            -sv "${{ needs.versao.outputs.versao }}" -F Json \
+            -fn "CofreDeSenhas-${{ needs.versao.outputs.versao }}-sbom.json"
 
       - name: Gerar manifests winget
         # Só monta os YAML prontos para o mantenedor copiar num fork de microsoft/winget-pkgs
@@ -233,7 +266,7 @@ jobs:
         # fora do escopo deste pipeline. Roda antes do CHECKSUMS.txt de propósito, pra esse
         # zip também entrar na lista de checksums publicada.
         run: |
-          versao="${{ needs.verificar-versao.outputs.versao }}"
+          versao="${{ needs.versao.outputs.versao }}"
           sha256_instalador=$(sha256sum "artefatos/CofreDeSenhas-Setup-$versao.exe" | cut -d' ' -f1)
           python3 .github/scripts/gerar_manifesto_winget.py "$versao" "$sha256_instalador" winget-manifests
           mkdir -p dist
@@ -297,22 +330,20 @@ jobs:
           rm -rf "$GNUPGHOME"
           echo "CHECKSUMS.txt.asc gerado (chave GPG $fpr)."
 
-      - name: Montar notas da release
-        run: python3 .github/scripts/montar_notas_release.py "${{ needs.verificar-versao.outputs.versao }}"
-
       - name: Assinar proveniência dos artefatos (SLSA/Sigstore)
         uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2.4.0
         with:
           subject-path: 'dist/*'
 
       - name: Criar e publicar release
+        # generate_release_notes deixa o GitHub montar o corpo a partir dos commits
+        # e PRs desde a última tag — não há mais CHANGELOG.md nem modelo próprio.
         uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
         with:
-          tag_name: v${{ needs.verificar-versao.outputs.versao }}
+          tag_name: v${{ needs.versao.outputs.versao }}
           target_commitish: ${{ github.sha }}
           draft: false
-          generate_release_notes: false
-          body_path: release-notes.md
+          generate_release_notes: true
           files: dist/*
 
       - name: Enviar artefatos ao VirusTotal
@@ -332,3 +363,4 @@ jobs:
             dist/CofreDeSenhas-Setup-*.exe
             dist/CofreDeSenhas-*-win-x64-portatil.exe
             dist/GeradorDeSenhas-*-win-x64-portatil.exe
+            dist/cofre-*-win-x64.exe

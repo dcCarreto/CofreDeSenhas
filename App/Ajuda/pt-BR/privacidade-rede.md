@@ -14,8 +14,8 @@ rede.
 ## Verificar atualizações
 
 Quando ligado, consulta a página de lançamentos do projeto para avisar se
-há uma versão mais nova. Nenhum download é feito automaticamente, e nada
-além dessa consulta é enviado. Desligado por padrão.
+há uma atualização. Nenhum download é feito automaticamente, e nada além
+dessa consulta é enviado. Desligado por padrão.
 
 ## Verificação de vazamentos
 

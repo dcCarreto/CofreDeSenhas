@@ -9,7 +9,9 @@
 
     <AssemblyName>GeradorDeSenhas</AssemblyName>
     <RootNamespace>CofreDeSenhas.Gerador</RootNamespace>
-    <Version>2.2.2</Version>
+    <!-- Sem número de versão, igual ao Cofre: carimbo de data por atualização.
+         O pipeline passa -p:Version com a data da release; local vale a data de hoje. -->
+    <Version>$([System.DateTime]::UtcNow.ToString('yyyy.M.d'))</Version>
     <Product>Gerador de Senhas</Product>
     <Authors>Denis Cristino Cantagallo Carreto</Authors>
     <Company>Denis Cristino Cantagallo Carreto</Company>
