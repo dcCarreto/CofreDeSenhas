@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using Avalonia.Threading;
 using CofreDeSenhas.Janelas;
 using GerenciadorDeSenhas.Repositorios;
 using GerenciadorDeSenhas.Servicos;
@@ -114,16 +115,25 @@ namespace CofreDeSenhas
             var repositorio = new RepositorioSenha(persistencia, chave);
             var servicoSenha = new ServicoSenha(repositorio, criptografia);
 
-            var servicoSincronizacao = await PrepararSincronizacaoAsync(senhaMestraPlano);
-
             var principal = new JanelaPrincipal(servicoSenha, chave, criptografia, repositorio,
-                () => Bloquear(desktop), servicoSincronizacao);
+                () => Bloquear(desktop));
             var login = desktop.MainWindow;
             desktop.MainWindow = principal;
             principal.Show();
             login?.Close();
 
             ConfigurarBandeja(desktop);
+
+            // A chave de sincronização sai de outra derivação Argon2id (64 MiB) — antes
+            // rodava dentro deste caminho e segurava a janela ~300-500 ms a cada
+            // desbloqueio de quem usa pasta compartilhada. Agora acontece em segundo
+            // plano; a primeira sincronização entra assim que a chave fica pronta.
+            _ = Task.Run(() => PrepararSincronizacaoAsync(senhaMestraPlano))
+                .ContinueWith(t =>
+                {
+                    if (t.Status == TaskStatus.RanToCompletion && t.Result is { } servico)
+                        Dispatcher.UIThread.Post(() => principal.VincularSincronizacao(servico));
+                }, TaskScheduler.Default);
         }
 
         private static async Task<ServicoSincronizacao?> PrepararSincronizacaoAsync(string? senhaMestraPlano)

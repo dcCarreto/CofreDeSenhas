@@ -26,6 +26,22 @@ namespace CofreDeSenhas.Janelas
 {
     public partial class JanelaPrincipal
     {
+        // Chamado pelo App quando a derivação da chave de sincronização termina em
+        // segundo plano (ver App.AbrirCofre). Se a janela já fechou nesse meio-tempo,
+        // zera a chave e sai.
+        internal void VincularSincronizacao(ServicoSincronizacao servico)
+        {
+            if (_janelaFechada)
+            {
+                servico.ZerarChave();
+                return;
+            }
+
+            _servicoSincronizacao = servico;
+            AjustarTimerSincronizacao();
+            _ = SincronizarAsync(silencioso: true);
+        }
+
         private void AjustarTimerSincronizacao()
         {
             var perfil = Preferencias.Sincronizacao;

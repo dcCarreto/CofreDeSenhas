@@ -127,7 +127,7 @@ namespace CofreDeSenhas.Janelas
             if (_senhaDetalhe?.Id == id)
                 FecharDetalhes();
             AtualizarFiltroOrganizacao();
-            FiltrarSenhas();
+            FiltrarSenhas(reordenar: false);
             AtualizarContador();
         }
     }

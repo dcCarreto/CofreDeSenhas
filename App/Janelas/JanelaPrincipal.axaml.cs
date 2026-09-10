@@ -53,6 +53,7 @@ namespace CofreDeSenhas.Janelas
         private DispatcherTimer? _timerFeedbackSenhaDetalhes;
         private DispatcherTimer? _timerFeedbackUsuarioDetalhes;
         private bool _sincronizando;
+        private bool _janelaFechada;
         private bool _conectadoAoBanco;
         // internal só pra teste conseguir semear um ponto de espera controlável (via
         // TaskCompletionSource) antes de chamar ConectarAsync — cria um yield real e
@@ -221,6 +222,7 @@ namespace CofreDeSenhas.Janelas
                 FecharDetalhes();
                 foreach (var linha in _linhasSenha)
                     linha.EsconderSenhaSeRevelada();
+                _janelaFechada = true;
                 _cachePlain.Clear();
                 CryptographicOperations.ZeroMemory(_chaveMestra);
                 _criptografia?.ZerarChave();
@@ -489,7 +491,7 @@ namespace CofreDeSenhas.Janelas
                 IconesServico.LimparCache();
 
             Preferencias.Salvar();
-            FiltrarSenhas();
+            FiltrarSenhas(reordenar: false);
         }
 
         private void Acessibilidade_Alterado(object? sender, EventArgs e)
@@ -503,7 +505,7 @@ namespace CofreDeSenhas.Janelas
                 AplicarLargurasColunas();
             AtualizarDetalheVisual();
             AtualizarHistoricoDetalhes();
-            FiltrarSenhas();
+            FiltrarSenhas(reordenar: false);
         }
 
         private void ConfigurarAcessibilidadeLeitorTela()
@@ -812,7 +814,7 @@ namespace CofreDeSenhas.Janelas
         {
             _filtroSeguranca = null;
             AtualizarChipFiltroSeguranca();
-            FiltrarSenhas();
+            FiltrarSenhas(reordenar: false);
         }
 
         private string? _culturaCombosFiltro;
