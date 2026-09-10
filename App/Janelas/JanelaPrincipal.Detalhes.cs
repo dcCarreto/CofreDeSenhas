@@ -397,6 +397,53 @@ namespace CofreDeSenhas.Janelas
         private async void CopiarUrlDetalhes_Click(object? sender, RoutedEventArgs e) =>
             await CopiarDetalheAsync(TxtDetalheUrl.Text, "URL");
 
+        private async void DigitacaoAutomatica_Click(object? sender, RoutedEventArgs e)
+        {
+            if (_senhaDetalhe == null || !DigitacaoAutomatica.Suportado)
+                return;
+
+            var usuario = TxtDetalheUsuario.Text ?? "";
+            var senha = _senhaDetalheVisivel ? (TxtDetalheSenha.Text ?? "") : _senhaDetalhePlain;
+            if (string.IsNullOrEmpty(senha))
+            {
+                await CaixaMensagem.MostrarAsync(this,
+                    Idioma.Texto("Entry.RecoverCurrentPasswordError"),
+                    Idioma.Texto("AutoType.Title"), TipoMensagem.Aviso);
+                return;
+            }
+
+            if (DigitacaoAutomatica.AlvoAtual() is not { } alvo)
+            {
+                await CaixaMensagem.MostrarAsync(this,
+                    Idioma.Texto("AutoType.NoTarget"),
+                    Idioma.Texto("AutoType.Title"), TipoMensagem.Info);
+                return;
+            }
+
+            var confirmar = await CaixaMensagem.ConfirmarAsync(this,
+                Idioma.Formatar("AutoType.Confirm", alvo.Titulo, alvo.Processo),
+                Idioma.Texto("AutoType.Title"), TipoMensagem.Aviso);
+            if (!confirmar)
+                return;
+
+            var resultado = await DigitacaoAutomatica.DigitarAsync(alvo, usuario, senha);
+            if (resultado == ResultadoDigitacao.Ok)
+            {
+                Acessibilidade.Anunciar(this, Idioma.Texto("AutoType.Done"));
+                return;
+            }
+
+            await CaixaMensagem.MostrarAsync(this,
+                Idioma.Texto(resultado switch
+                {
+                    ResultadoDigitacao.AlvoIndisponivel => "AutoType.TargetGone",
+                    ResultadoDigitacao.FocoNaoObtido => "AutoType.FocusFailed",
+                    ResultadoDigitacao.NaoSuportado => "AutoType.Unsupported",
+                    _ => "AutoType.Failed"
+                }),
+                Idioma.Texto("AutoType.Title"), TipoMensagem.Aviso);
+        }
+
         private async Task CopiarDetalheAsync(string? texto, string rotulo, bool limparDepois = false,
             TipoCampoCopiado? campoRegistrado = null, Button? botaoFeedback = null,
             Func<DispatcherTimer?>? obterTimer = null, Action<DispatcherTimer?>? definirTimer = null,

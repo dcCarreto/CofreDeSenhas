@@ -695,9 +695,18 @@
                                    TextTrimming="CharacterEllipsis"
                                    VerticalAlignment="Center" />
                       </Border>
-                      <Button Classes="plano" Padding="4,2" FontSize="12" FontWeight="Normal"
-                              Content="{DynamicResource Details.FullEdit}"
-                              Click="EdicaoCompletaDetalhes_Click" />
+                      <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="14">
+                        <Button Classes="plano" Padding="4,2" FontSize="12" FontWeight="Normal"
+                                Content="{DynamicResource Details.FullEdit}"
+                                Click="EdicaoCompletaDetalhes_Click" />
+                        <Button Name="BtnDigitacaoAutomatica" Classes="plano" Padding="4,2" FontSize="12" FontWeight="Normal"
+                                IsVisible="False"
+                                Content="{DynamicResource AutoType.Action}"
+                                ToolTip.Tip="{DynamicResource AutoType.ActionHint}"
+                                AutomationProperties.Name="{DynamicResource AutoType.Action}"
+                                AutomationProperties.HelpText="{DynamicResource AutoType.ActionHint}"
+                                Click="DigitacaoAutomatica_Click" />
+                      </StackPanel>
                     </StackPanel>
 
                     <StackPanel Spacing="6">

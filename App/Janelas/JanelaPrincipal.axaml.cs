@@ -176,6 +176,7 @@ namespace CofreDeSenhas.Janelas
             Gerador.ShowHeader = false;
 
             AtualizarBotaoPrivacidade();
+            BtnDigitacaoAutomatica.IsVisible = DigitacaoAutomatica.Suportado;
             PintarFiltroFavoritos();
             AtualizarNavegacao();
             AtualizarContador();
@@ -212,6 +213,7 @@ namespace CofreDeSenhas.Janelas
             Closed += (s, e) =>
             {
                 _monitor.Encerrar();
+                DigitacaoAutomatica.PararDeObservar();
                 _timerSincronizacao.Stop();
                 _timerBusca.Stop();
                 _timerBackupAgendado.Stop();
@@ -232,6 +234,7 @@ namespace CofreDeSenhas.Janelas
             Opened += async (s, e) =>
             {
                 AjustarLargurasIniciais();
+                DigitacaoAutomatica.ComecarAObservar();
                 await IniciarAsync();
                 _ = VerificarAtualizacaoAsync();
                 _ = SincronizarAsync(silencioso: true);

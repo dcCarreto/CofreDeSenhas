@@ -483,6 +483,17 @@ namespace CofreDeSenhas
             ("Recovery.ErrorKeyInvalid", "Chave de recuperação inválida ou de outro cofre."),
             ("Recovery.SaveFileName", "chave-de-recuperacao-cofre"),
 
+            ("AutoType.Title", "Digitação automática"),
+            ("AutoType.Action", "Digitação automática"),
+            ("AutoType.ActionHint", "Preenche usuário e senha na janela que estava em foco antes do cofre (usuário, Tab, senha)."),
+            ("AutoType.Confirm", "Preencher usuário e senha em «{0}» ({1})?\n\nSequência: usuário, Tab, senha. Nenhum Enter é enviado."),
+            ("AutoType.NoTarget", "Nenhuma janela de destino. Deixe o campo de login aberto na frente, volte ao cofre e tente de novo."),
+            ("AutoType.TargetGone", "A janela de destino não está mais disponível."),
+            ("AutoType.FocusFailed", "Não foi possível trazer a janela de destino para frente. Clique nela e tente de novo."),
+            ("AutoType.Unsupported", "A digitação automática só está disponível no Windows."),
+            ("AutoType.Failed", "Não foi possível concluir a digitação automática."),
+            ("AutoType.Done", "Digitação automática concluída."),
+
             ("Db.SelectTitle", "Conectar banco de dados"),
             ("Db.SelectExplanation", "Recurso para uso self-hosted ou compartilhado: conecta o cofre a um banco de dados próprio, útil para um servidor pessoal ou para compartilhar acesso com outras pessoas de confiança. Para sincronizar só os seus próprios dispositivos, sem manter um banco de dados, use a Sincronização por pasta compartilhada no menu de configurações."),
             ("Db.ChooseType", "Escolha o tipo de banco de dados para conectar."),
