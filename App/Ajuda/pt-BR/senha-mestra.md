@@ -4,9 +4,10 @@ A senha mestra é a única chave do cofre. A partir dela o aplicativo
 deriva, em memória, a chave que decifra seus dados. Ela **não fica
 gravada em lugar nenhum**.
 
-## Não dá para recuperar
+## Sem chave de recuperação, não dá para recuperar
 
-Não existe "esqueci minha senha". Se você perder a senha mestra, o
+Por padrão, não existe "esqueci minha senha". Se você perder a senha
+mestra sem ter ativado a **chave de recuperação** (veja abaixo), o
 conteúdo do cofre fica inacessível — é assim que a cifragem protege você
 de terceiros. Por isso:
 
@@ -14,6 +15,7 @@ de terceiros. Por isso:
   difícil de adivinhar;
 - salve o **QR code de backup** (menu *Segurança → Regerar QR code*) e
   guarde-o fora do computador;
+- ative a **chave de recuperação** como uma segunda rede de segurança;
 - opcionalmente, mantenha uma cópia escrita em local físico seguro.
 
 ## Alterar a senha mestra
@@ -31,6 +33,21 @@ dispositivos — releia a tela de confirmação antes de continuar.
 É a sua senha mestra codificada em imagem, para reimportar caso você
 esqueça a digitada. Trate o QR com o mesmo cuidado da senha: quem o
 tiver, abre o seu cofre.
+
+## Chave de recuperação
+
+Em *Configurações → Segurança → Chave de recuperação*, ou já na criação do
+cofre. Gera um segredo de 160 bits (em grupos de 4 caracteres) que permite
+redefinir a senha mestra sem saber a antiga — quem tiver esse segredo
+consegue. Por isso anote-o e guarde-o **longe do computador**, com o
+mesmo cuidado da própria senha mestra: ele vale tanto quanto ela.
+
+Esqueceu a senha mestra e tinha ativado a chave? Na tela de entrada,
+clique em "Esqueci a senha mestra", digite o segredo anotado e escolha
+uma senha nova — o cofre é re-cifrado com ela. Um segredo novo é gerado a
+cada recuperação e a cada troca de senha mestra; anote sempre o mais
+recente, o anterior deixa de valer. Ativar, gerar de novo ou desativar
+sempre exige a senha mestra atual, mesmo com o cofre já desbloqueado.
 
 ## Windows Hello
 

@@ -2,11 +2,13 @@
 
 ## I forgot the master password. Now what?
 
-There is no way to recover it — not by us, not by anyone. It's the price
-of the encryption that protects the vault from others. If you saved the
-**backup QR code**, use it to re-import the password. Without the password
-or the QR, the vault's contents are inaccessible. See
-[Master password](senha-mestra).
+Depends on whether you enabled the **recovery key** (optional, off by
+default). If you did: on the login screen, click "Forgot the master
+password", type the secret you wrote down and choose a new password. If
+you didn't: there is no way to recover it — not by us, not by anyone. If
+you saved the **backup QR code**, use it to re-import the password.
+Without the master password, the recovery key or the QR, the vault's
+contents are inaccessible. See [Master password](senha-mestra).
 
 ## Where is my data?
 

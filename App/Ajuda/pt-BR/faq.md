@@ -2,10 +2,13 @@
 
 ## Esqueci a senha mestra. E agora?
 
-Não há como recuperá-la — nem por nós, nem por ninguém. É o preço da
-cifragem que protege o cofre de terceiros. Se você salvou o **QR code de
-backup**, use-o para reimportar a senha. Sem a senha nem o QR, o conteúdo
-do cofre fica inacessível. Veja [Senha mestra](senha-mestra).
+Depende de você ter ativado a **chave de recuperação** (opcional,
+desligada por padrão). Se ativou: na tela de entrada, clique em "Esqueci
+a senha mestra", digite o segredo anotado e escolha uma senha nova. Se
+não ativou: não há como recuperá-la — nem por nós, nem por ninguém. Se
+você salvou o **QR code de backup**, use-o para reimportar a senha. Sem a
+senha mestra, a chave de recuperação nem o QR code, o conteúdo do cofre
+fica inacessível. Veja [Senha mestra](senha-mestra).
 
 ## Onde ficam os meus dados?
 

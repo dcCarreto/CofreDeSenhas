@@ -2,12 +2,15 @@
 
 ## Ich habe das Master-Passwort vergessen. Was nun?
 
-Es gibt keine Möglichkeit, es wiederherzustellen — nicht durch uns, nicht
-durch irgendjemanden. Das ist der Preis der Verschlüsselung, die den
-Tresor vor anderen schützt. Wenn Sie den **Sicherungs-QR-Code**
-gespeichert haben, importieren Sie damit das Passwort erneut. Ohne das
-Passwort oder den QR-Code ist der Inhalt des Tresors unzugänglich. Siehe
-[Master-Passwort](senha-mestra).
+Das hängt davon ab, ob Sie den **Wiederherstellungsschlüssel** aktiviert
+haben (optional, standardmäßig aus). Wenn ja: Klicken Sie auf dem
+Anmeldebildschirm auf „Master-Passwort vergessen", geben Sie das notierte
+Geheimnis ein und wählen Sie ein neues Passwort. Wenn nicht: Es gibt keine
+Möglichkeit, es wiederherzustellen — nicht durch uns, nicht durch
+irgendjemanden. Wenn Sie den **Sicherungs-QR-Code** gespeichert haben,
+importieren Sie damit das Passwort erneut. Ohne das Master-Passwort, den
+Wiederherstellungsschlüssel oder den QR-Code ist der Inhalt des Tresors
+unzugänglich. Siehe [Master-Passwort](senha-mestra).
 
 ## Wo liegen meine Daten?
 

@@ -2,11 +2,15 @@
 
 ## Ho dimenticato la password principale. E adesso?
 
-Non c'è modo di recuperarla — né da parte nostra, né di nessun altro. È il
-prezzo della cifratura che protegge la cassaforte dagli altri. Se hai
+Dipende se hai attivato la **chiave di recupero** (opzionale, disattivata
+per impostazione predefinita). Se l'hai attivata: nella schermata di
+accesso, fai clic su "Ho dimenticato la password principale", digita il
+segreto annotato e scegli una password nuova. Se non l'hai attivata: non
+c'è modo di recuperarla — né da parte nostra, né di nessun altro. Se hai
 salvato il **codice QR di backup**, usalo per reimportare la password.
-Senza la password o il QR, il contenuto della cassaforte è inaccessibile.
-Vedi [Password principale](senha-mestra).
+Senza la password principale, la chiave di recupero né il QR, il
+contenuto della cassaforte è inaccessibile. Vedi
+[Password principale](senha-mestra).
 
 ## Dove sono i miei dati?
 

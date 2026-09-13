@@ -2,10 +2,13 @@
 
 ## J'ai oublié le mot de passe maître. Et maintenant ?
 
-Il n'y a aucun moyen de le récupérer — ni par nous, ni par personne.
-C'est le prix du chiffrement qui protège le coffre des tiers. Si vous avez
-enregistré le **QR code de secours**, utilisez-le pour réimporter le mot
-de passe. Sans le mot de passe ni le QR, le contenu du coffre est
+Cela dépend si vous avez activé la **clé de récupération** (facultative,
+désactivée par défaut). Si oui : sur l'écran de connexion, cliquez sur
+« Mot de passe maître oublié », saisissez le secret noté et choisissez un
+nouveau mot de passe. Sinon : il n'y a aucun moyen de le récupérer — ni
+par nous, ni par personne. Si vous avez enregistré le **QR code de
+secours**, utilisez-le pour réimporter le mot de passe. Sans le mot de
+passe maître, la clé de récupération ni le QR, le contenu du coffre est
 inaccessible. Voyez [Mot de passe maître](senha-mestra).
 
 ## Où sont mes données ?

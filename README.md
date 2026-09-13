@@ -176,6 +176,12 @@ caractere:
 - Edição inline do nome do serviço diretamente na lista.
 - Cópia do usuário com um clique na coluna `Usuário`, exibindo confirmação
   visual temporária na linha.
+- Digitação automática (Windows): no painel de detalhes de uma credencial,
+  preenche usuário e senha (nessa ordem, separados por Tab, sem Enter) na
+  última janela externa que esteve em primeiro plano antes do cofre — a
+  pessoa alterna para o formulário de login, volta ao cofre e aciona. Sempre
+  pede confirmação nomeando a janela e o processo alvo antes de digitar, e
+  aborta sem enviar nada se essa janela não estiver mesmo em foco no momento.
 - Atalhos de teclado para as ações mais frequentes (`Ctrl+F` busca, `Ctrl+N`
   nova senha, `Ctrl+G` gerador, `Ctrl+L` bloqueia o cofre na hora, `Ctrl+H`
   modo privacidade, `Ctrl+Shift+U`/`Ctrl+Shift+P` copiam usuário/senha da linha
@@ -237,6 +243,16 @@ cofre, tudo calculado localmente e sem enviar nada para fora:
   senha-frase da senha mestra, e não a senha original caractere a caractere.
   Salvar o arquivo dentro de uma pasta sincronizada com a nuvem (OneDrive,
   Dropbox, Google Drive, iCloud Drive) mostra um aviso extra antes de gravar.
+- Chave de recuperação opcional (desligada por padrão): oferecida na criação
+  do cofre e disponível a qualquer momento em Configurações → Segurança. Gera
+  um segredo de 160 bits (formatado em grupos de 4 caracteres) que decifra a
+  chave mestra guardada num envelope próprio — anote-o e guarde-o longe do
+  dispositivo, ele vale tanto quanto a própria senha mestra. Esquecendo a
+  senha mestra, a tela de login oferece "Esqueci a senha mestra": com o
+  segredo em mãos, define-se uma senha nova e o cofre é re-cifrado com ela;
+  o segredo antigo é substituído por um novo a cada uso ou troca de senha
+  mestra. Ativar, gerar de novo ou desativar sempre exige a senha mestra
+  atual, mesmo com o cofre já desbloqueado.
 
 ### Sincronização entre dispositivos (pasta compartilhada)
 
