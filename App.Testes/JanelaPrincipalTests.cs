@@ -1450,6 +1450,38 @@ namespace App.Testes
         }
 
         [AvaloniaFact]
+        public async Task DesativarChaveRecuperacao_ExigeReautenticacaoAntesDeApagarOEnvelope()
+        {
+            // Antes da correção, desativar a chave de recuperação bastava um clique de
+            // confirmação — sem senha nenhuma —, ao contrário de ativar/gerar (que
+            // sempre exigiu reautenticação). Quem tivesse a sessão desbloqueada por um
+            // instante conseguia apagar a rede de segurança da pessoa dona do cofre sem
+            // saber a senha mestra.
+            var recuperacao = new ServicoRecuperacao();
+            recuperacao.Desabilitar();
+            try
+            {
+                var (servico, chave, criptografia) = CriarServicoComCriptografia();
+                recuperacao.Habilitar(chave);
+
+                var janela = new JanelaPrincipal(servico, chave, criptografia);
+                janela.Show();
+                await TesteUtil.AguardarAsync(() => false, tentativas: 5);
+
+                janela.DesativarChaveRecuperacao();
+                await TesteUtil.AguardarAsync(() =>
+                    janela.OwnedWindows.OfType<JanelaConfirmarSenhaMestra>().Any());
+
+                Assert.Contains(janela.OwnedWindows, w => w is JanelaConfirmarSenhaMestra);
+                Assert.True(recuperacao.EstaHabilitada());
+            }
+            finally
+            {
+                recuperacao.Desabilitar();
+            }
+        }
+
+        [AvaloniaFact]
         public async Task PublicarTumbasNaPastaDeSincronizacaoAsync_ComItemQueJaEstavaNoArquivoRemoto_SubstituiPorUmaTumbaQueNaoResgataOItem()
         {
             var (servico, chave, criptografia) = CriarServicoComCriptografia();

@@ -210,13 +210,23 @@ namespace CofreDeSenhas.Janelas
             await RecuperacaoUi.MostrarChaveAsync(this, segredo);
         }
 
-        private async void DesativarChaveRecuperacao()
+        // internal só pra teste chamar direto e confirmar a reautenticação sem precisar
+        // abrir o MenuFlyout de configurações — mesmo padrão de LimparCofre_Click — ver
+        // App.Testes (InternalsVisibleTo).
+        internal async void DesativarChaveRecuperacao()
         {
-            var confirmou = await CaixaMensagem.ConfirmarAsync(this,
+            // Mesma reautenticação de AtivarOuGerarChaveRecuperacao — sem isto, quem
+            // tivesse a sessão desbloqueada por um instante conseguia apagar a rede de
+            // segurança da pessoa dona do cofre (recuperacao.dat) sem saber a senha
+            // mestra, só confirmando um diálogo.
+            var dlg = new JanelaConfirmarSenhaMestra(
+                Idioma.Texto("Recovery.SettingsRow"),
                 Idioma.Texto("Recovery.DisableConfirm"),
-                Idioma.Texto("Recovery.SettingsRow"), TipoMensagem.Aviso);
-            if (confirmou)
-                new ServicoRecuperacao().Desabilitar();
+                Idioma.Texto("Recovery.Disable"));
+            if (!await AbrirDialogoAsync<bool>(dlg))
+                return;
+
+            new ServicoRecuperacao().Desabilitar();
         }
 
         // internal só pra teste chamar direto sem precisar abrir o MenuFlyout de
