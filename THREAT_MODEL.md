@@ -29,6 +29,12 @@ recuperação, e isso é deliberado, não uma lacuna a fechar. Adulterar o arqui
 e rejeitado alto e claro (`InvalidOperationException`), não faz o cofre carregar dado
 corrompido silenciosamente.
 
+Isso deixa de valer, de propósito, para quem **ativou** a chave de recuperação
+opcional (ver a seção seguinte) — nesse caso, quem tem o arquivo do cofre **e**
+o segredo de recuperação anotado separadamente consegue redefinir a senha
+mestra sem nunca ter sabido a original. Sem a chave de recuperação ativa (o
+padrão), a frase acima continua valendo ao pé da letra.
+
 O que o AEAD **não** cobre é *rollback*: quem tem escrita no diretório de dados pode
 sobrescrever `senhas.json.enc` com uma cópia antiga, ainda válida, e reverter alterações
 recentes (uma senha trocada, um item removido). Anti-rollback de verdade exige um contador
@@ -53,6 +59,43 @@ para backup/biometria ainda não é travada do mesmo jeito. Isso não é uma fal
 do cofre — é uma limitação inerente a rodar em um processo de usuário comum, sem elevar
 privilégios nem depender de hardware dedicado (TPM/enclave) para guardar segredos em uso —
 mas é real, e por isso listada aqui em vez de deixada implícita.
+
+### Quem tem o segredo da chave de recuperação (opcional, desligada por padrão)
+
+A chave de recuperação existe para um único problema: esquecer a senha mestra
+sem backup nenhum, hoje, significa perder o cofre de vez (ver "Fora de
+escopo" mais abaixo — isso continua verdadeiro por padrão). Quem ativa o
+recurso recebe um segredo aleatório de 160 bits (formatado em grupos de 4
+caracteres, alfabeto sem I/L/O/U para reduzir erro de transcrição) e é
+instruído a anotá-lo e guardá-lo **longe do dispositivo** — impresso, num
+cofre físico, não num arquivo de texto na mesma máquina. Esse segredo
+envelopa a chave mestra do cofre (HKDF-SHA256 do segredo -> AES-256-GCM sobre
+a chave mestra), gravado em `recuperacao.dat` ao lado do cofre cifrado.
+
+**O que isso muda no modelo**: para quem ativou o recurso, o segredo de
+recuperação passa a ser, na prática, **equivalente em poder à senha mestra**
+— quem o possui consegue redefinir a senha mestra e abrir o cofre daí em
+diante, sem nunca ter sabido a senha original. Não é uma segunda porta mais
+fraca: é a mesma porta, com uma chave diferente. Por isso a orientação de
+guardá-lo separado do dispositivo (quem rouba só o notebook, sem o papel, não
+ganha nada com `recuperacao.dat` sozinho) e por isso tentativas de recuperação
+passam pelo mesmo bloqueio escalonado por tentativas erradas
+(`ControleTentativasLogin`) que já protege a senha mestra — não é um segredo
+de baixa entropia acessível por força bruta, mas também não fica sem limite
+de tentativas.
+
+**Rotação automática**: uma recuperação bem-sucedida gera um segredo novo
+(o antigo, que envelopava a chave mestra que acabou de ser trocada, é
+descartado) e a pessoa é avisada a anotar o novo. Uma troca de senha mestra
+pelo fluxo normal (não pela recuperação) também gera um segredo novo — o
+envelope antigo ficaria envelopando uma chave que não existe mais.
+Ativar, gerar de novo ou desativar a chave de recuperação exige reautenticação
+com a senha mestra atual, mesmo com o cofre já desbloqueado — mesma barreira
+que "Limpar cofre" e "Excluir cofre" já usavam, pra alguém com acesso físico
+breve a uma sessão sem supervisão não conseguir mexer nisso só com um clique.
+
+Desligado por padrão: quem nunca ativa a chave de recuperação não muda nada
+do modelo de ameaça original — `recuperacao.dat` nem chega a existir.
 
 ### Atacante de rede
 
@@ -161,10 +204,24 @@ acesso com uma chave desatualizada.
   mesmos privilégios do usuário enquanto o cofre está aberto, ele pode, em tese, interagir
   com a interface ou ler memória do processo (ver seção acima). Isolamento de processo,
   sandboxing e antivírus são responsabilidade do sistema operacional, não deste aplicativo.
-- **Perda da senha mestra.** Não existe recuperação — nem por servidor externo, nem por
-  backdoor, nem por qualquer mecanismo que dispense a senha mestra (ou uma chave
-  equivalente, como o vínculo biométrico). Esquecer a senha mestra sem ter um backup
-  significa perder o acesso ao cofre.
+  Isso vale igualmente para a digitação automática (Windows): ela preenche usuário e senha
+  na última janela externa em primeiro plano usando `SendInput` — o mesmo mecanismo de
+  nível de sistema operacional que qualquer keylogger já ativo na máquina observaria de
+  qualquer forma, tenha a senha sido digitada à mão ou pelo cofre. A única coisa que o
+  aplicativo pode e faz controlar é o alvo: confirma o título e o processo da janela antes
+  de digitar, traz essa janela específica para primeiro plano e confere de novo que ela
+  segue em foco imediatamente antes de mandar qualquer tecla — abortando sem digitar nada
+  se outra janela assumiu o foco nesse intervalo. Isso reduz o risco de mandar a senha para
+  a janela errada por uma disputa de foco local, mas não defende contra um processo
+  malicioso que já está rodando e capturando teclado por conta própria — esse continua
+  sendo o mesmo cenário de "malware ativo" descrito acima, não uma superfície nova.
+- **Perda da senha mestra.** Por padrão, não existe recuperação — nem por servidor
+  externo, nem por backdoor. Esquecer a senha mestra sem ter um backup (ou sem ter
+  ativado a chave de recuperação opcional, ver a seção acima) significa perder o
+  acesso ao cofre. A única exceção deliberada e opt-in é essa chave de recuperação:
+  quem a ativa está conscientemente trocando parte dessa garantia por uma rede de
+  segurança, e precisa proteger o segredo gerado com o mesmo cuidado que a própria
+  senha mestra.
 - **Engenharia social e phishing.** Convencer a pessoa usuária a revelar a própria senha
   mestra por fora do aplicativo está fora de qualquer controle técnico que o cofre ofereça.
 - **Ataques físicos avançados a hardware** (side-channel, cold boot attack, chip-off em

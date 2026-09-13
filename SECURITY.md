@@ -101,9 +101,11 @@ quanto antes, e manter quem reportou informado enquanto uma correção é prepar
 
 ## Escopo
 
-Cobertos por esta política: o aplicativo desktop (`App` e `GerenciadorDeSenhas`, incluindo
-criptografia, sincronização e persistência), os scripts de empacotamento/instalação em
-`App/distribuicao/` e os workflows de CI/release em `.github/workflows/`.
+Cobertos por esta política: o aplicativo desktop (`App`, `GerenciadorDeSenhas.Core` e
+`GerenciadorDeSenhas.Integracoes`, incluindo criptografia, sincronização e persistência), a
+linha de comando somente-leitura (`Cli`, o executável `cofre`), os scripts de
+empacotamento/instalação em `App/distribuicao/` e os workflows de CI/release em
+`.github/workflows/`.
 
 Fora do escopo direto:
 
