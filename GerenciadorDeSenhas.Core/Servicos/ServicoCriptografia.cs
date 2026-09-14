@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -11,25 +12,55 @@ namespace GerenciadorDeSenhas.Servicos
         private static readonly byte[] InfoChaveHmac = Encoding.UTF8.GetBytes("CofreDeSenhas.IntegridadeBanco.v1");
 
         private readonly byte[] _chave;
+        // Fixa a chave numa página travada na RAM quando o dono é a instância de
+        // sessão do cofre (travarNaMemoria); os usos efêmeros não pinam nada.
+        private GCHandle _pino;
         // AesGcm reusado em vez de um por chamada. Seguro porque o app é single-thread
         // (sem Task.Run); descartado em ZerarChave.
         private readonly AesGcm _aes;
         private byte[]? _chaveHmac;
         private bool _zerada;
 
-        public ServicoCriptografia(byte[] chave)
+        public ServicoCriptografia(byte[] chave, bool travarNaMemoria = false)
         {
             if (chave.Length != 32)
                 throw new ArgumentException("Chave deve ter 256 bits (32 bytes)");
             _chave = chave;
+            if (travarNaMemoria)
+            {
+                _pino = GCHandle.Alloc(_chave, GCHandleType.Pinned);
+                MemoriaTravada.Travar(_pino.AddrOfPinnedObject(), (nuint)_chave.Length);
+            }
             _aes = new AesGcm(chave, TamanhoTag);
         }
 
-        public string Criptografar(string plaintext) =>
-            Convert.ToBase64String(CriptografarBytes(Encoding.UTF8.GetBytes(plaintext)));
+        public string Criptografar(string plaintext)
+        {
+            // O byte[] do texto claro é uma cópia zerável do segredo — apaga assim
+            // que vira ciphertext, em vez de deixá-la virar lixo no heap.
+            var claro = Encoding.UTF8.GetBytes(plaintext);
+            try
+            {
+                return Convert.ToBase64String(CriptografarBytes(claro));
+            }
+            finally
+            {
+                CryptographicOperations.ZeroMemory(claro);
+            }
+        }
 
-        public string Descriptografar(string ciphertextBase64) =>
-            Encoding.UTF8.GetString(DescriptografarBytes(Convert.FromBase64String(ciphertextBase64)));
+        public string Descriptografar(string ciphertextBase64)
+        {
+            var claro = DescriptografarBytes(Convert.FromBase64String(ciphertextBase64));
+            try
+            {
+                return Encoding.UTF8.GetString(claro);
+            }
+            finally
+            {
+                CryptographicOperations.ZeroMemory(claro);
+            }
+        }
 
         public byte[] CriptografarBytes(byte[] plaintext)
         {
@@ -102,6 +133,11 @@ namespace GerenciadorDeSenhas.Servicos
             if (_chaveHmac != null)
                 CryptographicOperations.ZeroMemory(_chaveHmac);
             _aes.Dispose();
+            if (_pino.IsAllocated)
+            {
+                MemoriaTravada.Destravar(_pino.AddrOfPinnedObject(), (nuint)_chave.Length);
+                _pino.Free();
+            }
             _zerada = true;
         }
 

@@ -31,7 +31,25 @@ namespace GerenciadorDeSenhas.Servicos
             return await AlterarAsync(senhaAtual, senhaAtual);
         }
 
-        public async Task<byte[]> AlterarAsync(string senhaAtual, string novaSenha)
+        public Task<byte[]> AlterarAsync(string senhaAtual, string novaSenha)
+        {
+            var chaveAntiga = new AutenticacaoMestra(_pastaApp).Autenticar(senhaAtual)
+                ?? throw new ErroLocalizavel("Master.Error.CurrentPasswordWrong");
+            return ReencriptarAsync(chaveAntiga, novaSenha);
+        }
+
+        // Recuperação: quem chama já tem a chave mestra do cofre em mãos (veio do
+        // ServicoRecuperacao com a chave de recuperação), não a senha antiga. Mesma
+        // re-encriptação com backup/rollback, e o cofre passa a ter uma senha mestra
+        // nova.
+        public Task<byte[]> AlterarComChaveAsync(byte[] chaveAtual, string novaSenha)
+        {
+            if (chaveAtual is not { Length: 32 })
+                throw new ArgumentException("Chave mestra deve ter 32 bytes.", nameof(chaveAtual));
+            return ReencriptarAsync(chaveAtual, novaSenha);
+        }
+
+        private async Task<byte[]> ReencriptarAsync(byte[] chaveAntiga, string novaSenha)
         {
             _avisos.Clear();
 
@@ -39,9 +57,6 @@ namespace GerenciadorDeSenhas.Servicos
                 throw new ErroLocalizavel("Master.Error.NewPasswordTooShort", AutenticacaoMestra.TamanhoMinimoSenha);
 
             var auth = new AutenticacaoMestra(_pastaApp);
-            var chaveAntiga = auth.Autenticar(senhaAtual)
-                ?? throw new ErroLocalizavel("Master.Error.CurrentPasswordWrong");
-
             var cryptoAntigo = new ServicoCriptografia(chaveAntiga);
             var persistAntigo = new PersistenciaLocal(cryptoAntigo, _pastaApp);
             var todasSenhas = await persistAntigo.CarregarSenhasAsync(chaveAntiga);

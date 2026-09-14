@@ -1,4 +1,4 @@
-using System.Text.RegularExpressions;
+using System.Buffers;
 using GerenciadorDeSenhas.Modelos;
 
 namespace GerenciadorDeSenhas.Servicos
@@ -6,6 +6,11 @@ namespace GerenciadorDeSenhas.Servicos
     public sealed class ServicoAuditoriaSenha
     {
         public const int DiasSenhaAntigaPadrao = 365;
+
+        // Mesmo conjunto de símbolos da checagem antiga por regex
+        // [!@#$%^&*()_+\-=\[\]{};':""\\|,.<>\/?] — SearchValues faz a busca por SIMD.
+        private static readonly SearchValues<char> SimbolosForca =
+            SearchValues.Create("!@#$%^&*()_+-=[]{};':\"\\|,.<>/?");
 
         public ResultadoAuditoriaCofre Auditar(IEnumerable<Senha> senhas,
             Func<Senha, string?> obterSenhaPlaintext,
@@ -106,11 +111,18 @@ namespace GerenciadorDeSenhas.Servicos
             if (EhPassphraseForte(senha))
                 return true;
 
-            return senha.Length >= 12
-                && Regex.IsMatch(senha, @"[A-Z]")
-                && Regex.IsMatch(senha, @"[a-z]")
-                && Regex.IsMatch(senha, @"\d")
-                && Regex.IsMatch(senha, @"[!@#$%^&*()_+\-=\[\]{};':""\\|,.<>\/?]");
+            if (senha.Length < 12)
+                return false;
+
+            bool maiuscula = false, minuscula = false, digito = false, simbolo = false;
+            foreach (var c in senha)
+            {
+                if (c >= 'A' && c <= 'Z') maiuscula = true;
+                else if (c >= 'a' && c <= 'z') minuscula = true;
+                else if (char.IsDigit(c)) digito = true;
+                else if (SimbolosForca.Contains(c)) simbolo = true;
+            }
+            return maiuscula && minuscula && digito && simbolo;
         }
 
         private static bool EhPassphraseForte(string senha)

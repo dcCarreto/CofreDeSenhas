@@ -6,8 +6,12 @@
 ; seção "Geração do executável", ou rode o gerar-instalador.ps1).
 
 #define MyAppName "Cofre de Senhas"
+; O produto não tem número de versão. MyAppVersion é só o carimbo de data da
+; atualização (rastreabilidade e "Programas e Recursos"); o gerar-instalador.ps1
+; e o pipeline sempre passam /DMyAppVersion com a data. Este valor é um placeholder
+; para quando o iscc é chamado direto, sem o define.
 #ifndef MyAppVersion
-  #define MyAppVersion "2.0.0"
+  #define MyAppVersion "0.0.0"
 #endif
 #define MyAppPublisher "Denis Cristino Cantagallo Carreto"
 #define MyAppURL "https://github.com/dcCarreto/CofreDeSenhas"
@@ -19,6 +23,8 @@
 AppId={#MyAppId}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
+; Sem "versão X" no assistente nem na entrada de Programas e Recursos — só o nome.
+AppVerName={#MyAppName}
 AppPublisher={#MyAppPublisher}
 AppCopyright=Copyright © 2026 {#MyAppPublisher}
 AppPublisherURL={#MyAppURL}

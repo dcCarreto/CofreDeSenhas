@@ -114,5 +114,17 @@ namespace App.Testes
         {
             Assert.Null(ServicoAtualizacao.ExtrairVersao("versao-experimental"));
         }
+
+        [Fact]
+        public void ExtrairVersao_LeCarimboDeDataEOrdenaDiaESufixoDoMesmoDia()
+        {
+            Assert.Equal(new Version(2026, 9, 9), ServicoAtualizacao.ExtrairVersao("v2026.9.9"));
+            Assert.Equal(new Version(2026, 9, 9, 2), ServicoAtualizacao.ExtrairVersao("v2026.9.9.2"));
+
+            // O atualizador decide "mais nova" comparando estes valores: uma release
+            // de outro dia tem que ganhar da segunda release do mesmo dia anterior.
+            Assert.True(ServicoAtualizacao.ExtrairVersao("v2026.9.10") >
+                        ServicoAtualizacao.ExtrairVersao("v2026.9.9.2"));
+        }
     }
 }

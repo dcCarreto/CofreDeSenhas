@@ -14,6 +14,8 @@ namespace App.Testes
         {
             AlterarSenhaMestra = alterarSenhaMestra ?? (() => { }),
             RegerarQr = () => { },
+            ChaveRecuperacaoAtivarOuGerar = () => { },
+            ChaveRecuperacaoDesativar = () => { },
             AlternarWindowsHello = () => { },
             BloquearAgora = () => { },
             Backup = () => { },

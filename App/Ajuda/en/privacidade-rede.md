@@ -13,8 +13,8 @@ When off, the vault shows initials only and never touches the network.
 ## Check for updates
 
 When on, it queries the project's releases page to let you know if there's
-a newer version. Nothing is downloaded automatically, and nothing beyond
-that query is sent. Off by default.
+an update. Nothing is downloaded automatically, and nothing beyond that
+query is sent. Off by default.
 
 ## Breach check
 

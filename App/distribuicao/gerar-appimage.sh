@@ -4,20 +4,7 @@
 set -euo pipefail
 
 raiz="$(cd "$(dirname "$0")/../.." && pwd)"
-versao="${1:-}"
-
-if [ -z "$versao" ]; then
-    ocorrencias=$(grep -c '<Version>' "$raiz/App/App.csproj" || true)
-    if [ "$ocorrencias" -ne 1 ]; then
-        echo "Esperava exatamente uma tag <Version> em App/App.csproj, encontrei $ocorrencias. Informe a versão como argumento." >&2
-        exit 1
-    fi
-    versao=$(grep -oP '(?<=<Version>)[^<]+' "$raiz/App/App.csproj")
-fi
-if [ -z "$versao" ]; then
-    echo "Não foi possível determinar a versão em App/App.csproj. Informe como argumento." >&2
-    exit 1
-fi
+versao="${1:-$(date -u +%Y.%-m.%-d)}"
 
 if ! command -v dotnet >/dev/null 2>&1; then
     echo "Erro: o SDK do .NET não foi encontrado. Instale-o em https://dotnet.microsoft.com/download" >&2
@@ -55,9 +42,9 @@ if [ -z "$appimagetool" ]; then
     fi
 fi
 
-echo "Publicando o aplicativo (linux-x64, autocontido, versão $versao)..."
+echo "Publicando o aplicativo (linux-x64, autocontido, atualização $versao)..."
 dotnet publish "$raiz/App/App.csproj" -f net10.0 -c Release -r linux-x64 \
-    --self-contained true -o "$appdir/usr/bin"
+    --self-contained true -p:Version="$versao" -o "$appdir/usr/bin"
 
 echo "Montando o AppDir..."
 cp "$raiz/App/Ativos/app.png" "$appdir/cofre-de-senhas.png"

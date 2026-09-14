@@ -25,9 +25,15 @@ Cenário: um pen drive, backup, ou o computador roubado/perdido enquanto o cofre
 fechado. `senhas.json.enc` é cifrado por inteiro com AES-256-GCM; `auth.dat` guarda só o
 salt e um verificador (hash da chave derivada), nunca a chave em si nem a senha mestra.
 Sem a senha mestra, o conteúdo não é recuperável — não existe backdoor nem chave mestra de
-recuperação (ver "Fora de escopo" no `ROADMAP.md`). Adulterar o arquivo cifrado é detectado
+recuperação, e isso é deliberado, não uma lacuna a fechar. Adulterar o arquivo cifrado é detectado
 e rejeitado alto e claro (`InvalidOperationException`), não faz o cofre carregar dado
 corrompido silenciosamente.
+
+Isso deixa de valer, de propósito, para quem **ativou** a chave de recuperação
+opcional (ver a seção seguinte) — nesse caso, quem tem o arquivo do cofre **e**
+o segredo de recuperação anotado separadamente consegue redefinir a senha
+mestra sem nunca ter sabido a original. Sem a chave de recuperação ativa (o
+padrão), a frase acima continua valendo ao pé da letra.
 
 O que o AEAD **não** cobre é *rollback*: quem tem escrita no diretório de dados pode
 sobrescrever `senhas.json.enc` com uma cópia antiga, ainda válida, e reverter alterações
@@ -41,15 +47,55 @@ Um atacante que guarde a própria cópia antiga do arquivo dribla essa checagem.
 ### Alguém com acesso à memória do processo enquanto o cofre está aberto
 
 **Este é o ponto mais fraco do modelo hoje, e vale ser dito sem rodeio.** Enquanto o cofre
-está desbloqueado, a chave mestra vive como um `byte[]` comum na memória gerenciada do
-processo — sem `SecureString`, sem travar a página contra swap (`mlock`/`VirtualLock`), sem
-proteção contra hibernação. Ela só é zerada (`CryptographicOperations.ZeroMemory`) ao
-bloquear ou fechar o cofre. Um atacante capaz de anexar um depurador, tirar um dump do
-processo, ou vasculhar um arquivo de swap/hibernação **enquanto o cofre está aberto**
-consegue, em tese, extrair a chave ou dados decifrados momentaneamente em memória. Isso não
-é uma falha específica do cofre — é uma limitação inerente a rodar em um processo de
-usuário comum, sem elevar privilégios nem depender de hardware dedicado (TPM/enclave) para
-guardar segredos em uso — mas é real, e por isso listada aqui em vez de deixada implícita.
+está desbloqueado, a chave mestra vive como um `byte[]` na memória gerenciada do processo,
+sem `SecureString`. A página que a contém é travada na RAM física (`VirtualLock` no Windows,
+`mlock` no Linux/macOS, via `MemoriaTravada`) para não ir parar no arquivo de swap nem no de
+hibernação — melhor esforço: se a chamada falhar por cota de memória travável, o cofre segue
+sem essa proteção. A chave é zerada (`CryptographicOperations.ZeroMemory`) ao bloquear ou
+fechar o cofre. Ainda assim, um atacante capaz de anexar um depurador ou tirar um dump do
+processo **enquanto o cofre está aberto** consegue, em tese, extrair a chave ou dados
+decifrados momentaneamente em memória; e a cópia da chave mantida pela janela principal
+para backup/biometria ainda não é travada do mesmo jeito. Isso não é uma falha específica
+do cofre — é uma limitação inerente a rodar em um processo de usuário comum, sem elevar
+privilégios nem depender de hardware dedicado (TPM/enclave) para guardar segredos em uso —
+mas é real, e por isso listada aqui em vez de deixada implícita.
+
+### Quem tem o segredo da chave de recuperação (opcional, desligada por padrão)
+
+A chave de recuperação existe para um único problema: esquecer a senha mestra
+sem backup nenhum, hoje, significa perder o cofre de vez (ver "Fora de
+escopo" mais abaixo — isso continua verdadeiro por padrão). Quem ativa o
+recurso recebe um segredo aleatório de 160 bits (formatado em grupos de 4
+caracteres, alfabeto sem I/L/O/U para reduzir erro de transcrição) e é
+instruído a anotá-lo e guardá-lo **longe do dispositivo** — impresso, num
+cofre físico, não num arquivo de texto na mesma máquina. Esse segredo
+envelopa a chave mestra do cofre (HKDF-SHA256 do segredo -> AES-256-GCM sobre
+a chave mestra), gravado em `recuperacao.dat` ao lado do cofre cifrado.
+
+**O que isso muda no modelo**: para quem ativou o recurso, o segredo de
+recuperação passa a ser, na prática, **equivalente em poder à senha mestra**
+— quem o possui consegue redefinir a senha mestra e abrir o cofre daí em
+diante, sem nunca ter sabido a senha original. Não é uma segunda porta mais
+fraca: é a mesma porta, com uma chave diferente. Por isso a orientação de
+guardá-lo separado do dispositivo (quem rouba só o notebook, sem o papel, não
+ganha nada com `recuperacao.dat` sozinho) e por isso tentativas de recuperação
+passam pelo mesmo bloqueio escalonado por tentativas erradas
+(`ControleTentativasLogin`) que já protege a senha mestra — não é um segredo
+de baixa entropia acessível por força bruta, mas também não fica sem limite
+de tentativas.
+
+**Rotação automática**: uma recuperação bem-sucedida gera um segredo novo
+(o antigo, que envelopava a chave mestra que acabou de ser trocada, é
+descartado) e a pessoa é avisada a anotar o novo. Uma troca de senha mestra
+pelo fluxo normal (não pela recuperação) também gera um segredo novo — o
+envelope antigo ficaria envelopando uma chave que não existe mais.
+Ativar, gerar de novo ou desativar a chave de recuperação exige reautenticação
+com a senha mestra atual, mesmo com o cofre já desbloqueado — mesma barreira
+que "Limpar cofre" e "Excluir cofre" já usavam, pra alguém com acesso físico
+breve a uma sessão sem supervisão não conseguir mexer nisso só com um clique.
+
+Desligado por padrão: quem nunca ativa a chave de recuperação não muda nada
+do modelo de ameaça original — `recuperacao.dat` nem chega a existir.
 
 ### Atacante de rede
 
@@ -57,7 +103,7 @@ O cofre não fala com nenhum serviço externo por padrão, fora duas exceções 
 delimitadas: a verificação de senha comprometida (Have I Been Pwned, por k-anonymity — só
 os 5 primeiros caracteres do hash SHA-1 da senha saem da máquina) e a busca de ícones reais
 por favicon (desligada por padrão, exige consentimento explícito, envia só o domínio do
-serviço). A checagem de nova versão é uma leitura pública da API do GitHub, sem enviar nada
+serviço). A checagem de atualização é uma leitura pública da API do GitHub, sem enviar nada
 além da própria consulta. Não há telemetria de nenhum tipo. Um atacante observando o
 tráfego de rede não vê senhas, usuários ou qualquer conteúdo do cofre em trânsito.
 
@@ -158,10 +204,24 @@ acesso com uma chave desatualizada.
   mesmos privilégios do usuário enquanto o cofre está aberto, ele pode, em tese, interagir
   com a interface ou ler memória do processo (ver seção acima). Isolamento de processo,
   sandboxing e antivírus são responsabilidade do sistema operacional, não deste aplicativo.
-- **Perda da senha mestra.** Não existe recuperação — nem por servidor externo, nem por
-  backdoor, nem por qualquer mecanismo que dispense a senha mestra (ou uma chave
-  equivalente, como o vínculo biométrico). Esquecer a senha mestra sem ter um backup
-  significa perder o acesso ao cofre.
+  Isso vale igualmente para a digitação automática (Windows): ela preenche usuário e senha
+  na última janela externa em primeiro plano usando `SendInput` — o mesmo mecanismo de
+  nível de sistema operacional que qualquer keylogger já ativo na máquina observaria de
+  qualquer forma, tenha a senha sido digitada à mão ou pelo cofre. A única coisa que o
+  aplicativo pode e faz controlar é o alvo: confirma o título e o processo da janela antes
+  de digitar, traz essa janela específica para primeiro plano e confere de novo que ela
+  segue em foco imediatamente antes de mandar qualquer tecla — abortando sem digitar nada
+  se outra janela assumiu o foco nesse intervalo. Isso reduz o risco de mandar a senha para
+  a janela errada por uma disputa de foco local, mas não defende contra um processo
+  malicioso que já está rodando e capturando teclado por conta própria — esse continua
+  sendo o mesmo cenário de "malware ativo" descrito acima, não uma superfície nova.
+- **Perda da senha mestra.** Por padrão, não existe recuperação — nem por servidor
+  externo, nem por backdoor. Esquecer a senha mestra sem ter um backup (ou sem ter
+  ativado a chave de recuperação opcional, ver a seção acima) significa perder o
+  acesso ao cofre. A única exceção deliberada e opt-in é essa chave de recuperação:
+  quem a ativa está conscientemente trocando parte dessa garantia por uma rede de
+  segurança, e precisa proteger o segredo gerado com o mesmo cuidado que a própria
+  senha mestra.
 - **Engenharia social e phishing.** Convencer a pessoa usuária a revelar a própria senha
   mestra por fora do aplicativo está fora de qualquer controle técnico que o cofre ofereça.
 - **Ataques físicos avançados a hardware** (side-channel, cold boot attack, chip-off em
@@ -185,13 +245,15 @@ acesso com uma chave desatualizada.
   Essa mesma chave pública RSA está versionada no repositório (`update-signing-public.pem`)
   para conferência manual da assinatura, e a release ainda carrega uma assinatura GPG
   destacada do `CHECKSUMS.txt` quando há chave configurada; o `SECURITY.md` descreve os
-  passos. Assinatura de código (Authenticode) no instalador Windows segue como item futuro
-  do roadmap, hoje sem certificado disponível — é o que eliminaria o aviso de "editor
-  desconhecido" do SmartScreen.
+  passos. Assinatura de código (Authenticode) no instalador e nos executáveis do Windows
+  já está montada no pipeline de release (`App/distribuicao/assinar-windows.ps1`),
+  mas inativa: falta um certificado de assinatura (com custo anual). Configurados
+  os secrets `WINDOWS_CERT_BASE64`/`WINDOWS_CERT_PASSWORD`, toda build passa a sair
+  assinada — é o que eliminaria o aviso de "editor desconhecido" do SmartScreen.
 
 ## Como isso evolui
 
-Este documento reflete o desenho atual, não uma promessa estática. À medida que o roadmap
+Este documento reflete o desenho atual, não uma promessa estática. À medida que o projeto
 avança — chave de hardware (FIDO2/YubiKey), por exemplo — as seções acima devem ser
 revisadas para refletir o que muda. Encontrou algo que deveria estar aqui e não está? Veja
 como reportar em [SECURITY.md](SECURITY.md).

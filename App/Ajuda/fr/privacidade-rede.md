@@ -16,7 +16,7 @@ touche pas au réseau.
 ## Vérifier les mises à jour
 
 Quand elle est activée, elle interroge la page des versions du projet pour
-vous signaler s'il en existe une plus récente. Rien n'est téléchargé
+vous signaler s'il existe une mise à jour. Rien n'est téléchargé
 automatiquement, et rien d'autre que cette requête n'est envoyé.
 Désactivée par défaut.
 

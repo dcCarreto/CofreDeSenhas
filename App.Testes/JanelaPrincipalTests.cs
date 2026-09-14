@@ -1450,6 +1450,38 @@ namespace App.Testes
         }
 
         [AvaloniaFact]
+        public async Task DesativarChaveRecuperacao_ExigeReautenticacaoAntesDeApagarOEnvelope()
+        {
+            // Antes da correção, desativar a chave de recuperação bastava um clique de
+            // confirmação — sem senha nenhuma —, ao contrário de ativar/gerar (que
+            // sempre exigiu reautenticação). Quem tivesse a sessão desbloqueada por um
+            // instante conseguia apagar a rede de segurança da pessoa dona do cofre sem
+            // saber a senha mestra.
+            var recuperacao = new ServicoRecuperacao();
+            recuperacao.Desabilitar();
+            try
+            {
+                var (servico, chave, criptografia) = CriarServicoComCriptografia();
+                recuperacao.Habilitar(chave);
+
+                var janela = new JanelaPrincipal(servico, chave, criptografia);
+                janela.Show();
+                await TesteUtil.AguardarAsync(() => false, tentativas: 5);
+
+                janela.DesativarChaveRecuperacao();
+                await TesteUtil.AguardarAsync(() =>
+                    janela.OwnedWindows.OfType<JanelaConfirmarSenhaMestra>().Any());
+
+                Assert.Contains(janela.OwnedWindows, w => w is JanelaConfirmarSenhaMestra);
+                Assert.True(recuperacao.EstaHabilitada());
+            }
+            finally
+            {
+                recuperacao.Desabilitar();
+            }
+        }
+
+        [AvaloniaFact]
         public async Task PublicarTumbasNaPastaDeSincronizacaoAsync_ComItemQueJaEstavaNoArquivoRemoto_SubstituiPorUmaTumbaQueNaoResgataOItem()
         {
             var (servico, chave, criptografia) = CriarServicoComCriptografia();
@@ -1585,24 +1617,24 @@ namespace App.Testes
         }
 
         [AvaloniaFact]
-        public async Task AtualizarAgora_Click_PedeConfirmacaoComVersaoENotasAntesDeIniciarAAtualizacao()
+        public async Task AtualizarAgora_Click_PedeConfirmacaoComNotasAntesDeIniciarAAtualizacao()
         {
             // Antes da correção, "Atualizar agora" já disparava o download e a
-            // instalação silenciosa direto — sem mostrar qual versão ia entrar nem o
-            // que mudava nela, o app podia se fechar sozinho pra aplicar a atualização
-            // sem o usuário nunca ter visto do que se tratava.
+            // instalação silenciosa direto — sem mostrar o que mudava, o app podia
+            // se fechar sozinho pra aplicar a atualização sem o usuário nunca ter
+            // visto do que se tratava.
             var (servico, chave) = CriarServico();
             var janela = new JanelaPrincipal(servico, chave);
             janela.Show();
             await TesteUtil.AguardarAsync(() => false, tentativas: 5);
 
-            janela.ExibirAtualizacaoDisponivel(new AtualizacaoDisponivel("v9.9.9", "- Item um\n- Item dois"));
+            janela.ExibirAtualizacaoDisponivel(new AtualizacaoDisponivel("v2026.9.9", "- Item um\n- Item dois"));
 
             janela.Encontrar<Button>("BtnAtualizarAgora").RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
             await TesteUtil.AguardarAsync(() => janela.OwnedWindows.OfType<CaixaMensagem>().Any());
 
             var dialogo = janela.OwnedWindows.OfType<CaixaMensagem>().Single();
-            Assert.Equal(Idioma.Formatar("Update.ConfirmTitle", "v9.9.9"), dialogo.Title);
+            Assert.Equal(Idioma.Texto("Update.ConfirmTitle"), dialogo.Title);
 
             // Cancelar aqui não pode chegar a chamar ServicoAtualizacao.AtualizarAgoraAsync
             // (rede de verdade) — o texto do botão só muda pra "Baixando..." se o fluxo

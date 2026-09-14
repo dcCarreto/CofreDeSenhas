@@ -8,12 +8,7 @@ $ErrorActionPreference = "Stop"
 $raiz = Resolve-Path "$PSScriptRoot\..\.."
 
 if (-not $Versao) {
-    $csproj = Get-Content "$raiz\App\App.csproj" -Raw
-    if ($csproj -match "<Version>([^<]+)</Version>") {
-        $Versao = $Matches[1]
-    } else {
-        throw "Não foi possível determinar a versão em App\App.csproj. Use -Versao X.Y.Z."
-    }
+    $Versao = [DateTime]::UtcNow.ToString('yyyy.M.d')
 }
 
 $candidatosIscc = @(
@@ -30,18 +25,25 @@ if (-not $iscc) {
     throw "Inno Setup não encontrado. Instale com: winget install JRSoftware.InnoSetup"
 }
 
-Write-Host "Publicando o aplicativo (win-x64, autocontido, versão $Versao)..."
+Write-Host "Publicando o aplicativo (win-x64, autocontido, atualização $Versao)..."
 dotnet publish "$raiz\App\App.csproj" `
     -f net10.0-windows10.0.19041.0 -c Release -r win-x64 `
     --self-contained true `
     -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true `
     -p:PublishReadyToRun=true `
+    -p:Version=$Versao `
     -o "$raiz\publish"
 if ($LASTEXITCODE -ne 0) { throw "dotnet publish falhou." }
+
+# Assina antes do Inno Setup para o executável ficar assinado também dentro do
+# instalador. Sem os secrets de assinatura, não faz nada.
+& "$PSScriptRoot\assinar-windows.ps1" "$raiz\publish\CofreDeSenhas.exe"
 
 Write-Host "Compilando o instalador com o Inno Setup..."
 & $iscc "/DMyAppVersion=$Versao" "$raiz\App\distribuicao\cofre-de-senhas.iss"
 if ($LASTEXITCODE -ne 0) { throw "ISCC falhou." }
+
+& "$PSScriptRoot\assinar-windows.ps1" "$raiz\dist\CofreDeSenhas-Setup-$Versao.exe"
 
 Write-Host ""
 Write-Host "Pronto! Instalador gerado em: $raiz\dist\CofreDeSenhas-Setup-$Versao.exe"

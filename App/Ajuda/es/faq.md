@@ -2,11 +2,14 @@
 
 ## He olvidado la contraseña maestra. ¿Y ahora?
 
-No hay forma de recuperarla, ni por nuestra parte ni por nadie. Es el
-precio del cifrado que protege la caja de terceros. Si guardaste el
-**código QR de copia de seguridad**, úsalo para reimportar la contraseña.
-Sin la contraseña ni el QR, el contenido de la caja queda inaccesible.
-Consulta [Contraseña maestra](senha-mestra).
+Depende de si activaste la **clave de recuperación** (opcional, desactivada
+por defecto). Si la activaste: en la pantalla de inicio, haz clic en "He
+olvidado la contraseña maestra", escribe el secreto que anotaste y elige
+una contraseña nueva. Si no la activaste: no hay forma de recuperarla, ni
+por nuestra parte ni por nadie. Si guardaste el **código QR de copia de
+seguridad**, úsalo para reimportar la contraseña. Sin la contraseña
+maestra, la clave de recuperación ni el QR, el contenido de la caja queda
+inaccesible. Consulta [Contraseña maestra](senha-mestra).
 
 ## ¿Dónde están mis datos?
 
