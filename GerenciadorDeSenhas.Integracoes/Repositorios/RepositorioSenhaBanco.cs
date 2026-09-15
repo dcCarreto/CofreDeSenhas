@@ -110,7 +110,8 @@ namespace GerenciadorDeSenhas.Repositorios
                             continue;
                         }
                     }
-                    else if (!_integridade.VerificarHmacIntegridade(CalcularAssinatura(senha), hmacArmazenado))
+                    else if (!_integridade.VerificarHmacIntegridade(CalcularAssinatura(senha), hmacArmazenado)
+                        && !_integridade.VerificarHmacIntegridade(CalcularAssinaturaLegado(senha), hmacArmazenado))
                     {
                         _violacoesIntegridade.Add((senha.Id, senha.NomeServico));
                         _idsForaDoMerge.Add(senha.Id);
@@ -618,6 +619,33 @@ namespace GerenciadorDeSenhas.Repositorios
             senha != null ? _integridade?.CalcularHmacIntegridade(CalcularAssinatura(senha)) : null;
 
         private static string CalcularAssinatura(Senha senha) => JsonSerializer.Serialize(new
+        {
+            senha.Id,
+            senha.Usuario,
+            senha.NomeServico,
+            senha.SenhaHash,
+            senha.Url,
+            Categoria = (int)senha.Categoria,
+            senha.Etiquetas,
+            senha.Notas,
+            Tipo = (int)senha.Tipo,
+            senha.CamposExtras,
+            senha.TotpSegredo,
+            senha.Historico,
+            senha.CodigosRecuperacao,
+            senha.Favorito,
+            senha.Fixado,
+            senha.NaLixeira,
+            senha.DataExclusao,
+            senha.DataCriacao,
+            senha.DataAtualizacao
+        });
+
+        // Formato anterior a este cobrir data_exclusao na assinatura — mantido só
+        // pra validar hmacs já gravados por versões antigas do app sem rejeitar a
+        // linha à toa. Uma gravação nova (Adicionar/Atualizar/Remover/...) sempre
+        // recalcula com CalcularAssinatura e substitui o hmac pelo formato atual.
+        internal static string CalcularAssinaturaLegado(Senha senha) => JsonSerializer.Serialize(new
         {
             senha.Id,
             senha.Usuario,

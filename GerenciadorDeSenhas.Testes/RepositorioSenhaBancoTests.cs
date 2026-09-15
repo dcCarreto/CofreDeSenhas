@@ -639,6 +639,44 @@ public class RepositorioSenhaBancoTests : IDisposable
         Assert.Equal(senha.Id, naoVerificada.Id);
     }
 
+    [Fact]
+    public async Task CarregarSeNecessario_ComDataExclusaoAdulterada_RejeitaERegistraViolacao()
+    {
+        var repo = new RepositorioSenhaBanco(_cfg, _criptografia);
+        var senha = NovaSenha("exclusao-adulterada.com", "u", "s");
+        await repo.AdicionarAsync(senha);
+        await repo.RemoverAsync(senha.Id);
+
+        await AlterarColunaDiretamenteAsync("data_exclusao",
+            new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc).ToString("O"));
+
+        var outro = new RepositorioSenhaBanco(_cfg, _criptografia);
+        var todas = await outro.ListarTudoAsync();
+
+        Assert.Empty(todas);
+        var violacao = Assert.Single(outro.ViolacoesIntegridade);
+        Assert.Equal(senha.Id, violacao.Id);
+    }
+
+    [Fact]
+    public async Task CarregarSeNecessario_ComHmacNoFormatoLegadoSemDataExclusao_AindaValidaSemMarcarViolacao()
+    {
+        var repo = new RepositorioSenhaBanco(_cfg, _criptografia);
+        var senha = NovaSenha("legado-hmac.com", "u", "s");
+        await repo.AdicionarAsync(senha);
+        await repo.RemoverAsync(senha.Id);
+
+        var gravada = (await new RepositorioSenhaBanco(_cfg).ListarLixeiraAsync()).Single();
+        var hmacLegado = _criptografia.CalcularHmacIntegridade(RepositorioSenhaBanco.CalcularAssinaturaLegado(gravada));
+        await AlterarColunaDiretamenteAsync("hmac", hmacLegado);
+
+        var outro = new RepositorioSenhaBanco(_cfg, _criptografia);
+        var todas = await outro.ListarLixeiraAsync();
+
+        Assert.Single(todas);
+        Assert.Empty(outro.ViolacoesIntegridade);
+    }
+
     private async Task AlterarColunaDiretamenteAsync(string coluna, string? valor)
     {
         await using var con = _bd.CriarConexao(_cfg);
