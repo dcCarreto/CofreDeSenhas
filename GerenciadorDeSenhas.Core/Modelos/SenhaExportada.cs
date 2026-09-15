@@ -38,7 +38,18 @@ namespace GerenciadorDeSenhas.Modelos
 
     public class AnexoExportado
     {
+        // Sem Id em versões antigas de .gsenhas (o formato de exportação nunca
+        // precisou identificar um anexo entre execuções) — um valor novo aleatório
+        // aqui é inofensivo pra importação, que só recria os arquivos do zero. Já
+        // pra sincronização por pasta, o Id é o que liga esta entrada ao mesmo anexo
+        // entre dispositivos (mesmo papel que Senha.Id já tem pra credenciais).
+        public Guid Id { get; set; } = Guid.NewGuid();
         public string NomeArquivo { get; set; } = string.Empty;
         public string ConteudoBase64 { get; set; } = string.Empty;
+
+        // Só usados pela sincronização por pasta (exportação .gsenhas não lida com
+        // tumba: um anexo excluído simplesmente não entra na lista exportada).
+        public bool Excluido { get; set; }
+        public DateTime DataAtualizacao { get; set; } = DateTime.UtcNow;
     }
 }

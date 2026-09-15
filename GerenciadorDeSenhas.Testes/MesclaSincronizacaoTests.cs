@@ -269,6 +269,72 @@ public class MesclaSincronizacaoTests
     }
 
     [Fact]
+    public void MesclarSenhasExportadas_AnexosComIdsDiferentes_Une()
+    {
+        var id = Guid.NewGuid();
+        var agora = DateTime.UtcNow;
+
+        var local = new SenhaExportada { Id = id, NomeServico = "s", Usuario = "u", Senha = "p", DataAtualizacao = agora };
+        local.Anexos.Add(new AnexoExportado { Id = Guid.NewGuid(), NomeArquivo = "local.pdf", DataAtualizacao = agora });
+
+        var remoto = new SenhaExportada { Id = id, NomeServico = "s", Usuario = "u", Senha = "p", DataAtualizacao = agora.AddMinutes(-5) };
+        remoto.Anexos.Add(new AnexoExportado { Id = Guid.NewGuid(), NomeArquivo = "remoto.pdf", DataAtualizacao = agora.AddMinutes(-5) });
+
+        var resultado = MesclaSincronizacao.MesclarSenhasExportadas(new List<SenhaExportada> { local }, new List<SenhaExportada> { remoto });
+
+        var item = Assert.Single(resultado);
+        Assert.Equal(2, item.Anexos.Count);
+        Assert.Contains(item.Anexos, a => a.NomeArquivo == "local.pdf");
+        Assert.Contains(item.Anexos, a => a.NomeArquivo == "remoto.pdf");
+    }
+
+    [Fact]
+    public void MesclarSenhasExportadas_AnexoExcluidoMaisRecenteNoLadoPerdedor_PropagaAExclusao()
+    {
+        // Cenário central da tumba por anexo: o dispositivo que "vence" a credencial
+        // pela DataAtualizacao geral nem sempre é o mesmo que mexeu por último num
+        // anexo específico. Sem comparar DataAtualizacao por anexo (não por lado), a
+        // exclusão feita no perdedor nunca alcançaria o vencedor.
+        var id = Guid.NewGuid();
+        var anexoId = Guid.NewGuid();
+        var agora = DateTime.UtcNow;
+
+        var local = new SenhaExportada { Id = id, NomeServico = "s", Usuario = "u", Senha = "p", DataAtualizacao = agora };
+        local.Anexos.Add(new AnexoExportado { Id = anexoId, NomeArquivo = "recibo.pdf", DataAtualizacao = agora.AddMinutes(-30) });
+
+        var remoto = new SenhaExportada { Id = id, NomeServico = "s", Usuario = "u", Senha = "p", DataAtualizacao = agora.AddMinutes(-5) };
+        remoto.Anexos.Add(new AnexoExportado { Id = anexoId, NomeArquivo = "recibo.pdf", Excluido = true, DataAtualizacao = agora.AddMinutes(-1) });
+
+        var resultado = MesclaSincronizacao.MesclarSenhasExportadas(new List<SenhaExportada> { local }, new List<SenhaExportada> { remoto });
+
+        var item = Assert.Single(resultado);
+        var anexo = Assert.Single(item.Anexos);
+        Assert.True(anexo.Excluido);
+    }
+
+    [Fact]
+    public void MesclarSenhasExportadas_AnexoAtivoNoPerdedorMaisAntigoQueExclusaoNoVencedor_MantemExcluido()
+    {
+        var id = Guid.NewGuid();
+        var anexoId = Guid.NewGuid();
+        var agora = DateTime.UtcNow;
+
+        var local = new SenhaExportada { Id = id, NomeServico = "s", Usuario = "u", Senha = "p", DataAtualizacao = agora };
+        local.Anexos.Add(new AnexoExportado { Id = anexoId, NomeArquivo = "recibo.pdf", Excluido = true, DataAtualizacao = agora.AddMinutes(-1) });
+
+        // Cópia do outro dispositivo, ainda não sincronizada desde antes da exclusão —
+        // mais antiga que a tumba do vencedor, não deve conseguir reativar o anexo.
+        var remoto = new SenhaExportada { Id = id, NomeServico = "s", Usuario = "u", Senha = "p", DataAtualizacao = agora.AddMinutes(-5) };
+        remoto.Anexos.Add(new AnexoExportado { Id = anexoId, NomeArquivo = "recibo.pdf", DataAtualizacao = agora.AddMinutes(-30) });
+
+        var resultado = MesclaSincronizacao.MesclarSenhasExportadas(new List<SenhaExportada> { local }, new List<SenhaExportada> { remoto });
+
+        var item = Assert.Single(resultado);
+        var anexo = Assert.Single(item.Anexos);
+        Assert.True(anexo.Excluido);
+    }
+
+    [Fact]
     public void MesclarSenhasExportadas_ComTumbaDeExclusaoDefinitivaVencendo_NaoResgataEtiquetasNemHistoricoDoLadoPerdedor()
     {
         var id = Guid.NewGuid();
