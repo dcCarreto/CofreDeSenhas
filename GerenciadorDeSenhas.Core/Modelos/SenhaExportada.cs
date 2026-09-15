@@ -48,7 +48,13 @@ namespace GerenciadorDeSenhas.Modelos
         public string ConteudoBase64 { get; set; } = string.Empty;
 
         // Só usados pela sincronização por pasta (exportação .gsenhas não lida com
-        // tumba: um anexo excluído simplesmente não entra na lista exportada).
+        // tumba: um anexo excluído simplesmente não entra na lista exportada, e
+        // ConteudoBase64 já carrega o arquivo inteiro ali, então TamanhoBytes seria
+        // redundante). Sem os bytes aqui — a sincronização é sob demanda: só o
+        // metadado viaja pelo sincronizacao.dat, o conteúdo é buscado à parte
+        // (ServicoSincronizacao.BaixarAnexoAsync) quando alguém abre o anexo.
+        public long TamanhoBytes { get; set; }
+        public DateTime DataAdicao { get; set; } = DateTime.UtcNow;
         public bool Excluido { get; set; }
         public DateTime DataAtualizacao { get; set; } = DateTime.UtcNow;
     }

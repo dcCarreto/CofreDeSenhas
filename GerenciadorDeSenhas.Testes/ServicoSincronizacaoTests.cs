@@ -139,6 +139,92 @@ public class ServicoSincronizacaoTests : IDisposable
     }
 
     [Fact]
+    public async Task PublicarAnexoEBaixarAnexo_ComChaveCorreta_RoundTripPreservaConteudo()
+    {
+        var chave = RandomNumberGenerator.GetBytes(32);
+        var servico = new ServicoSincronizacao(new ServicoCriptografia(chave));
+        var anexoId = Guid.NewGuid();
+        var conteudo = Encoding.UTF8.GetBytes("conteudo do anexo");
+
+        await servico.PublicarAnexoAsync(_pastaTemp, anexoId, conteudo);
+        var baixado = await servico.BaixarAnexoAsync(_pastaTemp, anexoId);
+
+        Assert.Equal(conteudo, baixado);
+    }
+
+    [Fact]
+    public async Task PublicarAnexo_GravaCifradoNaSubpastaDedicada()
+    {
+        var chave = RandomNumberGenerator.GetBytes(32);
+        var servico = new ServicoSincronizacao(new ServicoCriptografia(chave));
+        var anexoId = Guid.NewGuid();
+        var conteudo = Encoding.UTF8.GetBytes("texto identificavel no plano");
+
+        await servico.PublicarAnexoAsync(_pastaTemp, anexoId, conteudo);
+
+        var caminho = ServicoSincronizacao.CaminhoAnexo(_pastaTemp, anexoId);
+        Assert.True(File.Exists(caminho));
+        Assert.Contains(ServicoSincronizacao.PastaAnexosNome, caminho);
+        var bytesGravados = await File.ReadAllBytesAsync(caminho);
+        Assert.NotEqual(conteudo, bytesGravados);
+    }
+
+    [Fact]
+    public async Task BaixarAnexo_ComChaveErrada_LancaPorFalhaDeDecifragem()
+    {
+        var chaveEscrita = RandomNumberGenerator.GetBytes(32);
+        var chaveLeitura = RandomNumberGenerator.GetBytes(32);
+        var anexoId = Guid.NewGuid();
+
+        var servicoEscrita = new ServicoSincronizacao(new ServicoCriptografia(chaveEscrita));
+        await servicoEscrita.PublicarAnexoAsync(_pastaTemp, anexoId, new byte[] { 1, 2, 3 });
+
+        var servicoLeitura = new ServicoSincronizacao(new ServicoCriptografia(chaveLeitura));
+        await Assert.ThrowsAnyAsync<Exception>(() => servicoLeitura.BaixarAnexoAsync(_pastaTemp, anexoId));
+    }
+
+    [Fact]
+    public async Task BaixarAnexo_NuncaPublicado_RetornaNulo()
+    {
+        var servico = new ServicoSincronizacao(new ServicoCriptografia(RandomNumberGenerator.GetBytes(32)));
+
+        var resultado = await servico.BaixarAnexoAsync(_pastaTemp, Guid.NewGuid());
+
+        Assert.Null(resultado);
+    }
+
+    [Fact]
+    public async Task AnexoPublicado_AntesEDepoisDePublicar_RefleteOEstado()
+    {
+        var servico = new ServicoSincronizacao(new ServicoCriptografia(RandomNumberGenerator.GetBytes(32)));
+        var anexoId = Guid.NewGuid();
+
+        Assert.False(ServicoSincronizacao.AnexoPublicado(_pastaTemp, anexoId));
+
+        await servico.PublicarAnexoAsync(_pastaTemp, anexoId, new byte[] { 1 });
+
+        Assert.True(ServicoSincronizacao.AnexoPublicado(_pastaTemp, anexoId));
+    }
+
+    [Fact]
+    public async Task ApagarAnexoPublicado_RemoveOArquivoDaSubpasta()
+    {
+        var servico = new ServicoSincronizacao(new ServicoCriptografia(RandomNumberGenerator.GetBytes(32)));
+        var anexoId = Guid.NewGuid();
+        await servico.PublicarAnexoAsync(_pastaTemp, anexoId, new byte[] { 1 });
+
+        ServicoSincronizacao.ApagarAnexoPublicado(_pastaTemp, anexoId);
+
+        Assert.False(ServicoSincronizacao.AnexoPublicado(_pastaTemp, anexoId));
+    }
+
+    [Fact]
+    public void ApagarAnexoPublicado_NuncaPublicado_NaoLancaExcecao()
+    {
+        ServicoSincronizacao.ApagarAnexoPublicado(_pastaTemp, Guid.NewGuid());
+    }
+
+    [Fact]
     public async Task Ler_ComChaveErrada_RetornaListaVazia()
     {
         var chaveEscrita = RandomNumberGenerator.GetBytes(32);

@@ -197,6 +197,51 @@ public class ServicoAnexosTests : IDisposable
     }
 
     [Fact]
+    public async Task TemArquivoLocal_ComAnexoRecemAdicionado_RetornaTrue()
+    {
+        var senha = NovaSenha();
+        var anexo = await _servico.AdicionarAsync(senha, "recibo.pdf", new byte[] { 1, 2, 3 });
+
+        Assert.True(_servico.TemArquivoLocal(anexo.Id));
+    }
+
+    [Fact]
+    public void TemArquivoLocal_ComIdInexistente_RetornaFalse()
+    {
+        Assert.False(_servico.TemArquivoLocal(Guid.NewGuid()));
+    }
+
+    [Fact]
+    public async Task ApagarArquivoLocalSeExistir_ApagaOArquivoSemMexerNaListaDeAnexos()
+    {
+        var senha = NovaSenha();
+        var anexo = await _servico.AdicionarAsync(senha, "recibo.pdf", new byte[] { 1, 2, 3 });
+
+        _servico.ApagarArquivoLocalSeExistir(anexo.Id);
+
+        Assert.False(_servico.TemArquivoLocal(anexo.Id));
+        Assert.Single(senha.Anexos); // não mexe no metadado — isso é papel de AplicarSincronizadoAsync
+    }
+
+    [Fact]
+    public void ApagarArquivoLocalSeExistir_ComIdInexistente_NaoLancaExcecao()
+    {
+        _servico.ApagarArquivoLocalSeExistir(Guid.NewGuid());
+    }
+
+    [Fact]
+    public async Task LerPorIdAsync_RetornaOMesmoConteudoQueLerAsync()
+    {
+        var senha = NovaSenha();
+        var conteudo = new byte[] { 9, 8, 7, 6 };
+        var anexo = await _servico.AdicionarAsync(senha, "recibo.pdf", conteudo);
+
+        var lido = await _servico.LerPorIdAsync(anexo.Id);
+
+        Assert.Equal(conteudo, lido);
+    }
+
+    [Fact]
     public async Task RemoverTodos_ApagaTodosOsAnexosDaCredencial()
     {
         var senha = NovaSenha();

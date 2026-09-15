@@ -95,8 +95,26 @@ namespace GerenciadorDeSenhas.Servicos
         {
             if (anexo == null) throw new ArgumentNullException(nameof(anexo));
 
-            var cifrado = await File.ReadAllBytesAsync(CaminhoArquivo(anexo.Id));
+            return await LerPorIdAsync(anexo.Id);
+        }
+
+        public async Task<byte[]> LerPorIdAsync(Guid anexoId)
+        {
+            var cifrado = await File.ReadAllBytesAsync(CaminhoArquivo(anexoId));
             return _criptografia.DescriptografarBytes(cifrado);
+        }
+
+        public bool TemArquivoLocal(Guid anexoId) => File.Exists(CaminhoArquivo(anexoId));
+
+        // Best-effort, mesmo espírito do catch em Remover: um arquivo que já não
+        // existe (nunca foi baixado, ou já tinha sido apagado antes) não é erro, e
+        // uma falha real de exclusão aqui é rara o bastante (mesmos motivos de
+        // Remover — antivírus, permissão) pra não travar todo o ciclo de
+        // sincronização por causa de um único arquivo.
+        public void ApagarArquivoLocalSeExistir(Guid anexoId)
+        {
+            try { File.Delete(CaminhoArquivo(anexoId)); }
+            catch { }
         }
 
         public async Task<Dictionary<Guid, byte[]>> LerTodosBrutosAsync(IEnumerable<Guid> anexoIds)

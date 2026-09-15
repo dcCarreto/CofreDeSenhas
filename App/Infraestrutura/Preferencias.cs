@@ -27,6 +27,12 @@ namespace CofreDeSenhas
         public int? Paralelismo { get; set; }
         public int FrequenciaMinutos { get; set; } = 15;
         public DateTime? UltimaSincronizacao { get; set; }
+
+        // Desligado por padrão de propósito (fase C do escopo de anexos sincronizados
+        // ainda não expõe isto na UI) — sem toggle visível, todo perfil existente ou
+        // novo fica sempre false, então o transporte de bytes desta fase B nunca roda
+        // de verdade em produção até a fase C acrescentar o controle.
+        public bool SincronizarAnexos { get; set; }
     }
 
     public static class Preferencias

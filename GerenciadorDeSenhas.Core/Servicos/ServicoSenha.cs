@@ -277,7 +277,16 @@ namespace GerenciadorDeSenhas.Servicos
             await _repositorio.RegistrarCopiaAsync(id, campo);
         }
 
-        public async Task AplicarSincronizadoAsync(SenhaExportada item)
+        // sincronizarAnexos combina metadado (nome/tamanho/tumba) e transporte de
+        // bytes numa única opção do lado do usuário, mas só o primeiro chega até
+        // aqui — o segundo é papel de JanelaPrincipal.SincronizarAnexosAsync. Default
+        // false de propósito: item.Anexos chega vazio de qualquer sincronização que
+        // não passe true explicitamente (ex.: perfil.SincronizarAnexos desligado, ou
+        // qualquer chamador futuro que nem saiba desse parâmetro), e aplicar uma
+        // lista vazia por cima apagaria anexos locais que não têm nada a ver com
+        // sincronização — mesmo raciocínio de MesclaSincronizacao.MesclarSenhas pro
+        // caminho do banco ("Anexos nunca têm coluna... local sempre vence").
+        public async Task AplicarSincronizadoAsync(SenhaExportada item, bool sincronizarAnexos = false)
         {
             // Tumba de exclusão definitiva vinda de outro dispositivo (ver
             // JanelaPrincipal.PublicarTumbasNaPastaDeSincronizacaoAsync) — remove por
@@ -331,6 +340,8 @@ namespace GerenciadorDeSenhas.Servicos
                 existente.DataExclusao = item.DataExclusao;
                 existente.DataCriacao = item.DataCriacao;
                 existente.DataAtualizacao = item.DataAtualizacao;
+                if (sincronizarAnexos)
+                    existente.Anexos = MapearAnexosSincronizados(item.Anexos);
 
                 await _repositorio.AtualizarAsync(existente);
             }
@@ -356,12 +367,24 @@ namespace GerenciadorDeSenhas.Servicos
                     NaLixeira = item.NaLixeira,
                     DataExclusao = item.DataExclusao,
                     DataCriacao = item.DataCriacao,
-                    DataAtualizacao = item.DataAtualizacao
+                    DataAtualizacao = item.DataAtualizacao,
+                    Anexos = sincronizarAnexos ? MapearAnexosSincronizados(item.Anexos) : new()
                 };
 
                 await _repositorio.AdicionarAsync(novo);
             }
         }
+
+        private static List<AnexoSenha> MapearAnexosSincronizados(List<AnexoExportado> anexos) =>
+            anexos.Select(a => new AnexoSenha
+            {
+                Id = a.Id,
+                NomeArquivo = a.NomeArquivo,
+                TamanhoBytes = a.TamanhoBytes,
+                DataAdicao = a.DataAdicao,
+                Excluido = a.Excluido,
+                DataAtualizacao = a.DataAtualizacao
+            }).ToList();
 
         public async Task PersistirAsync()
         {

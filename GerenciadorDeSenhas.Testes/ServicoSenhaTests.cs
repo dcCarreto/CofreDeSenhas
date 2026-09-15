@@ -374,6 +374,95 @@ public class ServicoSenhaTests : IDisposable
     }
 
     [Fact]
+    public async Task AplicarSincronizadoAsync_SemSincronizarAnexos_NaoMexeNosAnexosLocaisExistentes()
+    {
+        // Guarda de regressão: item.Anexos chega vazio de toda sincronização que não
+        // passa sincronizarAnexos=true (a opção da fase C ainda nem existe na UI) —
+        // sem essa guarda, aplicar por cima apagaria anexos que não têm nada a ver
+        // com sincronização, todo ciclo de sync de senha (já em uso hoje).
+        var senha = await _servico.CriarSenhaAsync(
+            "Gmail", "user@gmail.com", "Senha@123456", Categoria.Personal);
+        senha.Anexos.Add(new AnexoSenha { NomeArquivo = "recibo.pdf", TamanhoBytes = 10 });
+
+        var item = new SenhaExportada
+        {
+            Id = senha.Id,
+            NomeServico = senha.NomeServico,
+            Usuario = senha.Usuario,
+            Senha = "Senha@123456",
+            Categoria = senha.Categoria,
+            DataCriacao = senha.DataCriacao,
+            DataAtualizacao = DateTime.UtcNow.AddMinutes(1)
+        };
+
+        await _servico.AplicarSincronizadoAsync(item);
+
+        var atualizada = await ObterAsync(senha.Id);
+        var anexo = Assert.Single(atualizada!.Anexos);
+        Assert.Equal("recibo.pdf", anexo.NomeArquivo);
+    }
+
+    [Fact]
+    public async Task AplicarSincronizadoAsync_ComSincronizarAnexosVerdadeiro_AplicaOsAnexosDoItem()
+    {
+        var senha = await _servico.CriarSenhaAsync(
+            "Gmail", "user@gmail.com", "Senha@123456", Categoria.Personal);
+        var anexoId = Guid.NewGuid();
+
+        var item = new SenhaExportada
+        {
+            Id = senha.Id,
+            NomeServico = senha.NomeServico,
+            Usuario = senha.Usuario,
+            Senha = "Senha@123456",
+            Categoria = senha.Categoria,
+            DataCriacao = senha.DataCriacao,
+            DataAtualizacao = DateTime.UtcNow.AddMinutes(1),
+            Anexos = new List<AnexoExportado>
+            {
+                new() { Id = anexoId, NomeArquivo = "recibo.pdf", TamanhoBytes = 20, Excluido = false }
+            }
+        };
+
+        await _servico.AplicarSincronizadoAsync(item, sincronizarAnexos: true);
+
+        var atualizada = await ObterAsync(senha.Id);
+        var anexo = Assert.Single(atualizada!.Anexos);
+        Assert.Equal(anexoId, anexo.Id);
+        Assert.Equal("recibo.pdf", anexo.NomeArquivo);
+        Assert.Equal(20, anexo.TamanhoBytes);
+        Assert.False(anexo.Excluido);
+    }
+
+    [Fact]
+    public async Task AplicarSincronizadoAsync_ComIdInexistenteESincronizarAnexosVerdadeiro_CriaSenhaComAnexos()
+    {
+        var id = Guid.NewGuid();
+        var anexoId = Guid.NewGuid();
+        var item = new SenhaExportada
+        {
+            Id = id,
+            NomeServico = "Servico Novo",
+            Usuario = "u",
+            Senha = "SenhaNova@123",
+            Categoria = Categoria.Other,
+            DataCriacao = DateTime.UtcNow,
+            DataAtualizacao = DateTime.UtcNow,
+            Anexos = new List<AnexoExportado>
+            {
+                new() { Id = anexoId, NomeArquivo = "novo.pdf", TamanhoBytes = 5, Excluido = true }
+            }
+        };
+
+        await _servico.AplicarSincronizadoAsync(item, sincronizarAnexos: true);
+
+        var criada = await ObterAsync(id);
+        var anexo = Assert.Single(criada!.Anexos);
+        Assert.Equal(anexoId, anexo.Id);
+        Assert.True(anexo.Excluido);
+    }
+
+    [Fact]
     public async Task MarcarComoFavoritoAsync_MarcaSenhaComoFavorita()
     {
         var senha = await _servico.CriarSenhaAsync("Gmail", "user@gmail.com", "Senha@123456", Categoria.Personal);
