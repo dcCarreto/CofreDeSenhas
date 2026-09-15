@@ -90,6 +90,14 @@
             </Grid>
           </Border>
 
+          <StackPanel Spacing="4">
+            <CheckBox Name="ChkSincronizarAnexos" Content="{DynamicResource Sync.AttachmentsToggle}"
+                      IsCheckedChanged="SincronizarAnexos_Alterado"
+                      AutomationProperties.Name="{DynamicResource Sync.AttachmentsToggle}" />
+            <TextBlock Text="{DynamicResource Sync.AttachmentsToggleDesc}" FontSize="11"
+                       Foreground="{DynamicResource TextSecondary}" TextWrapping="Wrap" Margin="26,0,0,0" />
+          </StackPanel>
+
           <Button Name="BtnDesativar" Classes="secundario" Content="{DynamicResource Sync.Disable}"
                   MinHeight="34" HorizontalAlignment="Left" Click="Desativar_Click"
                   AutomationProperties.Name="{DynamicResource Sync.Disable}" />

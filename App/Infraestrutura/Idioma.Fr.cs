@@ -170,6 +170,8 @@ namespace CofreDeSenhas
             ("Sync.Success", "Synchronisation terminée avec succès."),
             ("Sync.AlreadyInProgress", "Une synchronisation est déjà en cours. Attendez qu'elle se termine avant de réessayer."),
             ("Sync.Error", "Erreur de synchronisation. Vérifiez que le dossier est accessible."),
+            ("Sync.AttachmentsToggle", "Synchroniser les pièces jointes"),
+            ("Sync.AttachmentsToggleDesc", "Les pièces jointes chiffrées transitent aussi par ce dossier, mais seulement quand quelqu'un les ouvre sur un autre appareil — rien n'est copié d'un coup. Elles comptent dans la même limite de 100 Mo du coffre."),
             ("Sync.Disable", "Désactiver la synchronisation"),
             ("Sync.DisableConfirm", "Désactiver la synchronisation ? Les appareils cessent d'échanger des données entre eux, mais rien n'est supprimé."),
             ("Sync.ConfirmMasterTitle", "Confirmer le mot de passe principal"),

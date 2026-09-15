@@ -62,6 +62,70 @@ namespace App.Testes
         }
 
         [AvaloniaFact]
+        public async Task Abrir_ComSincronizarAnexosLigadoNoPerfil_MostraOToggleMarcado()
+        {
+            var perfilOriginal = Preferencias.Sincronizacao;
+            try
+            {
+                var pastaSincronizada = TesteUtil.CriarPastaTemporaria();
+                Preferencias.Sincronizacao = new PerfilSincronizacao
+                {
+                    Pasta = pastaSincronizada,
+                    Salt = Convert.ToBase64String(ServicoSincronizacao.GerarSalt()),
+                    FrequenciaMinutos = 15,
+                    SincronizarAnexos = true
+                };
+
+                var chave = new AutenticacaoMestra(TesteUtil.CriarPastaTemporaria()).CriarSenhaMestra("SenhaDeTeste123!");
+                var servicoSincronizacao = new ServicoSincronizacao(new ServicoCriptografia(chave));
+
+                var janela = new JanelaSincronizacao(servicoSincronizacao, _ => { }, () => Task.FromResult(true), () => false, _ => Task.FromResult(true));
+                janela.Show();
+                await TesteUtil.AguardarAsync(() => false, tentativas: 5);
+
+                Assert.True(janela.Encontrar<CheckBox>("ChkSincronizarAnexos").IsChecked);
+            }
+            finally
+            {
+                Preferencias.Sincronizacao = perfilOriginal;
+            }
+        }
+
+        [AvaloniaFact]
+        public async Task SincronizarAnexos_Alterado_AtualizaOPerfil()
+        {
+            var perfilOriginal = Preferencias.Sincronizacao;
+            try
+            {
+                var pastaSincronizada = TesteUtil.CriarPastaTemporaria();
+                Preferencias.Sincronizacao = new PerfilSincronizacao
+                {
+                    Pasta = pastaSincronizada,
+                    Salt = Convert.ToBase64String(ServicoSincronizacao.GerarSalt()),
+                    FrequenciaMinutos = 15
+                };
+
+                var chave = new AutenticacaoMestra(TesteUtil.CriarPastaTemporaria()).CriarSenhaMestra("SenhaDeTeste123!");
+                var servicoSincronizacao = new ServicoSincronizacao(new ServicoCriptografia(chave));
+
+                var janela = new JanelaSincronizacao(servicoSincronizacao, _ => { }, () => Task.FromResult(true), () => false, _ => Task.FromResult(true));
+                janela.Show();
+                await TesteUtil.AguardarAsync(() => false, tentativas: 5);
+
+                Assert.False(Preferencias.Sincronizacao?.SincronizarAnexos);
+
+                janela.Encontrar<CheckBox>("ChkSincronizarAnexos").IsChecked = true;
+
+                Assert.True(Preferencias.Sincronizacao?.SincronizarAnexos);
+            }
+            finally
+            {
+                Preferencias.Sincronizacao = perfilOriginal;
+                Preferencias.Salvar();
+            }
+        }
+
+        [AvaloniaFact]
         public async Task Frequencia_Alterada_ChamaAjustarTimerImediatamenteSemEsperarODialogoFechar()
         {
             // Antes da correção, o DispatcherTimer de JanelaPrincipal só reaplicava o

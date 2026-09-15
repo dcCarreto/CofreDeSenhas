@@ -170,6 +170,8 @@ namespace CofreDeSenhas
             ("Sync.Success", "Synchronisierung erfolgreich abgeschlossen."),
             ("Sync.AlreadyInProgress", "Es läuft bereits eine Synchronisierung. Warten Sie, bis sie abgeschlossen ist, bevor Sie es erneut versuchen."),
             ("Sync.Error", "Fehler bei der Synchronisierung. Prüfen Sie, ob der Ordner erreichbar ist."),
+            ("Sync.AttachmentsToggle", "Anhänge synchronisieren"),
+            ("Sync.AttachmentsToggleDesc", "Verschlüsselte Anhänge werden ebenfalls über diesen Ordner übertragen, aber erst, wenn sie auf einem anderen Gerät geöffnet werden — nichts wird auf einmal kopiert. Sie zählen zum selben 100-MB-Limit des Tresors."),
             ("Sync.Disable", "Synchronisierung deaktivieren"),
             ("Sync.DisableConfirm", "Synchronisierung deaktivieren? Die Geräte tauschen keine Daten mehr aus, aber nichts wird gelöscht."),
             ("Sync.ConfirmMasterTitle", "Master-Passwort bestätigen"),

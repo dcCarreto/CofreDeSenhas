@@ -190,6 +190,8 @@ namespace CofreDeSenhas
             ("Sync.Success", "Sincronização concluída com sucesso."),
             ("Sync.AlreadyInProgress", "Já existe uma sincronização em andamento. Aguarde ela terminar antes de tentar de novo."),
             ("Sync.Error", "Erro ao sincronizar. Verifique se a pasta está acessível."),
+            ("Sync.AttachmentsToggle", "Sincronizar anexos"),
+            ("Sync.AttachmentsToggleDesc", "Os anexos cifrados também passam a viajar por esta pasta, mas só quando alguém os abre em outro dispositivo — nada é copiado de uma vez só. Contam para o mesmo limite de 100 MB do cofre."),
             ("Sync.Disable", "Desativar sincronização"),
             ("Sync.DisableConfirm", "Desativar a sincronização? Os dispositivos param de trocar dados entre si, mas nada é apagado."),
             ("Sync.ConfirmMasterTitle", "Confirmar senha mestra"),

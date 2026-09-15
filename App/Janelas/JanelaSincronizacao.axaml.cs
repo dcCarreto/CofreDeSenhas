@@ -66,6 +66,10 @@ namespace CofreDeSenhas.Janelas
             LblPasta.Text = perfil.Pasta;
             MontarFrequencia(perfil.FrequenciaMinutos);
             AtualizarUltimaSincronizacao(perfil);
+
+            _carregandoPreferencias = true;
+            ChkSincronizarAnexos.IsChecked = perfil.SincronizarAnexos;
+            _carregandoPreferencias = false;
         }
 
         private void MontarFrequencia(int atual)
@@ -107,6 +111,15 @@ namespace CofreDeSenhas.Janelas
             // intervalo quando este diálogo fechasse — trocar a frequência e deixar a
             // janela aberta mantinha o timer batendo no intervalo antigo indefinidamente.
             _ajustarTimer?.Invoke();
+        }
+
+        private void SincronizarAnexos_Alterado(object? sender, RoutedEventArgs e)
+        {
+            if (_carregandoPreferencias || Preferencias.Sincronizacao is not { } perfil)
+                return;
+
+            perfil.SincronizarAnexos = ChkSincronizarAnexos.IsChecked == true;
+            Preferencias.Salvar();
         }
 
         private async void Ativar_Click(object? sender, RoutedEventArgs e)

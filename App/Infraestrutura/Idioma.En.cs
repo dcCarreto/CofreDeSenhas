@@ -188,6 +188,8 @@ namespace CofreDeSenhas
             ("Sync.Success", "Sync completed successfully."),
             ("Sync.AlreadyInProgress", "A sync is already in progress. Wait for it to finish before trying again."),
             ("Sync.Error", "Error syncing. Check that the folder is accessible."),
+            ("Sync.AttachmentsToggle", "Sync attachments"),
+            ("Sync.AttachmentsToggleDesc", "Encrypted attachments also travel through this folder, but only when someone opens them on another device — nothing is copied all at once. They count toward the same 100 MB vault limit."),
             ("Sync.Disable", "Disable sync"),
             ("Sync.DisableConfirm", "Disable sync? Devices stop exchanging data with each other, but nothing is deleted."),
             ("Sync.ConfirmMasterTitle", "Confirm master password"),

@@ -170,6 +170,8 @@ namespace CofreDeSenhas
             ("Sync.Success", "Sincronización completada con éxito."),
             ("Sync.AlreadyInProgress", "Ya hay una sincronización en curso. Espera a que termine antes de intentarlo de nuevo."),
             ("Sync.Error", "Error al sincronizar. Verifica que la carpeta esté accesible."),
+            ("Sync.AttachmentsToggle", "Sincronizar adjuntos"),
+            ("Sync.AttachmentsToggleDesc", "Los adjuntos cifrados también viajan por esta carpeta, pero solo cuando alguien los abre en otro dispositivo — no se copia todo de una vez. Cuentan para el mismo límite de 100 MB de la caja."),
             ("Sync.Disable", "Desactivar sincronización"),
             ("Sync.DisableConfirm", "¿Desactivar la sincronización? Los dispositivos dejan de intercambiar datos entre sí, pero nada se elimina."),
             ("Sync.ConfirmMasterTitle", "Confirmar contraseña maestra"),
