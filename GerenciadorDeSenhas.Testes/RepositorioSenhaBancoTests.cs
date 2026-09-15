@@ -677,6 +677,65 @@ public class RepositorioSenhaBancoTests : IDisposable
         Assert.Empty(outro.ViolacoesIntegridade);
     }
 
+    [Fact]
+    public async Task GravarPorChave_ComConteudoIdenticoEIntegridadeHabilitada_NaoExecutaUpdateNoBanco()
+    {
+        var repo = new RepositorioSenhaBanco(_cfg, _criptografia);
+        var senha = NovaSenha("inalterado.com", "u", "s");
+        await repo.GravarPorChaveAsync(senha);
+
+        await CriarGatilhoBloqueandoUpdateAsync();
+
+        // Se GravarAsync tentasse regravar uma linha cujo conteúdo (e hmac) não
+        // mudou, o gatilho abaixo derrubaria a chamada — provando que a otimização
+        // de pular a escrita quando o hmac já bate está mesmo em vigor.
+        await repo.GravarPorChaveAsync(senha);
+    }
+
+    [Fact]
+    public async Task GravarPorChave_ComConteudoAlterado_AindaAtualizaMesmoComGatilhoBloqueandoUpdate()
+    {
+        // Contraprova do teste acima: garante que o gatilho realmente dispara pra
+        // uma mudança de verdade, então o teste anterior não passa só porque o
+        // gatilho nunca chega a rodar.
+        var repo = new RepositorioSenhaBanco(_cfg, _criptografia);
+        var senha = NovaSenha("alterado.com", "u", "s");
+        await repo.GravarPorChaveAsync(senha);
+
+        await CriarGatilhoBloqueandoUpdateAsync();
+
+        senha.NomeServico = "mudou.com";
+        await Assert.ThrowsAnyAsync<Exception>(() => repo.GravarPorChaveAsync(senha));
+    }
+
+    [Fact]
+    public async Task GravarPorChave_ComLinhaLegadaSemHmac_GravaOHmacNoFormatoAtual()
+    {
+        var repoSemIntegridade = new RepositorioSenhaBanco(_cfg);
+        var senha = NovaSenha("legado-grava.com", "u", "s");
+        await repoSemIntegridade.GravarPorChaveAsync(senha);
+
+        var repoComIntegridade = new RepositorioSenhaBanco(_cfg, _criptografia);
+        await repoComIntegridade.GravarPorChaveAsync(senha);
+
+        var outro = new RepositorioSenhaBanco(_cfg, _criptografia);
+        var todas = await outro.ListarTodosAsync();
+
+        Assert.Single(todas);
+        Assert.Empty(outro.SemVerificacaoIntegridade);
+        Assert.Empty(outro.ViolacoesIntegridade);
+    }
+
+    private async Task CriarGatilhoBloqueandoUpdateAsync()
+    {
+        await using var con = _bd.CriarConexao(_cfg);
+        await con.OpenAsync();
+        await using var cmd = con.CreateCommand();
+        cmd.CommandText = $"CREATE TRIGGER bloqueia_update BEFORE UPDATE ON {ServicoBancoDados.NomeTabela} " +
+            "BEGIN SELECT RAISE(ABORT, 'update bloqueado pelo teste'); END;";
+        await cmd.ExecuteNonQueryAsync();
+    }
+
     private async Task AlterarColunaDiretamenteAsync(string coluna, string? valor)
     {
         await using var con = _bd.CriarConexao(_cfg);

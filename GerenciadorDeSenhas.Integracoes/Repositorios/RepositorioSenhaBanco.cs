@@ -549,14 +549,30 @@ namespace GerenciadorDeSenhas.Repositorios
         private async Task GravarAsync(DbConnection con, DbTransaction? tx, Senha senha)
         {
             long? id = null;
+            string? hmacExistente = null;
             await using (var busca = con.CreateCommand())
             {
                 busca.Transaction = tx;
-                busca.CommandText = $"SELECT id FROM {_tabela} WHERE guid_id = @guid_id";
+                busca.CommandText = $"SELECT id, hmac FROM {_tabela} WHERE guid_id = @guid_id";
                 Parametro(busca, "@guid_id", senha.Id.ToString());
-                var r = await busca.ExecuteScalarAsync();
-                if (r != null && r != DBNull.Value) id = Convert.ToInt64(r);
+                await using var leitor = await busca.ExecuteReaderAsync();
+                if (await leitor.ReadAsync())
+                {
+                    id = Convert.ToInt64(leitor["id"]);
+                    hmacExistente = leitor["hmac"] as string;
+                }
             }
+
+            var hmacNovo = CalcularHmacOuNull(senha);
+
+            // Republicar o cofre inteiro no banco (RepositorioSenhaEspelhado.MesclarAsync)
+            // chama isto pra cada credencial a cada sincronização, mesmo pras que não
+            // mudaram nada. Se o hmac já gravado é exatamente o que gravaríamos agora, o
+            // UPDATE não teria efeito nenhum — poupa a escrita. Só entra em jogo com
+            // integridade habilitada (_integridade != null) e um hmac já gravado; linha
+            // legada sem hmac sempre grava, o que já deixa ela no formato atual.
+            if (id.HasValue && _integridade != null && hmacNovo != null && hmacNovo == hmacExistente)
+                return;
 
             await using var cmd = con.CreateCommand();
             cmd.Transaction = tx;
@@ -580,7 +596,7 @@ namespace GerenciadorDeSenhas.Repositorios
                 Parametro(cmd, "@historico", SerializarHistorico(senha.Historico));
                 Parametro(cmd, "@favorito", SerializarBool(senha.Favorito));
                 Parametro(cmd, "@fixado", SerializarBool(senha.Fixado));
-                Parametro(cmd, "@hmac", CalcularHmacOuNull(senha));
+                Parametro(cmd, "@hmac", hmacNovo);
                 Parametro(cmd, "@id", id.Value);
             }
             else
