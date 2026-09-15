@@ -483,10 +483,11 @@ namespace CofreDeSenhas.Janelas
         private void MontarAnexos()
         {
             PainelAnexos.Children.Clear();
+            var ativos = _senhaAtual.Anexos.Where(a => !a.Excluido).ToList();
             BtnAdicionarAnexo.IsEnabled = _servicoAnexos != null &&
-                _senhaAtual.Anexos.Count < ServicoAnexos.QuantidadeMaximaPorCredencial;
+                ativos.Count < ServicoAnexos.QuantidadeMaximaPorCredencial;
 
-            foreach (var item in _senhaAtual.Anexos)
+            foreach (var item in ativos)
                 PainelAnexos.Children.Add(CriarLinhaAnexo(item));
         }
 

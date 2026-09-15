@@ -215,6 +215,9 @@ namespace CofreDeSenhas.Janelas
 
             foreach (var item in s.Anexos)
             {
+                if (item.Excluido)
+                    continue;
+
                 try
                 {
                     var bytes = await _servicoAnexos.LerAsync(item);

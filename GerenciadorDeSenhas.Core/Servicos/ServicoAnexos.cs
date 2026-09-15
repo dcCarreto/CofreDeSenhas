@@ -69,7 +69,7 @@ namespace GerenciadorDeSenhas.Servicos
             await _travaEscrita.WaitAsync();
             try
             {
-                if (senha.Anexos.Count >= QuantidadeMaximaPorCredencial)
+                if (senha.Anexos.Count(a => !a.Excluido) >= QuantidadeMaximaPorCredencial)
                     throw new LimiteAnexoExcedidoException("Attachment.Error.MaxPerCredential", QuantidadeMaximaPorCredencial);
 
                 if (TamanhoTotalAtual() + conteudo.Length > TamanhoMaximoTotalCofre)
@@ -119,12 +119,24 @@ namespace GerenciadorDeSenhas.Servicos
             await EscritaAtomica.EscreverBytesAsync(CaminhoArquivo(anexoId), cifrado);
         }
 
+        // Marca como tumba (Excluido=true) em vez de tirar da lista: a mesclagem
+        // aditiva de MesclaSincronizacao precisa dessa entrada pra propagar a
+        // exclusão pra outro dispositivo que ainda não sincronizou — removê-la de
+        // verdade faria o anexo "ressuscitar" quando a cópia antiga de lá voltasse a
+        // se mesclar. O arquivo físico local some imediatamente de qualquer jeito
+        // (libera espaço na hora); só o metadado permanece, e só até algum lugar da
+        // UI parar de listar entradas Excluido (ver JanelaEditarSenha.MontarAnexos).
         public void Remover(Senha senha, Guid anexoId)
         {
             if (senha == null) throw new ArgumentNullException(nameof(senha));
 
             _avisos.Clear();
-            senha.Anexos.RemoveAll(a => a.Id == anexoId);
+            var anexo = senha.Anexos.FirstOrDefault(a => a.Id == anexoId);
+            if (anexo != null)
+            {
+                anexo.Excluido = true;
+                anexo.DataAtualizacao = DateTime.UtcNow;
+            }
             try { File.Delete(CaminhoArquivo(anexoId)); }
             catch (Exception ex) { _avisos.Add($"Não foi possível apagar o arquivo cifrado do anexo {anexoId}: {ex.Message}"); }
         }

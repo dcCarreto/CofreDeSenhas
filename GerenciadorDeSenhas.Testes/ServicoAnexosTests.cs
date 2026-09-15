@@ -57,7 +57,8 @@ public class ServicoAnexosTests : IDisposable
 
         _servico.Remover(senha, anexo.Id);
 
-        Assert.Empty(senha.Anexos);
+        var restante = Assert.Single(senha.Anexos);
+        Assert.True(restante.Excluido);
         Assert.NotEmpty(_servico.UltimosAvisos);
     }
 
@@ -157,8 +158,42 @@ public class ServicoAnexosTests : IDisposable
 
         _servico.Remover(senha, anexo.Id);
 
-        Assert.Empty(senha.Anexos);
+        var restante = Assert.Single(senha.Anexos);
+        Assert.True(restante.Excluido);
         Assert.False(File.Exists(caminhoArquivo));
+    }
+
+    [Fact]
+    public async Task Remover_MarcaComoExcluidoEAtualizaDataEmVezDeTirarDaLista()
+    {
+        // A entrada precisa sobreviver como tumba pra MesclaSincronizacao propagar a
+        // exclusão pra outro dispositivo — ver MesclarAnexosAditiva.
+        var senha = NovaSenha();
+        var anexo = await _servico.AdicionarAsync(senha, "recibo.pdf", new byte[] { 1, 2, 3 });
+        var dataAntes = anexo.DataAtualizacao;
+
+        await Task.Delay(20);
+        _servico.Remover(senha, anexo.Id);
+
+        var restante = Assert.Single(senha.Anexos);
+        Assert.True(restante.Excluido);
+        Assert.True(restante.DataAtualizacao > dataAntes);
+    }
+
+    [Fact]
+    public async Task AdicionarAsync_ComAnexoExcluidoNaLista_NaoContaParaOLimitePorCredencial()
+    {
+        var senha = NovaSenha();
+        for (var i = 0; i < ServicoAnexos.QuantidadeMaximaPorCredencial; i++)
+            await _servico.AdicionarAsync(senha, $"arquivo{i}.txt", new byte[] { 1 });
+
+        _servico.Remover(senha, senha.Anexos[0].Id);
+
+        var novo = await _servico.AdicionarAsync(senha, "novo.txt", new byte[] { 2 });
+
+        Assert.Equal("novo.txt", novo.NomeArquivo);
+        Assert.Equal(ServicoAnexos.QuantidadeMaximaPorCredencial + 1, senha.Anexos.Count);
+        Assert.Equal(ServicoAnexos.QuantidadeMaximaPorCredencial, senha.Anexos.Count(a => !a.Excluido));
     }
 
     [Fact]
