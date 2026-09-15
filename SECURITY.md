@@ -18,8 +18,12 @@ assinatura de código pago** — este é um projeto pessoal, gratuito e sem fins
 comerciais, e um certificado desses tem custo anual e verificação por uma
 autoridade certificadora. O passo de assinatura Authenticode já existe no
 pipeline (`App/distribuicao/assinar-windows.ps1`) e passa a valer assim que os
-secrets `WINDOWS_CERT_BASE64`/`WINDOWS_CERT_PASSWORD` forem configurados. Até lá,
-na prática:
+secrets `WINDOWS_CERT_BASE64`/`WINDOWS_CERT_PASSWORD` forem configurados. Nesse
+sentido, o projeto solicitou uma assinatura gratuita à SignPath Foundation —
+veja a [Política de assinatura de
+código](README.md#política-de-assinatura-de-código-code-signing-policy) do
+README para a atribuição, os papéis de equipe e a política de privacidade
+exigidos pelo programa. Até a aprovação, na prática:
 
 - **Windows**: ao executar o instalador ou o portátil pela primeira vez, o
   SmartScreen pode mostrar "O Windows protegeu o computador" e o controle de

@@ -24,6 +24,7 @@ modificá-lo e compartilhá-lo livremente para qualquer finalidade não comercia
 - [Funcionalidades](#funcionalidades)
 - [Modelo de segurança](#modelo-de-segurança)
 - [Política de segurança e divulgação de vulnerabilidades](SECURITY.md)
+- [Política de assinatura de código](#política-de-assinatura-de-código-code-signing-policy)
 - [Download e instalação](#download-e-instalação)
 - [Estrutura do projeto](#estrutura-do-projeto)
 - [Arquitetura](#arquitetura)
@@ -424,11 +425,39 @@ Para saber como reportar uma vulnerabilidade encontrada no cofre, veja a
 [política de segurança](SECURITY.md). Para o que o desenho de segurança do cofre
 cobre e o que fica deliberadamente fora dele, veja o [modelo de ameaça](THREAT_MODEL.md).
 
+## Política de assinatura de código (Code signing policy)
+
+O projeto solicitou uma assinatura de código gratuita à [SignPath
+Foundation](https://signpath.org) para os binários do Windows, hoje sem
+certificado Authenticode (ver [Verificando a integridade dos
+arquivos](#verificando-a-integridade-dos-arquivos)). Assim que a inscrição for
+aprovada, as releases do Windows passam a exibir:
+
+> Free code signing provided by [SignPath.io](https://about.signpath.io),
+> certificate by [SignPath Foundation](https://signpath.org)
+
+**Papéis do projeto** — mantido por uma única pessoa, que acumula todos os
+papéis abaixo:
+
+- Committers e revisores de código: [dcCarreto](https://github.com/dcCarreto)
+- Aprovador de cada release para assinatura: [dcCarreto](https://github.com/dcCarreto)
+
+**Política de privacidade** — este programa não transfere nenhuma informação a
+outros sistemas em rede, a não ser quando explicitamente solicitado por quem
+instala ou opera o programa ("*this program will not transfer any information
+to other networked systems unless specifically requested by the user or the
+person installing or operating it*"). Os dois únicos casos, ambos opcionais e
+desligados por padrão, estão descritos no [modelo de
+segurança](#modelo-de-segurança): a verificação de vazamento de senha (Have I
+Been Pwned, por k-anonymity) e a busca de ícones de serviço por domínio.
+
 ## Download e instalação
 
 A forma mais simples de usar o programa é baixar o executável pronto na página de
 [releases](../../releases). Em qualquer plataforma, o binário é autocontido: não
-é necessário instalar o .NET nem qualquer dependência.
+é necessário instalar o .NET nem qualquer dependência. Veja a [Política de
+assinatura de código](#política-de-assinatura-de-código-code-signing-policy)
+para o estado da assinatura Authenticode dos binários do Windows.
 
 No Windows:
 
@@ -553,9 +582,10 @@ gh attestation verify arquivo-baixado --owner dcCarreto
 ```
 
 Os arquivos ainda não são assinados digitalmente (Authenticode, no caso do
-Windows) — isso exige um certificado pago e é um item avaliado para o futuro —
-então hash + attestation são, por enquanto, as formas de verificação
-disponíveis.
+Windows) — o projeto solicitou uma assinatura gratuita à SignPath Foundation
+(ver [Política de assinatura de
+código](#política-de-assinatura-de-código-code-signing-policy)) e, até a
+aprovação, hash + attestation são as formas de verificação disponíveis.
 
 ## Estrutura do projeto
 
