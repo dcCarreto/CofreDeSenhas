@@ -83,7 +83,7 @@ namespace CofreDeSenhas.Janelas
             if (_modoPrivacidade)
                 return;
 
-            var dlg = new JanelaEditarSenha(_servicoSenha, s, _criptografia, _servicoAnexos);
+            var dlg = new JanelaEditarSenha(_servicoSenha, s, _criptografia, _servicoAnexos, _servicoSincronizacao);
             if (!await AbrirDialogoAsync<bool>(dlg))
                 return;
 

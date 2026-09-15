@@ -230,6 +230,20 @@ public class ServicoAnexosTests : IDisposable
     }
 
     [Fact]
+    public async Task SalvarConteudoLocalAsync_GravaCifradoELeivelDeVoltaComLerPorIdAsync()
+    {
+        var anexoId = Guid.NewGuid();
+        var conteudo = new byte[] { 5, 4, 3, 2, 1 };
+
+        Assert.False(_servico.TemArquivoLocal(anexoId));
+        await _servico.SalvarConteudoLocalAsync(anexoId, conteudo);
+
+        Assert.True(_servico.TemArquivoLocal(anexoId));
+        var lido = await _servico.LerPorIdAsync(anexoId);
+        Assert.Equal(conteudo, lido);
+    }
+
+    [Fact]
     public async Task LerPorIdAsync_RetornaOMesmoConteudoQueLerAsync()
     {
         var senha = NovaSenha();

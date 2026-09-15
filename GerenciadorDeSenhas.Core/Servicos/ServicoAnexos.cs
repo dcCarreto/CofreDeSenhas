@@ -106,6 +106,22 @@ namespace GerenciadorDeSenhas.Servicos
 
         public bool TemArquivoLocal(Guid anexoId) => File.Exists(CaminhoArquivo(anexoId));
 
+        // Cifra com a chave LOCAL do cofre e grava — usado quando o conteúdo chegou
+        // de outro lugar já decifrado (baixado da pasta compartilhada com a chave de
+        // sincronização, que é diferente da chave local). Não mexe em Senha.Anexos:
+        // o metadado desse anexo já existe (chegou pela mesclagem), só falta o
+        // arquivo físico neste dispositivo. Sem checagem de limite de propósito —
+        // os tetos existem pra conter criação de anexo novo, não pra bloquear buscar
+        // de volta um que já faz parte da credencial em outro dispositivo.
+        public async Task SalvarConteudoLocalAsync(Guid anexoId, byte[] conteudoPlano)
+        {
+            if (!Directory.Exists(_pastaAnexos))
+                Directory.CreateDirectory(_pastaAnexos);
+
+            var cifrado = _criptografia.CriptografarBytes(conteudoPlano);
+            await EscritaAtomica.EscreverBytesAsync(CaminhoArquivo(anexoId), cifrado);
+        }
+
         // Best-effort, mesmo espírito do catch em Remover: um arquivo que já não
         // existe (nunca foi baixado, ou já tinha sido apagado antes) não é erro, e
         // uma falha real de exclusão aqui é rara o bastante (mesmos motivos de
