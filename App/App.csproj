@@ -60,7 +60,7 @@
     <PackageReference Include="org.k2fsa.sherpa.onnx.runtime.osx-x64" Version="1.13.5" ExcludeAssets="all" PrivateAssets="all" />
     <PackageReference Include="org.k2fsa.sherpa.onnx.runtime.osx-arm64" Version="1.13.5" ExcludeAssets="all" PrivateAssets="all" />
     <PackageReference Include="org.k2fsa.sherpa.onnx.runtime.android-x64" Version="1.13.5" ExcludeAssets="all" PrivateAssets="all" />
-    <PackageReference Include="org.k2fsa.sherpa.onnx.runtime.android-arm64" Version="1.13.5" ExcludeAssets="all" PrivateAssets="all" />
+    <PackageReference Include="org.k2fsa.sherpa.onnx.runtime.android-arm64" Version="1.13.8" ExcludeAssets="all" PrivateAssets="all" />
     <PackageReference Include="org.k2fsa.portaudio.runtime.linux-aarch64" Version="1.0.6" ExcludeAssets="all" PrivateAssets="all" />
     <PackageReference Include="org.k2fsa.portaudio.runtime.osx-x64" Version="1.0.6" ExcludeAssets="all" PrivateAssets="all" />
     <PackageReference Include="org.k2fsa.portaudio.runtime.osx-arm64" Version="1.0.6" ExcludeAssets="all" PrivateAssets="all" />
