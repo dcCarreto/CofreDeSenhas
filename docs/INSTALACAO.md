@@ -3,14 +3,14 @@
 [← Voltar ao README](../README.md)
 
 Passo a passo completo de instalação, desinstalação, CLI e verificação de
-integridade. Para o resumo rápido, veja a seção [Download e
-instalação](../README.md#download-e-instalação) do README.
+integridade.
 
 A forma mais simples de usar o programa é baixar o executável pronto na página de
 [releases](../../../releases). Em qualquer plataforma, o binário é autocontido: não
-é necessário instalar o .NET nem qualquer dependência. Veja a [Política de
-assinatura de código](../README.md#política-de-assinatura-de-código-code-signing-policy)
-para o estado da assinatura Authenticode dos binários do Windows.
+é necessário instalar o .NET nem qualquer dependência. Os binários do Windows
+ainda não têm certificado de assinatura de código (Authenticode) — veja em
+[SECURITY.md](../SECURITY.md#confiança-nos-binários-e-verificação-dos-downloads)
+o porquê e como verificar a autenticidade do que foi baixado.
 
 ## Windows
 
@@ -103,6 +103,11 @@ pacotes. Fica como possibilidade futura se houver demanda.
 
 ## Primeiro uso
 
+Na tela de senha mestra, o gerador fica à esquerda e o desbloqueio à direita, com
+seletor de idioma e, no Windows, a opção de desbloqueio por Windows Hello:
+
+![Tela de senha mestra com gerador e desbloqueio](tela-login.png)
+
 No primeiro uso, o programa pedirá a criação de uma senha mestra. Guarde-a com
 cuidado: ela é a única forma de abrir o cofre. Um cofre exportado (`.gsenhas`)
 em uma plataforma pode ser importado na outra. Se este é um dispositivo novo e
@@ -139,9 +144,7 @@ gh attestation verify arquivo-baixado --owner dcCarreto
 ```
 
 Os arquivos ainda não são assinados digitalmente (Authenticode, no caso do
-Windows) — o projeto solicitou uma assinatura gratuita à SignPath Foundation
-(ver [Política de assinatura de
-código](../README.md#política-de-assinatura-de-código-code-signing-policy)) e, até a
-aprovação, hash + attestation são as formas de verificação disponíveis. Veja
-também a [verificação com assinatura RSA/GPG](../SECURITY.md#confiança-nos-binários-e-verificação-dos-downloads)
+Windows) — por ora, hash + attestation são as formas de verificação
+disponíveis. Veja também a [verificação com assinatura
+RSA/GPG](../SECURITY.md#confiança-nos-binários-e-verificação-dos-downloads)
 usada pelo atualizador automático.

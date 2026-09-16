@@ -3,11 +3,9 @@
 [← Voltar ao README](../README.md)
 
 Tabela completa dos algoritmos e parâmetros criptográficos usados no Cofre de
-Senhas. Para um resumo curto, veja a seção [Modelo de
-segurança](../README.md#modelo-de-segurança) do README. Para os adversários e
-cenários considerados (o que é protegido, contra quem e o que fica fora de
-escopo), veja o [modelo de ameaça](../THREAT_MODEL.md); para como reportar uma
-vulnerabilidade, veja a [política de segurança](../SECURITY.md).
+Senhas. Para os adversários e cenários considerados (o que é protegido, contra
+quem e o que fica fora de escopo), veja o [modelo de ameaça](../THREAT_MODEL.md);
+para como reportar uma vulnerabilidade, veja a [política de segurança](../SECURITY.md).
 
 | Item | Detalhe |
 |------|---------|

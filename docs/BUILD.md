@@ -3,8 +3,7 @@
 [← Voltar ao README](../README.md)
 
 Para rodar o projeto direto do código-fonte ou rodar os testes, veja
-[Compilação e execução](../README.md#compilação-e-execução) e
-[Testes](../README.md#testes) no README. Este documento cobre a geração dos
+[DESENVOLVIMENTO.md](DESENVOLVIMENTO.md). Este documento cobre a geração dos
 executáveis publicáveis e do instalador do Windows.
 
 ## Geração do executável

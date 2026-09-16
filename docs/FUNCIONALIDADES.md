@@ -2,8 +2,7 @@
 
 [← Voltar ao README](../README.md)
 
-Lista completa de funcionalidades do Cofre de Senhas, por área. Para um resumo
-curto, veja a seção [Funcionalidades](../README.md#funcionalidades) do README.
+Lista completa de funcionalidades do Cofre de Senhas, por área.
 
 ## Gerador de senhas
 
