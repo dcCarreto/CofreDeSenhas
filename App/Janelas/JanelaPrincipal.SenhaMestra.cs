@@ -174,7 +174,7 @@ namespace CofreDeSenhas.Janelas
 
                     var caminho = Path.Combine(perfilSync.Pasta, ServicoSincronizacao.NomeArquivo);
                     await servicoSyncNovo.EscreverAsync(caminho, saltSync, perfilSync.Kdf, perfilSync.Iteracoes,
-                        perfilSync.MemoriaKb, perfilSync.Paralelismo, await ConstruirListaExportavelAsync());
+                        perfilSync.MemoriaKb, perfilSync.Paralelismo, await ConstruirListaExportavelAsync(perfilSync.SincronizarAnexos));
                 }
                 catch
                 {

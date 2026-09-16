@@ -6,8 +6,8 @@ transparência real a quem usa ou contribui com o projeto — nenhum software é
 tudo, e fingir o contrário é pior do que documentar os limites.
 
 Para os mecanismos criptográficos em si (algoritmos, parâmetros), veja a tabela em
-[Modelo de segurança](README.md#modelo-de-segurança) no README. Este documento é sobre
-adversários e cenários, não sobre implementação.
+[docs/SEGURANCA.md](docs/SEGURANCA.md). Este documento é sobre adversários e
+cenários, não sobre implementação.
 
 ## O que é protegido
 

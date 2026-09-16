@@ -111,13 +111,14 @@ namespace GerenciadorDeSenhas.Servicos
                 var etiquetas = Etiquetas.Normalizar(MesclarListaAditiva(vencedor.Etiquetas, perdedor.Etiquetas));
                 var historico = MesclarHistoricoExportado(vencedor.Historico, perdedor.Historico);
                 var codigosRecuperacao = MesclarCodigosRecuperacaoExportadaAditiva(vencedor.CodigosRecuperacao, perdedor.CodigosRecuperacao);
+                var anexos = MesclarAnexosAditiva(vencedor.Anexos, perdedor.Anexos);
 
                 // SequenceEqual em vez de Count — mesmo motivo do MesclarSenhas acima:
                 // o teto de histórico pode fazer a contagem final bater com a original
                 // mesmo com conteúdo diferente.
                 if (!etiquetas.SequenceEqual(vencedor.Etiquetas) || !historico.SequenceEqual(vencedor.Historico)
-                    || !codigosRecuperacao.SequenceEqual(vencedor.CodigosRecuperacao))
-                    vencedor = ComListasMescladas(vencedor, etiquetas, historico, codigosRecuperacao);
+                    || !codigosRecuperacao.SequenceEqual(vencedor.CodigosRecuperacao) || !anexos.SequenceEqual(vencedor.Anexos))
+                    vencedor = ComListasMescladas(vencedor, etiquetas, historico, codigosRecuperacao, anexos);
 
                 resultado[remoto.Id] = vencedor;
             }
@@ -170,6 +171,36 @@ namespace GerenciadorDeSenhas.Servicos
                 ? lista.Take(ServicoSenha.MaxCodigosRecuperacao).ToList()
                 : lista;
 
+        // Diferente das outras listas aditivas acima (que só têm "existe" ou "não
+        // existe" — nunca mudam depois de criadas), um anexo pode virar tumba
+        // (Excluido=true) depois de já existir dos dois lados. Preferir sempre o
+        // vencedor por Id, como MesclarListaAditivaGenerica faz, deixaria uma
+        // exclusão mais recente do lado perdedor nunca alcançar o vencedor — o anexo
+        // "ressuscitaria" a cada ciclo. Por isso aqui a entrada mais recente
+        // (DataAtualizacao) vence por Id individualmente, não por lado.
+        private static List<AnexoExportado> MesclarAnexosAditiva(List<AnexoExportado> vencedor, List<AnexoExportado> perdedor)
+        {
+            var resultado = new List<AnexoExportado>(vencedor);
+            var indicePorId = new Dictionary<Guid, int>();
+            for (var i = 0; i < resultado.Count; i++)
+                indicePorId[resultado[i].Id] = i;
+
+            foreach (var anexo in perdedor)
+            {
+                if (indicePorId.TryGetValue(anexo.Id, out var indice))
+                {
+                    if (anexo.DataAtualizacao > resultado[indice].DataAtualizacao)
+                        resultado[indice] = anexo;
+                }
+                else
+                {
+                    indicePorId[anexo.Id] = resultado.Count;
+                    resultado.Add(anexo);
+                }
+            }
+            return resultado;
+        }
+
         private static List<HistoricoSenhaExportada> MesclarHistoricoExportado(
             List<HistoricoSenhaExportada> vencedor, List<HistoricoSenhaExportada> perdedor) =>
             ComTetoDeHistorico(MesclarListaAditivaGenerica(vencedor, perdedor, h => (h.Senha, h.DataAlteracao), h => h.DataAlteracao));
@@ -211,7 +242,8 @@ namespace GerenciadorDeSenhas.Servicos
         };
 
         private static SenhaExportada ComListasMescladas(
-            SenhaExportada origem, List<string> etiquetas, List<HistoricoSenhaExportada> historico, List<CodigoRecuperacaoExportado> codigosRecuperacao) => new()
+            SenhaExportada origem, List<string> etiquetas, List<HistoricoSenhaExportada> historico,
+            List<CodigoRecuperacaoExportado> codigosRecuperacao, List<AnexoExportado> anexos) => new()
         {
             Id = origem.Id,
             NomeServico = origem.NomeServico,
@@ -226,7 +258,7 @@ namespace GerenciadorDeSenhas.Servicos
             TotpSegredo = origem.TotpSegredo,
             Historico = historico,
             CodigosRecuperacao = codigosRecuperacao,
-            Anexos = origem.Anexos,
+            Anexos = anexos,
             Favorito = origem.Favorito,
             Fixado = origem.Fixado,
             NaLixeira = origem.NaLixeira,

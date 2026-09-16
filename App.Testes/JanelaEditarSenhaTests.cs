@@ -11,6 +11,10 @@ using GerenciadorDeSenhas.Servicos;
 
 namespace App.Testes
 {
+    // Duas destas classes mexem em Preferencias.Sincronizacao (estático global) —
+    // mesmo cuidado de JanelaPrincipalTests/JanelaSincronizacaoTests, senão testes
+    // rodando em paralelo em outras classes veem o valor mudar por baixo.
+    [Collection("Preferencias")]
     public class JanelaEditarSenhaTests
     {
         private static async Task<(IServicoSenha servico, IServicoCriptografia criptografia, Senha senha)> CriarServicoComCredencialAsync()
@@ -127,6 +131,91 @@ namespace App.Testes
 
             Assert.Contains(janela.GetVisualDescendants().OfType<TextBlock>(),
                 tb => AutomationProperties.GetName(tb) == "documento.pdf");
+        }
+
+        [AvaloniaFact]
+        public async Task Abrir_ComAnexoAindaNaoBaixado_MostraIndicadorNaLinha()
+        {
+            // Metadado chegado por sincronização (fase B/C) sem o arquivo físico local
+            // ainda — mesmo estado de um anexo publicado por outro dispositivo antes
+            // de alguém clicar em "Baixar" aqui.
+            var (servico, criptografia, senha) = await CriarServicoComCredencialAsync();
+            senha.Anexos.Add(new AnexoSenha { NomeArquivo = "remoto.pdf", TamanhoBytes = 500 });
+            await servico.PersistirAsync();
+
+            var servicoAnexos = new ServicoAnexos(criptografia, TesteUtil.CriarPastaTemporaria());
+            var janela = new JanelaEditarSenha(servico, senha, criptografia, servicoAnexos);
+            janela.Show();
+            await TesteUtil.AguardarAsync(() => false, tentativas: 5);
+
+            Assert.Contains(janela.GetVisualDescendants().OfType<TextBlock>(),
+                tb => tb.Text != null && tb.Text.Contains("remoto.pdf") && tb.Text.Contains(Idioma.Texto("Entry.AttachmentNotDownloaded")));
+        }
+
+        [AvaloniaFact]
+        public async Task ObterConteudoAnexoAsync_ComArquivoLocalAusenteEAnexoPublicado_BaixaDaPastaEGravaCopiaLocal()
+        {
+            var (servico, criptografia, senha) = await CriarServicoComCredencialAsync();
+            var anexo = new AnexoSenha { NomeArquivo = "remoto.pdf", TamanhoBytes = 4 };
+            senha.Anexos.Add(anexo);
+            await servico.PersistirAsync();
+
+            var pastaSync = TesteUtil.CriarPastaTemporaria();
+            var chaveSync = new AutenticacaoMestra(TesteUtil.CriarPastaTemporaria()).CriarSenhaMestra("SenhaDeSync123!");
+            var servicoSincronizacao = new ServicoSincronizacao(new ServicoCriptografia(chaveSync));
+            var conteudo = new byte[] { 9, 8, 7, 6 };
+            await servicoSincronizacao.PublicarAnexoAsync(pastaSync, anexo.Id, conteudo);
+
+            var perfilOriginal = Preferencias.Sincronizacao;
+            Preferencias.Sincronizacao = new PerfilSincronizacao
+            {
+                Pasta = pastaSync,
+                Salt = Convert.ToBase64String(ServicoSincronizacao.GerarSalt())
+            };
+
+            try
+            {
+                var servicoAnexos = new ServicoAnexos(criptografia, TesteUtil.CriarPastaTemporaria());
+                var janela = new JanelaEditarSenha(servico, senha, criptografia, servicoAnexos, servicoSincronizacao);
+
+                Assert.False(servicoAnexos.TemArquivoLocal(anexo.Id));
+
+                var baixado = await janela.ObterConteudoAnexoAsync(anexo);
+
+                Assert.Equal(conteudo, baixado);
+                Assert.True(servicoAnexos.TemArquivoLocal(anexo.Id));
+            }
+            finally
+            {
+                Preferencias.Sincronizacao = perfilOriginal;
+            }
+        }
+
+        [AvaloniaFact]
+        public async Task ObterConteudoAnexoAsync_SemArquivoLocalNemSincronizacaoConfigurada_LancaErroLocalizavel()
+        {
+            var (servico, criptografia, senha) = await CriarServicoComCredencialAsync();
+            var anexo = new AnexoSenha { NomeArquivo = "remoto.pdf", TamanhoBytes = 4 };
+            senha.Anexos.Add(anexo);
+            await servico.PersistirAsync();
+
+            var perfilOriginal = Preferencias.Sincronizacao;
+            Preferencias.Sincronizacao = null;
+
+            try
+            {
+                var servicoAnexos = new ServicoAnexos(criptografia, TesteUtil.CriarPastaTemporaria());
+                var janela = new JanelaEditarSenha(servico, senha, criptografia, servicoAnexos);
+
+                var erro = await Assert.ThrowsAsync<GerenciadorDeSenhas.Excecoes.ErroLocalizavel>(
+                    () => janela.ObterConteudoAnexoAsync(anexo));
+
+                Assert.Equal("Attachment.Error.NotAvailable", erro.Chave);
+            }
+            finally
+            {
+                Preferencias.Sincronizacao = perfilOriginal;
+            }
         }
     }
 }

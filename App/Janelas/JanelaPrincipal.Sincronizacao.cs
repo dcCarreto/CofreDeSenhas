@@ -85,7 +85,7 @@ namespace CofreDeSenhas.Janelas
             {
                 var caminho = Path.Combine(perfil.Pasta, ServicoSincronizacao.NomeArquivo);
 
-                var locais = await ConstruirListaExportavelAsync();
+                var locais = await ConstruirListaExportavelAsync(perfil.SincronizarAnexos);
 
                 var remotas = await _servicoSincronizacao.LerAsync(caminho);
                 var mescladas = ServicoSincronizacao.MesclarListas(locais, remotas);
@@ -97,7 +97,7 @@ namespace CofreDeSenhas.Janelas
                 if (localMudou)
                 {
                     foreach (var item in mescladas)
-                        await _servicoSenha.AplicarSincronizadoAsync(item);
+                        await _servicoSenha.AplicarSincronizadoAsync(item, perfil.SincronizarAnexos);
                     await _servicoSenha.PersistirAsync();
                 }
 
@@ -107,6 +107,14 @@ namespace CofreDeSenhas.Janelas
                     await _servicoSincronizacao.EscreverAsync(caminho, salt, perfil.Kdf, perfil.Iteracoes,
                         perfil.MemoriaKb, perfil.Paralelismo, mescladas);
                 }
+
+                // Bytes, não só o metadado que já viajou em locais/mescladas acima:
+                // roda sempre que a opção está ligada, independente de localMudou/
+                // remotoMudou, porque publicar/limpar aqui é idempotente (checa
+                // arquivo por arquivo) e uma rodada anterior pode ter falhado no meio
+                // sem deixar rastro nenhum em "mudou" pra tentar de novo.
+                if (perfil.SincronizarAnexos)
+                    await SincronizarAnexosAsync(mescladas, perfil.Pasta);
 
                 perfil.UltimaSincronizacao = DateTime.UtcNow;
                 Preferencias.Salvar();
@@ -154,7 +162,7 @@ namespace CofreDeSenhas.Janelas
             return true;
         }
 
-        private async Task<List<SenhaExportada>> ConstruirListaExportavelAsync()
+        private async Task<List<SenhaExportada>> ConstruirListaExportavelAsync(bool incluirAnexos)
         {
             var locais = new List<SenhaExportada>();
             var todasLocais = (await _servicoSenha.ListarTodosAsync()).Concat(await _servicoSenha.ListarLixeiraAsync());
@@ -179,6 +187,20 @@ namespace CofreDeSenhas.Janelas
                     TotpSegredo = ObterTotpPlain(s),
                     Historico = ObterHistoricoPlain(s),
                     CodigosRecuperacao = ObterCodigosRecuperacaoPlain(s),
+                    // Nunca ConteudoBase64 aqui — diferente do .gsenhas, a sincronização
+                    // por pasta é sob demanda: só o metadado viaja pelo sincronizacao.dat,
+                    // o conteúdo vai à parte por SincronizarAnexosAsync/BaixarAnexoAsync.
+                    Anexos = incluirAnexos
+                        ? s.Anexos.Select(a => new AnexoExportado
+                        {
+                            Id = a.Id,
+                            NomeArquivo = a.NomeArquivo,
+                            TamanhoBytes = a.TamanhoBytes,
+                            DataAdicao = a.DataAdicao,
+                            Excluido = a.Excluido,
+                            DataAtualizacao = a.DataAtualizacao
+                        }).ToList()
+                        : new(),
                     Favorito = s.Favorito,
                     Fixado = s.Fixado,
                     NaLixeira = s.NaLixeira,
@@ -188,6 +210,35 @@ namespace CofreDeSenhas.Janelas
                 });
             }
             return locais;
+        }
+
+        // Só o transporte dos bytes — o metadado (nome, tumba) já viajou dentro de
+        // mescladas[].Anexos via ConstruirListaExportavelAsync/AplicarSincronizadoAsync.
+        // Baixar continua sob demanda (fase D, painel de anexos); aqui só publica o
+        // que este dispositivo tem e limpa dos dois lados o que virou tumba.
+        private async Task SincronizarAnexosAsync(List<SenhaExportada> mescladas, string pastaCompartilhada)
+        {
+            if (_servicoAnexos == null || _servicoSincronizacao == null)
+                return;
+
+            foreach (var senhaExportada in mescladas)
+            {
+                foreach (var anexo in senhaExportada.Anexos)
+                {
+                    if (anexo.Excluido)
+                    {
+                        _servicoAnexos.ApagarArquivoLocalSeExistir(anexo.Id);
+                        ServicoSincronizacao.ApagarAnexoPublicado(pastaCompartilhada, anexo.Id);
+                        continue;
+                    }
+
+                    if (_servicoAnexos.TemArquivoLocal(anexo.Id) && !ServicoSincronizacao.AnexoPublicado(pastaCompartilhada, anexo.Id))
+                    {
+                        var plano = await _servicoAnexos.LerPorIdAsync(anexo.Id);
+                        await _servicoSincronizacao.PublicarAnexoAsync(pastaCompartilhada, anexo.Id, plano);
+                    }
+                }
+            }
         }
 
         private async void ConflitosSincronizacao_Click(object? sender, RoutedEventArgs e)

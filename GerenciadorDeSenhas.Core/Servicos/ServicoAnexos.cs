@@ -69,7 +69,7 @@ namespace GerenciadorDeSenhas.Servicos
             await _travaEscrita.WaitAsync();
             try
             {
-                if (senha.Anexos.Count >= QuantidadeMaximaPorCredencial)
+                if (senha.Anexos.Count(a => !a.Excluido) >= QuantidadeMaximaPorCredencial)
                     throw new LimiteAnexoExcedidoException("Attachment.Error.MaxPerCredential", QuantidadeMaximaPorCredencial);
 
                 if (TamanhoTotalAtual() + conteudo.Length > TamanhoMaximoTotalCofre)
@@ -95,8 +95,42 @@ namespace GerenciadorDeSenhas.Servicos
         {
             if (anexo == null) throw new ArgumentNullException(nameof(anexo));
 
-            var cifrado = await File.ReadAllBytesAsync(CaminhoArquivo(anexo.Id));
+            return await LerPorIdAsync(anexo.Id);
+        }
+
+        public async Task<byte[]> LerPorIdAsync(Guid anexoId)
+        {
+            var cifrado = await File.ReadAllBytesAsync(CaminhoArquivo(anexoId));
             return _criptografia.DescriptografarBytes(cifrado);
+        }
+
+        public bool TemArquivoLocal(Guid anexoId) => File.Exists(CaminhoArquivo(anexoId));
+
+        // Cifra com a chave LOCAL do cofre e grava — usado quando o conteúdo chegou
+        // de outro lugar já decifrado (baixado da pasta compartilhada com a chave de
+        // sincronização, que é diferente da chave local). Não mexe em Senha.Anexos:
+        // o metadado desse anexo já existe (chegou pela mesclagem), só falta o
+        // arquivo físico neste dispositivo. Sem checagem de limite de propósito —
+        // os tetos existem pra conter criação de anexo novo, não pra bloquear buscar
+        // de volta um que já faz parte da credencial em outro dispositivo.
+        public async Task SalvarConteudoLocalAsync(Guid anexoId, byte[] conteudoPlano)
+        {
+            if (!Directory.Exists(_pastaAnexos))
+                Directory.CreateDirectory(_pastaAnexos);
+
+            var cifrado = _criptografia.CriptografarBytes(conteudoPlano);
+            await EscritaAtomica.EscreverBytesAsync(CaminhoArquivo(anexoId), cifrado);
+        }
+
+        // Best-effort, mesmo espírito do catch em Remover: um arquivo que já não
+        // existe (nunca foi baixado, ou já tinha sido apagado antes) não é erro, e
+        // uma falha real de exclusão aqui é rara o bastante (mesmos motivos de
+        // Remover — antivírus, permissão) pra não travar todo o ciclo de
+        // sincronização por causa de um único arquivo.
+        public void ApagarArquivoLocalSeExistir(Guid anexoId)
+        {
+            try { File.Delete(CaminhoArquivo(anexoId)); }
+            catch { }
         }
 
         public async Task<Dictionary<Guid, byte[]>> LerTodosBrutosAsync(IEnumerable<Guid> anexoIds)
@@ -119,12 +153,24 @@ namespace GerenciadorDeSenhas.Servicos
             await EscritaAtomica.EscreverBytesAsync(CaminhoArquivo(anexoId), cifrado);
         }
 
+        // Marca como tumba (Excluido=true) em vez de tirar da lista: a mesclagem
+        // aditiva de MesclaSincronizacao precisa dessa entrada pra propagar a
+        // exclusão pra outro dispositivo que ainda não sincronizou — removê-la de
+        // verdade faria o anexo "ressuscitar" quando a cópia antiga de lá voltasse a
+        // se mesclar. O arquivo físico local some imediatamente de qualquer jeito
+        // (libera espaço na hora); só o metadado permanece, e só até algum lugar da
+        // UI parar de listar entradas Excluido (ver JanelaEditarSenha.MontarAnexos).
         public void Remover(Senha senha, Guid anexoId)
         {
             if (senha == null) throw new ArgumentNullException(nameof(senha));
 
             _avisos.Clear();
-            senha.Anexos.RemoveAll(a => a.Id == anexoId);
+            var anexo = senha.Anexos.FirstOrDefault(a => a.Id == anexoId);
+            if (anexo != null)
+            {
+                anexo.Excluido = true;
+                anexo.DataAtualizacao = DateTime.UtcNow;
+            }
             try { File.Delete(CaminhoArquivo(anexoId)); }
             catch (Exception ex) { _avisos.Add($"Não foi possível apagar o arquivo cifrado do anexo {anexoId}: {ex.Message}"); }
         }

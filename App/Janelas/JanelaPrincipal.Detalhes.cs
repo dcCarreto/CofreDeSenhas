@@ -219,7 +219,7 @@ namespace CofreDeSenhas.Janelas
                 return;
 
             var id = _senhaDetalhe.Id;
-            var dlg = new JanelaEditarSenha(_servicoSenha, _senhaDetalhe, _criptografia, _servicoAnexos);
+            var dlg = new JanelaEditarSenha(_servicoSenha, _senhaDetalhe, _criptografia, _servicoAnexos, _servicoSincronizacao);
             if (await AbrirDialogoAsync<bool>(dlg))
                 await CarregarSenhasAsync();
 

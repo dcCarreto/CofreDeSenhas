@@ -179,6 +179,55 @@ namespace GerenciadorDeSenhas.Servicos
         public static List<SenhaExportada> MesclarListas(IReadOnlyList<SenhaExportada> locais, IReadOnlyList<SenhaExportada> remotos) =>
             MesclaSincronizacao.MesclarSenhasExportadas(locais, remotos);
 
+        // Subpasta ao lado de NomeArquivo (sincronizacao.dat), um .enc por anexo —
+        // mesmo layout de App/anexos/ localmente, mas cifrado com a chave de
+        // sincronização (a mesma que já cifra sincronizacao.dat), não a chave do
+        // cofre local: os dois esquemas de chave ficam desacoplados de propósito, já
+        // que a chave de sync pode viajar por dispositivos que nunca teve o cofre
+        // local aberto ainda (ex.: restaurar um dispositivo novo a partir do banco).
+        public const string PastaAnexosNome = "anexos-sincronizados";
+
+        public static string CaminhoAnexo(string pastaCompartilhada, Guid anexoId) =>
+            Path.Combine(pastaCompartilhada, PastaAnexosNome, anexoId.ToString("N") + ".enc");
+
+        public async Task PublicarAnexoAsync(string pastaCompartilhada, Guid anexoId, byte[] conteudoPlano)
+        {
+            var caminho = CaminhoAnexo(pastaCompartilhada, anexoId);
+            var dir = Path.GetDirectoryName(caminho);
+            if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+                Directory.CreateDirectory(dir);
+
+            var cifrado = _criptografia.CriptografarBytes(conteudoPlano);
+            await EscritaAtomica.EscreverBytesAsync(caminho, cifrado);
+        }
+
+        // Null quando o anexo ainda não foi publicado por nenhum dispositivo — quem
+        // chama decide o que fazer (a fase B só publica; baixar sob demanda é da UI,
+        // fase D).
+        public async Task<byte[]?> BaixarAnexoAsync(string pastaCompartilhada, Guid anexoId)
+        {
+            var caminho = CaminhoAnexo(pastaCompartilhada, anexoId);
+            if (!File.Exists(caminho))
+                return null;
+
+            var cifrado = await File.ReadAllBytesAsync(caminho);
+            return _criptografia.DescriptografarBytes(cifrado);
+        }
+
+        public static bool AnexoPublicado(string pastaCompartilhada, Guid anexoId) =>
+            File.Exists(CaminhoAnexo(pastaCompartilhada, anexoId));
+
+        // Best-effort: um anexo que nunca chegou a ser publicado (outro dispositivo
+        // excluiu antes de sincronizar de novo) não é erro, e uma falha aqui (pasta
+        // momentaneamente inacessível) só deixa um blob cifrado órfão pra trás — sem
+        // vazamento nenhum, já que continua cifrado — não motivo pra derrubar o
+        // ciclo de sincronização inteiro.
+        public static void ApagarAnexoPublicado(string pastaCompartilhada, Guid anexoId)
+        {
+            try { File.Delete(CaminhoAnexo(pastaCompartilhada, anexoId)); }
+            catch { }
+        }
+
         private sealed class EnvelopeSincronizacao
         {
             public int Versao { get; set; }

@@ -1570,6 +1570,118 @@ namespace App.Testes
         }
 
         [AvaloniaFact]
+        public async Task SincronizarAsync_ComSincronizarAnexosLigadoEAnexoLocalNaoPublicado_PublicaOAnexoNaSubpastaCompartilhada()
+        {
+            var (servico, chave, criptografia) = CriarServicoComCriptografia();
+            var criado = await servico.CriarSenhaAsync("ServicoX", "user", "SenhaOriginal@1", Categoria.Personal);
+
+            // Mesmo caminho padrão (AmbienteCofre.PastaDados) que o _servicoAnexos
+            // interno de JanelaPrincipal usa — criptografia é a mesma instância, então
+            // as duas enxergam o mesmo arquivo cifrado pro mesmo anexo.Id.
+            var servicoAnexos = new ServicoAnexos(criptografia);
+            var conteudo = System.Text.Encoding.UTF8.GetBytes("conteudo do anexo de teste");
+            var anexo = await servicoAnexos.AdicionarAsync(criado, "recibo.pdf", conteudo);
+            await servico.PersistirAsync();
+
+            var perfilOriginal = Preferencias.Sincronizacao;
+            var pastaSync = TesteUtil.CriarPastaTemporaria();
+            var saltSync = ServicoSincronizacao.GerarSalt();
+            var (kdf, iteracoes, memoriaKb, paralelismo) = ServicoSincronizacao.ParametrosPadrao();
+            Preferencias.Sincronizacao = new PerfilSincronizacao
+            {
+                Pasta = pastaSync,
+                Salt = Convert.ToBase64String(saltSync),
+                Kdf = kdf,
+                Iteracoes = iteracoes,
+                MemoriaKb = memoriaKb,
+                Paralelismo = paralelismo,
+                SincronizarAnexos = true
+            };
+
+            try
+            {
+                var chaveSync = ServicoSincronizacao.DerivarChave("SenhaDeTeste123!", saltSync, kdf, iteracoes, memoriaKb, paralelismo);
+                var servicoSincronizacao = new ServicoSincronizacao(new ServicoCriptografia(chaveSync));
+
+                var janela = new JanelaPrincipal(servico, chave, criptografia, servicoSincronizacao: servicoSincronizacao);
+                janela.Show();
+
+                // janela.Show() dispara SincronizarAsync(silencioso: true) em segundo
+                // plano (ver comentário equivalente no teste de tumba acima) — espera a
+                // publicação do anexo aparecer na subpasta compartilhada.
+                var caminhoAnexoRemoto = ServicoSincronizacao.CaminhoAnexo(pastaSync, anexo.Id);
+                await TesteUtil.AguardarAsync(() => File.Exists(caminhoAnexoRemoto), tentativas: 100);
+
+                Assert.True(File.Exists(caminhoAnexoRemoto));
+                var publicado = await servicoSincronizacao.BaixarAnexoAsync(pastaSync, anexo.Id);
+                Assert.Equal(conteudo, publicado);
+            }
+            finally
+            {
+                servicoAnexos.ApagarArquivoLocalSeExistir(anexo.Id);
+                Preferencias.Sincronizacao = perfilOriginal;
+                Preferencias.Salvar();
+            }
+        }
+
+        [AvaloniaFact]
+        public async Task SincronizarAsync_ComSincronizarAnexosDesligado_NaoMexeNosAnexosLocaisExistentes()
+        {
+            // Guarda de regressão de ponta a ponta: SincronizarAnexos fica false por
+            // padrão (fase C ainda não expõe o toggle na UI) — todo usuário com sync
+            // de senha já ligado hoje passa por este exato caminho a cada ciclo. Sem
+            // esta guarda, ligar a fase B sozinha apagaria os anexos locais de
+            // qualquer um que já sincroniza senhas pela pasta compartilhada.
+            var (servico, chave, criptografia) = CriarServicoComCriptografia();
+            var criado = await servico.CriarSenhaAsync("ServicoY", "user", "SenhaOriginal@1", Categoria.Personal);
+
+            var servicoAnexos = new ServicoAnexos(criptografia);
+            var anexo = await servicoAnexos.AdicionarAsync(criado, "recibo.pdf", System.Text.Encoding.UTF8.GetBytes("conteudo"));
+            await servico.PersistirAsync();
+
+            var perfilOriginal = Preferencias.Sincronizacao;
+            var pastaSync = TesteUtil.CriarPastaTemporaria();
+            var saltSync = ServicoSincronizacao.GerarSalt();
+            var (kdf, iteracoes, memoriaKb, paralelismo) = ServicoSincronizacao.ParametrosPadrao();
+            Preferencias.Sincronizacao = new PerfilSincronizacao
+            {
+                Pasta = pastaSync,
+                Salt = Convert.ToBase64String(saltSync),
+                Kdf = kdf,
+                Iteracoes = iteracoes,
+                MemoriaKb = memoriaKb,
+                Paralelismo = paralelismo
+                // SincronizarAnexos fica no default (false) — igual a todo usuário hoje.
+            };
+
+            try
+            {
+                var chaveSync = ServicoSincronizacao.DerivarChave("SenhaDeTeste123!", saltSync, kdf, iteracoes, memoriaKb, paralelismo);
+                var servicoSincronizacao = new ServicoSincronizacao(new ServicoCriptografia(chaveSync));
+
+                var janela = new JanelaPrincipal(servico, chave, criptografia, servicoSincronizacao: servicoSincronizacao);
+                janela.Show();
+
+                // Espera a sincronização de senha (que já roda hoje, independente de
+                // anexos) publicar o arquivo remoto de verdade.
+                var caminhoRemoto = System.IO.Path.Combine(pastaSync, ServicoSincronizacao.NomeArquivo);
+                await TesteUtil.AguardarAsync(() => File.Exists(caminhoRemoto), tentativas: 100);
+
+                var atual = (await servico.ListarTodosAsync()).Single(s => s.Id == criado.Id);
+                var anexoRestante = Assert.Single(atual.Anexos);
+                Assert.Equal("recibo.pdf", anexoRestante.NomeArquivo);
+                Assert.False(anexoRestante.Excluido);
+                Assert.False(File.Exists(ServicoSincronizacao.CaminhoAnexo(pastaSync, anexo.Id)));
+            }
+            finally
+            {
+                servicoAnexos.ApagarArquivoLocalSeExistir(anexo.Id);
+                Preferencias.Sincronizacao = perfilOriginal;
+                Preferencias.Salvar();
+            }
+        }
+
+        [AvaloniaFact]
         public async Task DetalhesTemAlteracaoConcorrente_ComOMesmoItemAlteradoPorForaEnquantoOPainelEstaAberto_DetectaAMudanca()
         {
             var (servico, chave, criptografia) = CriarServicoComCriptografia();

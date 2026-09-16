@@ -57,7 +57,8 @@ public class ServicoAnexosTests : IDisposable
 
         _servico.Remover(senha, anexo.Id);
 
-        Assert.Empty(senha.Anexos);
+        var restante = Assert.Single(senha.Anexos);
+        Assert.True(restante.Excluido);
         Assert.NotEmpty(_servico.UltimosAvisos);
     }
 
@@ -157,8 +158,101 @@ public class ServicoAnexosTests : IDisposable
 
         _servico.Remover(senha, anexo.Id);
 
-        Assert.Empty(senha.Anexos);
+        var restante = Assert.Single(senha.Anexos);
+        Assert.True(restante.Excluido);
         Assert.False(File.Exists(caminhoArquivo));
+    }
+
+    [Fact]
+    public async Task Remover_MarcaComoExcluidoEAtualizaDataEmVezDeTirarDaLista()
+    {
+        // A entrada precisa sobreviver como tumba pra MesclaSincronizacao propagar a
+        // exclusão pra outro dispositivo — ver MesclarAnexosAditiva.
+        var senha = NovaSenha();
+        var anexo = await _servico.AdicionarAsync(senha, "recibo.pdf", new byte[] { 1, 2, 3 });
+        var dataAntes = anexo.DataAtualizacao;
+
+        await Task.Delay(20);
+        _servico.Remover(senha, anexo.Id);
+
+        var restante = Assert.Single(senha.Anexos);
+        Assert.True(restante.Excluido);
+        Assert.True(restante.DataAtualizacao > dataAntes);
+    }
+
+    [Fact]
+    public async Task AdicionarAsync_ComAnexoExcluidoNaLista_NaoContaParaOLimitePorCredencial()
+    {
+        var senha = NovaSenha();
+        for (var i = 0; i < ServicoAnexos.QuantidadeMaximaPorCredencial; i++)
+            await _servico.AdicionarAsync(senha, $"arquivo{i}.txt", new byte[] { 1 });
+
+        _servico.Remover(senha, senha.Anexos[0].Id);
+
+        var novo = await _servico.AdicionarAsync(senha, "novo.txt", new byte[] { 2 });
+
+        Assert.Equal("novo.txt", novo.NomeArquivo);
+        Assert.Equal(ServicoAnexos.QuantidadeMaximaPorCredencial + 1, senha.Anexos.Count);
+        Assert.Equal(ServicoAnexos.QuantidadeMaximaPorCredencial, senha.Anexos.Count(a => !a.Excluido));
+    }
+
+    [Fact]
+    public async Task TemArquivoLocal_ComAnexoRecemAdicionado_RetornaTrue()
+    {
+        var senha = NovaSenha();
+        var anexo = await _servico.AdicionarAsync(senha, "recibo.pdf", new byte[] { 1, 2, 3 });
+
+        Assert.True(_servico.TemArquivoLocal(anexo.Id));
+    }
+
+    [Fact]
+    public void TemArquivoLocal_ComIdInexistente_RetornaFalse()
+    {
+        Assert.False(_servico.TemArquivoLocal(Guid.NewGuid()));
+    }
+
+    [Fact]
+    public async Task ApagarArquivoLocalSeExistir_ApagaOArquivoSemMexerNaListaDeAnexos()
+    {
+        var senha = NovaSenha();
+        var anexo = await _servico.AdicionarAsync(senha, "recibo.pdf", new byte[] { 1, 2, 3 });
+
+        _servico.ApagarArquivoLocalSeExistir(anexo.Id);
+
+        Assert.False(_servico.TemArquivoLocal(anexo.Id));
+        Assert.Single(senha.Anexos); // não mexe no metadado — isso é papel de AplicarSincronizadoAsync
+    }
+
+    [Fact]
+    public void ApagarArquivoLocalSeExistir_ComIdInexistente_NaoLancaExcecao()
+    {
+        _servico.ApagarArquivoLocalSeExistir(Guid.NewGuid());
+    }
+
+    [Fact]
+    public async Task SalvarConteudoLocalAsync_GravaCifradoELeivelDeVoltaComLerPorIdAsync()
+    {
+        var anexoId = Guid.NewGuid();
+        var conteudo = new byte[] { 5, 4, 3, 2, 1 };
+
+        Assert.False(_servico.TemArquivoLocal(anexoId));
+        await _servico.SalvarConteudoLocalAsync(anexoId, conteudo);
+
+        Assert.True(_servico.TemArquivoLocal(anexoId));
+        var lido = await _servico.LerPorIdAsync(anexoId);
+        Assert.Equal(conteudo, lido);
+    }
+
+    [Fact]
+    public async Task LerPorIdAsync_RetornaOMesmoConteudoQueLerAsync()
+    {
+        var senha = NovaSenha();
+        var conteudo = new byte[] { 9, 8, 7, 6 };
+        var anexo = await _servico.AdicionarAsync(senha, "recibo.pdf", conteudo);
+
+        var lido = await _servico.LerPorIdAsync(anexo.Id);
+
+        Assert.Equal(conteudo, lido);
     }
 
     [Fact]

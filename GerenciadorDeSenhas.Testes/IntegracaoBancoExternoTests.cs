@@ -29,25 +29,49 @@ public class IntegracaoBancoExternoTests
         TipoBanco.SqlServer
     };
 
+    // Cada campo aceita override por variável de ambiente (COFRE_TESTE_<MOTOR>_*),
+    // sem valor nenhum fixado aqui além dos defaults de CI (localhost, credenciais
+    // fixas de teste, sem segredo real). Isso permite apontar um motor pra uma
+    // instância de verdade numa rodada manual local (ex.: um MySQL hospedado) sem
+    // tocar neste arquivo nem versionar segredo nenhum — só setar a variável na
+    // mesma invocação do comando que roda os testes.
     private static ConexaoBanco Conexao(TipoBanco tipo) => tipo switch
     {
         TipoBanco.PostgreSQL => new ConexaoBanco
         {
-            Tipo = tipo, Host = "localhost", Porta = 5432, Banco = "cofretest",
-            Usuario = "postgres", SenhaServidor = "postgres"
+            Tipo = tipo,
+            Host = VariavelOu("COFRE_TESTE_POSTGRES_HOST", "localhost"),
+            Porta = VariavelInt("COFRE_TESTE_POSTGRES_PORTA", 5432),
+            Banco = VariavelOu("COFRE_TESTE_POSTGRES_BANCO", "cofretest"),
+            Usuario = VariavelOu("COFRE_TESTE_POSTGRES_USUARIO", "postgres"),
+            SenhaServidor = VariavelOu("COFRE_TESTE_POSTGRES_SENHA", "postgres")
         },
         TipoBanco.MySQL => new ConexaoBanco
         {
-            Tipo = tipo, Host = "localhost", Porta = 3306, Banco = "cofretest",
-            Usuario = "root", SenhaServidor = "root"
+            Tipo = tipo,
+            Host = VariavelOu("COFRE_TESTE_MYSQL_HOST", "localhost"),
+            Porta = VariavelInt("COFRE_TESTE_MYSQL_PORTA", 3306),
+            Banco = VariavelOu("COFRE_TESTE_MYSQL_BANCO", "cofretest"),
+            Usuario = VariavelOu("COFRE_TESTE_MYSQL_USUARIO", "root"),
+            SenhaServidor = VariavelOu("COFRE_TESTE_MYSQL_SENHA", "root")
         },
         TipoBanco.SqlServer => new ConexaoBanco
         {
-            Tipo = tipo, Host = "localhost", Porta = 1433, Banco = "master",
-            Usuario = "sa", SenhaServidor = "CofreDeSenhas!Teste123"
+            Tipo = tipo,
+            Host = VariavelOu("COFRE_TESTE_SQLSERVER_HOST", "localhost"),
+            Porta = VariavelInt("COFRE_TESTE_SQLSERVER_PORTA", 1433),
+            Banco = VariavelOu("COFRE_TESTE_SQLSERVER_BANCO", "master"),
+            Usuario = VariavelOu("COFRE_TESTE_SQLSERVER_USUARIO", "sa"),
+            SenhaServidor = VariavelOu("COFRE_TESTE_SQLSERVER_SENHA", "CofreDeSenhas!Teste123")
         },
         _ => throw new NotSupportedException($"Sem conexão de teste para {tipo}")
     };
+
+    private static string VariavelOu(string nome, string padrao) =>
+        Environment.GetEnvironmentVariable(nome) is string valor && valor.Length > 0 ? valor : padrao;
+
+    private static int VariavelInt(string nome, int padrao) =>
+        int.TryParse(Environment.GetEnvironmentVariable(nome), out var valor) ? valor : padrao;
 
     private static async Task LimparTabelaAsync(ServicoBancoDados bd, ConexaoBanco cfg)
     {

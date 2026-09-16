@@ -8,6 +8,7 @@ using Avalonia.Media;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using System.Globalization;
+using GerenciadorDeSenhas.Excecoes;
 using GerenciadorDeSenhas.Modelos;
 using GerenciadorDeSenhas.Servicos;
 
@@ -19,6 +20,7 @@ namespace CofreDeSenhas.Janelas
         private readonly IServicoCriptografia? _criptografia;
         private readonly Senha _senhaAtual;
         private readonly ServicoAnexos? _servicoAnexos;
+        private readonly ServicoSincronizacao? _servicoSincronizacao;
         private readonly ServicoTotp _totp = new();
         private readonly TotpPreview.Temporizador _timerTotp = new();
         private readonly List<DispatcherTimer> _timersFeedbackCopia = new();
@@ -31,12 +33,13 @@ namespace CofreDeSenhas.Janelas
         private readonly Dictionary<string, string> _camposExtrasAcumulados = new();
 
         public JanelaEditarSenha(IServicoSenha servicoSenha, Senha senhaAtual, IServicoCriptografia? criptografia,
-            ServicoAnexos? servicoAnexos = null)
+            ServicoAnexos? servicoAnexos = null, ServicoSincronizacao? servicoSincronizacao = null)
         {
             _servicoSenha = servicoSenha ?? throw new ArgumentNullException(nameof(servicoSenha));
             _senhaAtual = senhaAtual ?? throw new ArgumentNullException(nameof(senhaAtual));
             _criptografia = criptografia;
             _servicoAnexos = servicoAnexos ?? (criptografia != null ? new ServicoAnexos(criptografia) : null);
+            _servicoSincronizacao = servicoSincronizacao;
 
             InitializeComponent();
             Icon = Recursos.IconeApp();
@@ -483,23 +486,33 @@ namespace CofreDeSenhas.Janelas
         private void MontarAnexos()
         {
             PainelAnexos.Children.Clear();
+            var ativos = _senhaAtual.Anexos.Where(a => !a.Excluido).ToList();
             BtnAdicionarAnexo.IsEnabled = _servicoAnexos != null &&
-                _senhaAtual.Anexos.Count < ServicoAnexos.QuantidadeMaximaPorCredencial;
+                ativos.Count < ServicoAnexos.QuantidadeMaximaPorCredencial;
 
-            foreach (var item in _senhaAtual.Anexos)
+            foreach (var item in ativos)
                 PainelAnexos.Children.Add(CriarLinhaAnexo(item));
         }
 
         private Control CriarLinhaAnexo(AnexoSenha item)
         {
+            var baixado = _servicoAnexos == null || _servicoAnexos.TemArquivoLocal(item.Id);
+            var texto = $"{item.NomeArquivo} ({FormatarTamanhoAnexo(item.TamanhoBytes)})";
+            var nomeAcessivel = item.NomeArquivo;
+            if (!baixado)
+            {
+                texto += " — " + Idioma.Texto("Entry.AttachmentNotDownloaded");
+                nomeAcessivel += ", " + Idioma.Texto("Entry.AttachmentNotDownloaded");
+            }
+
             var nome = new TextBlock
             {
-                Text = $"{item.NomeArquivo} ({FormatarTamanhoAnexo(item.TamanhoBytes)})",
+                Text = texto,
                 FontSize = 13,
                 VerticalAlignment = VerticalAlignment.Center,
                 TextTrimming = TextTrimming.CharacterEllipsis
             };
-            AutomationProperties.SetName(nome, item.NomeArquivo);
+            AutomationProperties.SetName(nome, nomeAcessivel);
 
             var btnBaixar = CriarBotaoHistorico(Idioma.Texto("Entry.AttachmentDownload"), Idioma.Texto("Entry.AttachmentDownload"));
             btnBaixar.Click += async (_, _) => await BaixarAnexoAsync(item);
@@ -585,15 +598,44 @@ namespace CofreDeSenhas.Janelas
 
             try
             {
-                var bytes = await _servicoAnexos.LerAsync(item);
+                var bytes = await ObterConteudoAnexoAsync(item);
                 await using var destino = await arquivo.OpenWriteAsync();
                 await destino.WriteAsync(bytes);
+
+                // Busca remota pode ter acabado de cachear o arquivo localmente —
+                // refaz a lista pra tirar o indicador "não baixado" dessa linha.
+                MontarAnexos();
             }
             catch (Exception ex)
             {
                 await CaixaMensagem.MostrarAsync(this,
                     Idioma.Formatar("Entry.AttachmentDownloadError", ErrosUi.MensagemAmigavel(ex)), Idioma.Texto("Common.Error"), TipoMensagem.Erro);
             }
+        }
+
+        // internal só pra teste chamar direto sem passar pelo seletor de arquivo
+        // nativo do SaveFilePickerAsync acima (inviável de simular num teste
+        // headless) — ver App.Testes (InternalsVisibleTo).
+        internal async Task<byte[]> ObterConteudoAnexoAsync(AnexoSenha item)
+        {
+            if (_servicoAnexos == null)
+                throw new InvalidOperationException("Serviço de anexos não disponível.");
+
+            if (_servicoAnexos.TemArquivoLocal(item.Id))
+                return await _servicoAnexos.LerAsync(item);
+
+            // Ainda não baixado neste dispositivo: busca da pasta compartilhada (cifrada
+            // com a chave de sincronização, não a chave local do cofre) e guarda uma
+            // cópia local cifrada com a chave certa, pra próxima vez não precisar buscar
+            // de novo.
+            if (_servicoSincronizacao == null || Preferencias.Sincronizacao is not { Pasta.Length: > 0 } perfil)
+                throw new ErroLocalizavel("Attachment.Error.NotAvailable");
+
+            var conteudo = await _servicoSincronizacao.BaixarAnexoAsync(perfil.Pasta, item.Id)
+                ?? throw new ErroLocalizavel("Attachment.Error.NotAvailable");
+
+            await _servicoAnexos.SalvarConteudoLocalAsync(item.Id, conteudo);
+            return conteudo;
         }
 
         private async Task RemoverAnexoAsync(AnexoSenha item)
