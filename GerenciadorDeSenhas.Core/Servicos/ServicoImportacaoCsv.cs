@@ -164,7 +164,7 @@ namespace GerenciadorDeSenhas.Servicos
             return mapa;
         }
 
-        private static Categoria MapearCategoria(string valor)
+        internal static Categoria MapearCategoria(string valor)
         {
             if (string.IsNullOrWhiteSpace(valor))
                 return Categoria.Other;

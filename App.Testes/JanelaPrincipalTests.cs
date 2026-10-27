@@ -1045,9 +1045,12 @@ namespace App.Testes
 
                 var chaveNova = new AutenticacaoMestra(TesteUtil.CriarPastaTemporaria()).CriarSenhaMestra("SenhaNova@456");
 
-                var afetaOutrosDispositivos = await janela.RepublicarAposTrocaDeSenhaMestraAsync(chaveNova, "SenhaNova@456", null);
+                var resultado = await janela.RepublicarAposTrocaDeSenhaMestraAsync(chaveNova, "SenhaNova@456", null);
 
-                Assert.True(afetaOutrosDispositivos);
+                Assert.True(resultado.AfetaOutrosDispositivos);
+                Assert.Null(resultado.ErroBanco);
+                Assert.Null(resultado.ErroPasta);
+                Assert.False(resultado.DescartouItens);
 
                 // Banco: com a chave antiga, o hmac gravado não bate mais (o item foi
                 // recifrado e o hmac recalculado com a chave nova) — vira violação de
@@ -1080,6 +1083,59 @@ namespace App.Testes
             {
                 Preferencias.Sincronizacao = perfilSyncOriginal;
                 Preferencias.UltimoBanco = perfilBancoOriginal;
+                try { if (File.Exists(arquivoBanco)) File.Delete(arquivoBanco); } catch { }
+            }
+        }
+
+        [AvaloniaFact]
+        public async Task RegravarBancoAsync_BancoAindaNaChaveAntiga_RegravaComAChaveAtualESemViolacoes()
+        {
+            var chaveAntiga = new AutenticacaoMestra(TesteUtil.CriarPastaTemporaria()).CriarSenhaMestra("SenhaAntiga@123");
+            var criptografiaAntiga = new ServicoCriptografia(chaveAntiga);
+            var chaveAtual = new AutenticacaoMestra(TesteUtil.CriarPastaTemporaria()).CriarSenhaMestra("SenhaAtual@456");
+            var criptografiaAtual = new ServicoCriptografia(chaveAtual);
+
+            var persistenciaLocal = new PersistenciaLocal(criptografiaAtual, TesteUtil.CriarPastaTemporaria());
+            var repositorioLocal = new RepositorioSenha(persistenciaLocal, chaveAtual);
+            var servico = new ServicoSenha(repositorioLocal, criptografiaAtual);
+            var criado = await servico.CriarSenhaAsync("ServicoX", "user", "SenhaOriginal@1", Categoria.Personal);
+            await servico.PersistirAsync();
+
+            var arquivoBanco = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "GS_Regravar_" + Guid.NewGuid().ToString("N") + ".db");
+            var cfg = new ConexaoBanco { Tipo = TipoBanco.SQLite, Banco = arquivoBanco };
+            var bd = new ServicoBancoDados();
+            await bd.CriarTabelaAsync(cfg);
+            await bd.GarantirColunasAsync(cfg);
+
+            try
+            {
+                await new RepositorioSenhaBanco(cfg, criptografiaAntiga).AdicionarAsync(new Senha
+                {
+                    Id = criado.Id,
+                    NomeServico = "ServicoX",
+                    Usuario = "user",
+                    SenhaHash = criptografiaAntiga.Criptografar("SenhaOriginal@1"),
+                    Categoria = Categoria.Personal,
+                    DataCriacao = criado.DataCriacao,
+                    DataAtualizacao = criado.DataAtualizacao
+                });
+
+                var antes = new RepositorioSenhaBanco(cfg, criptografiaAtual);
+                await antes.ListarTodosAsync();
+                Assert.Contains(antes.ViolacoesIntegridade, v => v.NomeServico == "ServicoX");
+
+                var janela = new JanelaPrincipal(servico, chaveAtual, criptografiaAtual, repositorioLocal);
+                var descartados = await janela.RegravarBancoAsync(cfg, criptografiaAtual);
+
+                var depois = new RepositorioSenhaBanco(cfg, criptografiaAtual);
+                var lidos = await depois.ListarTodosAsync();
+                Assert.Equal(0, descartados);
+                Assert.Empty(depois.ViolacoesIntegridade);
+                var item = Assert.Single(lidos, s => s.Id == criado.Id);
+                Assert.Equal("SenhaOriginal@1", criptografiaAtual.Descriptografar(item.SenhaHash));
+            }
+            finally
+            {
                 try { if (File.Exists(arquivoBanco)) File.Delete(arquivoBanco); } catch { }
             }
         }
@@ -1162,9 +1218,73 @@ namespace App.Testes
                 Preferencias.Sincronizacao = null;
 
                 var chaveNova = new AutenticacaoMestra(TesteUtil.CriarPastaTemporaria()).CriarSenhaMestra("SenhaNova@456");
-                var afetaOutrosDispositivos = await janela.RepublicarAposTrocaDeSenhaMestraAsync(chaveNova, "SenhaNova@456", null);
+                var resultado = await janela.RepublicarAposTrocaDeSenhaMestraAsync(chaveNova, "SenhaNova@456", null);
 
-                Assert.False(afetaOutrosDispositivos);
+                Assert.False(resultado.AfetaOutrosDispositivos);
+                Assert.Null(resultado.ErroBanco);
+                Assert.Null(resultado.ErroPasta);
+            }
+            finally
+            {
+                Preferencias.Sincronizacao = perfilOriginal;
+            }
+        }
+
+        [AvaloniaFact]
+        public async Task RecifrarComNovaChave_TotpQueNaoDecifra_MarcaDescarteEMantemOResto()
+        {
+            var (servico, chave, criptografia) = CriarServicoComCriptografia();
+            var janela = new JanelaPrincipal(servico, chave, criptografia);
+            janela.Show();
+            await TesteUtil.AguardarAsync(() => false, tentativas: 5);
+
+            var criptografiaNova = new ServicoCriptografia(new AutenticacaoMestra(TesteUtil.CriarPastaTemporaria()).CriarSenhaMestra("SenhaNova@456"));
+            var intacta = new Senha { Id = Guid.NewGuid(), NomeServico = "Intacta", Usuario = "u", SenhaHash = criptografia.Criptografar("Senha@1"), TotpSegredo = criptografia.Criptografar("JBSWY3DPEHPK3PXP") };
+            var corrompida = new Senha { Id = Guid.NewGuid(), NomeServico = "Corrompida", Usuario = "u", SenhaHash = criptografia.Criptografar("Senha@2"), TotpSegredo = "nao-e-texto-cifrado" };
+
+            var recifradaIntacta = janela.RecifrarComNovaChave(intacta, criptografiaNova, out var descartouIntacta);
+            var recifradaCorrompida = janela.RecifrarComNovaChave(corrompida, criptografiaNova, out var descartouCorrompida);
+
+            Assert.False(descartouIntacta);
+            Assert.Equal("JBSWY3DPEHPK3PXP", criptografiaNova.Descriptografar(recifradaIntacta!.TotpSegredo!));
+            Assert.True(descartouCorrompida);
+            Assert.NotNull(recifradaCorrompida);
+            Assert.Null(recifradaCorrompida!.TotpSegredo);
+            Assert.Equal("Senha@2", criptografiaNova.Descriptografar(recifradaCorrompida.SenhaHash));
+        }
+
+        [AvaloniaFact]
+        public async Task RepublicarAposTrocaDeSenhaMestraAsync_PastaDeSincronizacaoInacessivel_DevolveOErroEmVezDeEngolir()
+        {
+            var (servico, chave, criptografia) = CriarServicoComCriptografia();
+            await servico.CriarSenhaAsync("ServicoX", "user", "SenhaOriginal@1", Categoria.Personal);
+            var janela = new JanelaPrincipal(servico, chave, criptografia);
+            janela.Show();
+            await TesteUtil.AguardarAsync(() => false, tentativas: 5);
+
+            var arquivoNoLugarDaPasta = System.IO.Path.Combine(TesteUtil.CriarPastaTemporaria(), "nao-e-pasta");
+            File.WriteAllText(arquivoNoLugarDaPasta, "");
+            var (kdf, iteracoes, memoriaKb, paralelismo) = ServicoSincronizacao.ParametrosPadrao();
+
+            var perfilOriginal = Preferencias.Sincronizacao;
+            try
+            {
+                Preferencias.Sincronizacao = new PerfilSincronizacao
+                {
+                    Pasta = arquivoNoLugarDaPasta,
+                    Salt = Convert.ToBase64String(ServicoSincronizacao.GerarSalt()),
+                    Kdf = kdf,
+                    Iteracoes = iteracoes,
+                    MemoriaKb = memoriaKb,
+                    Paralelismo = paralelismo
+                };
+
+                var chaveNova = new AutenticacaoMestra(TesteUtil.CriarPastaTemporaria()).CriarSenhaMestra("SenhaNova@456");
+                var resultado = await janela.RepublicarAposTrocaDeSenhaMestraAsync(chaveNova, "SenhaNova@456", null);
+
+                Assert.True(resultado.AfetaOutrosDispositivos);
+                Assert.False(string.IsNullOrEmpty(resultado.ErroPasta));
+                Assert.Null(resultado.ErroBanco);
             }
             finally
             {
@@ -1621,6 +1741,65 @@ namespace App.Testes
                 servicoAnexos.ApagarArquivoLocalSeExistir(anexo.Id);
                 Preferencias.Sincronizacao = perfilOriginal;
                 Preferencias.Salvar();
+            }
+        }
+
+        [AvaloniaFact]
+        public async Task RepublicarAposTrocaDeSenhaMestraAsync_ComSincronizarAnexos_RecifraOsAnexosDaPastaComAChaveNova()
+        {
+            var (servico, chave, criptografia) = CriarServicoComCriptografia();
+            var criado = await servico.CriarSenhaAsync("ServicoX", "user", "SenhaOriginal@1", Categoria.Personal);
+            var chaveNova = new AutenticacaoMestra(TesteUtil.CriarPastaTemporaria()).CriarSenhaMestra("SenhaNova@456");
+
+            var conteudoLocal = System.Text.Encoding.UTF8.GetBytes("anexo que existe neste dispositivo");
+            var conteudoSoNaPasta = System.Text.Encoding.UTF8.GetBytes("anexo que nunca foi baixado aqui");
+            var anexoLocal = new AnexoSenha { NomeArquivo = "local.pdf", TamanhoBytes = conteudoLocal.Length };
+            var anexoSoNaPasta = new AnexoSenha { NomeArquivo = "remoto.pdf", TamanhoBytes = conteudoSoNaPasta.Length };
+            var anexoPerdido = new AnexoSenha { NomeArquivo = "perdido.pdf", TamanhoBytes = 10 };
+            var anexoExcluido = new AnexoSenha { NomeArquivo = "excluido.pdf", Excluido = true };
+            criado.Anexos.AddRange(new[] { anexoLocal, anexoSoNaPasta, anexoPerdido, anexoExcluido });
+            await servico.PersistirAsync();
+
+            var anexosComChaveNova = new ServicoAnexos(new ServicoCriptografia(chaveNova));
+            await anexosComChaveNova.SalvarConteudoLocalAsync(anexoLocal.Id, conteudoLocal);
+
+            var perfilOriginal = Preferencias.Sincronizacao;
+            var pastaSync = TesteUtil.CriarPastaTemporaria();
+            var saltSync = ServicoSincronizacao.GerarSalt();
+            var (kdf, iteracoes, memoriaKb, paralelismo) = ServicoSincronizacao.ParametrosPadrao();
+            Preferencias.Sincronizacao = new PerfilSincronizacao
+            {
+                Pasta = pastaSync,
+                Salt = Convert.ToBase64String(saltSync),
+                Kdf = kdf,
+                Iteracoes = iteracoes,
+                MemoriaKb = memoriaKb,
+                Paralelismo = paralelismo,
+                SincronizarAnexos = true
+            };
+
+            try
+            {
+                var syncAntigo = new ServicoSincronizacao(new ServicoCriptografia(
+                    ServicoSincronizacao.DerivarChave("SenhaDeTeste123!", saltSync, kdf, iteracoes, memoriaKb, paralelismo)));
+                await syncAntigo.PublicarAnexoAsync(pastaSync, anexoSoNaPasta.Id, conteudoSoNaPasta);
+
+                var janela = new JanelaPrincipal(servico, chave, criptografia, servicoSincronizacao: syncAntigo);
+
+                var resultado = await janela.RepublicarAposTrocaDeSenhaMestraAsync(chaveNova, "SenhaNova@456", null);
+
+                var syncNovo = new ServicoSincronizacao(new ServicoCriptografia(
+                    ServicoSincronizacao.DerivarChave("SenhaNova@456", saltSync, kdf, iteracoes, memoriaKb, paralelismo)));
+                Assert.Equal(conteudoLocal, await syncNovo.BaixarAnexoAsync(pastaSync, anexoLocal.Id));
+                Assert.Equal(conteudoSoNaPasta, await syncNovo.BaixarAnexoAsync(pastaSync, anexoSoNaPasta.Id));
+                Assert.False(ServicoSincronizacao.AnexoPublicado(pastaSync, anexoExcluido.Id));
+                Assert.Equal(1, resultado.AnexosNaoRepublicados);
+                Assert.Null(resultado.ErroPasta);
+            }
+            finally
+            {
+                anexosComChaveNova.ApagarArquivoLocalSeExistir(anexoLocal.Id);
+                Preferencias.Sincronizacao = perfilOriginal;
             }
         }
 

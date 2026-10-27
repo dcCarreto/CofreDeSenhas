@@ -10,6 +10,17 @@ colonne prima di terminare.
 > Il CSV esportato da altri programmi è in **chiaro**, non cifrato. Dopo
 > l'importazione, elimina quel file in modo sicuro.
 
+### Da KeePass
+
+Usa **Importa da KeePass (.kdbx)**, nella stessa sezione, e inserisci la
+password del database KeePass. A differenza del CSV, porta anche la
+cronologia delle password, gli allegati e i campi personalizzati (aggiunti
+alle note). I gruppi diventano tag e il cestino di KeePass resta fuori.
+
+Sono supportati i database in formato **KDBX 4** protetti solo da password.
+Se il database è in KDBX 3.1, l’applicazione spiega come convertirlo in
+KeePass o KeePassXC.
+
 ## Esportare la cassaforte
 
 L'esportazione produce un file **cifrato**, protetto da una password che
@@ -19,6 +30,22 @@ una copia a lungo termine fuori dal formato di [Backup](backup).
 Per reimportare, apri l'applicazione sul computer di destinazione e usa
 l'opzione di importazione sul file esportato, inserendo la password usata
 per l'esportazione.
+
+## Passare a un altro gestore
+
+In **Impostazioni → Backup e sincronizzazione → Esporta senza cifratura
+(CSV / Bitwarden)**. Dopo aver confermato la password principale, scegli
+il formato:
+
+- **CSV**: accettato da Bitwarden e dalla maggior parte dei gestori.
+- **JSON di Bitwarden**: include anche la cronologia delle password e i
+  campi aggiuntivi di ogni tipo di credenziale.
+
+Gli elementi nel cestino e gli allegati restano fuori.
+
+> Questo file è **in chiaro**: chiunque, persona o programma, vi abbia
+> accesso può leggere tutte le tue password. Eliminalo appena hai finito
+> di importarlo nell'altro gestore.
 
 ## Passare a un altro computer
 

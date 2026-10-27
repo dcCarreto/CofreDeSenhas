@@ -104,8 +104,9 @@ namespace CofreDeSenhas.Janelas
         // sincronização e por isso descartam o Id de CodigoRecuperacao). Retorna null
         // se a própria senha estiver corrompida — melhor pular o item do que abortar a
         // republicação inteira por causa de um registro só.
-        private Senha? RecifrarComNovaChave(Senha origem, ServicoCriptografia criptografiaNova)
+        internal Senha? RecifrarComNovaChave(Senha origem, IServicoCriptografia criptografiaNova, out bool descartouCampos)
         {
+            descartouCampos = false;
             if (_criptografia == null)
                 return null;
 
@@ -117,14 +118,14 @@ namespace CofreDeSenhas.Janelas
             if (!string.IsNullOrEmpty(origem.TotpSegredo))
             {
                 try { totpPlano = _criptografia.Descriptografar(origem.TotpSegredo); }
-                catch { }
+                catch { descartouCampos = true; }
             }
 
             var camposExtras = new Dictionary<string, string>();
             foreach (var (chave, valorCifrado) in origem.CamposExtras)
             {
                 try { camposExtras[chave] = criptografiaNova.Criptografar(_criptografia.Descriptografar(valorCifrado)); }
-                catch { }
+                catch { descartouCampos = true; }
             }
 
             var historico = new List<HistoricoSenha>();
@@ -138,7 +139,7 @@ namespace CofreDeSenhas.Janelas
                         DataAlteracao = item.DataAlteracao
                     });
                 }
-                catch { }
+                catch { descartouCampos = true; }
             }
 
             var codigosRecuperacao = new List<CodigoRecuperacao>();
@@ -153,7 +154,7 @@ namespace CofreDeSenhas.Janelas
                         Usado = item.Usado
                     });
                 }
-                catch { }
+                catch { descartouCampos = true; }
             }
 
             return new Senha

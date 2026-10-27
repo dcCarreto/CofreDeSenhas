@@ -71,8 +71,8 @@ caractere:
   reutilizada na tela de edição. As últimas dez versões são mantidas.
 - Anexos criptografados: até 5 arquivos por credencial (5 MB cada, 100 MB no
   total do cofre), cada um cifrado individualmente (AES-256-GCM) e guardado à
-  parte do cofre principal. Ficam só no dispositivo local, sem sincronizar para
-  bancos de dados conectados.
+  parte do cofre principal. Podem ser sincronizados pela pasta compartilhada
+  (opcional, ver abaixo), mas nunca vão para um banco de dados conectado.
 - Lista com ícones por serviço, categoria e ações rápidas para revelar, copiar,
   fixar no topo e editar.
 - Cabeçalhos da lista clicáveis para ordenar por serviço, usuário, categoria ou
@@ -138,6 +138,18 @@ cofre, tudo calculado localmente e sem enviar nada para fora:
   por uma senha de exportação independente da senha mestra. Com um filtro
   ativo na lista (busca, categoria, etiqueta ou favoritos), a tela de
   exportação oferece exportar só os itens filtrados em vez do cofre inteiro.
+- Importação direta de bancos do KeePass (`.kdbx`, formato KDBX 4, protegidos
+  por senha): além do que o CSV traz, importa histórico de senhas, anexos e
+  campos personalizados (que vão para as notas); os grupos viram etiquetas e a
+  lixeira do KeePass fica de fora. Suporta AES-256 e ChaCha20, com Argon2d,
+  Argon2id ou AES-KDF. Um banco em KDBX 3.1 recebe instruções para ser
+  convertido no próprio KeePass ou KeePassXC.
+- Exportação sem criptografia para levar o cofre a outro gerenciador
+  (Configurações → Backup e sincronização), sempre com reautenticação pela
+  senha mestra e aviso de que o arquivo sai em texto puro: CSV no formato do
+  Bitwarden (aceito pela maioria dos gerenciadores e pela própria importação
+  CSV deste aplicativo) ou JSON do Bitwarden, que leva também o histórico de
+  senhas e os campos extras. Itens da lixeira e anexos ficam de fora.
 - Importação de arquivos CSV de outros gerenciadores (Bitwarden, LastPass,
   1Password, Chrome/Edge, Firefox, KeePass, Dashlane, NordPass e formatos
   genéricos), com detecção automática de delimitador e mapeamento das colunas
@@ -176,7 +188,15 @@ cofre, tudo calculado localmente e sem enviar nada para fora:
   maioria dos campos usa a edição mais recente por credencial inteira,
   incluindo exclusão e restauração da lixeira; etiquetas e histórico de senha
   são exceção e somam as mudanças dos dois lados em vez de um substituir o
-  outro. Anexos ainda não sincronizam por essa via.
+  outro.
+- Anexos sincronizados (opção "Sincronizar anexos" na tela de sincronização,
+  desligada por padrão): cada anexo vai como um arquivo cifrado à parte, na
+  subpasta `anexos-sincronizados/`, com a mesma chave de sincronização. Os
+  outros dispositivos recebem a lista de anexos na hora, mas o arquivo em si só
+  é baixado quando alguém o abre ali — até lá, aparece como "não baixado neste
+  dispositivo". Remover um anexo apaga a cópia na pasta e não deixa ele
+  reaparecer quando outro dispositivo sincronizar. Anexos continuam fora do
+  banco de dados externo.
 - Pensada para sincronizar os seus próprios dispositivos sem manter um banco de
   dados — para compartilhar o cofre com outras pessoas de confiança ou
   hospedar você mesmo o armazenamento, use a conexão a banco de dados externo,
@@ -215,6 +235,12 @@ cofre, tudo calculado localmente e sem enviar nada para fora:
 - Log de conflitos de sincronização: um indicador ao lado do status de conexão
   (só aparece quando há algo a mostrar) lista o que foi atualizado por outro
   dispositivo ou rejeitado por falha de integridade na última sincronização.
+- "Regravar o banco com a senha atual" (Configurações → Backup e
+  sincronização, com o banco conectado): pede a senha mestra e regrava no banco
+  as credenciais deste dispositivo e os dados de autenticação, cifrados com a
+  senha mestra atual. Serve para quando o banco não foi atualizado depois de
+  uma troca de senha mestra; linhas marcadas como falha de integridade são
+  substituídas pelo conteúdo deste dispositivo.
 - O último perfil de conexão é lembrado para agilizar reconexões; a senha do
   servidor de banco nunca é gravada em disco.
 

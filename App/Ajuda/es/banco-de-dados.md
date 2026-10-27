@@ -27,6 +27,12 @@ Para sincronizar solo **tus propios** dispositivos,
 En **Configuración → Copia y sincronización**. Al desconectar, la caja
 vuelve a operar solo con la copia local.
 
+Si la base no se actualizó después de cambiar la contraseña maestra (la
+aplicación avisa cuando ocurre), usa **Volver a grabar la base con la
+contraseña actual**, en la misma sección. Pide la contraseña maestra y
+vuelve a grabar en la base las credenciales de este dispositivo y los datos
+de autenticación.
+
 > Proteger el servidor de la base de datos (acceso, red, copias) es tu
 > responsabilidad. La aplicación se encarga del cifrado del contenido, no
 > de la seguridad de tu infraestructura.

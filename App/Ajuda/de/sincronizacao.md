@@ -14,6 +14,11 @@ selbst übernimmt dieser Dienst).
 - Ändern zwei Geräte denselben Eintrag, entscheidet die Anwendung nach der
   jüngsten Bearbeitung; Konflikte, die eine Entscheidung erfordern,
   erscheinen auf einem eigenen Bildschirm.
+- Mit **Anhänge synchronisieren** (standardmäßig aus) landen auch die
+  Anhänge im Ordner, jeder mit demselben Schlüssel verschlüsselt. Auf den
+  anderen Geräten erscheint ein Anhang als „auf diesem Gerät nicht
+  heruntergeladen“ und wird erst beim Öffnen heruntergeladen. Anhänge
+  gelangen nie in eine externe Datenbank.
 
 ## Einrichten
 

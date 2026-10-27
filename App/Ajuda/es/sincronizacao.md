@@ -13,6 +13,11 @@ ese servicio).
 - Cuando dos dispositivos cambian la misma credencial, la aplicación lo
   resuelve por la edición más reciente; los conflictos que necesitan una
   decisión aparecen en una pantalla propia.
+- Con **Sincronizar adjuntos** activado (desactivado por defecto), los
+  adjuntos también van a la carpeta, cada uno cifrado con la misma clave.
+  En los demás dispositivos el adjunto aparece como "no descargado en este
+  dispositivo" y solo se descarga cuando lo abres. Los adjuntos nunca van a
+  una base de datos externa.
 
 ## Configurar
 

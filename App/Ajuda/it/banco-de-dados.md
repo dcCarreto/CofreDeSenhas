@@ -28,6 +28,12 @@ Per sincronizzare solo i **tuoi** dispositivi, la
 In **Impostazioni → Backup e sincronizzazione**. Alla disconnessione, la
 cassaforte torna a operare solo con la copia locale.
 
+Se il database non è stato aggiornato dopo un cambio della password
+principale (l'applicazione lo segnala), usa **Riscrivi il database con la
+password attuale**, nella stessa sezione. Chiede la password principale e
+riscrive nel database le credenziali di questo dispositivo e i dati di
+autenticazione.
+
 > Proteggere il server del database (accesso, rete, backup) è tua
 > responsabilità. L'applicazione si occupa della cifratura del contenuto,
 > non della sicurezza della tua infrastruttura.

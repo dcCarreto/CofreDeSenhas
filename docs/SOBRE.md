@@ -20,8 +20,7 @@ Se este projeto for útil para você, use-o sem receios. Se quiser melhorá-lo,
 seja bem-vindo. Ele foi feito para servir a todos.
 
 Este aplicativo nasceu aberto e gratuito e continuará assim. Nenhuma evolução
-futura muda isso: o código-fonte permanece aberto sob a licença PolyForm
-Noncommercial 1.0.0 — livre para estudar, modificar e redistribuir, vedado o uso
-comercial —, sem versões pagas, sem recursos escondidos atrás de assinatura e sem
-coleta de dados. Cada nova etapa do projeto é construída respeitando esse
-compromisso.
+futura muda isso: o código-fonte permanece aberto sob a licença MIT — livre para
+usar, estudar, modificar e redistribuir —, sem versões pagas, sem recursos
+escondidos atrás de assinatura e sem coleta de dados. Cada nova etapa do
+projeto é construída respeitando esse compromisso.

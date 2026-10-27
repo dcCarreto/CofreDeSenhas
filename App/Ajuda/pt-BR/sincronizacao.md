@@ -13,6 +13,11 @@ por conta desse serviço).
 - Quando dois dispositivos mudam a mesma credencial, o aplicativo resolve
   pelo registro de edição mais recente; conflitos que precisam de decisão
   aparecem numa tela própria.
+- Com **Sincronizar anexos** ligado (desligado por padrão), os anexos
+  também vão para a pasta, cada um cifrado com a mesma chave. Nos outros
+  dispositivos o anexo aparece como "não baixado neste dispositivo" e só é
+  baixado quando você o abre. Anexos nunca vão para um banco de dados
+  externo.
 
 ## Configurar
 
