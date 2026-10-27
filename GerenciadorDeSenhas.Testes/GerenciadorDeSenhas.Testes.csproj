@@ -23,4 +23,8 @@
     <ProjectReference Include="..\GerenciadorDeSenhas.Integracoes\GerenciadorDeSenhas.Integracoes.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="Fixtures\kdbx\*.kdbx" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

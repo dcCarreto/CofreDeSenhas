@@ -22,6 +22,7 @@ namespace App.Testes
             Sincronizacao = () => { },
             ImportarCsv = () => { },
             ExportarAberto = () => { },
+            ImportarKdbx = () => { },
             ConectarBanco = () => { },
             DesconectarBanco = () => { },
             RegravarBanco = () => { },

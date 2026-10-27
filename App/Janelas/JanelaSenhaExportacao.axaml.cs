@@ -11,15 +11,20 @@ namespace CofreDeSenhas.Janelas
         private readonly bool _modoExportar;
         private readonly int _totalGeral;
         private readonly int _totalFiltrado;
+        private readonly string? _chaveTitulo;
+        private readonly string? _chaveInfo;
 
         public string SenhaInformada { get; private set; } = string.Empty;
         public bool ExportarSomenteFiltrados { get; private set; }
 
-        public JanelaSenhaExportacao(bool modoExportar, int totalGeral = 0, int totalFiltrado = 0)
+        public JanelaSenhaExportacao(bool modoExportar, int totalGeral = 0, int totalFiltrado = 0,
+            string? chaveTitulo = null, string? chaveInfo = null)
         {
             _modoExportar = modoExportar;
             _totalGeral = totalGeral;
             _totalFiltrado = totalFiltrado;
+            _chaveTitulo = chaveTitulo;
+            _chaveInfo = chaveInfo;
 
             InitializeComponent();
             Icon = Recursos.IconeApp();
@@ -49,17 +54,17 @@ namespace CofreDeSenhas.Janelas
 
         private void AtualizarTextos()
         {
-            Title = Idioma.Texto(_modoExportar
+            Title = Idioma.Texto(_chaveTitulo ?? (_modoExportar
                 ? "ExportDialog.ExportTitle"
-                : "ExportDialog.ImportTitle");
+                : "ExportDialog.ImportTitle"));
             LblTitulo.Text = Title;
             BtnPrincipal.Content = Idioma.Texto(_modoExportar ? "Common.Export" : "Common.Import");
             LblSenha.Text = Idioma.Texto(_modoExportar
                 ? "ExportDialog.ExportPassword"
                 : "ExportDialog.Password");
-            LblInfo.Text = Idioma.Texto(_modoExportar
+            LblInfo.Text = Idioma.Texto(_chaveInfo ?? (_modoExportar
                 ? "ExportDialog.InfoExport"
-                : "ExportDialog.InfoImport");
+                : "ExportDialog.InfoImport"));
             AutomationProperties.SetName(TxtSenha, LblSenha.Text ?? "");
             AutomationProperties.SetName(LblInfo, LblInfo.Text ?? "");
             AutomationProperties.SetName(BtnPrincipal, BtnPrincipal.Content?.ToString() ?? "");

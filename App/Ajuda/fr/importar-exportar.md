@@ -10,6 +10,18 @@ correspondance des colonnes avant de terminer.
 > Le CSV exporté par d'autres programmes est en **texte clair**, non
 > chiffré. Après l'import, supprimez ce fichier de manière sécurisée.
 
+### Depuis KeePass
+
+Utilisez **Importer depuis KeePass (.kdbx)**, dans la même section, et
+saisissez le mot de passe de la base KeePass. Contrairement au CSV, cela
+reprend aussi l’historique des mots de passe, les pièces jointes et les
+champs personnalisés (ajoutés aux notes). Les groupes deviennent des
+étiquettes et la corbeille de KeePass est ignorée.
+
+Les bases au format **KDBX 4** protégées uniquement par un mot de passe
+sont prises en charge. Si la base est en KDBX 3.1, l’application explique
+comment la convertir dans KeePass ou KeePassXC.
+
 ## Exporter votre coffre
 
 L'export produit un fichier **chiffré**, protégé par un mot de passe que
