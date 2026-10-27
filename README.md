@@ -4,17 +4,17 @@
 
 Gerenciador de senhas multiplataforma (Windows e Linux): gerador de senhas
 integrado, cofre local criptografado (AES-256-GCM) e sincronização opcional
-entre dispositivos ou com um banco de dados externo. Código aberto, gratuito
-e sem fins comerciais — desenvolvido em C# com .NET 10 e Avalonia.
+entre dispositivos ou com um banco de dados externo. Código aberto e
+gratuito — desenvolvido em C# com .NET 10 e Avalonia.
 
 [![CI](https://github.com/dcCarreto/CofreDeSenhas/actions/workflows/ci.yml/badge.svg)](https://github.com/dcCarreto/CofreDeSenhas/actions/workflows/ci.yml)
-![Licença](https://img.shields.io/badge/licen%C3%A7a-PolyForm%20Noncommercial-blue)
+![Licença](https://img.shields.io/badge/licen%C3%A7a-MIT-blue)
 ![Plataforma](https://img.shields.io/badge/plataforma-Windows%2010%2F11%20%7C%20Linux-0078D6)
 ![.NET](https://img.shields.io/badge/.NET-10-512BD4)
 
-Distribuído sob a licença [PolyForm Noncommercial 1.0.0](LICENSE) — uso,
-estudo, modificação e redistribuição livres para qualquer finalidade não
-comercial.
+Distribuído sob a licença [MIT](LICENSE) — uso, estudo, modificação e
+redistribuição livres para qualquer finalidade, desde que o aviso de copyright
+e a licença acompanhem as cópias.
 
 ![Cofre de Senhas: barra lateral, lista de credenciais e rodapé](docs/captura-cofre.png)
 
@@ -49,7 +49,7 @@ dos arquivos em [docs/INSTALACAO.md](docs/INSTALACAO.md).
 - [Armazenamento de dados](docs/ARMAZENAMENTO.md) — onde e como os arquivos
   do cofre ficam gravados.
 - [Como contribuir](CONTRIBUTING.md).
-- [Licença](LICENSE) — PolyForm Noncommercial 1.0.0.
+- [Licença](LICENSE) — MIT.
 
 Os binários do Windows ainda não têm certificado de assinatura de código
 (Authenticode) — veja em [SECURITY.md](SECURITY.md#confiança-nos-binários-e-verificação-dos-downloads)

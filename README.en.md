@@ -4,16 +4,17 @@
 
 Cross-platform password manager (Windows and Linux): built-in password
 generator, encrypted local vault (AES-256-GCM), and optional sync across
-devices or with an external database. Open source, free and non-commercial —
+devices or with an external database. Open source and free —
 built in C# with .NET 10 and Avalonia.
 
 [![CI](https://github.com/dcCarreto/CofreDeSenhas/actions/workflows/ci.yml/badge.svg)](https://github.com/dcCarreto/CofreDeSenhas/actions/workflows/ci.yml)
-![License](https://img.shields.io/badge/license-PolyForm%20Noncommercial-blue)
+![License](https://img.shields.io/badge/license-MIT-blue)
 ![Platform](https://img.shields.io/badge/platform-Windows%2010%2F11%20%7C%20Linux-0078D6)
 ![.NET](https://img.shields.io/badge/.NET-10-512BD4)
 
-Distributed under the [PolyForm Noncommercial 1.0.0](LICENSE) license — free
-to use, study, modify and redistribute for any non-commercial purpose.
+Distributed under the [MIT](LICENSE) license — free to use, study, modify and
+redistribute for any purpose, as long as the copyright notice and the license
+are kept with the copies.
 
 > The project's code, comments and linked docs below are in Portuguese — the
 > maintainer's native language. This README is translated and kept in sync
@@ -53,7 +54,7 @@ verification in [docs/INSTALACAO.md](docs/INSTALACAO.md) (in Portuguese).
 - [Data storage](docs/ARMAZENAMENTO.md) — where and how the vault's files are
   written (in Portuguese).
 - [Contributing](CONTRIBUTING.md) (in Portuguese).
-- [License](LICENSE) — PolyForm Noncommercial 1.0.0.
+- [License](LICENSE) — MIT.
 
 Windows binaries aren't code-signed (Authenticode) yet — see
 [SECURITY.md](SECURITY.md#confiança-nos-binários-e-verificação-dos-downloads)
