@@ -353,6 +353,7 @@ namespace CofreDeSenhas.Janelas
                 ImportarCsv = () => ImportarCsv_Click(this, vazio),
                 ConectarBanco = () => ConectarBanco_Click(this, vazio),
                 DesconectarBanco = () => DesconectarBanco_Click(this, vazio),
+                RegravarBanco = () => RegravarBanco_Click(this, vazio),
                 AtalhosTeclado = () => AtalhosTeclado_Click(this, vazio),
                 AbrirManual = () => JanelaAjuda.AbrirOuFocar(this),
                 LimparCofre = () => LimparCofre_Click(this, vazio),

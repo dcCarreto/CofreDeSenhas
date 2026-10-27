@@ -24,6 +24,7 @@ namespace CofreDeSenhas.Janelas
         public required Action ImportarCsv { get; init; }
         public required Action ConectarBanco { get; init; }
         public required Action DesconectarBanco { get; init; }
+        public required Action RegravarBanco { get; init; }
         public required Action AtalhosTeclado { get; init; }
         public required Action AbrirManual { get; init; }
         public required Action LimparCofre { get; init; }
@@ -443,7 +444,11 @@ namespace CofreDeSenhas.Janelas
             painel.Children.Add(LinhaAcao("IconeBanco", Idioma.Texto("Settings.ConnectDatabase"),
                 Idioma.Texto("Settings.ConnectDatabaseTooltip"), _acoes.ConectarBanco));
             if (_acoes.BancoConectado)
+            {
+                painel.Children.Add(LinhaAcao("IconeBanco", Idioma.Texto("Settings.RewriteDatabase"),
+                    Idioma.Texto("Settings.RewriteDatabaseTooltip"), _acoes.RegravarBanco));
                 painel.Children.Add(LinhaAcao("IconeBancoDesconectado", Idioma.Texto("Settings.DisconnectDatabase"), null, _acoes.DesconectarBanco));
+            }
             return painel;
         }
 

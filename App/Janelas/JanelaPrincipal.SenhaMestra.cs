@@ -157,22 +157,7 @@ namespace CofreDeSenhas.Janelas
                         ExigirIntegridade = perfilBanco.ExigirIntegridade
                     };
 
-                    var todasAtuais = (await _servicoSenha.ListarTodosAsync()).Concat(await _servicoSenha.ListarLixeiraAsync());
-                    var itensRecifrados = new List<Senha>();
-                    foreach (var s in todasAtuais)
-                    {
-                        var recifrado = RecifrarComNovaChave(s, criptografiaNova, out var descartouCampos);
-                        if (recifrado == null || descartouCampos)
-                            descartados++;
-                        if (recifrado != null)
-                            itensRecifrados.Add(recifrado);
-                    }
-
-                    var repoBancoNovo = new RepositorioSenhaBanco(cfgNova, criptografiaNova);
-                    await repoBancoNovo.GravarVariasPorChaveAsync(itensRecifrados);
-
-                    if (new AutenticacaoMestra().TentarLerParametros(out var salt, out var verificador, out var kdf, out var custo, out var memoriaKb, out var paralelismo))
-                        await new ServicoBancoDados().PublicarAuthAsync(cfgNova, new AuthBanco(salt, verificador, kdf, custo, memoriaKb, paralelismo));
+                    descartados = await RegravarBancoAsync(cfgNova, criptografiaNova);
                 }
                 catch (Exception ex)
                 {
@@ -205,6 +190,28 @@ namespace CofreDeSenhas.Janelas
             }
 
             return new ResultadoRepublicacao(afetaOutrosDispositivos, erroBanco, erroPasta, descartados > 0, anexosNaoRepublicados);
+        }
+
+        internal async Task<int> RegravarBancoAsync(ConexaoBanco cfg, IServicoCriptografia criptografiaDestino)
+        {
+            var todasAtuais = (await _servicoSenha.ListarTodosAsync()).Concat(await _servicoSenha.ListarLixeiraAsync());
+            var itensRecifrados = new List<Senha>();
+            var descartados = 0;
+            foreach (var s in todasAtuais)
+            {
+                var recifrado = RecifrarComNovaChave(s, criptografiaDestino, out var descartouCampos);
+                if (recifrado == null || descartouCampos)
+                    descartados++;
+                if (recifrado != null)
+                    itensRecifrados.Add(recifrado);
+            }
+
+            await new RepositorioSenhaBanco(cfg, criptografiaDestino).GravarVariasPorChaveAsync(itensRecifrados);
+
+            if (new AutenticacaoMestra().TentarLerParametros(out var salt, out var verificador, out var kdf, out var custo, out var memoriaKb, out var paralelismo))
+                await new ServicoBancoDados().PublicarAuthAsync(cfg, new AuthBanco(salt, verificador, kdf, custo, memoriaKb, paralelismo));
+
+            return descartados;
         }
 
         private async Task<int> RepublicarAnexosSincronizadosAsync(string pastaCompartilhada, byte[] chaveNova, ServicoSincronizacao? servicoSyncNovo)

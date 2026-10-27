@@ -29,6 +29,12 @@ Um nur **Ihre eigenen** Geräte abzugleichen, ist die
 Unter **Einstellungen → Sicherung und Synchronisierung**. Beim Trennen
 arbeitet der Tresor wieder nur mit der lokalen Kopie.
 
+Wurde die Datenbank nach einer Änderung des Master-Passworts nicht
+aktualisiert (die Anwendung weist darauf hin), verwenden Sie im selben
+Abschnitt **Datenbank mit aktuellem Passwort neu schreiben**. Nach Eingabe
+des Master-Passworts werden die Einträge dieses Geräts und die
+Anmeldedaten neu in die Datenbank geschrieben.
+
 > Den Datenbankserver zu schützen (Zugriff, Netzwerk, Sicherungen) liegt
 > in Ihrer Verantwortung. Die Anwendung kümmert sich um die
 > Verschlüsselung des Inhalts, nicht um die Sicherheit Ihrer
