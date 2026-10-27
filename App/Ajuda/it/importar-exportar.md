@@ -10,6 +10,17 @@ colonne prima di terminare.
 > Il CSV esportato da altri programmi è in **chiaro**, non cifrato. Dopo
 > l'importazione, elimina quel file in modo sicuro.
 
+### Da KeePass
+
+Usa **Importa da KeePass (.kdbx)**, nella stessa sezione, e inserisci la
+password del database KeePass. A differenza del CSV, porta anche la
+cronologia delle password, gli allegati e i campi personalizzati (aggiunti
+alle note). I gruppi diventano tag e il cestino di KeePass resta fuori.
+
+Sono supportati i database in formato **KDBX 4** protetti solo da password.
+Se il database è in KDBX 3.1, l’applicazione spiega come convertirlo in
+KeePass o KeePassXC.
+
 ## Esportare la cassaforte
 
 L'esportazione produce un file **cifrato**, protetto da una password che

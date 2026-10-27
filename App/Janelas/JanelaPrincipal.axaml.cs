@@ -352,6 +352,7 @@ namespace CofreDeSenhas.Janelas
                 Sincronizacao = () => Sincronizacao_Click(this, vazio),
                 ImportarCsv = () => ImportarCsv_Click(this, vazio),
                 ExportarAberto = () => ExportarAberto_Click(this, vazio),
+                ImportarKdbx = () => ImportarKdbx_Click(this, vazio),
                 ConectarBanco = () => ConectarBanco_Click(this, vazio),
                 DesconectarBanco = () => DesconectarBanco_Click(this, vazio),
                 RegravarBanco = () => RegravarBanco_Click(this, vazio),

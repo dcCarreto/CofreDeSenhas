@@ -210,14 +210,7 @@ namespace CofreDeSenhas.Janelas
                     return;
                 }
 
-                var (adicionadas, invalidas, duplicadas) = await ImportarComProgressoAsync(itens);
-
-                var msg = Idioma.Formatar("Message.ImportSuccess", adicionadas);
-                if (invalidas > 0)
-                    msg += "\n" + Idioma.Formatar("Message.ImportIgnored", invalidas);
-                if (duplicadas > 0)
-                    msg += "\n" + Idioma.Formatar("Message.ImportDuplicates", duplicadas);
-                await CaixaMensagem.MostrarAsync(this, msg, Idioma.Texto("Common.Import"));
+                await MostrarResultadoImportacaoAsync(await ImportarComProgressoAsync(itens));
             }
             catch (Exception ex)
             {
@@ -225,6 +218,72 @@ namespace CofreDeSenhas.Janelas
                     Idioma.Formatar("Message.ImportError", ErrosUi.MensagemAmigavel(ex)),
                     Idioma.Texto("Common.Error"), TipoMensagem.Erro);
             }
+        }
+
+        private async void ImportarKdbx_Click(object? sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var arquivos = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+                {
+                    Title = Idioma.Texto("Kdbx.Title"),
+                    AllowMultiple = false,
+                    FileTypeFilter = new[]
+                    {
+                        new FilePickerFileType(Idioma.Texto("Kdbx.FileType")) { Patterns = new[] { "*.kdbx" } },
+                        new FilePickerFileType(Idioma.Texto("Common.AllFiles")) { Patterns = new[] { "*" } }
+                    }
+                });
+                if (arquivos.Count == 0)
+                    return;
+
+                var dlg = new JanelaSenhaExportacao(modoExportar: false, chaveTitulo: "Kdbx.Title", chaveInfo: "Kdbx.Info");
+                if (!await AbrirDialogoAsync<bool>(dlg))
+                    return;
+
+                var caminho = arquivos[0].Path.LocalPath;
+                List<SenhaExportada> itens;
+                Scrim.Mostrar(this);
+                try
+                {
+                    itens = await Task.Run(() => new ServicoImportacaoKdbx().ImportarArquivo(caminho, dlg.SenhaInformada));
+                }
+                catch (ErroLocalizavel ex)
+                {
+                    await CaixaMensagem.MostrarAsync(this, ErrosUi.MensagemAmigavel(ex), Idioma.Texto("Common.Import"), TipoMensagem.Aviso);
+                    return;
+                }
+                finally
+                {
+                    Scrim.Ocultar(this);
+                }
+
+                if (itens.Count == 0)
+                {
+                    await CaixaMensagem.MostrarAsync(this, Idioma.Texto("Message.ImportEmpty"), Idioma.Texto("Common.Import"));
+                    return;
+                }
+
+                await MostrarResultadoImportacaoAsync(await ImportarComProgressoAsync(itens));
+            }
+            catch (Exception ex)
+            {
+                await CaixaMensagem.MostrarAsync(this,
+                    Idioma.Formatar("Message.ImportError", ErrosUi.MensagemAmigavel(ex)),
+                    Idioma.Texto("Common.Error"), TipoMensagem.Erro);
+            }
+        }
+
+        private async Task MostrarResultadoImportacaoAsync((int adicionadas, int invalidas, int duplicadas) resultado)
+        {
+            var msg = Idioma.Formatar("Message.ImportSuccess", resultado.adicionadas);
+            if (resultado.invalidas > 0)
+                msg += "\n" + Idioma.Formatar("Message.ImportIgnored", resultado.invalidas);
+            if (resultado.duplicadas > 0)
+                msg += "\n" + Idioma.Formatar("Message.ImportDuplicates", resultado.duplicadas);
+            if (_anexosNaoImportados > 0)
+                msg += "\n" + Idioma.Formatar("Message.ImportAttachmentsSkipped", _anexosNaoImportados);
+            await CaixaMensagem.MostrarAsync(this, msg, Idioma.Texto("Common.Import"));
         }
 
         private async void ImportarCsv_Click(object? sender, RoutedEventArgs e)
@@ -384,8 +443,11 @@ namespace CofreDeSenhas.Janelas
 
         private void EsconderProgresso() => PainelProgresso.IsVisible = false;
 
+        private int _anexosNaoImportados;
+
         private async Task<(int adicionadas, int invalidas, int duplicadas)> ImportarComProgressoAsync(List<SenhaExportada> itens)
         {
+            _anexosNaoImportados = 0;
             Scrim.Mostrar(this);
             MostrarProgresso("Import.Progress");
             try
@@ -426,8 +488,10 @@ namespace CofreDeSenhas.Janelas
                     var bytes = Convert.FromBase64String(item.ConteudoBase64);
                     await _servicoAnexos.AdicionarAsync(destino, item.NomeArquivo, bytes);
                 }
-                catch
+                catch (Exception ex)
                 {
+                    Diagnostico.Registrar(ex, "ImportarAnexo");
+                    _anexosNaoImportados++;
                 }
             }
         }

@@ -9,6 +9,17 @@ check the column mapping before finishing.
 > The CSV exported by other programs is **plaintext**, unencrypted. After
 > importing, delete that file securely.
 
+### From KeePass
+
+Use **Import from KeePass (.kdbx)**, in the same section, and enter the
+KeePass database password. Unlike CSV, it also brings the password history,
+the attachments and the custom fields (which go into the notes). Groups
+become tags, and the KeePass recycle bin is left out.
+
+**KDBX 4** databases protected only by a password are supported. If the
+database is in KDBX 3.1, the app explains how to convert it in KeePass or
+KeePassXC.
+
 ## Export your vault
 
 The export produces an **encrypted** file, protected by a password you set

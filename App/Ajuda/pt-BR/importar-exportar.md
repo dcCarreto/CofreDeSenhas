@@ -10,6 +10,17 @@ de concluir.
 > O CSV exportado por outros programas fica **em texto puro**, sem
 > cifragem. Depois de importar, apague esse arquivo com segurança.
 
+### Do KeePass
+
+Use **Importar do KeePass (.kdbx)**, na mesma seção, e informe a senha do
+banco do KeePass. Diferente do CSV, ele traz também o histórico de senhas,
+os anexos e os campos personalizados (que vão para as notas). Os grupos
+viram etiquetas, e a lixeira do KeePass fica de fora.
+
+Funcionam bancos no formato **KDBX 4** protegidos só por senha. Se o banco
+estiver em KDBX 3.1, o aplicativo explica como convertê-lo no KeePass ou no
+KeePassXC.
+
 ## Exportar o seu cofre
 
 A exportação gera um arquivo **cifrado**, protegido por uma senha que você

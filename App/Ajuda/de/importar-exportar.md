@@ -10,6 +10,18 @@ Spaltenzuordnung prüfen, bevor Sie abschließen.
 > Die von anderen Programmen exportierte CSV ist **Klartext**,
 > unverschlüsselt. Löschen Sie diese Datei nach dem Import sicher.
 
+### Aus KeePass
+
+Verwenden Sie im selben Abschnitt **Aus KeePass importieren (.kdbx)** und
+geben Sie das Passwort der KeePass-Datenbank ein. Anders als CSV werden
+auch der Passwortverlauf, die Anhänge und die benutzerdefinierten Felder
+(in die Notizen) übernommen. Gruppen werden zu Tags, der Papierkorb von
+KeePass wird ausgelassen.
+
+Unterstützt werden Datenbanken im Format **KDBX 4**, die nur mit einem
+Passwort geschützt sind. Liegt die Datenbank in KDBX 3.1 vor, erklärt die
+Anwendung, wie man sie in KeePass oder KeePassXC umwandelt.
+
 ## Ihren Tresor exportieren
 
 Der Export erzeugt eine **verschlüsselte** Datei, geschützt durch ein

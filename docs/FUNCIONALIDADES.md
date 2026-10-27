@@ -138,6 +138,12 @@ cofre, tudo calculado localmente e sem enviar nada para fora:
   por uma senha de exportação independente da senha mestra. Com um filtro
   ativo na lista (busca, categoria, etiqueta ou favoritos), a tela de
   exportação oferece exportar só os itens filtrados em vez do cofre inteiro.
+- Importação direta de bancos do KeePass (`.kdbx`, formato KDBX 4, protegidos
+  por senha): além do que o CSV traz, importa histórico de senhas, anexos e
+  campos personalizados (que vão para as notas); os grupos viram etiquetas e a
+  lixeira do KeePass fica de fora. Suporta AES-256 e ChaCha20, com Argon2d,
+  Argon2id ou AES-KDF. Um banco em KDBX 3.1 recebe instruções para ser
+  convertido no próprio KeePass ou KeePassXC.
 - Exportação sem criptografia para levar o cofre a outro gerenciador
   (Configurações → Backup e sincronização), sempre com reautenticação pela
   senha mestra e aviso de que o arquivo sai em texto puro: CSV no formato do
