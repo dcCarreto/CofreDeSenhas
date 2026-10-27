@@ -23,6 +23,7 @@ namespace App.Testes
             ImportarCsv = () => { },
             ConectarBanco = () => { },
             DesconectarBanco = () => { },
+            RegravarBanco = () => { },
             AtalhosTeclado = () => { },
             AbrirManual = () => { },
             LimparCofre = () => { },

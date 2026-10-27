@@ -27,6 +27,11 @@ Para sincronizar apenas os **seus próprios** dispositivos, a
 Em **Configurações → Backup e sincronização**. Ao desconectar, o cofre
 volta a operar só com a cópia local.
 
+Se o banco não foi atualizado depois de uma troca de senha mestra (o
+aplicativo avisa quando isso acontece), use **Regravar o banco com a senha
+atual**, na mesma seção. Ele pede a senha mestra e regrava no banco as
+credenciais deste dispositivo e os dados de autenticação.
+
 > É a sua responsabilidade proteger o servidor do banco (acesso, rede,
 > backups). O aplicativo cuida da cifragem do conteúdo, não da segurança
 > da sua infraestrutura.

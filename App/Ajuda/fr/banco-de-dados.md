@@ -30,6 +30,12 @@ simple.
 Dans **Paramètres → Sauvegarde et synchronisation**. À la déconnexion, le
 coffre repasse en fonctionnement avec la seule copie locale.
 
+Si la base n'a pas été mise à jour après un changement de mot de passe
+maître (l'application vous prévient quand cela arrive), utilisez
+**Réécrire la base avec le mot de passe actuel**, dans la même section.
+Elle demande le mot de passe maître et réécrit dans la base les
+identifiants de cet appareil et les données d'authentification.
+
 > Protéger le serveur de base de données (accès, réseau, sauvegardes) est
 > votre responsabilité. L'application se charge du chiffrement du contenu,
 > pas de la sécurité de votre infrastructure.

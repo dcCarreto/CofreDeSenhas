@@ -1088,6 +1088,59 @@ namespace App.Testes
         }
 
         [AvaloniaFact]
+        public async Task RegravarBancoAsync_BancoAindaNaChaveAntiga_RegravaComAChaveAtualESemViolacoes()
+        {
+            var chaveAntiga = new AutenticacaoMestra(TesteUtil.CriarPastaTemporaria()).CriarSenhaMestra("SenhaAntiga@123");
+            var criptografiaAntiga = new ServicoCriptografia(chaveAntiga);
+            var chaveAtual = new AutenticacaoMestra(TesteUtil.CriarPastaTemporaria()).CriarSenhaMestra("SenhaAtual@456");
+            var criptografiaAtual = new ServicoCriptografia(chaveAtual);
+
+            var persistenciaLocal = new PersistenciaLocal(criptografiaAtual, TesteUtil.CriarPastaTemporaria());
+            var repositorioLocal = new RepositorioSenha(persistenciaLocal, chaveAtual);
+            var servico = new ServicoSenha(repositorioLocal, criptografiaAtual);
+            var criado = await servico.CriarSenhaAsync("ServicoX", "user", "SenhaOriginal@1", Categoria.Personal);
+            await servico.PersistirAsync();
+
+            var arquivoBanco = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "GS_Regravar_" + Guid.NewGuid().ToString("N") + ".db");
+            var cfg = new ConexaoBanco { Tipo = TipoBanco.SQLite, Banco = arquivoBanco };
+            var bd = new ServicoBancoDados();
+            await bd.CriarTabelaAsync(cfg);
+            await bd.GarantirColunasAsync(cfg);
+
+            try
+            {
+                await new RepositorioSenhaBanco(cfg, criptografiaAntiga).AdicionarAsync(new Senha
+                {
+                    Id = criado.Id,
+                    NomeServico = "ServicoX",
+                    Usuario = "user",
+                    SenhaHash = criptografiaAntiga.Criptografar("SenhaOriginal@1"),
+                    Categoria = Categoria.Personal,
+                    DataCriacao = criado.DataCriacao,
+                    DataAtualizacao = criado.DataAtualizacao
+                });
+
+                var antes = new RepositorioSenhaBanco(cfg, criptografiaAtual);
+                await antes.ListarTodosAsync();
+                Assert.Contains(antes.ViolacoesIntegridade, v => v.NomeServico == "ServicoX");
+
+                var janela = new JanelaPrincipal(servico, chaveAtual, criptografiaAtual, repositorioLocal);
+                var descartados = await janela.RegravarBancoAsync(cfg, criptografiaAtual);
+
+                var depois = new RepositorioSenhaBanco(cfg, criptografiaAtual);
+                var lidos = await depois.ListarTodosAsync();
+                Assert.Equal(0, descartados);
+                Assert.Empty(depois.ViolacoesIntegridade);
+                var item = Assert.Single(lidos, s => s.Id == criado.Id);
+                Assert.Equal("SenhaOriginal@1", criptografiaAtual.Descriptografar(item.SenhaHash));
+            }
+            finally
+            {
+                try { if (File.Exists(arquivoBanco)) File.Delete(arquivoBanco); } catch { }
+            }
+        }
+
+        [AvaloniaFact]
         public async Task ConectarAsync_ComIntegridadeViolada_RegistraOConflitoNoLogDeDiagnostico()
         {
             // Antes da correção, um conflito de integridade (possível adulteração do

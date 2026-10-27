@@ -223,6 +223,12 @@ cofre, tudo calculado localmente e sem enviar nada para fora:
 - Log de conflitos de sincronização: um indicador ao lado do status de conexão
   (só aparece quando há algo a mostrar) lista o que foi atualizado por outro
   dispositivo ou rejeitado por falha de integridade na última sincronização.
+- "Regravar o banco com a senha atual" (Configurações → Backup e
+  sincronização, com o banco conectado): pede a senha mestra e regrava no banco
+  as credenciais deste dispositivo e os dados de autenticação, cifrados com a
+  senha mestra atual. Serve para quando o banco não foi atualizado depois de
+  uma troca de senha mestra; linhas marcadas como falha de integridade são
+  substituídas pelo conteúdo deste dispositivo.
 - O último perfil de conexão é lembrado para agilizar reconexões; a senha do
   servidor de banco nunca é gravada em disco.
 

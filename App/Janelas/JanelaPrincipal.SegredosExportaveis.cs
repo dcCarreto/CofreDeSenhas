@@ -104,7 +104,7 @@ namespace CofreDeSenhas.Janelas
         // sincronização e por isso descartam o Id de CodigoRecuperacao). Retorna null
         // se a própria senha estiver corrompida — melhor pular o item do que abortar a
         // republicação inteira por causa de um registro só.
-        internal Senha? RecifrarComNovaChave(Senha origem, ServicoCriptografia criptografiaNova, out bool descartouCampos)
+        internal Senha? RecifrarComNovaChave(Senha origem, IServicoCriptografia criptografiaNova, out bool descartouCampos)
         {
             descartouCampos = false;
             if (_criptografia == null)

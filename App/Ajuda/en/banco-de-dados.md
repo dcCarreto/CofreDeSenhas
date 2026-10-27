@@ -26,6 +26,12 @@ simpler.
 In **Settings → Backup & sync**. On disconnect, the vault goes back to
 operating with the local copy only.
 
+If the database was not updated after a master password change (the app
+warns you when that happens), use **Rewrite the database with the current
+password**, in the same section. It asks for the master password and
+rewrites this device's credentials and the authentication data to the
+database.
+
 > Protecting the database server (access, network, backups) is your
 > responsibility. The app handles the encryption of the content, not the
 > security of your infrastructure.

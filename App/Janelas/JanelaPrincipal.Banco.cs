@@ -197,6 +197,46 @@ namespace CofreDeSenhas.Janelas
             return cfg;
         }
 
+        private async void RegravarBanco_Click(object? sender, RoutedEventArgs e)
+        {
+            if (Preferencias.UltimoBanco is not { } perfil || _criptografia == null)
+                return;
+
+            var dlg = new JanelaConfirmarSenhaMestra(
+                titulo: Idioma.Texto("Db.RewriteTitle"),
+                instrucao: Idioma.Texto("Db.RewriteInstruction"),
+                textoBotao: Idioma.Texto("Db.RewriteConfirm"));
+            if (!await AbrirDialogoAsync<bool>(dlg))
+                return;
+
+            var cfg = MontarConexaoDoPerfil(perfil);
+            if (cfg == null)
+            {
+                await CaixaMensagem.MostrarAsync(this, Idioma.Formatar("Db.RewriteError", Idioma.Texto("Db.RewriteNoServerPassword")),
+                    Idioma.Texto("Common.Error"), TipoMensagem.Erro);
+                return;
+            }
+
+            int descartados;
+            try
+            {
+                descartados = await RegravarBancoAsync(cfg, _criptografia);
+            }
+            catch (Exception ex)
+            {
+                await CaixaMensagem.MostrarAsync(this, Idioma.Formatar("Db.RewriteError", ErrosUi.MensagemAmigavel(ex)),
+                    Idioma.Texto("Common.Error"), TipoMensagem.Erro);
+                return;
+            }
+
+            await ConectarAsync(cfg, persistir: false, silencioso: true);
+
+            var mensagem = Idioma.Texto("Db.RewriteDone");
+            if (descartados > 0)
+                mensagem += "\n\n" + Idioma.Texto("Master.ItemsDiscardedWarning");
+            await CaixaMensagem.MostrarAsync(this, mensagem, Idioma.Texto("Db.Database"));
+        }
+
         private async void DesconectarBanco_Click(object? sender, RoutedEventArgs e)
         {
             // Invalida qualquer tentativa de conexão ainda em voo (ver
