@@ -369,6 +369,8 @@ namespace CofreDeSenhas
             ("Master.ChangedRestart", "Mot de passe maître modifié avec succès.\n\nL'application va redémarrer pour appliquer le nouveau mot de passe."),
             ("Master.ItemsDiscardedWarning", "Certains éléments aux données corrompues (historique, champ supplémentaire, code de récupération ou pièce jointe) n'ont pas pu être récupérés et ont été écartés lors du changement."),
             ("Master.OtherDevicesWarning", "Si ce coffre est connecté à une base de données ou à un dossier de synchronisation partagé avec d'autres appareils, mettez également à jour le mot de passe maître sur ceux-ci après le redémarrage — sinon, ils ne pourront plus lire ce que cet appareil synchronise à partir de maintenant."),
+            ("Master.RepublishDbFailed", "La base de données connectée n'a pas été mise à jour avec le nouveau mot de passe maître ({0}) et contient toujours des données chiffrées avec l'ancien. À la prochaine connexion, ses identifiants apparaîtront comme des échecs d'intégrité dans le journal des conflits et ne seront pas écrasés automatiquement."),
+            ("Master.RepublishSyncFailed", "Le dossier de synchronisation n'a pas été mis à jour avec le nouveau mot de passe maître ({0}). Il sera réécrit à la prochaine synchronisation, après le redémarrage."),
             ("Biometric.Title", "Windows Hello"),
             ("Biometric.EnableOffer", "Voulez-vous activer le déverrouillage par Windows Hello sur cet appareil ?\n\nLe mot de passe maître continuera de fonctionner comme solution de secours."),
             ("Biometric.Enabled", "Le déverrouillage par Windows Hello est activé sur cet appareil."),

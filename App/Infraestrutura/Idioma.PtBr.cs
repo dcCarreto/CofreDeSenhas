@@ -420,6 +420,8 @@ namespace CofreDeSenhas
             ("Master.ChangedRestart", "Senha mestra alterada com sucesso.\n\nO aplicativo será reiniciado para aplicar a nova senha."),
             ("Master.ItemsDiscardedWarning", "Alguns itens com dado corrompido (histórico, campo extra, código de recuperação ou anexo) não puderam ser recuperados e foram descartados durante a troca."),
             ("Master.OtherDevicesWarning", "Se este cofre está conectado a um banco de dados ou a uma pasta de sincronização compartilhada com outros dispositivos, atualize a senha mestra neles também depois de reiniciar — do contrário, eles vão parar de conseguir ler o que for sincronizado por este dispositivo a partir de agora."),
+            ("Master.RepublishDbFailed", "O banco de dados conectado não foi atualizado com a nova senha mestra ({0}) e continua com o conteúdo cifrado pela senha antiga. Na próxima conexão, as credenciais dele vão aparecer como falha de integridade no log de conflitos e não serão sobrescritas automaticamente."),
+            ("Master.RepublishSyncFailed", "A pasta de sincronização não foi atualizada com a nova senha mestra ({0}). Ela será regravada na próxima sincronização, depois do reinício."),
 
             ("Biometric.Title", "Windows Hello"),
             ("Biometric.EnableOffer", "Deseja ativar o desbloqueio por Windows Hello neste dispositivo?\n\nA senha mestra continuará funcionando como fallback."),

@@ -1045,9 +1045,12 @@ namespace App.Testes
 
                 var chaveNova = new AutenticacaoMestra(TesteUtil.CriarPastaTemporaria()).CriarSenhaMestra("SenhaNova@456");
 
-                var afetaOutrosDispositivos = await janela.RepublicarAposTrocaDeSenhaMestraAsync(chaveNova, "SenhaNova@456", null);
+                var resultado = await janela.RepublicarAposTrocaDeSenhaMestraAsync(chaveNova, "SenhaNova@456", null);
 
-                Assert.True(afetaOutrosDispositivos);
+                Assert.True(resultado.AfetaOutrosDispositivos);
+                Assert.Null(resultado.ErroBanco);
+                Assert.Null(resultado.ErroPasta);
+                Assert.False(resultado.DescartouItens);
 
                 // Banco: com a chave antiga, o hmac gravado não bate mais (o item foi
                 // recifrado e o hmac recalculado com a chave nova) — vira violação de
@@ -1162,9 +1165,73 @@ namespace App.Testes
                 Preferencias.Sincronizacao = null;
 
                 var chaveNova = new AutenticacaoMestra(TesteUtil.CriarPastaTemporaria()).CriarSenhaMestra("SenhaNova@456");
-                var afetaOutrosDispositivos = await janela.RepublicarAposTrocaDeSenhaMestraAsync(chaveNova, "SenhaNova@456", null);
+                var resultado = await janela.RepublicarAposTrocaDeSenhaMestraAsync(chaveNova, "SenhaNova@456", null);
 
-                Assert.False(afetaOutrosDispositivos);
+                Assert.False(resultado.AfetaOutrosDispositivos);
+                Assert.Null(resultado.ErroBanco);
+                Assert.Null(resultado.ErroPasta);
+            }
+            finally
+            {
+                Preferencias.Sincronizacao = perfilOriginal;
+            }
+        }
+
+        [AvaloniaFact]
+        public async Task RecifrarComNovaChave_TotpQueNaoDecifra_MarcaDescarteEMantemOResto()
+        {
+            var (servico, chave, criptografia) = CriarServicoComCriptografia();
+            var janela = new JanelaPrincipal(servico, chave, criptografia);
+            janela.Show();
+            await TesteUtil.AguardarAsync(() => false, tentativas: 5);
+
+            var criptografiaNova = new ServicoCriptografia(new AutenticacaoMestra(TesteUtil.CriarPastaTemporaria()).CriarSenhaMestra("SenhaNova@456"));
+            var intacta = new Senha { Id = Guid.NewGuid(), NomeServico = "Intacta", Usuario = "u", SenhaHash = criptografia.Criptografar("Senha@1"), TotpSegredo = criptografia.Criptografar("JBSWY3DPEHPK3PXP") };
+            var corrompida = new Senha { Id = Guid.NewGuid(), NomeServico = "Corrompida", Usuario = "u", SenhaHash = criptografia.Criptografar("Senha@2"), TotpSegredo = "nao-e-texto-cifrado" };
+
+            var recifradaIntacta = janela.RecifrarComNovaChave(intacta, criptografiaNova, out var descartouIntacta);
+            var recifradaCorrompida = janela.RecifrarComNovaChave(corrompida, criptografiaNova, out var descartouCorrompida);
+
+            Assert.False(descartouIntacta);
+            Assert.Equal("JBSWY3DPEHPK3PXP", criptografiaNova.Descriptografar(recifradaIntacta!.TotpSegredo!));
+            Assert.True(descartouCorrompida);
+            Assert.NotNull(recifradaCorrompida);
+            Assert.Null(recifradaCorrompida!.TotpSegredo);
+            Assert.Equal("Senha@2", criptografiaNova.Descriptografar(recifradaCorrompida.SenhaHash));
+        }
+
+        [AvaloniaFact]
+        public async Task RepublicarAposTrocaDeSenhaMestraAsync_PastaDeSincronizacaoInacessivel_DevolveOErroEmVezDeEngolir()
+        {
+            var (servico, chave, criptografia) = CriarServicoComCriptografia();
+            await servico.CriarSenhaAsync("ServicoX", "user", "SenhaOriginal@1", Categoria.Personal);
+            var janela = new JanelaPrincipal(servico, chave, criptografia);
+            janela.Show();
+            await TesteUtil.AguardarAsync(() => false, tentativas: 5);
+
+            var arquivoNoLugarDaPasta = System.IO.Path.Combine(TesteUtil.CriarPastaTemporaria(), "nao-e-pasta");
+            File.WriteAllText(arquivoNoLugarDaPasta, "");
+            var (kdf, iteracoes, memoriaKb, paralelismo) = ServicoSincronizacao.ParametrosPadrao();
+
+            var perfilOriginal = Preferencias.Sincronizacao;
+            try
+            {
+                Preferencias.Sincronizacao = new PerfilSincronizacao
+                {
+                    Pasta = arquivoNoLugarDaPasta,
+                    Salt = Convert.ToBase64String(ServicoSincronizacao.GerarSalt()),
+                    Kdf = kdf,
+                    Iteracoes = iteracoes,
+                    MemoriaKb = memoriaKb,
+                    Paralelismo = paralelismo
+                };
+
+                var chaveNova = new AutenticacaoMestra(TesteUtil.CriarPastaTemporaria()).CriarSenhaMestra("SenhaNova@456");
+                var resultado = await janela.RepublicarAposTrocaDeSenhaMestraAsync(chaveNova, "SenhaNova@456", null);
+
+                Assert.True(resultado.AfetaOutrosDispositivos);
+                Assert.False(string.IsNullOrEmpty(resultado.ErroPasta));
+                Assert.Null(resultado.ErroBanco);
             }
             finally
             {

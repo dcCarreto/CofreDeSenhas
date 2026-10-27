@@ -368,6 +368,8 @@ namespace CofreDeSenhas
             ("Master.ChangedRestart", "Password principale cambiata con successo.\n\nL'applicazione verrà riavviata per applicare la nuova password."),
             ("Master.ItemsDiscardedWarning", "Alcuni elementi con dati danneggiati (cronologia, campo extra, codice di recupero o allegato) non sono stati recuperabili e sono stati scartati durante il cambio."),
             ("Master.OtherDevicesWarning", "Se questo cofre è connesso a un database o a una cartella di sincronizzazione condivisa con altri dispositivi, aggiorna la password principale anche su di essi dopo il riavvio — altrimenti non riusciranno più a leggere ciò che viene sincronizzato da questo dispositivo da ora in poi."),
+            ("Master.RepublishDbFailed", "Il database collegato non è stato aggiornato con la nuova password principale ({0}) e contiene ancora dati cifrati con quella vecchia. Alla prossima connessione le sue credenziali compariranno come errori di integrità nel registro dei conflitti e non verranno sovrascritte automaticamente."),
+            ("Master.RepublishSyncFailed", "La cartella di sincronizzazione non è stata aggiornata con la nuova password principale ({0}). Verrà riscritta alla prossima sincronizzazione, dopo il riavvio."),
             ("Biometric.Title", "Windows Hello"),
             ("Biometric.EnableOffer", "Vuoi attivare lo sblocco con Windows Hello su questo dispositivo?\n\nLa password principale continuerà a funzionare come alternativa."),
             ("Biometric.Enabled", "Lo sblocco con Windows Hello è attivo su questo dispositivo."),
