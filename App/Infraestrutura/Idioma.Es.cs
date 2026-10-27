@@ -370,6 +370,7 @@ namespace CofreDeSenhas
             ("Master.OtherDevicesWarning", "Si este cofre está conectado a una base de datos o a una carpeta de sincronización compartida con otros dispositivos, actualiza la contraseña maestra en ellos también después de reiniciar — de lo contrario, dejarán de poder leer lo que este dispositivo sincronice a partir de ahora."),
             ("Master.RepublishDbFailed", "La base de datos conectada no se actualizó con la nueva contraseña maestra ({0}) y sigue con el contenido cifrado con la anterior. En la próxima conexión, sus credenciales aparecerán como fallo de integridad en el registro de conflictos y no se sobrescribirán automáticamente."),
             ("Master.RepublishSyncFailed", "La carpeta de sincronización no se actualizó con la nueva contraseña maestra ({0}). Se volverá a escribir en la próxima sincronización, después del reinicio."),
+            ("Master.RepublishAttachmentsFailed", "{0} adjunto(s) no se pudieron volver a publicar en la carpeta de sincronización con la nueva contraseña maestra y no se abrirán en los demás dispositivos. Para corregirlo, quita y vuelve a añadir esos adjuntos en un dispositivo donde se abran."),
             ("Biometric.Title", "Windows Hello"),
             ("Biometric.EnableOffer", "¿Quieres activar el desbloqueo con Windows Hello en este dispositivo?\n\nLa contraseña maestra seguirá funcionando como alternativa."),
             ("Biometric.Enabled", "El desbloqueo con Windows Hello está activado en este dispositivo."),

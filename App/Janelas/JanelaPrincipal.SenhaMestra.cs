@@ -106,6 +106,8 @@ namespace CofreDeSenhas.Janelas
                 mensagem += "\n\n" + Idioma.Formatar("Master.RepublishDbFailed", republicacao.ErroBanco);
             if (republicacao.ErroPasta != null)
                 mensagem += "\n\n" + Idioma.Formatar("Master.RepublishSyncFailed", republicacao.ErroPasta);
+            if (republicacao.AnexosNaoRepublicados > 0)
+                mensagem += "\n\n" + Idioma.Formatar("Master.RepublishAttachmentsFailed", republicacao.AnexosNaoRepublicados);
             if (republicacao.AfetaOutrosDispositivos)
                 mensagem += "\n\n" + Idioma.Texto("Master.OtherDevicesWarning");
 
@@ -129,7 +131,7 @@ namespace CofreDeSenhas.Janelas
         // conectado a um banco ou pasta compartilhada com outros dispositivos, que
         // precisam trocar a senha mestra também para continuar lendo o que este
         // dispositivo publicar; ErroBanco/ErroPasta dizem o que não foi republicado.
-        internal sealed record ResultadoRepublicacao(bool AfetaOutrosDispositivos, string? ErroBanco, string? ErroPasta, bool DescartouItens);
+        internal sealed record ResultadoRepublicacao(bool AfetaOutrosDispositivos, string? ErroBanco, string? ErroPasta, bool DescartouItens, int AnexosNaoRepublicados = 0);
 
         internal async Task<ResultadoRepublicacao> RepublicarAposTrocaDeSenhaMestraAsync(byte[] chaveNova, string novaSenhaPlano, string? senhaServidorPlano)
         {
@@ -178,14 +180,16 @@ namespace CofreDeSenhas.Janelas
                 }
             }
 
+            var anexosNaoRepublicados = 0;
             if (Preferencias.Sincronizacao is { } perfilSync)
             {
+                ServicoSincronizacao? servicoSyncNovo = null;
                 try
                 {
                     var saltSync = Convert.FromBase64String(perfilSync.Salt);
                     var chaveSyncNova = ServicoSincronizacao.DerivarChave(novaSenhaPlano, saltSync, perfilSync.Kdf,
                         perfilSync.Iteracoes, perfilSync.MemoriaKb, perfilSync.Paralelismo);
-                    var servicoSyncNovo = new ServicoSincronizacao(new ServicoCriptografia(chaveSyncNova));
+                    servicoSyncNovo = new ServicoSincronizacao(new ServicoCriptografia(chaveSyncNova));
 
                     var caminho = Path.Combine(perfilSync.Pasta, ServicoSincronizacao.NomeArquivo);
                     await servicoSyncNovo.EscreverAsync(caminho, saltSync, perfilSync.Kdf, perfilSync.Iteracoes,
@@ -195,9 +199,45 @@ namespace CofreDeSenhas.Janelas
                 {
                     erroPasta = ErrosUi.MensagemAmigavel(ex);
                 }
+
+                if (perfilSync.SincronizarAnexos)
+                    anexosNaoRepublicados = await RepublicarAnexosSincronizadosAsync(perfilSync.Pasta, chaveNova, servicoSyncNovo);
             }
 
-            return new ResultadoRepublicacao(afetaOutrosDispositivos, erroBanco, erroPasta, descartados > 0);
+            return new ResultadoRepublicacao(afetaOutrosDispositivos, erroBanco, erroPasta, descartados > 0, anexosNaoRepublicados);
+        }
+
+        private async Task<int> RepublicarAnexosSincronizadosAsync(string pastaCompartilhada, byte[] chaveNova, ServicoSincronizacao? servicoSyncNovo)
+        {
+            var todas = (await _servicoSenha.ListarTodosAsync()).Concat(await _servicoSenha.ListarLixeiraAsync());
+            var anexos = todas.SelectMany(s => s.Anexos).Where(a => !a.Excluido).ToList();
+            if (servicoSyncNovo == null)
+                return anexos.Count;
+
+            var anexosLocaisNovos = new ServicoAnexos(new ServicoCriptografia(chaveNova));
+            var falhas = 0;
+
+            foreach (var anexo in anexos)
+            {
+                try
+                {
+                    var plano = anexosLocaisNovos.TemArquivoLocal(anexo.Id)
+                        ? await anexosLocaisNovos.LerPorIdAsync(anexo.Id)
+                        : _servicoSincronizacao == null ? null : await _servicoSincronizacao.BaixarAnexoAsync(pastaCompartilhada, anexo.Id);
+
+                    if (plano == null)
+                        throw new FileNotFoundException(anexo.NomeArquivo);
+
+                    await servicoSyncNovo.PublicarAnexoAsync(pastaCompartilhada, anexo.Id, plano);
+                }
+                catch (Exception ex)
+                {
+                    Diagnostico.Registrar(ex, "RepublicarAnexoSincronizado");
+                    falhas++;
+                }
+            }
+
+            return falhas;
         }
 
         private async void RegerarQrCode_Click(object? sender, RoutedEventArgs e)
