@@ -19,6 +19,21 @@ cópia de longo prazo fora do formato de [Backup](backup).
 Para reimportar, abra o aplicativo no destino e use a opção de importar o
 arquivo exportado, informando a senha usada na exportação.
 
+## Levar para outro gerenciador
+
+Em **Configurações → Backup e sincronização → Exportar sem criptografia
+(CSV / Bitwarden)**. Depois de confirmar a senha mestra, escolha o formato:
+
+- **CSV**: aceito pelo Bitwarden e pela maioria dos gerenciadores.
+- **JSON do Bitwarden**: leva também o histórico de senhas e os campos
+  extras de cada tipo de credencial.
+
+Itens da lixeira e anexos ficam de fora.
+
+> Esse arquivo fica **em texto puro**: qualquer pessoa ou programa com
+> acesso a ele lê todas as suas senhas. Apague-o assim que terminar de
+> importar no outro gerenciador.
+
 ## Levar para outro computador
 
 1. Exporte o cofre (ou copie um [Backup](backup)).

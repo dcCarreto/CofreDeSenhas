@@ -138,6 +138,12 @@ cofre, tudo calculado localmente e sem enviar nada para fora:
   por uma senha de exportação independente da senha mestra. Com um filtro
   ativo na lista (busca, categoria, etiqueta ou favoritos), a tela de
   exportação oferece exportar só os itens filtrados em vez do cofre inteiro.
+- Exportação sem criptografia para levar o cofre a outro gerenciador
+  (Configurações → Backup e sincronização), sempre com reautenticação pela
+  senha mestra e aviso de que o arquivo sai em texto puro: CSV no formato do
+  Bitwarden (aceito pela maioria dos gerenciadores e pela própria importação
+  CSV deste aplicativo) ou JSON do Bitwarden, que leva também o histórico de
+  senhas e os campos extras. Itens da lixeira e anexos ficam de fora.
 - Importação de arquivos CSV de outros gerenciadores (Bitwarden, LastPass,
   1Password, Chrome/Edge, Firefox, KeePass, Dashlane, NordPass e formatos
   genéricos), com detecção automática de delimitador e mapeamento das colunas

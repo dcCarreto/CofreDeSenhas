@@ -20,6 +20,22 @@ Per reimportare, apri l'applicazione sul computer di destinazione e usa
 l'opzione di importazione sul file esportato, inserendo la password usata
 per l'esportazione.
 
+## Passare a un altro gestore
+
+In **Impostazioni → Backup e sincronizzazione → Esporta senza cifratura
+(CSV / Bitwarden)**. Dopo aver confermato la password principale, scegli
+il formato:
+
+- **CSV**: accettato da Bitwarden e dalla maggior parte dei gestori.
+- **JSON di Bitwarden**: include anche la cronologia delle password e i
+  campi aggiuntivi di ogni tipo di credenziale.
+
+Gli elementi nel cestino e gli allegati restano fuori.
+
+> Questo file è **in chiaro**: chiunque, persona o programma, vi abbia
+> accesso può leggere tutte le tue password. Eliminalo appena hai finito
+> di importarlo nell'altro gestore.
+
 ## Passare a un altro computer
 
 1. Esporta la cassaforte (o copia un [Backup](backup)).

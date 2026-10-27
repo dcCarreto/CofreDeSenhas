@@ -21,6 +21,7 @@ namespace App.Testes
             Backup = () => { },
             Sincronizacao = () => { },
             ImportarCsv = () => { },
+            ExportarAberto = () => { },
             ConectarBanco = () => { },
             DesconectarBanco = () => { },
             RegravarBanco = () => { },
