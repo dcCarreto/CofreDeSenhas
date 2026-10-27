@@ -2,9 +2,16 @@ version: 2
 updates:
   - package-ecosystem: "github-actions"
     directory: "/"
+    target-branch: "prodUnstable"
     schedule:
       interval: "weekly"
   - package-ecosystem: "nuget"
     directory: "/"
+    target-branch: "prodUnstable"
     schedule:
       interval: "weekly"
+    groups:
+      sintese-de-voz:
+        patterns:
+          - "org.k2fsa.*"
+          - "PortAudioSharp2"
