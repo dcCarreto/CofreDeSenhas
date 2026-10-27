@@ -12,6 +12,11 @@ already use (syncing the file itself is that service's job).
 - When two devices change the same credential, the app resolves it by the
   most recent edit; conflicts that need a decision show up on their own
   screen.
+- With **Sync attachments** on (off by default), attachments also go to
+  the folder, each one encrypted with the same key. On the other devices an
+  attachment shows as "not downloaded on this device" and is only
+  downloaded when you open it. Attachments never go to an external
+  database.
 
 ## Set it up
 

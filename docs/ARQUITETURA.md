@@ -10,28 +10,40 @@ CofreDeSenhas.sln
 │  ├─ Janelas/                   Telas e diálogos da aplicação
 │  ├─ Controles/                 Controles customizados de UI
 │  ├─ Infraestrutura/            Tema, preferências, recursos e utilitários
-│  ├─ Ativos/                    Ícone do aplicativo
+│  ├─ Estilos/                   Estilos XAML compartilhados
+│  ├─ Ajuda/                     Manual embutido, um .md por tópico e idioma
+│  ├─ Ativos/                    Ícone e fontes do aplicativo
 │  └─ distribuicao/              Scripts e atalhos de instalação (Linux e Windows)
 ├─ Gerador/                      Gerador de senhas standalone (Avalonia)
 ├─ Cli/                          Executável de linha de comando `cofre`
-│                                (somente-leitura; referencia só o domínio)
-├─ GerenciadorDeSenhas/          Biblioteca de domínio
-│  ├─ Modelos/                   Entidades (Senha, Categoria, SenhaExportada,
-│  │                             TipoBanco, ConexaoBanco)
-│  ├─ Repositorios/              Acesso às credenciais (arquivo local, banco e
-│  │                             espelho que sincroniza os dois)
+│                                (somente-leitura; referencia só o .Core)
+├─ GerenciadorDeSenhas.Core/     Biblioteca de domínio, sem dependência de banco
+│  ├─ Modelos/                   Entidades (Senha, Categoria, AnexoSenha,
+│  │                             SenhaExportada e afins)
+│  ├─ Repositorios/              Acesso às credenciais no arquivo local
+│  ├─ Excecoes/                  Erros com mensagem traduzível
 │  └─ Servicos/                  Criptografia, persistência, autenticação,
-│                                exportação, verificação de vazamento, conexão
-│                                a banco de dados e regras
+│                                anexos, exportação, importação, TOTP,
+│                                verificação de vazamento e regras de merge
+├─ GerenciadorDeSenhas.Integracoes/
+│  │                             Banco externo e sincronização por pasta
+│  ├─ Modelos/                   TipoBanco, ConexaoBanco, AuthBanco,
+│  │                             ConflitoSincronizacao
+│  ├─ Repositorios/              Repositório no banco e espelho que mantém
+│  │                             local e banco sincronizados
+│  └─ Servicos/                  Conexão a banco de dados e sincronização
+│                                pela pasta compartilhada
 ├─ GerenciadorDeSenhas.Testes/   Testes de domínio (xUnit)
 ├─ App.Testes/                   Testes da interface (xUnit + Avalonia headless)
 └─ Cli.Testes/                   Testes do CLI (xUnit)
 ```
 
-A solução separa a interface (projeto `App`) da lógica de domínio (projeto
-`GerenciadorDeSenhas`). Isso mantém as regras de negócio e a criptografia
-independentes da camada gráfica e permite testá-las de forma isolada — o CLI
-(`Cli`) consome o mesmo domínio sem nenhuma dependência de UI.
+A solução separa a interface (projeto `App`) da lógica de domínio
+(`GerenciadorDeSenhas.Core`) e das integrações externas
+(`GerenciadorDeSenhas.Integracoes`). Isso mantém as regras de negócio e a
+criptografia independentes da camada gráfica e permite testá-las de forma
+isolada. O CLI (`Cli`) referencia só o `.Core`, sem dependência de UI nem dos
+drivers de banco de dados.
 
 ## Arquitetura
 
@@ -41,9 +53,11 @@ dados ou de serviços externos:
 - Apresentação (projeto `App`): janelas e controles em Avalonia, com o layout
   em XAML e os controles customizados desenhados por código. Não contém regra de
   negócio nem operação criptográfica.
-- Domínio e serviços (projeto `GerenciadorDeSenhas`): autenticação da senha
-  mestra, criptografia, persistência, exportação, auditoria e verificação de
-  vazamento.
+- Domínio e serviços (projeto `GerenciadorDeSenhas.Core`): autenticação da
+  senha mestra, criptografia, persistência, anexos, exportação, auditoria e
+  verificação de vazamento.
+- Integrações (projeto `GerenciadorDeSenhas.Integracoes`): banco de dados
+  externo e sincronização por pasta compartilhada, sobre o `.Core`.
 - Persistência: por padrão, os dados são serializados em JSON e gravados de
   forma criptografada em um arquivo no perfil do usuário. Opcionalmente, o cofre
   pode ser sincronizado e mantido espelhado com um banco de dados externo
