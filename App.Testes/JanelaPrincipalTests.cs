@@ -1692,6 +1692,65 @@ namespace App.Testes
         }
 
         [AvaloniaFact]
+        public async Task RepublicarAposTrocaDeSenhaMestraAsync_ComSincronizarAnexos_RecifraOsAnexosDaPastaComAChaveNova()
+        {
+            var (servico, chave, criptografia) = CriarServicoComCriptografia();
+            var criado = await servico.CriarSenhaAsync("ServicoX", "user", "SenhaOriginal@1", Categoria.Personal);
+            var chaveNova = new AutenticacaoMestra(TesteUtil.CriarPastaTemporaria()).CriarSenhaMestra("SenhaNova@456");
+
+            var conteudoLocal = System.Text.Encoding.UTF8.GetBytes("anexo que existe neste dispositivo");
+            var conteudoSoNaPasta = System.Text.Encoding.UTF8.GetBytes("anexo que nunca foi baixado aqui");
+            var anexoLocal = new AnexoSenha { NomeArquivo = "local.pdf", TamanhoBytes = conteudoLocal.Length };
+            var anexoSoNaPasta = new AnexoSenha { NomeArquivo = "remoto.pdf", TamanhoBytes = conteudoSoNaPasta.Length };
+            var anexoPerdido = new AnexoSenha { NomeArquivo = "perdido.pdf", TamanhoBytes = 10 };
+            var anexoExcluido = new AnexoSenha { NomeArquivo = "excluido.pdf", Excluido = true };
+            criado.Anexos.AddRange(new[] { anexoLocal, anexoSoNaPasta, anexoPerdido, anexoExcluido });
+            await servico.PersistirAsync();
+
+            var anexosComChaveNova = new ServicoAnexos(new ServicoCriptografia(chaveNova));
+            await anexosComChaveNova.SalvarConteudoLocalAsync(anexoLocal.Id, conteudoLocal);
+
+            var perfilOriginal = Preferencias.Sincronizacao;
+            var pastaSync = TesteUtil.CriarPastaTemporaria();
+            var saltSync = ServicoSincronizacao.GerarSalt();
+            var (kdf, iteracoes, memoriaKb, paralelismo) = ServicoSincronizacao.ParametrosPadrao();
+            Preferencias.Sincronizacao = new PerfilSincronizacao
+            {
+                Pasta = pastaSync,
+                Salt = Convert.ToBase64String(saltSync),
+                Kdf = kdf,
+                Iteracoes = iteracoes,
+                MemoriaKb = memoriaKb,
+                Paralelismo = paralelismo,
+                SincronizarAnexos = true
+            };
+
+            try
+            {
+                var syncAntigo = new ServicoSincronizacao(new ServicoCriptografia(
+                    ServicoSincronizacao.DerivarChave("SenhaDeTeste123!", saltSync, kdf, iteracoes, memoriaKb, paralelismo)));
+                await syncAntigo.PublicarAnexoAsync(pastaSync, anexoSoNaPasta.Id, conteudoSoNaPasta);
+
+                var janela = new JanelaPrincipal(servico, chave, criptografia, servicoSincronizacao: syncAntigo);
+
+                var resultado = await janela.RepublicarAposTrocaDeSenhaMestraAsync(chaveNova, "SenhaNova@456", null);
+
+                var syncNovo = new ServicoSincronizacao(new ServicoCriptografia(
+                    ServicoSincronizacao.DerivarChave("SenhaNova@456", saltSync, kdf, iteracoes, memoriaKb, paralelismo)));
+                Assert.Equal(conteudoLocal, await syncNovo.BaixarAnexoAsync(pastaSync, anexoLocal.Id));
+                Assert.Equal(conteudoSoNaPasta, await syncNovo.BaixarAnexoAsync(pastaSync, anexoSoNaPasta.Id));
+                Assert.False(ServicoSincronizacao.AnexoPublicado(pastaSync, anexoExcluido.Id));
+                Assert.Equal(1, resultado.AnexosNaoRepublicados);
+                Assert.Null(resultado.ErroPasta);
+            }
+            finally
+            {
+                anexosComChaveNova.ApagarArquivoLocalSeExistir(anexoLocal.Id);
+                Preferencias.Sincronizacao = perfilOriginal;
+            }
+        }
+
+        [AvaloniaFact]
         public async Task SincronizarAsync_ComSincronizarAnexosDesligado_NaoMexeNosAnexosLocaisExistentes()
         {
             // Guarda de regressão de ponta a ponta: SincronizarAnexos fica false por

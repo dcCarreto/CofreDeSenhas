@@ -415,6 +415,7 @@ namespace CofreDeSenhas
             ("Master.OtherDevicesWarning", "If this vault is connected to a database or a sync folder shared with other devices, update the master password on them too after restarting — otherwise they will stop being able to read anything synced from this device from now on."),
             ("Master.RepublishDbFailed", "The connected database was not updated with the new master password ({0}) and still holds content encrypted with the old one. On the next connection its credentials will show up as integrity failures in the conflict log and will not be overwritten automatically."),
             ("Master.RepublishSyncFailed", "The sync folder was not updated with the new master password ({0}). It will be rewritten on the next sync, after the restart."),
+            ("Master.RepublishAttachmentsFailed", "{0} attachment(s) could not be republished to the sync folder with the new master password and will not open on the other devices. To fix it, remove and add those attachments again on a device where they open."),
             ("Biometric.Title", "Windows Hello"),
             ("Biometric.EnableOffer", "Do you want to enable Windows Hello unlock on this device?\n\nThe master password will continue to work as a fallback."),
             ("Biometric.Enabled", "Windows Hello unlock is enabled on this device."),
