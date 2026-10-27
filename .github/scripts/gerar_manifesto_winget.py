@@ -62,7 +62,7 @@ PublisherUrl: {REPO_URL}
 PublisherSupportUrl: {REPO_URL}/issues
 PackageName: {PACKAGE_NAME}
 PackageUrl: {REPO_URL}
-License: PolyForm Noncommercial 1.0.0
+License: MIT
 LicenseUrl: {REPO_URL}/blob/prod/LICENSE
 Copyright: Copyright © 2026 Denis Cristino Cantagallo Carreto
 ShortDescription: Gerenciador de senhas local, com cofre cifrado (AES-256-GCM) e sincronização opcional por banco de dados ou pasta compartilhada.
