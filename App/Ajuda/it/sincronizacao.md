@@ -13,6 +13,11 @@ quel servizio).
 - Quando due dispositivi modificano la stessa credenziale, l'applicazione
   risolve in base alla modifica più recente; i conflitti che richiedono
   una decisione compaiono su una schermata dedicata.
+- Con **Sincronizza allegati** attivo (disattivato per impostazione
+  predefinita), anche gli allegati vanno nella cartella, ciascuno cifrato
+  con la stessa chiave. Sugli altri dispositivi l'allegato compare come
+  "non scaricato su questo dispositivo" e viene scaricato solo quando lo
+  apri. Gli allegati non vanno mai in un database esterno.
 
 ## Configurarla
 

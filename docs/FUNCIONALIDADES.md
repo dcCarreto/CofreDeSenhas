@@ -71,8 +71,8 @@ caractere:
   reutilizada na tela de edição. As últimas dez versões são mantidas.
 - Anexos criptografados: até 5 arquivos por credencial (5 MB cada, 100 MB no
   total do cofre), cada um cifrado individualmente (AES-256-GCM) e guardado à
-  parte do cofre principal. Ficam só no dispositivo local, sem sincronizar para
-  bancos de dados conectados.
+  parte do cofre principal. Podem ser sincronizados pela pasta compartilhada
+  (opcional, ver abaixo), mas nunca vão para um banco de dados conectado.
 - Lista com ícones por serviço, categoria e ações rápidas para revelar, copiar,
   fixar no topo e editar.
 - Cabeçalhos da lista clicáveis para ordenar por serviço, usuário, categoria ou
@@ -176,7 +176,15 @@ cofre, tudo calculado localmente e sem enviar nada para fora:
   maioria dos campos usa a edição mais recente por credencial inteira,
   incluindo exclusão e restauração da lixeira; etiquetas e histórico de senha
   são exceção e somam as mudanças dos dois lados em vez de um substituir o
-  outro. Anexos ainda não sincronizam por essa via.
+  outro.
+- Anexos sincronizados (opção "Sincronizar anexos" na tela de sincronização,
+  desligada por padrão): cada anexo vai como um arquivo cifrado à parte, na
+  subpasta `anexos-sincronizados/`, com a mesma chave de sincronização. Os
+  outros dispositivos recebem a lista de anexos na hora, mas o arquivo em si só
+  é baixado quando alguém o abre ali — até lá, aparece como "não baixado neste
+  dispositivo". Remover um anexo apaga a cópia na pasta e não deixa ele
+  reaparecer quando outro dispositivo sincronizar. Anexos continuam fora do
+  banco de dados externo.
 - Pensada para sincronizar os seus próprios dispositivos sem manter um banco de
   dados — para compartilhar o cofre com outras pessoas de confiança ou
   hospedar você mesmo o armazenamento, use a conexão a banco de dados externo,

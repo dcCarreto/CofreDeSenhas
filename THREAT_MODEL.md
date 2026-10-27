@@ -119,6 +119,18 @@ significa que uma pasta de sincronização adulterada não expõe nem forja dado
 falha silenciosamente, sem avisar quem usa o cofre que a sincronização parou de funcionar
 daquele ponto em diante. É uma lacuna de disponibilidade/aviso, não de confidencialidade.
 
+Com a opção "Sincronizar anexos" ligada, cada anexo vira um arquivo `.enc` separado em
+`anexos-sincronizados/`, cifrado com a mesma chave de sincronização. O conteúdo e o nome
+original ficam protegidos, mas alguém com acesso à pasta consegue ver **metadados** que o
+arquivo único `sincronizacao.dat` não mostra:
+
+- a quantidade de anexos;
+- o tamanho aproximado de cada um (o texto cifrado tem praticamente o tamanho do original);
+- quando cada um foi criado ou removido.
+
+Os nomes dos arquivos são identificadores aleatórios e não indicam a qual credencial cada
+anexo pertence.
+
 ### Administrador de um banco de dados externo conectado (self-hosted/compartilhado)
 
 Ao conectar o cofre a um banco externo (SQLite, PostgreSQL, MySQL/MariaDB ou SQL Server),

@@ -13,6 +13,12 @@ lui-même est le travail de ce service).
 - Quand deux appareils modifient le même identifiant, l'application
   tranche par la modification la plus récente ; les conflits qui exigent
   une décision apparaissent sur un écran dédié.
+- Avec **Synchroniser les pièces jointes** activé (désactivé par défaut),
+  les pièces jointes vont aussi dans le dossier, chacune chiffrée avec la
+  même clé. Sur les autres appareils, une pièce jointe apparaît comme « non
+  téléchargé sur cet appareil » et n'est téléchargée que lorsque vous
+  l'ouvrez. Les pièces jointes ne vont jamais dans une base de données
+  externe.
 
 ## Configurer
 
