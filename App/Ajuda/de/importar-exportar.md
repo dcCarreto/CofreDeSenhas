@@ -21,6 +21,23 @@ Zum erneuten Importieren öffnen Sie die Anwendung auf dem Zielcomputer und
 verwenden die Importoption auf der exportierten Datei, mit dem für den
 Export verwendeten Passwort.
 
+## Zu einem anderen Passwortmanager wechseln
+
+Unter **Einstellungen → Sicherung und Synchronisierung → Unverschlüsselt
+exportieren (CSV / Bitwarden)**. Nach Bestätigung des Master-Passworts
+wählen Sie das Format:
+
+- **CSV**: wird von Bitwarden und den meisten anderen Managern
+  akzeptiert.
+- **Bitwarden-JSON**: enthält zusätzlich den Passwortverlauf und die
+  Zusatzfelder jedes Eintragstyps.
+
+Einträge im Papierkorb und Anhänge werden nicht übernommen.
+
+> Diese Datei ist **Klartext**: Jede Person und jedes Programm mit Zugriff
+> darauf kann alle Ihre Passwörter lesen. Löschen Sie sie, sobald Sie sie
+> in den anderen Manager importiert haben.
+
 ## Auf einen anderen Computer umziehen
 
 1. Exportieren Sie den Tresor (oder kopieren Sie eine [Sicherung](backup)).

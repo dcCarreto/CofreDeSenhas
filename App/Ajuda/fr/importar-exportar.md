@@ -21,6 +21,22 @@ Pour réimporter, ouvrez l'application sur la machine de destination et
 utilisez l'option d'import sur le fichier exporté, en indiquant le mot de
 passe utilisé pour l'export.
 
+## Passer à un autre gestionnaire
+
+Dans **Paramètres → Sauvegarde et synchronisation → Exporter sans
+chiffrement (CSV / Bitwarden)**. Après avoir confirmé le mot de passe
+maître, choisissez le format :
+
+- **CSV** : accepté par Bitwarden et la plupart des gestionnaires.
+- **JSON Bitwarden** : inclut aussi l'historique des mots de passe et les
+  champs supplémentaires de chaque type d'identifiant.
+
+Les éléments de la corbeille et les pièces jointes ne sont pas inclus.
+
+> Ce fichier est **en clair** : toute personne ou tout programme y ayant
+> accès peut lire tous vos mots de passe. Supprimez-le dès que vous avez
+> fini de l'importer dans l'autre gestionnaire.
+
 ## Passer à un autre ordinateur
 
 1. Exportez le coffre (ou copiez une [Sauvegarde](backup)).

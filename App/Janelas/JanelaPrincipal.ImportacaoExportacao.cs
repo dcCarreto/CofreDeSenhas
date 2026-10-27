@@ -120,6 +120,56 @@ namespace CofreDeSenhas.Janelas
             }
         }
 
+        private async void ExportarAberto_Click(object? sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var itens = (await ConstruirListaExportavelAsync(incluirAnexos: false)).Where(s => !s.NaLixeira).ToList();
+                if (itens.Count == 0)
+                {
+                    await CaixaMensagem.MostrarAsync(this, Idioma.Texto("Message.ExportEmpty"), Idioma.Texto("Common.Export"));
+                    return;
+                }
+
+                var dlg = new JanelaConfirmarSenhaMestra(
+                    titulo: Idioma.Texto("ExportOpen.Title"),
+                    instrucao: Idioma.Texto("ExportOpen.Instruction"),
+                    textoBotao: Idioma.Texto("ExportOpen.Confirm"));
+                if (!await AbrirDialogoAsync<bool>(dlg))
+                    return;
+
+                var arquivo = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+                {
+                    Title = Idioma.Texto("ExportOpen.Title"),
+                    SuggestedFileName = $"cofre-senhas-{DateTime.Now:yyyy-MM-dd}.csv",
+                    DefaultExtension = "csv",
+                    FileTypeChoices = new[]
+                    {
+                        new FilePickerFileType(Idioma.Texto("ExportOpen.FileCsv")) { Patterns = new[] { "*.csv" } },
+                        new FilePickerFileType(Idioma.Texto("ExportOpen.FileJson")) { Patterns = new[] { "*.json" } }
+                    }
+                });
+                if (arquivo == null)
+                    return;
+
+                var caminho = arquivo.Path.LocalPath;
+                var conteudo = Path.GetExtension(caminho).Equals(".json", StringComparison.OrdinalIgnoreCase)
+                    ? ExportacaoAberta.JsonBitwarden(itens)
+                    : ExportacaoAberta.CsvBitwarden(itens);
+                await File.WriteAllTextAsync(caminho, conteudo, new System.Text.UTF8Encoding(false));
+
+                await CaixaMensagem.MostrarAsync(this,
+                    Idioma.Formatar("ExportOpen.Success", itens.Count),
+                    Idioma.Texto("Common.Export"), TipoMensagem.Aviso);
+            }
+            catch (Exception ex)
+            {
+                await CaixaMensagem.MostrarAsync(this,
+                    Idioma.Formatar("Message.ExportError", ErrosUi.MensagemAmigavel(ex)),
+                    Idioma.Texto("Common.Error"), TipoMensagem.Erro);
+            }
+        }
+
         private async void Importar_Click(object? sender, RoutedEventArgs e)
         {
             try
