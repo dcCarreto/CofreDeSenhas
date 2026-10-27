@@ -42,7 +42,10 @@ namespace CofreDeSenhas.Janelas
                 if (_criptografia != null && !string.IsNullOrEmpty(Preferencias.UltimoBanco?.SenhaCifrada))
                     senhaServidorPlano = _criptografia.Descriptografar(Preferencias.UltimoBanco.SenhaCifrada);
             }
-            catch { }
+            catch (Exception ex)
+            {
+                Diagnostico.Registrar(ex, "AlterarSenhaMestra.SenhaServidor");
+            }
 
             // Reconcilia com a pasta de sincronização compartilhada usando a chave
             // ainda antiga, antes dela deixar de bater com a senha nova — evita que a
@@ -87,7 +90,7 @@ namespace CofreDeSenhas.Janelas
                 Preferencias.Salvar();
             }
 
-            var afetaOutrosDispositivos = await RepublicarAposTrocaDeSenhaMestraAsync(chaveNova, dlg.NovaSenha, senhaServidorPlano);
+            var republicacao = await RepublicarAposTrocaDeSenhaMestraAsync(chaveNova, dlg.NovaSenha, senhaServidorPlano);
 
             var biometriaEstavaHabilitada = _biometria.EstaHabilitado;
             await _biometria.DesabilitarAsync();
@@ -97,9 +100,13 @@ namespace CofreDeSenhas.Janelas
             var mensagem = Idioma.Texto("Master.ChangedRestart");
             if (biometriaEstavaHabilitada)
                 mensagem += "\n\n" + Idioma.Texto("Biometric.DisabledAfterMasterChange");
-            if (servico.UltimosAvisos.Count > 0)
+            if (servico.UltimosAvisos.Count > 0 || republicacao.DescartouItens)
                 mensagem += "\n\n" + Idioma.Texto("Master.ItemsDiscardedWarning");
-            if (afetaOutrosDispositivos)
+            if (republicacao.ErroBanco != null)
+                mensagem += "\n\n" + Idioma.Formatar("Master.RepublishDbFailed", republicacao.ErroBanco);
+            if (republicacao.ErroPasta != null)
+                mensagem += "\n\n" + Idioma.Formatar("Master.RepublishSyncFailed", republicacao.ErroPasta);
+            if (republicacao.AfetaOutrosDispositivos)
                 mensagem += "\n\n" + Idioma.Texto("Master.OtherDevicesWarning");
 
             await CaixaMensagem.MostrarAsync(this,
@@ -118,12 +125,18 @@ namespace CofreDeSenhas.Janelas
         // dispositivo consegue lê-los de volta depois de reiniciar com a senha nova, e
         // "Restaurar de um banco de dados" fica travado no salt/verificador antigos pra
         // sempre (RepositorioSenhaEspelhado só concilia dados, nunca a chave de
-        // cifragem usada pra gravá-los). Retorna true se o cofre está conectado a um
-        // banco ou pasta compartilhada com outros dispositivos, que precisam trocar a
-        // senha mestra também para continuar lendo o que este dispositivo publicar.
-        internal async Task<bool> RepublicarAposTrocaDeSenhaMestraAsync(byte[] chaveNova, string novaSenhaPlano, string? senhaServidorPlano)
+        // cifragem usada pra gravá-los). AfetaOutrosDispositivos indica se o cofre está
+        // conectado a um banco ou pasta compartilhada com outros dispositivos, que
+        // precisam trocar a senha mestra também para continuar lendo o que este
+        // dispositivo publicar; ErroBanco/ErroPasta dizem o que não foi republicado.
+        internal sealed record ResultadoRepublicacao(bool AfetaOutrosDispositivos, string? ErroBanco, string? ErroPasta, bool DescartouItens);
+
+        internal async Task<ResultadoRepublicacao> RepublicarAposTrocaDeSenhaMestraAsync(byte[] chaveNova, string novaSenhaPlano, string? senhaServidorPlano)
         {
             var afetaOutrosDispositivos = _conectadoAoBanco || Preferencias.Sincronizacao != null;
+            string? erroBanco = null;
+            string? erroPasta = null;
+            var descartados = 0;
 
             if (_conectadoAoBanco && Preferencias.UltimoBanco is { } perfilBanco && _criptografia != null)
             {
@@ -143,10 +156,15 @@ namespace CofreDeSenhas.Janelas
                     };
 
                     var todasAtuais = (await _servicoSenha.ListarTodosAsync()).Concat(await _servicoSenha.ListarLixeiraAsync());
-                    var itensRecifrados = todasAtuais
-                        .Select(s => RecifrarComNovaChave(s, criptografiaNova))
-                        .Where(s => s != null)
-                        .Cast<Senha>();
+                    var itensRecifrados = new List<Senha>();
+                    foreach (var s in todasAtuais)
+                    {
+                        var recifrado = RecifrarComNovaChave(s, criptografiaNova, out var descartouCampos);
+                        if (recifrado == null || descartouCampos)
+                            descartados++;
+                        if (recifrado != null)
+                            itensRecifrados.Add(recifrado);
+                    }
 
                     var repoBancoNovo = new RepositorioSenhaBanco(cfgNova, criptografiaNova);
                     await repoBancoNovo.GravarVariasPorChaveAsync(itensRecifrados);
@@ -154,12 +172,9 @@ namespace CofreDeSenhas.Janelas
                     if (new AutenticacaoMestra().TentarLerParametros(out var salt, out var verificador, out var kdf, out var custo, out var memoriaKb, out var paralelismo))
                         await new ServicoBancoDados().PublicarAuthAsync(cfgNova, new AuthBanco(salt, verificador, kdf, custo, memoriaKb, paralelismo));
                 }
-                catch
+                catch (Exception ex)
                 {
-                    // Melhor esforço: se a republicação falhar, o cofre local já está
-                    // trocado e funcional; a próxima reconexão manual ou sincronização
-                    // tenta de novo, e o usuário já é avisado sobre os outros
-                    // dispositivos por quem chama este método.
+                    erroBanco = ErrosUi.MensagemAmigavel(ex);
                 }
             }
 
@@ -176,13 +191,13 @@ namespace CofreDeSenhas.Janelas
                     await servicoSyncNovo.EscreverAsync(caminho, saltSync, perfilSync.Kdf, perfilSync.Iteracoes,
                         perfilSync.MemoriaKb, perfilSync.Paralelismo, await ConstruirListaExportavelAsync(perfilSync.SincronizarAnexos));
                 }
-                catch
+                catch (Exception ex)
                 {
-                    // Melhor esforço, mesmo raciocínio do bloco do banco acima.
+                    erroPasta = ErrosUi.MensagemAmigavel(ex);
                 }
             }
 
-            return afetaOutrosDispositivos;
+            return new ResultadoRepublicacao(afetaOutrosDispositivos, erroBanco, erroPasta, descartados > 0);
         }
 
         private async void RegerarQrCode_Click(object? sender, RoutedEventArgs e)

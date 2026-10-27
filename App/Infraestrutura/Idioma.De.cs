@@ -368,6 +368,8 @@ namespace CofreDeSenhas
             ("Master.ChangedRestart", "Master-Passwort erfolgreich geändert.\n\nDie Anwendung wird neu gestartet, um das neue Passwort anzuwenden."),
             ("Master.ItemsDiscardedWarning", "Einige Einträge mit beschädigten Daten (Verlauf, Zusatzfeld, Wiederherstellungscode oder Anhang) konnten nicht wiederhergestellt werden und wurden beim Wechsel verworfen."),
             ("Master.OtherDevicesWarning", "Wenn dieser Tresor mit einer Datenbank oder einem Synchronisierungsordner verbunden ist, der mit anderen Geräten geteilt wird, aktualisieren Sie das Master-Passwort nach dem Neustart auch dort — sonst können diese Geräte ab sofort nicht mehr lesen, was von diesem Gerät synchronisiert wird."),
+            ("Master.RepublishDbFailed", "Die verbundene Datenbank wurde nicht mit dem neuen Master-Passwort aktualisiert ({0}) und enthält weiterhin mit dem alten Passwort verschlüsselte Daten. Bei der nächsten Verbindung erscheinen ihre Einträge im Konfliktprotokoll als Integritätsfehler und werden nicht automatisch überschrieben."),
+            ("Master.RepublishSyncFailed", "Der Synchronisierungsordner wurde nicht mit dem neuen Master-Passwort aktualisiert ({0}). Er wird bei der nächsten Synchronisierung nach dem Neustart neu geschrieben."),
             ("Biometric.Title", "Windows Hello"),
             ("Biometric.EnableOffer", "Möchten Sie die Entsperrung mit Windows Hello auf diesem Gerät aktivieren?\n\nDas Master-Passwort funktioniert weiterhin als Fallback."),
             ("Biometric.Enabled", "Die Entsperrung mit Windows Hello ist auf diesem Gerät aktiviert."),
