@@ -66,6 +66,7 @@ PackageLocale: pt-BR
 Publisher: {PUBLISHER}
 PublisherUrl: {REPO_URL}
 PublisherSupportUrl: {REPO_URL}/issues
+PrivacyUrl: {REPO_URL}/blob/prod/PRIVACY.md
 PackageName: {PACKAGE_NAME}
 PackageUrl: {REPO_URL}
 License: MIT

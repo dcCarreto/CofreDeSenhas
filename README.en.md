@@ -45,6 +45,8 @@ verification in [docs/INSTALACAO.md](docs/INSTALACAO.md) (in Portuguese).
   attacker, and what's deliberately out of scope (in Portuguese).
 - [Security policy](SECURITY.md) — how to report a vulnerability (in
   Portuguese).
+- [Privacy policy](PRIVACY.en.md) — what data the app stores, what goes over
+  the network (and when), and how to delete everything.
 - [Download and installation](docs/INSTALACAO.md) — Windows, Linux, the CLI
   and integrity verification (in Portuguese).
 - [Architecture and technologies](docs/ARQUITETURA.md) — project structure,
