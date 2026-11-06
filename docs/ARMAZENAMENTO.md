@@ -10,7 +10,8 @@ em `~/.config/GerenciadorSenhas/` no Linux:
 - `biometria.dat`: chave do cofre cifrada e vinculada a uma credencial do
   Windows Hello, para desbloqueio biométrico quando ativado neste dispositivo.
 - `config.json`: preferências da interface (como o idioma e a acessibilidade) e
-  o último perfil de conexão a banco, sem a senha do servidor.
+  o último perfil de conexão a banco, com a senha do servidor cifrada pela chave
+  do cofre (nunca em texto puro).
 - `anexos/`: um arquivo `.enc` por anexo, cada um cifrado com a chave do cofre.
 - `backups/`: cópias de segurança do cofre.
 

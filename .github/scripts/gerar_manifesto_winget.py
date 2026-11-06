@@ -1,4 +1,4 @@
-"""Gera os manifests winget (schema 1.6.0) para uma versão já publicada.
+"""Gera os manifests winget (schema 1.28.0) para uma versão já publicada.
 
 Uso: python3 gerar_manifesto_winget.py <versao> <sha256_do_instalador> <pasta_saida>
 
@@ -16,12 +16,20 @@ PACKAGE_IDENTIFIER = "dcCarreto.CofreDeSenhas"
 PUBLISHER = "Denis Cristino Cantagallo Carreto"
 PACKAGE_NAME = "Cofre de Senhas"
 REPO_URL = "https://github.com/dcCarreto/CofreDeSenhas"
-MANIFEST_VERSION = "1.6.0"
+MANIFEST_VERSION = "1.28.0"
+# O winget-pkgs recusa manifests em versões de schema descontinuadas; ao subir esta versão,
+# confira os campos obrigatórios em github.com/microsoft/winget-cli/tree/master/schemas/JSON/manifests.
+SCHEMA_URL = "https://aka.ms/winget-manifest.{tipo}.{versao}.schema.json"
+CABECALHO = "# Criado automaticamente por gerar_manifesto_winget.py — não editar à mão.\n"
+
+
+def cabecalho(tipo: str) -> str:
+    schema = SCHEMA_URL.format(tipo=tipo, versao=MANIFEST_VERSION)
+    return f"{CABECALHO}# yaml-language-server: $schema={schema}\n"
 
 
 def manifest_versao(versao: str) -> str:
-    return f"""# Criado automaticamente por gerar_manifesto_winget.py — não editar à mão.
-PackageIdentifier: {PACKAGE_IDENTIFIER}
+    return cabecalho("version") + f"""PackageIdentifier: {PACKAGE_IDENTIFIER}
 PackageVersion: {versao}
 DefaultLocale: pt-BR
 ManifestType: version
@@ -32,8 +40,7 @@ ManifestVersion: {MANIFEST_VERSION}
 def manifest_instalador(versao: str, sha256: str) -> str:
     nome_exe = f"CofreDeSenhas-Setup-{versao}.exe"
     url = f"{REPO_URL}/releases/download/v{versao}/{nome_exe}"
-    return f"""# Criado automaticamente por gerar_manifesto_winget.py — não editar à mão.
-PackageIdentifier: {PACKAGE_IDENTIFIER}
+    return cabecalho("installer") + f"""PackageIdentifier: {PACKAGE_IDENTIFIER}
 PackageVersion: {versao}
 InstallerLocale: pt-BR
 InstallerType: inno
@@ -53,13 +60,13 @@ ManifestVersion: {MANIFEST_VERSION}
 
 
 def manifest_locale(versao: str) -> str:
-    return f"""# Criado automaticamente por gerar_manifesto_winget.py — não editar à mão.
-PackageIdentifier: {PACKAGE_IDENTIFIER}
+    return cabecalho("defaultLocale") + f"""PackageIdentifier: {PACKAGE_IDENTIFIER}
 PackageVersion: {versao}
 PackageLocale: pt-BR
 Publisher: {PUBLISHER}
 PublisherUrl: {REPO_URL}
 PublisherSupportUrl: {REPO_URL}/issues
+PrivacyUrl: {REPO_URL}/blob/prod/PRIVACY.md
 PackageName: {PACKAGE_NAME}
 PackageUrl: {REPO_URL}
 License: MIT

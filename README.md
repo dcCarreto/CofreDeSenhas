@@ -40,6 +40,8 @@ dos arquivos em [docs/INSTALACAO.md](docs/INSTALACAO.md).
 - [Modelo de ameaça](THREAT_MODEL.md) — o que é protegido, contra que tipo de
   atacante, e o que fica deliberadamente fora de escopo.
 - [Política de segurança](SECURITY.md) — como reportar uma vulnerabilidade.
+- [Política de privacidade](PRIVACY.md) — que dados o aplicativo guarda, o que
+  vai para a rede (e quando) e como apagar tudo.
 - [Download e instalação](docs/INSTALACAO.md) — Windows, Linux, CLI e
   verificação de integridade.
 - [Arquitetura e tecnologias](docs/ARQUITETURA.md) — estrutura do projeto,
