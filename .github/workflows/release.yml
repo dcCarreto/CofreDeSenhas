@@ -83,7 +83,10 @@ jobs:
       - name: Executar testes
         # IntegracaoBanco fica de fora do gate de release: precisa dos containers de
         # Postgres/MySQL/SQL Server que só existem no job testar-bancos do ci.yml.
-        run: dotnet test CofreDeSenhas.sln -c Release --no-build --verbosity normal --filter "Category!=IntegracaoBanco" --framework net10.0
+        # --blame-hang-timeout e timeout-minutes: um testhost travado cancelou a release
+        # de 2026-11-10 depois de 6h esperando; agora falha em minutos dizendo o teste.
+        timeout-minutes: 20
+        run: dotnet test CofreDeSenhas.sln -c Release --no-build --verbosity normal --filter "Category!=IntegracaoBanco" --blame-hang-timeout 10m --framework net10.0
 
   build-windows:
     name: Gerar artefatos do Windows

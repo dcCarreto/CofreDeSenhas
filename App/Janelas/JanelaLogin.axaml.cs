@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using Avalonia;
 using Avalonia.Automation;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
@@ -104,13 +105,16 @@ namespace CofreDeSenhas.Janelas
             BeginMoveDrag(e);
         }
 
+        // Só a barra de rolagem fica de fora, não o ScrollViewer inteiro: as duas
+        // colunas da tela (gerador e formulário) moram dentro de ScrollViewers, e
+        // excluí-los deixava a janela praticamente impossível de arrastar.
         private static bool OrigemInterativa(Visual origem) =>
             origem.FindAncestorOfType<Button>(true) != null ||
             origem.FindAncestorOfType<TextBox>(true) != null ||
             origem.FindAncestorOfType<ComboBox>(true) != null ||
             origem.FindAncestorOfType<CustomSlider>(true) != null ||
             origem.FindAncestorOfType<CustomToggle>(true) != null ||
-            origem.FindAncestorOfType<ScrollViewer>(true) != null;
+            origem.FindAncestorOfType<ScrollBar>(true) != null;
 
         private void Fechar_Click(object? sender, RoutedEventArgs e) => Close();
 

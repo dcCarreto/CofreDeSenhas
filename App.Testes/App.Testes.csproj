@@ -6,6 +6,11 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
+    <!-- TestAppBuilder vincula um FontManager novo por teste via AvaloniaLocator,
+         que o Avalonia marca como [PrivateApi]. Só aqui, nos testes, e com a versão
+         do Avalonia fixa: ao atualizá-lo, conferir se a API continua igual. -->
+    <AvaloniaAccessUnstablePrivateApis>true</AvaloniaAccessUnstablePrivateApis>
+    <MSBuildWarningsAsMessages>$(MSBuildWarningsAsMessages);AVA3001</MSBuildWarningsAsMessages>
   </PropertyGroup>
 
   <!-- Espelha o gate de App.csproj: só assim o teste consegue exercitar o ramo #if WINDOWS -->
