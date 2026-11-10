@@ -15,6 +15,10 @@ Lista completa de funcionalidades do Cofre de Senhas, por área.
 - Área de senha gerada flexível: senhas longas e múltiplas senhas expandem o
   campo verticalmente e empurram os demais controles para baixo, com rolagem no
   painel esquerdo quando necessário.
+- Sugestão de senha forte direto no campo: na tela de nova senha, clicar no
+  campo de senha vazio oferece uma senha de 20 caracteres pronta para usar (com
+  o mouse ou Enter) e um botão para sugerir outra. Não aparece nos tipos cartão
+  e chave de licença.
 - Geração baseada em um gerador de números aleatórios criptográfico
   (`RandomNumberGenerator`), e não em um gerador pseudoaleatório comum.
 - Disponível também na tela de senha mestra, antes do desbloqueio: dá para gerar
