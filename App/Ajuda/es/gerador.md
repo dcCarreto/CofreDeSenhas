@@ -16,6 +16,10 @@ llave en la barra lateral, o directamente en el formulario de una entrada.
 
 - En la pantalla de **Nueva contraseña** o **Editar**, el generador
   rellena el campo de contraseña directamente.
+- En la pantalla de **Nueva contraseña**, al hacer clic en el campo de
+  contraseña vacío aparece una **contraseña segura sugerida**: haz clic en
+  ella (o pulsa Intro) para usarla, o en el botón de al lado para sugerir
+  otra. Esc cierra la sugerencia.
 - En otros sitios, el generador tiene un botón de copiar. El portapapeles
   se borra solo tras unos segundos.
 

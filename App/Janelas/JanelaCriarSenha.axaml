@@ -56,7 +56,7 @@
         </StackPanel>
       </Border>
 
-      <ScrollViewer>
+      <ScrollViewer Name="ScrollFormulario">
       <StackPanel Margin="24,18,24,16" Spacing="4">
         <TextBlock Text="{DynamicResource Entry.ServiceName}" Classes="legenda" />
         <TextBox Name="TxtNomeServico" Classes="campo" Margin="0,0,0,14"
@@ -73,10 +73,59 @@
                  AutomationProperties.IsRequiredForForm="True" />
 
         <TextBlock Name="LblSenha" Text="{DynamicResource Entry.Password}" Classes="legenda" />
-        <TextBox Name="TxtSenha" Classes="campo" PasswordChar="●" Margin="0,0,0,14"
-                 AutomationProperties.Name="{DynamicResource Entry.Password}"
-                 AutomationProperties.HelpText="{DynamicResource A11y.PasswordFieldHelp}"
-                 AutomationProperties.IsRequiredForForm="True" />
+        <Panel>
+          <TextBox Name="TxtSenha" Classes="campo" PasswordChar="●" Margin="0,0,0,14"
+                   AutomationProperties.Name="{DynamicResource Entry.Password}"
+                   AutomationProperties.HelpText="{DynamicResource A11y.PasswordFieldHelp}"
+                   AutomationProperties.IsRequiredForForm="True" />
+
+          <!-- Sugestão de senha forte ao clicar no campo. Os botões não recebem foco
+               de propósito: assim o clique não tira o foco do TxtSenha (o que fecharia
+               o popup antes do Click chegar). Teclado: Enter usa, Esc fecha. -->
+          <Popup Name="PopupSugestaoSenha"
+                 Placement="BottomEdgeAlignedLeft"
+                 VerticalOffset="4"
+                 IsLightDismissEnabled="False">
+            <Border Name="BordaSugestaoSenha"
+                    Background="{DynamicResource CardBackground}"
+                    BorderBrush="{DynamicResource CardBorder}"
+                    BorderThickness="1"
+                    CornerRadius="12"
+                    Padding="6"
+                    BoxShadow="0 8 24 0 #40000000">
+              <Grid ColumnDefinitions="*,Auto">
+                <Button Name="BtnUsarSugestaoSenha" Classes="cartao" Focusable="False"
+                        BorderThickness="0" Padding="10,8"
+                        HorizontalAlignment="Stretch"
+                        AutomationProperties.Name="{DynamicResource Entry.SuggestPassword}"
+                        Click="UsarSugestaoSenha_Click">
+                  <Grid ColumnDefinitions="Auto,*">
+                    <c:Icone Width="{StaticResource TamIconeCampo}" Height="{StaticResource TamIconeCampo}"
+                             Chave="IconeChaveGerador" Stroke="{DynamicResource AccentText}"
+                             VerticalAlignment="Center" />
+                    <StackPanel Grid.Column="1" Margin="10,0,0,0" Spacing="2">
+                      <TextBlock Text="{DynamicResource Entry.SuggestPassword}"
+                                 FontWeight="SemiBold" FontSize="13"
+                                 Foreground="{DynamicResource TextPrimary}" />
+                      <TextBlock Name="LblSugestaoSenha"
+                                 FontFamily="{DynamicResource FonteMono}" FontSize="12"
+                                 Foreground="{DynamicResource TextSecondary}"
+                                 TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                  </Grid>
+                </Button>
+                <Button Grid.Column="1" Classes="icone-linha" Focusable="False"
+                        Width="32" Height="32" Margin="4,0,2,0" VerticalAlignment="Center"
+                        AutomationProperties.Name="{DynamicResource Entry.SuggestPasswordAnother}"
+                        ToolTip.Tip="{DynamicResource Entry.SuggestPasswordAnother}"
+                        Click="NovaSugestaoSenha_Click">
+                  <c:Icone Width="{StaticResource TamIconeCampo}" Height="{StaticResource TamIconeCampo}"
+                           Chave="IconeGerar" />
+                </Button>
+              </Grid>
+            </Border>
+          </Popup>
+        </Panel>
 
         <StackPanel Name="PainelCamposExtras" Spacing="4" />
 
