@@ -52,7 +52,11 @@ jobs:
         # IntegracaoBanco fica de fora aqui (roda só no job testar-bancos, contra os
         # containers de Postgres/MySQL/SQL Server) — sem eles, essa categoria falharia
         # por não achar nenhum motor real escutando em localhost.
-        run: dotnet test CofreDeSenhas.sln -c Release --no-build --verbosity normal --filter "Category!=IntegracaoBanco" ${{ matrix.framework_arg }}
+        # --blame-hang-timeout derruba um testhost travado e diz qual teste estava rodando;
+        # timeout-minutes é a rede de segurança do passo. Sem os dois, um travamento
+        # segurava o job até o limite de 6h do GitHub (2026-11-10). A suíte leva ~4 min.
+        timeout-minutes: 20
+        run: dotnet test CofreDeSenhas.sln -c Release --no-build --verbosity normal --filter "Category!=IntegracaoBanco" --blame-hang-timeout 10m ${{ matrix.framework_arg }}
 
   verificar-vulnerabilidades:
     name: Verificar pacotes NuGet vulneráveis
