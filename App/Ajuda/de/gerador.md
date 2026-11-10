@@ -18,6 +18,11 @@ Eintrags.
 
 - Im Bildschirm **Neues Passwort** oder **Bearbeiten** füllt der Generator
   das Passwortfeld direkt aus.
+- Im Bildschirm **Neues Passwort** erscheint beim Klick in das leere
+  Passwortfeld ein **vorgeschlagenes starkes Passwort**: Klicken Sie darauf
+  (oder drücken Sie die Eingabetaste), um es zu verwenden, oder auf die
+  Schaltfläche daneben für einen anderen Vorschlag. Esc schließt den
+  Vorschlag.
 - Anderswo hat der Generator eine Kopieren-Schaltfläche. Die Zwischenablage
   wird nach ein paar Sekunden von selbst geleert.
 

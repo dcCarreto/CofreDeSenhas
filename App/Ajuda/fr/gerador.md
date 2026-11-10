@@ -17,6 +17,10 @@ formulaire d'une entrée.
 
 - Sur l'écran **Nouveau mot de passe** ou **Modifier**, le générateur
   remplit directement le champ du mot de passe.
+- Sur l'écran **Nouveau mot de passe**, un clic dans le champ du mot de
+  passe vide affiche un **mot de passe fort suggéré** : cliquez dessus (ou
+  appuyez sur Entrée) pour l'utiliser, ou sur le bouton à côté pour en
+  suggérer un autre. Échap ferme la suggestion.
 - Ailleurs, le générateur a un bouton de copie. Le presse-papiers est
   effacé tout seul après quelques secondes.
 

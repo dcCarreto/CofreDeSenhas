@@ -24,6 +24,12 @@ namespace CofreDeSenhas.Janelas
         // ficavam disponíveis pra repovoar o painel.
         private readonly Dictionary<string, string> _camposExtrasAcumulados = new();
 
+        private readonly ServicoGeracaoSenha _geracaoSenha = new();
+        private const int TamanhoSenhaSugerida = 20;
+        private string? _senhaSugerida;
+        private string? _senhaSugeridaAplicada;
+        private bool _suprimirSugestao;
+
         public Senha? SenhaCriada { get; private set; }
 
         public JanelaCriarSenha(IServicoSenha servicoSenha, string? senhaGerada = null)
@@ -46,10 +52,13 @@ namespace CofreDeSenhas.Janelas
             if (!string.IsNullOrEmpty(senhaGerada))
                 TxtSenha.Text = senhaGerada;
 
+            ConfigurarSugestaoSenha();
+
             TxtTotp.TextChanged += (s, e) => AtualizarPreviewTotp();
             Idioma.Alterado += Idioma_Alterado;
             Closed += (s, e) =>
             {
+                PopupSugestaoSenha.IsOpen = false;
                 _timerTotp.Parar();
                 Idioma.Alterado -= Idioma_Alterado;
             };
@@ -57,7 +66,119 @@ namespace CofreDeSenhas.Janelas
             Opened += (s, e) => TxtNomeServico.Focus();
         }
 
-        private void Arrastar(object? sender, PointerPressedEventArgs e) => this.HabilitarArraste(e);
+        private void Arrastar(object? sender, PointerPressedEventArgs e)
+        {
+            // O popup é uma janela à parte e não acompanha o arraste da janela dona.
+            FecharSugestaoSenha();
+            this.HabilitarArraste(e);
+        }
+
+        private void ConfigurarSugestaoSenha()
+        {
+            PopupSugestaoSenha.PlacementTarget = TxtSenha;
+
+            TxtSenha.GotFocus += (s, e) => MostrarSugestaoSenha();
+            // Tunnel + handledEventsToo: o TextBox marca o PointerPressed como tratado,
+            // e clicar num campo que já tem foco não dispara GotFocus de novo.
+            TxtSenha.AddHandler(PointerPressedEvent, (s, e) => MostrarSugestaoSenha(),
+                RoutingStrategies.Tunnel, handledEventsToo: true);
+            TxtSenha.AddHandler(KeyDownEvent, SenhaKeyDown, RoutingStrategies.Tunnel);
+            TxtSenha.LostFocus += (s, e) =>
+                // Adiado: deixa o foco assentar antes de decidir. Se o ponteiro está
+                // sobre o popup, o Click do botão ainda vai chegar e ele mesmo fecha.
+                Dispatcher.UIThread.Post(() =>
+                {
+                    if (!TxtSenha.IsFocused && !BordaSugestaoSenha.IsPointerOver)
+                        FecharSugestaoSenha();
+                });
+            TxtSenha.TextChanged += (s, e) =>
+            {
+                // Digitar por conta própria descarta a sugestão, como no navegador.
+                if (PopupSugestaoSenha.IsOpen && !PodeSugerirSenha())
+                    FecharSugestaoSenha();
+            };
+
+            ScrollFormulario.ScrollChanged += (s, e) => FecharSugestaoSenha();
+            Deactivated += (s, e) => FecharSugestaoSenha();
+            PositionChanged += (s, e) => FecharSugestaoSenha();
+        }
+
+        // Só faz sentido sugerir senha aleatória onde o campo é de fato uma senha —
+        // número de cartão e chave de licença vêm de fora, não se inventam.
+        private bool TipoAceitaSenhaSugerida() =>
+            TemplatesCredencial.ObterTipo(CmbTipo.SelectedIndex)
+                is not (TipoCredencial.Cartao or TipoCredencial.ChaveLicenca);
+
+        // Campo vazio, ou ainda com a última sugestão aplicada (para poder trocar por outra).
+        private bool PodeSugerirSenha() =>
+            TipoAceitaSenhaSugerida() &&
+            (string.IsNullOrEmpty(TxtSenha.Text) || TxtSenha.Text == _senhaSugeridaAplicada);
+
+        private void MostrarSugestaoSenha()
+        {
+            if (_suprimirSugestao || PopupSugestaoSenha.IsOpen || !PodeSugerirSenha())
+                return;
+
+            if (_senhaSugerida == null || _senhaSugerida == _senhaSugeridaAplicada)
+                GerarSugestaoSenha();
+
+            BordaSugestaoSenha.Width = TxtSenha.Bounds.Width;
+            PopupSugestaoSenha.IsOpen = true;
+            Acessibilidade.Anunciar(this, Idioma.Texto("Entry.SuggestPasswordHint"));
+        }
+
+        private void FecharSugestaoSenha() => PopupSugestaoSenha.IsOpen = false;
+
+        private void GerarSugestaoSenha()
+        {
+            _senhaSugerida = _geracaoSenha.GerarSenha(TamanhoSenhaSugerida,
+                incluirMaiusculas: true, incluirMinusculas: true,
+                incluirNumeros: true, incluirEspeciais: true);
+            LblSugestaoSenha.Text = _senhaSugerida;
+        }
+
+        private void AplicarSugestaoSenha()
+        {
+            if (_senhaSugerida == null)
+                return;
+
+            _senhaSugeridaAplicada = _senhaSugerida;
+            TxtSenha.Text = _senhaSugerida;
+            TxtSenha.CaretIndex = _senhaSugerida.Length;
+            FecharSugestaoSenha();
+            // Sem a supressão, devolver o foco dispararia GotFocus e reabriria o popup
+            // (o campo ainda contém a sugestão aplicada, então PodeSugerirSenha é true).
+            _suprimirSugestao = true;
+            try { TxtSenha.Focus(); }
+            finally { _suprimirSugestao = false; }
+            Acessibilidade.Anunciar(this, Idioma.Texto("Entry.SuggestPasswordApplied"));
+        }
+
+        private void SenhaKeyDown(object? sender, KeyEventArgs e)
+        {
+            if (!PopupSugestaoSenha.IsOpen)
+                return;
+
+            if (e.Key == Key.Enter)
+            {
+                AplicarSugestaoSenha();
+                e.Handled = true;
+            }
+            else if (e.Key == Key.Escape)
+            {
+                FecharSugestaoSenha();
+                e.Handled = true;
+            }
+        }
+
+        private void UsarSugestaoSenha_Click(object? sender, RoutedEventArgs e) => AplicarSugestaoSenha();
+
+        private void NovaSugestaoSenha_Click(object? sender, RoutedEventArgs e)
+        {
+            GerarSugestaoSenha();
+            if (!TxtSenha.IsFocused)
+                TxtSenha.Focus();
+        }
 
         private void Cancelar_Click(object? sender, RoutedEventArgs e) => Close(false);
 
@@ -82,6 +203,8 @@ namespace CofreDeSenhas.Janelas
         private void AtualizarCamposPorTipo()
         {
             var tipo = TemplatesCredencial.ObterTipo(CmbTipo.SelectedIndex);
+            if (!TipoAceitaSenhaSugerida())
+                FecharSugestaoSenha();
             LblUsuario.Text = TemplatesCredencial.RotuloUsuario(tipo);
             AutomationProperties.SetName(TxtUsuario, TemplatesCredencial.RotuloUsuario(tipo));
             LblSenha.Text = TemplatesCredencial.RotuloSenha(tipo);

@@ -15,6 +15,9 @@ in the sidebar, or directly on an entry's form.
 
 - On the **New password** or **Edit** screen, the generator fills the
   password field directly.
+- On the **New password** screen, clicking the empty password field shows a
+  **suggested strong password**: click it (or press Enter) to use it, or the
+  button next to it to suggest another. Esc dismisses the suggestion.
 - Elsewhere, the generator has a copy button. The clipboard is cleared
   automatically after a few seconds.
 

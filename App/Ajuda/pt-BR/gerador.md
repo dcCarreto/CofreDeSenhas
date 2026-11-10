@@ -15,6 +15,9 @@ barra lateral ou direto na tela de cadastro de uma senha.
 
 - Na tela de **Nova senha** ou **Editar**, o gerador preenche o campo de
   senha diretamente.
+- Na tela de **Nova senha**, ao clicar no campo de senha vazio aparece uma
+  **senha forte sugerida**: clique nela (ou pressione Enter) para usá-la, ou
+  no botão ao lado para sugerir outra. Esc fecha a sugestão.
 - Fora dela, o gerador tem um botão para copiar. A área de transferência
   é limpa sozinha depois de alguns segundos.
 
