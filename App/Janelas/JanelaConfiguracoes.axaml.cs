@@ -57,6 +57,7 @@ namespace CofreDeSenhas.Janelas
         {
             _acoes = acoes;
             InitializeComponent();
+            Material.Aplicar(this);
             Icon = Recursos.IconeApp();
             Acessibilidade.Vincular(this);
             this.FecharComEsc();
@@ -117,6 +118,7 @@ namespace CofreDeSenhas.Janelas
             };
             Grid.SetColumn(titulo, 1);
             grade.Children.Add(titulo);
+            grade.Children.Add(new Border { Classes = { "indicador" } });
 
             var botao = new Button
             {
@@ -168,7 +170,7 @@ namespace CofreDeSenhas.Janelas
                 Text = Idioma.Texto(chave).ToUpperInvariant(),
                 Foreground = Tema.Pincel(Tema.TextTertiary),
                 FontSize = 11,
-                FontWeight = FontWeight.Bold,
+                FontWeight = FontWeight.SemiBold,
                 Margin = new Thickness(2, painel.Children.Count > 1 ? 14 : 0, 2, 2)
             });
         }
@@ -190,25 +192,6 @@ namespace CofreDeSenhas.Janelas
                 Idioma.Texto("Config.Theme"), null, rotulosModo,
                 Math.Max(0, Array.IndexOf(modos, Acessibilidade.Modo.ToString())),
                 indice => Acessibilidade.SelecionarModoTema(modos[indice])));
-
-            string[] destaques = { "Ambar", "Azul", "Verde", "Ameixa", "Terracota", "Grafite" };
-            string[] rotulosDestaque =
-            {
-                Idioma.Texto("Config.Accent.Ambar"),
-                Idioma.Texto("Config.Accent.Azul"),
-                Idioma.Texto("Config.Accent.Verde"),
-                Idioma.Texto("Config.Accent.Ameixa"),
-                Idioma.Texto("Config.Accent.Terracota"),
-                Idioma.Texto("Config.Accent.Grafite")
-            };
-            var linhaDestaque = LinhaCombo(
-                Idioma.Texto("Config.Accent"),
-                Acessibilidade.DestaqueDisponivel ? null : Idioma.Texto("Config.Accent.LockedByColorblind"),
-                rotulosDestaque,
-                Math.Max(0, Array.IndexOf(destaques, Acessibilidade.Destaque.ToString())),
-                indice => Acessibilidade.SelecionarCorDestaque(destaques[indice]));
-            linhaDestaque.IsEnabled = Acessibilidade.DestaqueDisponivel;
-            painel.Children.Add(linhaDestaque);
 
             string[] densidades = { "Confortavel", "Compacto" };
             string[] rotulosDensidade = { Idioma.Texto("Config.Density.Comfortable"), Idioma.Texto("Config.Density.Compact") };
@@ -622,8 +605,8 @@ namespace CofreDeSenhas.Janelas
         private Border Envelope(Control conteudo, Color cor) => new()
         {
             Padding = new Thickness(16, 14),
-            CornerRadius = new CornerRadius(12),
-            Background = Tema.Pincel(Tema.CardBackground),
+            CornerRadius = new CornerRadius(8),
+            Background = Tema.Pincel(Tema.MaterialCard),
             BorderBrush = Tema.Pincel(cor),
             BorderThickness = new Thickness(1),
             Child = conteudo
@@ -781,8 +764,8 @@ namespace CofreDeSenhas.Janelas
             return new Border
             {
                 Padding = new Thickness(16, 14),
-                CornerRadius = new CornerRadius(12),
-                Background = Tema.Pincel(Tema.CardBackground),
+                CornerRadius = new CornerRadius(8),
+                Background = Tema.Pincel(Tema.MaterialCard),
                 BorderBrush = Tema.Pincel(Tema.InputBorder),
                 BorderThickness = new Thickness(1),
                 Child = grade

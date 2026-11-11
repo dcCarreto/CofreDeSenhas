@@ -16,7 +16,7 @@
             Margin="18"
             CornerRadius="20"
             ClipToBounds="True"
-            Background="{DynamicResource CardBackground}"
+            Background="{DynamicResource MaterialWorkspace}"
             BorderBrush="{DynamicResource CardBorder}"
             BorderThickness="1"
             BoxShadow="{StaticResource DialogShadow}"
@@ -37,7 +37,7 @@
                     HorizontalAlignment="Center">
               <c:Icone Width="{StaticResource TamIconeHero}" Height="{StaticResource TamIconeHero}"
                      HorizontalAlignment="Center" VerticalAlignment="Center"
-                     Stroke="White"
+                     Stroke="{DynamicResource TextOnAccent}"
                      Chave="IconeCadeado" />
             </Border>
 

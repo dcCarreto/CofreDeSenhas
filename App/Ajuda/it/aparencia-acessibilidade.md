@@ -8,12 +8,13 @@ schede.
 - **Lingua**: portoghese, inglese, spagnolo, francese, tedesco e italiano.
   Il cambio è immediato.
 - **Tema**: chiaro, scuro o segui il sistema.
-- **Colore d'accento**: un insieme curato di sei accenti.
+- **Colore d'accento**: segue il colore d'accento di Windows
+  (Personalizzazione > Colori). Fuori da Windows, blu.
 - **Densità**: righe e campi comodi o compatti.
 - **Pannello dei dettagli**: accanto all'elenco o sotto di esso.
 - **Colonne dell'elenco**: mostra o nascondi le colonne Utente, Categoria
   e Forza.
-- **Profilo**: preimpostazioni ("Classico scuro", "Chiaro compatto", "Alto
+- **Profilo**: preimpostazioni ("Scuro predefinito", "Chiaro compatto", "Alto
   contrasto") e profili che salvi tu, che applicano l'intero aspetto con
   un clic.
 

@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
+using Avalonia.Media;
 
 namespace CofreDeSenhas.Janelas
 {
@@ -19,6 +20,7 @@ namespace CofreDeSenhas.Janelas
         public JanelaAjuda()
         {
             InitializeComponent();
+            Material.Aplicar(this);
             Icon = Recursos.IconeApp();
             Acessibilidade.Vincular(this);
             this.FecharComEsc();
@@ -79,11 +81,15 @@ namespace CofreDeSenhas.Janelas
 
             foreach (var (id, chave) in ManualAjuda.Topicos)
             {
+                var conteudo = new Panel();
+                conteudo.Children.Add(new TextBlock { Text = Idioma.Texto(chave), TextTrimming = TextTrimming.CharacterEllipsis });
+                conteudo.Children.Add(new Border { Classes = { "indicador" } });
+
                 var botao = new Button
                 {
-                    Content = Idioma.Texto(chave),
+                    Content = conteudo,
                     HorizontalAlignment = HorizontalAlignment.Stretch,
-                    HorizontalContentAlignment = HorizontalAlignment.Left
+                    HorizontalContentAlignment = HorizontalAlignment.Stretch
                 };
                 botao.Classes.Add("nav-item");
                 AutomationProperties.SetName(botao, Idioma.Texto(chave));

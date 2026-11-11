@@ -50,7 +50,6 @@ namespace CofreDeSenhas
             public int MinutosBloqueio { get; set; } = MinutosBloqueioPadrao;
             public string? Idioma { get; set; }
             public string? ModoTema { get; set; }
-            public string? CorDestaque { get; set; }
             public string? Densidade { get; set; }
             public string? LayoutDetalhe { get; set; }
             public string? OrdenacaoColuna { get; set; }
@@ -88,7 +87,6 @@ namespace CofreDeSenhas
         public static int MinutosBloqueio { get; set; } = MinutosBloqueioPadrao;
         public static string? Idioma { get; set; }
         public static string? ModoTema { get; set; }
-        public static string? CorDestaque { get; set; }
         public static string? Densidade { get; set; }
         public static string? LayoutDetalhe { get; set; }
         public static string? OrdenacaoColuna { get; set; }
@@ -137,7 +135,6 @@ namespace CofreDeSenhas
                         MinutosBloqueio = d.MinutosBloqueio;
                         Idioma = d.Idioma;
                         ModoTema = d.ModoTema;
-                        CorDestaque = d.CorDestaque;
                         Densidade = d.Densidade;
                         LayoutDetalhe = d.LayoutDetalhe;
                         OrdenacaoColuna = d.OrdenacaoColuna;
@@ -182,7 +179,7 @@ namespace CofreDeSenhas
             {
                 var dir = Path.GetDirectoryName(_caminho)!;
                 if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
-                File.WriteAllText(_caminho, JsonSerializer.Serialize(new Dados { UltimoBanco = UltimoBanco, MinutosBloqueio = MinutosBloqueio, Idioma = Idioma, ModoTema = ModoTema, CorDestaque = CorDestaque, Densidade = Densidade, LayoutDetalhe = LayoutDetalhe, OrdenacaoColuna = OrdenacaoColuna, OrdenacaoDescendente = OrdenacaoDescendente, ColunasLista = ColunasLista, PerfisAparencia = PerfisAparencia, Daltonismo = Daltonismo, AltoContraste = AltoContraste, NivelContraste = NivelContraste, EscalaInterface = EscalaInterface, EscalaAutomatica = EscalaAutomatica, ReduzirAnimacoes = ReduzirAnimacoes, NivelMovimento = NivelMovimento, FonteLeitura = FonteLeitura, EspacamentoTexto = EspacamentoTexto, VerbosidadeLeitor = VerbosidadeLeitor, SublinharLinks = SublinharLinks, FocoReforcado = FocoReforcado, AnunciarAcoes = AnunciarAcoes, AvisarAntesBloqueio = AvisarAntesBloqueio, LeitorTela = LeitorTela, IconesOnline = IconesOnline, SegundosLimpezaClipboard = SegundosLimpezaClipboard, FrequenciaBackup = FrequenciaBackup, MaximoBackups = MaximoBackups, RegistrarHistoricoUso = RegistrarHistoricoUso, VerificarAtualizacoes = VerificarAtualizacoes, VersaoDispensada = VersaoDispensada, Sincronizacao = Sincronizacao }));
+                File.WriteAllText(_caminho, JsonSerializer.Serialize(new Dados { UltimoBanco = UltimoBanco, MinutosBloqueio = MinutosBloqueio, Idioma = Idioma, ModoTema = ModoTema, Densidade = Densidade, LayoutDetalhe = LayoutDetalhe, OrdenacaoColuna = OrdenacaoColuna, OrdenacaoDescendente = OrdenacaoDescendente, ColunasLista = ColunasLista, PerfisAparencia = PerfisAparencia, Daltonismo = Daltonismo, AltoContraste = AltoContraste, NivelContraste = NivelContraste, EscalaInterface = EscalaInterface, EscalaAutomatica = EscalaAutomatica, ReduzirAnimacoes = ReduzirAnimacoes, NivelMovimento = NivelMovimento, FonteLeitura = FonteLeitura, EspacamentoTexto = EspacamentoTexto, VerbosidadeLeitor = VerbosidadeLeitor, SublinharLinks = SublinharLinks, FocoReforcado = FocoReforcado, AnunciarAcoes = AnunciarAcoes, AvisarAntesBloqueio = AvisarAntesBloqueio, LeitorTela = LeitorTela, IconesOnline = IconesOnline, SegundosLimpezaClipboard = SegundosLimpezaClipboard, FrequenciaBackup = FrequenciaBackup, MaximoBackups = MaximoBackups, RegistrarHistoricoUso = RegistrarHistoricoUso, VerificarAtualizacoes = VerificarAtualizacoes, VersaoDispensada = VersaoDispensada, Sincronizacao = Sincronizacao }));
             }
             catch (Exception ex)
             {

@@ -155,6 +155,7 @@ namespace CofreDeSenhas.Janelas
             _aoBloquear = aoBloquear;
 
             InitializeComponent();
+            Material.Aplicar(this);
             Icon = Recursos.IconeApp();
             Acessibilidade.Vincular(this);
             Acessibilidade.RegistrarAnunciador(this, LblAnuncioLeitorTela);
@@ -312,7 +313,7 @@ namespace CofreDeSenhas.Janelas
         }
 
         private static Icone IconeOlhoPrivacidade(bool ativo) =>
-            Recursos.ImagemIcone(ativo ? "IconeRevelar" : "IconeOcultar", 28);
+            Recursos.ImagemIcone(ativo ? "IconeRevelar" : "IconeOcultar", 16);
 
         private async Task CopiarUsuarioLinhaFocadaAsync()
         {
@@ -443,7 +444,7 @@ namespace CofreDeSenhas.Janelas
             if (e.Property == WindowStateProperty && Moldura != null)
             {
                 bool maximizada = WindowState == WindowState.Maximized;
-                Moldura.CornerRadius = new CornerRadius(maximizada ? 0 : 10);
+                Moldura.CornerRadius = new CornerRadius(maximizada ? 0 : Material.RaioCanto);
                 BtnMaximizar.Content = IconeJanela(maximizada ? "IconeRestaurar" : "IconeMaximizar");
                 AutomationProperties.SetName(BtnMaximizar, Idioma.Texto(maximizada ? "Access.Restore" : "Access.Maximize"));
             }
@@ -937,7 +938,7 @@ namespace CofreDeSenhas.Janelas
             AutomationProperties.SetName(LblContadorHeader, LblContadorHeader.Text ?? "");
         }
 
-        private static Icone IconeJanela(string chave) => Recursos.ImagemIcone(chave, 28);
+        private static Icone IconeJanela(string chave) => Recursos.ImagemIcone(chave, 10);
 
         private static string TextoBloqueioAutomatico()
         {

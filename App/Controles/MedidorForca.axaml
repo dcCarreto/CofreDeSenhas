@@ -8,7 +8,7 @@
                  Classes="legenda"
                  Foreground="{DynamicResource TextSecondary}" />
       <TextBlock Name="LblForca" Grid.Column="1" Text="—"
-                 Classes="legenda" FontWeight="Bold"
+                 Classes="legenda" FontWeight="SemiBold"
                  Foreground="{DynamicResource TextSecondary}"
                  AutomationProperties.LiveSetting="Polite" />
     </Grid>

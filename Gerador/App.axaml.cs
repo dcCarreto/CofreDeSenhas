@@ -16,7 +16,6 @@ namespace CofreDeSenhas.Gerador
             Acessibilidade.Hidratar(
                 ResolverDaltonismo(Preferencias.Daltonismo),
                 ResolverModoTema(Preferencias.ModoTema),
-                ResolverCorDestaque(Preferencias.CorDestaque),
                 ResolverDensidade(Preferencias.Densidade),
                 ResolverLayoutDetalhe(Preferencias.LayoutDetalhe),
                 Preferencias.AltoContraste,
@@ -56,9 +55,6 @@ namespace CofreDeSenhas.Gerador
 
         private static ModoTema ResolverModoTema(string? valor) =>
             Enum.TryParse<ModoTema>(valor, out var modo) ? modo : ModoTema.Escuro;
-
-        private static CorDestaque ResolverCorDestaque(string? valor) =>
-            Enum.TryParse<CorDestaque>(valor, out var cor) ? cor : CorDestaque.Ambar;
 
         private static Densidade ResolverDensidade(string? valor) =>
             Enum.TryParse<Densidade>(valor, out var d) ? d : Densidade.Confortavel;

@@ -32,7 +32,7 @@ namespace CofreDeSenhas.Janelas
             {
                 Text = titulo,
                 FontSize = 17,
-                FontWeight = FontWeight.Bold,
+                FontWeight = FontWeight.SemiBold,
                 VerticalAlignment = VerticalAlignment.Center,
                 Margin = new Thickness(24, 0, 60, 0),
                 TextTrimming = TextTrimming.CharacterEllipsis
@@ -173,7 +173,7 @@ namespace CofreDeSenhas.Janelas
 
             var moldura = new Border
             {
-                CornerRadius = new CornerRadius(20),
+                CornerRadius = new CornerRadius(8),
                 BorderThickness = new Thickness(1),
                 ClipToBounds = true,
                 Child = raiz

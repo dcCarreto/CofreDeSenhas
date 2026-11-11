@@ -7,12 +7,13 @@ Todo esto está en **Configuración**, dividido en pestañas.
 - **Idioma**: portugués, inglés, español, francés, alemán e italiano. El
   cambio es inmediato.
 - **Tema**: claro, oscuro o seguir el sistema.
-- **Color de acento**: un conjunto curado de seis colores.
+- **Color de acento**: sigue el color de acento de Windows
+  (Personalización > Colores). Fuera de Windows, azul.
 - **Densidad**: filas y campos cómodos o compactos.
 - **Panel de detalles**: al lado de la lista o debajo de ella.
 - **Columnas de la lista**: mostrar u ocultar las columnas Usuario,
   Categoría y Fuerza.
-- **Perfil**: preajustes ("Clásico oscuro", "Claro compacto", "Alto
+- **Perfil**: preajustes ("Oscuro predeterminado", "Claro compacto", "Alto
   contraste") y perfiles que tú guardas y que aplican toda la apariencia
   de un clic.
 

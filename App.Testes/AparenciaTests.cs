@@ -10,7 +10,7 @@ namespace App.Testes
 
         private static void Reset()
         {
-            Acessibilidade.Hidratar(TipoDaltonismo.Nenhum, ModoTema.Escuro, CorDestaque.Ambar, Densidade.Confortavel,
+            Acessibilidade.Hidratar(TipoDaltonismo.Nenhum, ModoTema.Escuro, Densidade.Confortavel,
                 LayoutDetalhe.Lateral, false, Acessibilidade.EscalaNormal, false, false);
             Acessibilidade.HidratarExpert(NivelContraste.Padrao, NivelMovimento.Completo, FonteLeitura.Padrao,
                 EspacamentoTexto.Normal, VerbosidadeLeitor.Normal, false, false, false, false, false);
@@ -55,22 +55,36 @@ namespace App.Testes
         {
             try
             {
-                Acessibilidade.DefinirCorDestaque(CorDestaque.Verde);
-                Aparencia.Salvar("meu verde");
+                Acessibilidade.DefinirLayoutDetalhe(LayoutDetalhe.Inferior);
+                Aparencia.Salvar("embaixo");
 
-                Assert.Contains(Aparencia.Salvos, p => p.Nome == "meu verde");
-                Assert.Equal("meu verde", Aparencia.IdentificacaoAtual());
+                Assert.Contains(Aparencia.Salvos, p => p.Nome == "embaixo");
+                Assert.Equal("embaixo", Aparencia.IdentificacaoAtual());
 
-                Acessibilidade.DefinirCorDestaque(CorDestaque.Terracota);
+                Acessibilidade.DefinirDensidade(Densidade.Compacto);
                 Assert.Null(Aparencia.IdentificacaoAtual());
 
-                Aparencia.Aplicar(Aparencia.Salvos.Single(p => p.Nome == "meu verde"));
-                Assert.Equal(CorDestaque.Verde, Acessibilidade.Destaque);
+                Aparencia.Aplicar(Aparencia.Salvos.Single(p => p.Nome == "embaixo"));
+                Assert.Equal(Densidade.Confortavel, Acessibilidade.Densidade);
+                Assert.Equal(LayoutDetalhe.Inferior, Acessibilidade.LayoutDetalhe);
 
-                Aparencia.Excluir("meu verde");
-                Assert.DoesNotContain(Aparencia.Salvos, p => p.Nome == "meu verde");
+                Aparencia.Excluir("embaixo");
+                Assert.DoesNotContain(Aparencia.Salvos, p => p.Nome == "embaixo");
             }
             finally { Reset(); }
+        }
+
+        [Fact]
+        public void PerfilSalvoAntigo_ComCorDeDestaque_AindaCarrega()
+        {
+            // Perfis salvos antes da remoção das cores de destaque têm o campo
+            // "CorDestaque"; ele deve ser ignorado, não quebrar a leitura.
+            var perfil = System.Text.Json.JsonSerializer.Deserialize<PerfilAparencia>(
+                "{\"Nome\":\"antigo\",\"CorDestaque\":\"Terracota\",\"Densidade\":\"Compacto\"}");
+
+            Assert.NotNull(perfil);
+            Assert.Equal("antigo", perfil!.Nome);
+            Assert.Equal("Compacto", perfil.Densidade);
         }
 
         [Fact]
@@ -81,7 +95,7 @@ namespace App.Testes
             {
                 Preferencias.PerfisAparencia = new List<PerfilAparencia>
                 {
-                    new() { Nome = "A", ModoTema = "Claro", CorDestaque = "Azul", Densidade = "Compacto" }
+                    new() { Nome = "A", ModoTema = "Claro", Densidade = "Compacto" }
                 };
                 Preferencias.Salvar();
                 Preferencias.PerfisAparencia = null;
@@ -89,7 +103,6 @@ namespace App.Testes
 
                 Assert.Single(Preferencias.PerfisAparencia!);
                 Assert.Equal("A", Preferencias.PerfisAparencia![0].Nome);
-                Assert.Equal("Azul", Preferencias.PerfisAparencia![0].CorDestaque);
                 Assert.Equal("Compacto", Preferencias.PerfisAparencia![0].Densidade);
             }
             finally
