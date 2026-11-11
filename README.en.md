@@ -20,7 +20,39 @@ are kept with the copies.
 > maintainer's native language. This README is translated and kept in sync
 > by hand; pages that are Portuguese-only are marked as such.
 
-![Cofre de Senhas: sidebar, credential list and footer](docs/captura-cofre.png)
+![Cofre de Senhas: credential list with service icons, sidebar and footer](docs/captura-cofre.png)
+
+## Interface
+
+The interface has been redesigned to feel lighter and more direct. Surfaces
+are translucent and let the desktop background show through slightly; neutral
+tones stay out of the way of what matters, your credentials. Typography is
+clean, icons use thin strokes, and corners and spacing follow the same rhythm
+on every screen.
+
+Context is easier to read at a glance: each credential can show its service's
+own icon (optional, downloaded only if you turn it on), password strength
+shows up as colored bars in the list, and the active navigation item is
+marked by a subtle bar in the accent color. Fields get an accent underline
+when focused, and secondary windows keep the same look as the main one.
+
+Light and dark themes, high contrast, color-blind palettes and text scaling
+are still available under **Settings > Appearance** and **Accessibility**.
+
+| | |
+|:---:|:---:|
+| ![Password generator open over the list, with the generated password and strength meter](docs/gerador.png) | ![Editing a credential with the password history expanded](docs/editar-credencial.png) |
+| Built-in password generator | Editing with password history |
+| ![Security report with the vault score and a count per issue](docs/relatorio-seguranca.png) | ![Settings on the Appearance tab](docs/configuracoes.png) |
+| Security report | Settings |
+
+<p align="center">
+  <img src="docs/tela-login.png" alt="Unlock screen with the generator alongside" width="560"><br>
+  <sub>Unlock screen, with the generator always at hand</sub>
+</p>
+
+> Screenshots show the app in Portuguese; English, Spanish, French, German and
+> Italian are available under Settings.
 
 ## Download and install
 
