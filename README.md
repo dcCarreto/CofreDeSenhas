@@ -16,7 +16,38 @@ Distribuído sob a licença [MIT](LICENSE) — uso, estudo, modificação e
 redistribuição livres para qualquer finalidade, desde que o aviso de copyright
 e a licença acompanhem as cópias.
 
-![Cofre de Senhas: barra lateral, lista de credenciais e rodapé](docs/captura-cofre.png)
+![Cofre de Senhas: lista de credenciais com os ícones dos serviços, barra lateral e rodapé](docs/captura-cofre.png)
+
+## Interface
+
+A interface foi redesenhada para ser mais leve e direta. As superfícies são
+translúcidas e deixam o fundo da área de trabalho aparecer de leve; os tons
+neutros não competem com o que importa, que são as suas credenciais. A
+tipografia é limpa, os ícones têm traço fino e os cantos e espaçamentos
+seguem um mesmo ritmo em todas as telas.
+
+O contexto ficou mais fácil de ler de relance: cada credencial pode mostrar o
+ícone do próprio serviço (opcional, baixado só se você ativar), a força da
+senha aparece em barras coloridas na lista, e o item ativo da navegação é
+marcado por uma barra discreta na cor de destaque. Os campos sublinham em
+destaque quando recebem o foco e as janelas secundárias mantêm o mesmo visual
+da principal.
+
+Tema claro e escuro, alto contraste, paletas para daltonismo e escala de
+texto continuam disponíveis em **Configurações > Aparência** e
+**Acessibilidade**.
+
+| | |
+|:---:|:---:|
+| ![Gerador de senha aberto sobre a lista, com a senha gerada e o indicador de força](docs/gerador.png) | ![Edição de credencial com o histórico de senhas aberto](docs/editar-credencial.png) |
+| Gerador de senhas integrado | Edição com histórico de senhas |
+| ![Relatório de segurança com pontuação do cofre e contagem por problema](docs/relatorio-seguranca.png) | ![Configurações na aba Aparência](docs/configuracoes.png) |
+| Relatório de segurança | Configurações |
+
+<p align="center">
+  <img src="docs/tela-login.png" alt="Tela de desbloqueio com o gerador ao lado" width="560"><br>
+  <sub>Tela de desbloqueio, com o gerador sempre à mão</sub>
+</p>
 
 ## Baixe e instale
 
