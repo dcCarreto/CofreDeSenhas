@@ -37,6 +37,7 @@ namespace CofreDeSenhas.Janelas
             _servicoSenha = servicoSenha ?? throw new ArgumentNullException(nameof(servicoSenha));
 
             InitializeComponent();
+            Material.Aplicar(this);
             Icon = Recursos.IconeApp();
             Acessibilidade.Vincular(this);
             this.AtalhoAjuda("gerador");

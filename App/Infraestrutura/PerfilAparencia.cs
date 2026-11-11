@@ -4,7 +4,6 @@ namespace CofreDeSenhas
     {
         public string Nome { get; set; } = "";
         public string ModoTema { get; set; } = "Escuro";
-        public string CorDestaque { get; set; } = "Ambar";
         public string Densidade { get; set; } = "Confortavel";
         public string LayoutDetalhe { get; set; } = "Lateral";
         public string Daltonismo { get; set; } = "Nenhum";
@@ -14,7 +13,6 @@ namespace CofreDeSenhas
 
         public bool MesmaAparencia(PerfilAparencia outro) =>
             string.Equals(ModoTema, outro.ModoTema, StringComparison.OrdinalIgnoreCase) &&
-            string.Equals(CorDestaque, outro.CorDestaque, StringComparison.OrdinalIgnoreCase) &&
             string.Equals(Densidade, outro.Densidade, StringComparison.OrdinalIgnoreCase) &&
             string.Equals(LayoutDetalhe, outro.LayoutDetalhe, StringComparison.OrdinalIgnoreCase) &&
             string.Equals(Daltonismo, outro.Daltonismo, StringComparison.OrdinalIgnoreCase) &&
@@ -38,7 +36,6 @@ namespace CofreDeSenhas
         public static PerfilAparencia Capturar() => new()
         {
             ModoTema = Acessibilidade.Modo.ToString(),
-            CorDestaque = Acessibilidade.Destaque.ToString(),
             Densidade = Acessibilidade.Densidade.ToString(),
             LayoutDetalhe = Acessibilidade.LayoutDetalhe.ToString(),
             Daltonismo = Acessibilidade.Daltonismo.ToString(),
@@ -67,7 +64,6 @@ namespace CofreDeSenhas
         {
             Acessibilidade.AplicarPerfil(
                 Enum.TryParse<ModoTema>(perfil.ModoTema, true, out var m) ? m : ModoTema.Escuro,
-                Enum.TryParse<CorDestaque>(perfil.CorDestaque, true, out var c) ? c : CorDestaque.Ambar,
                 Enum.TryParse<Densidade>(perfil.Densidade, true, out var d) ? d : Densidade.Confortavel,
                 Enum.TryParse<LayoutDetalhe>(perfil.LayoutDetalhe, true, out var l) ? l : LayoutDetalhe.Lateral,
                 Enum.TryParse<TipoDaltonismo>(perfil.Daltonismo, true, out var t) ? t : TipoDaltonismo.Nenhum,
@@ -76,7 +72,6 @@ namespace CofreDeSenhas
                 perfil.ReduzirAnimacoes);
 
             Preferencias.ModoTema = Acessibilidade.Modo.ToString();
-            Preferencias.CorDestaque = Acessibilidade.Destaque.ToString();
             Preferencias.Densidade = Acessibilidade.Densidade.ToString();
             Preferencias.LayoutDetalhe = Acessibilidade.LayoutDetalhe.ToString();
             Preferencias.Daltonismo = Acessibilidade.Daltonismo.ToString();

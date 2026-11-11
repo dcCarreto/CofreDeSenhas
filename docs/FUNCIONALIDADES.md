@@ -251,14 +251,14 @@ cofre, tudo calculado localmente e sem enviar nada para fora:
 ## Interface
 
 - Janela sem moldura, com cantos arredondados e redimensionamento livre.
-- Identidade visual própria "cofre, latão escovado": por padrão, tema escuro de
-  carvão quente com latão escovado como destaque, tipografia serifada nos
-  títulos (corpo do texto em Plus Jakarta Sans), cantos mais quadrados e um
-  pequeno rebite de latão decorativo no item de navegação ativo e no medidor de
-  força. A aba Aparência das Configurações oferece tema Claro, Escuro ou
-  Sistema, seis cores de destaque, densidade Confortável ou Compacta, posição
-  do painel de detalhes e perfis de aparência salvos. Catálogo de ícones de
-  traço único e consistente em toda a interface.
+- Visual alinhado ao Windows 11: tons neutros de cinza, material Mica nas
+  janelas principais (o papel de parede aparece levemente por trás), cantos
+  arredondados pelo próprio sistema e tipografia Segoe UI Variable (Inter fora
+  do Windows). A cor de destaque segue a escolhida no Windows; o item de
+  navegação ativo ganha a barrinha vertical nessa cor, como nas Configurações
+  do sistema. A aba Aparência oferece tema Claro, Escuro ou Sistema, densidade
+  Confortável ou Compacta, posição do painel de detalhes e perfis de aparência
+  salvos. Catálogo de ícones de traço fino e consistente em toda a interface.
 - Manual embutido nos seis idiomas da interface, com 15 tópicos do primeiro
   acesso ao FAQ, aberto pelo botão "?" na barra de título, pelo menu Ajuda ou
   pela tecla F1 — que abre no tópico da tela atual.

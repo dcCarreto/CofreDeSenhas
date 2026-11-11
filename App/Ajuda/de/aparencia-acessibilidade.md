@@ -8,12 +8,13 @@ Registerkarten.
 - **Sprache**: Portugiesisch, Englisch, Spanisch, Französisch, Deutsch und
   Italienisch. Die Umstellung wirkt sofort.
 - **Design**: hell, dunkel oder dem System folgen.
-- **Akzentfarbe**: ein kuratierter Satz von sechs Akzenten.
+- **Akzentfarbe**: folgt der Akzentfarbe von Windows
+  (Personalisierung > Farben). Außerhalb von Windows Blau.
 - **Dichte**: komfortable oder kompakte Zeilen und Felder.
 - **Detailbereich**: neben der Liste oder darunter.
 - **Listenspalten**: die Spalten Benutzer, Kategorie und Stärke ein- oder
   ausblenden.
-- **Profil**: Vorlagen („Klassisch dunkel", „Hell kompakt", „Hoher
+- **Profil**: Vorlagen („Standard dunkel", „Hell kompakt", „Hoher
   Kontrast") und Profile, die Sie selbst speichern und die das ganze
   Erscheinungsbild mit einem Klick anwenden.
 

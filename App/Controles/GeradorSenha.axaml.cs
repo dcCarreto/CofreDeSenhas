@@ -172,7 +172,7 @@ namespace CofreDeSenhas.Controles
             var texto = Idioma.Texto(fraseSenha
                 ? "Generator.GeneratePassphrase"
                 : "Generator.GeneratePassword");
-            BtnGerar.Content = CriarConteudoBotaoImagem("IconeGerar", texto, 18, Brushes.White);
+            BtnGerar.Content = CriarConteudoBotaoImagem("IconeGerar", texto, 18, Tema.Pincel(Tema.TextOnAccent));
             AutomationProperties.SetName(BtnGerar, texto);
         }
 
@@ -261,7 +261,7 @@ namespace CofreDeSenhas.Controles
                     ? "Generator.PassphrasesGenerated"
                     : "Generator.PasswordsGenerated", _senhasGeradas.Count),
                 FontSize = 13,
-                FontWeight = FontWeight.Bold,
+                FontWeight = FontWeight.SemiBold,
                 Foreground = Tema.Pincel(Tema.TextPrimary),
                 VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
             };

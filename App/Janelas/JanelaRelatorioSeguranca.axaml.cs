@@ -132,7 +132,7 @@ namespace CofreDeSenhas.Janelas
                 {
                     Text = contagem.ToString(),
                     FontSize = 12,
-                    FontWeight = FontWeight.Bold,
+                    FontWeight = FontWeight.SemiBold,
                     Foreground = Tema.Pincel(contagem > 0 ? Tema.AccentText : Tema.TextSecondary)
                 }
             };
@@ -145,7 +145,7 @@ namespace CofreDeSenhas.Janelas
             var borda = new Border
             {
                 Padding = new Thickness(14, 12),
-                CornerRadius = new CornerRadius(10),
+                CornerRadius = new CornerRadius(8),
                 Background = Tema.Pincel(Tema.CardBackground),
                 BorderBrush = Tema.Pincel(Tema.InputBorder),
                 BorderThickness = new Thickness(1),
@@ -201,7 +201,7 @@ namespace CofreDeSenhas.Janelas
             return new Border
             {
                 Padding = new Thickness(14, 12),
-                CornerRadius = new CornerRadius(10),
+                CornerRadius = new CornerRadius(8),
                 Background = Tema.Pincel(Tema.CardBackground),
                 BorderBrush = Tema.Pincel(Tema.StatusWarning),
                 BorderThickness = new Thickness(1),
@@ -250,7 +250,7 @@ namespace CofreDeSenhas.Janelas
             return new Border
             {
                 Padding = new Thickness(14, 12),
-                CornerRadius = new CornerRadius(10),
+                CornerRadius = new CornerRadius(8),
                 Background = Tema.Pincel(Tema.CardBackground),
                 BorderBrush = Tema.Pincel(Tema.InputBorder),
                 BorderThickness = new Thickness(1),

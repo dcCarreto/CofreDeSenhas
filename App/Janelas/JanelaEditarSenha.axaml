@@ -15,7 +15,7 @@
 
   <Border CornerRadius="{StaticResource RadiusDialogo}"
           ClipToBounds="True"
-          Background="{DynamicResource CardBackground}"
+          Background="{DynamicResource MaterialWorkspace}"
           BorderBrush="{DynamicResource CardBorder}"
           BorderThickness="1">
 
@@ -98,7 +98,7 @@
                 CornerRadius="{StaticResource RadiusInput}" Padding="12,8" Margin="0,0,0,14">
           <Grid ColumnDefinitions="Auto,*,Auto">
             <TextBlock Name="LblCodigoTotp" FontFamily="{DynamicResource FonteMono}"
-                       FontSize="20" FontWeight="Bold" LetterSpacing="1"
+                       FontSize="20" FontWeight="SemiBold" LetterSpacing="1"
                        Foreground="{DynamicResource AccentText}" VerticalAlignment="Center"
                        AutomationProperties.Name="{DynamicResource A11y.TotpPreview}"
                        AutomationProperties.LiveSetting="Polite" />

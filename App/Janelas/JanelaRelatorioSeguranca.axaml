@@ -62,7 +62,7 @@
                   BorderBrush="{DynamicResource InputBorder}" BorderThickness="1"
                   CornerRadius="{StaticResource RadiusInput}" Padding="18,16">
             <StackPanel Spacing="4" HorizontalAlignment="Center">
-              <TextBlock Name="LblPontuacao" FontSize="40" FontWeight="Bold" HorizontalAlignment="Center" />
+              <TextBlock Name="LblPontuacao" FontSize="40" FontWeight="SemiBold" HorizontalAlignment="Center" />
               <TextBlock Name="LblPontuacaoRotulo" FontSize="13" FontWeight="SemiBold" HorizontalAlignment="Center" />
               <TextBlock Text="{DynamicResource SecurityReport.ScoreLabel}" FontSize="11"
                          Foreground="{DynamicResource TextSecondary}" HorizontalAlignment="Center" />

@@ -7,12 +7,13 @@ Tout ceci se trouve dans **Paramètres**, réparti en onglets.
 - **Langue** : portugais, anglais, espagnol, français, allemand et
   italien. Le changement est immédiat.
 - **Thème** : clair, sombre ou suivre le système.
-- **Couleur d'accent** : un ensemble choisi de six couleurs.
+- **Couleur d'accent** : suit la couleur d'accentuation de Windows
+  (Personnalisation > Couleurs). Hors de Windows, bleu.
 - **Densité** : lignes et champs confortables ou compacts.
 - **Panneau de détails** : à côté de la liste ou en dessous.
 - **Colonnes de la liste** : afficher ou masquer les colonnes
   Utilisateur, Catégorie et Robustesse.
-- **Profil** : préréglages (« Sombre classique », « Clair compact »,
+- **Profil** : préréglages (« Sombre par défaut », « Clair compact »,
   « Contraste élevé ») et profils que vous enregistrez vous-même et qui
   appliquent toute l'apparence en un clic.
 

@@ -42,6 +42,7 @@ namespace CofreDeSenhas.Janelas
             _servicoSincronizacao = servicoSincronizacao;
 
             InitializeComponent();
+            Material.Aplicar(this);
             Icon = Recursos.IconeApp();
             Acessibilidade.Vincular(this);
             this.AtalhoAjuda("organizacao");

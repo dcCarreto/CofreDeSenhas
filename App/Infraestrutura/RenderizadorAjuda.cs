@@ -102,7 +102,7 @@ namespace CofreDeSenhas
                 case 1:
                     tb.FontFamily = (FontFamily)Application.Current!.FindResource("FonteDisplay")!;
                     tb.FontSize = 20;
-                    tb.FontWeight = FontWeight.Bold;
+                    tb.FontWeight = FontWeight.SemiBold;
                     tb.Margin = new Thickness(0, 2, 0, 2);
                     break;
                 case 2:
