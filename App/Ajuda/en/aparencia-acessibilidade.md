@@ -7,11 +7,12 @@ Everything here lives in **Settings**, split into tabs.
 - **Language**: Portuguese, English, Spanish, French, German and Italian.
   The switch is immediate.
 - **Theme**: light, dark or follow the system.
-- **Accent color**: a curated set of six accents.
+- **Accent color**: follows the Windows accent color
+  (Personalization > Colors). Outside Windows, blue.
 - **Density**: comfortable or compact rows and fields.
 - **Details panel**: beside the list or below it.
 - **List columns**: show or hide the User, Category and Strength columns.
-- **Profile**: presets ("Classic dark", "Light compact", "High contrast")
+- **Profile**: presets ("Default dark", "Light compact", "High contrast")
   and profiles you save yourself that apply the whole look in one click.
 
 ## Behavior

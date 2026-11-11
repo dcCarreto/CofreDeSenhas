@@ -70,7 +70,7 @@ namespace CofreDeSenhas.Janelas
             return new Border
             {
                 Padding = new Thickness(14, 12),
-                CornerRadius = new CornerRadius(10),
+                CornerRadius = new CornerRadius(8),
                 Background = Tema.Pincel(Tema.CardBackground),
                 BorderBrush = Tema.Pincel(conflito.Tipo is TipoConflitoSincronizacao.IntegridadeViolada or TipoConflitoSincronizacao.IntegridadeAusente ? Tema.StatusWarning : Tema.InputBorder),
                 BorderThickness = new Thickness(1),

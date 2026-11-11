@@ -74,12 +74,12 @@ namespace CofreDeSenhas.Janelas
             {
                 Width = 40,
                 Height = 40,
-                CornerRadius = new CornerRadius(10),
+                CornerRadius = new CornerRadius(8),
                 VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
             };
             var avatarTexto = new TextBlock
             {
-                FontWeight = FontWeight.Bold,
+                FontWeight = FontWeight.SemiBold,
                 HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center,
                 VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
             };
@@ -102,7 +102,7 @@ namespace CofreDeSenhas.Janelas
             {
                 Text = nomeExibido,
                 FontSize = 14,
-                FontWeight = FontWeight.Bold,
+                FontWeight = FontWeight.SemiBold,
                 Foreground = Tema.Pincel(Tema.TextPrimary)
             };
             var lblUsuario = new TextBlock
@@ -172,7 +172,7 @@ namespace CofreDeSenhas.Janelas
             {
                 Padding = new Thickness(14, 10),
                 Margin = new Thickness(0, 0, 0, 6),
-                CornerRadius = new CornerRadius(10),
+                CornerRadius = new CornerRadius(8),
                 Background = Tema.Pincel(Tema.CardBackground),
                 BorderBrush = Tema.Pincel(Tema.InputBorder),
                 BorderThickness = new Thickness(1),

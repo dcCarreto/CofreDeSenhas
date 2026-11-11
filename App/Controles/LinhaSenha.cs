@@ -115,7 +115,7 @@ namespace CofreDeSenhas.Controles
         {
             Background = Selecionada
                 ? Tema.Pincel(Tema.AccentLight)
-                : Tema.Pincel(_pointerSobre || IsFocused ? Tema.RowHover : Tema.CardBackground);
+                : (_pointerSobre || IsFocused ? Tema.Pincel(Tema.RowHover) : Brushes.Transparent);
         }
 
         public int NivelForca
@@ -177,7 +177,7 @@ namespace CofreDeSenhas.Controles
             _onRegistrarCopia = onRegistrarCopia;
 
             Height = Acessibilidade.AlturaLinhaLista;
-            Background = Tema.Pincel(Tema.CardBackground);
+            Background = Brushes.Transparent;
             BorderBrush = Tema.Pincel(Tema.Separator);
             BorderThickness = new Thickness(0, 0, 0, 1);
             Focusable = true;
@@ -449,7 +449,7 @@ namespace CofreDeSenhas.Controles
         {
             _avatarTexto = new TextBlock
             {
-                FontWeight = FontWeight.Bold,
+                FontWeight = FontWeight.SemiBold,
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center
             };
@@ -510,7 +510,7 @@ namespace CofreDeSenhas.Controles
             {
                 Text = _senha.NomeServico,
                 FontSize = 14,
-                FontWeight = FontWeight.Bold,
+                FontWeight = FontWeight.SemiBold,
                 Foreground = Tema.Pincel(Tema.TextPrimary),
                 TextTrimming = TextTrimming.CharacterEllipsis,
                 VerticalAlignment = VerticalAlignment.Center,
@@ -545,7 +545,7 @@ namespace CofreDeSenhas.Controles
                 Height = 30,
                 MinHeight = 30,
                 FontSize = 14,
-                FontWeight = FontWeight.Bold,
+                FontWeight = FontWeight.SemiBold,
                 VerticalAlignment = VerticalAlignment.Center
             };
             _txtServico.Classes.Add("embutido");
@@ -634,7 +634,7 @@ namespace CofreDeSenhas.Controles
             _lblCategoria = new TextBlock
             {
                 FontSize = 10,
-                FontWeight = FontWeight.Bold,
+                FontWeight = FontWeight.SemiBold,
                 TextTrimming = TextTrimming.CharacterEllipsis,
                 MaxWidth = 86,
                 VerticalAlignment = VerticalAlignment.Center
@@ -1134,7 +1134,7 @@ namespace CofreDeSenhas.Controles
         {
             _lblUsuario.Text = _obterSenhaPlain(_senha) ?? "••••••••";
             _lblUsuario.FontFamily = (FontFamily)Application.Current!.FindResource("FonteMono")!;
-            _lblUsuario.FontWeight = FontWeight.Bold;
+            _lblUsuario.FontWeight = FontWeight.SemiBold;
             _lblUsuario.Foreground = Tema.Pincel(Tema.AccentText);
             DefinirIconeImagem(_btnOlho, "IconeOcultar");
             ToolTip.SetTip(_btnOlho, Idioma.Texto("Row.HidePassword"));
@@ -1269,7 +1269,7 @@ namespace CofreDeSenhas.Controles
             _timerFeedbackUsuario?.Stop();
             _lblUsuario.Text = textoCopiado;
             _lblUsuario.ClearValue(TextBlock.FontFamilyProperty);
-            _lblUsuario.FontWeight = FontWeight.Bold;
+            _lblUsuario.FontWeight = FontWeight.SemiBold;
             _lblUsuario.Foreground = Tema.Pincel(Tema.StrengthStrong);
             ToolTip.SetTip(_lblUsuario, textoCopiado);
             AutomationProperties.SetName(_lblUsuario, textoCopiado);

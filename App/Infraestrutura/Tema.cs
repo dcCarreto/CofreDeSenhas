@@ -8,6 +8,7 @@ namespace CofreDeSenhas
     {
         public static Color CardBackground => Acessibilidade.Cor(CorVisual.CardBackground);
         public static Color CardBorder => Acessibilidade.Cor(CorVisual.CardBorder);
+        public static Color MaterialCard => Acessibilidade.CorCamadaCartao;
 
         public static Color InputBorder => Acessibilidade.Cor(CorVisual.InputBorder);
 
@@ -17,6 +18,7 @@ namespace CofreDeSenhas
         public static Color AccentPrimary => Acessibilidade.Cor(CorVisual.AccentPrimary);
         public static Color AccentLight => Acessibilidade.Cor(CorVisual.AccentLight);
         public static Color AccentText => Acessibilidade.Cor(CorVisual.AccentText);
+        public static Color TextOnAccent => Acessibilidade.Cor(CorVisual.TextOnAccent);
 
         public static Color TextPrimary => Acessibilidade.Cor(CorVisual.TextPrimary);
         public static Color TextSecondary => Acessibilidade.Cor(CorVisual.TextSecondary);

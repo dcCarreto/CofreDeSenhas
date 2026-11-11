@@ -13,7 +13,7 @@ namespace App.Testes
 
         private static void Restaurar()
         {
-            Acessibilidade.Hidratar(TipoDaltonismo.Nenhum, ModoTema.Escuro, CorDestaque.Ambar, Densidade.Confortavel,
+            Acessibilidade.Hidratar(TipoDaltonismo.Nenhum, ModoTema.Escuro, Densidade.Confortavel,
                 LayoutDetalhe.Lateral, false, Acessibilidade.EscalaNormal, false, false);
             Acessibilidade.HidratarExpert(NivelContraste.Padrao, NivelMovimento.Completo, FonteLeitura.Padrao,
                 EspacamentoTexto.Normal, VerbosidadeLeitor.Normal, false, false, false, false, false);

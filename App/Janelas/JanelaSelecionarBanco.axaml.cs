@@ -44,7 +44,7 @@ namespace CofreDeSenhas.Janelas
             {
                 Text = provedor.Distintivo,
                 Foreground = Tema.Pincel(Acessibilidade.CorFrenteParaFundo(corDistintivo)),
-                FontWeight = FontWeight.Bold,
+                FontWeight = FontWeight.SemiBold,
                 FontSize = 15,
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center

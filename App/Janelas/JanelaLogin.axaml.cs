@@ -36,6 +36,7 @@ namespace CofreDeSenhas.Janelas
             _controleTentativas = new ControleTentativasLogin(auth.PastaApp);
 
             InitializeComponent();
+            Material.Aplicar(this);
             Icon = Recursos.IconeApp();
             Acessibilidade.Vincular(this);
             this.AtalhoAjuda("senha-mestra");

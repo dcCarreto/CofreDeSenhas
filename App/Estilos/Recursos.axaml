@@ -6,31 +6,31 @@
   </ResourceDictionary.MergedDictionaries>
   <ResourceDictionary.ThemeDictionaries>
     <ResourceDictionary x:Key="Dark">
-      <SolidColorBrush x:Key="WorkspaceBackground" Color="#17130F" />
-      <SolidColorBrush x:Key="CardBackground" Color="#241C15" />
-      <SolidColorBrush x:Key="CardBorder" Color="#3D3120" />
-      <SolidColorBrush x:Key="TitleBar" Color="#1C1712" />
-      <SolidColorBrush x:Key="TitleBarBorder" Color="#362B1C" />
-      <SolidColorBrush x:Key="InputBackground" Color="#2B2116" />
-      <SolidColorBrush x:Key="InputBorder" Color="#46392A" />
-      <SolidColorBrush x:Key="RowHover" Color="#2A2117" />
-      <SolidColorBrush x:Key="Separator" Color="#33291A" />
-      <SolidColorBrush x:Key="Footer" Color="#1A1510" />
-      <SolidColorBrush x:Key="AccentPrimary" Color="#C8A24C" />
-      <SolidColorBrush x:Key="AccentHover" Color="#A8853D" />
-      <SolidColorBrush x:Key="AccentLight" Color="#3A2E1C" />
-      <SolidColorBrush x:Key="AccentText" Color="#E4C374" />
-      <SolidColorBrush x:Key="StrengthWeak" Color="#C96B58" />
-      <SolidColorBrush x:Key="StrengthMedium" Color="#C98A3E" />
-      <SolidColorBrush x:Key="TextPrimary" Color="#F3EADC" />
-      <SolidColorBrush x:Key="TextSecondary" Color="#B7A791" />
-      <SolidColorBrush x:Key="TextTertiary" Color="#8B7C68" />
-      <SolidColorBrush x:Key="TextHeader" Color="#8B7C68" />
-      <SolidColorBrush x:Key="TrailInactive" Color="#3C3225" />
-      <SolidColorBrush x:Key="ToggleOff" Color="#4A3D2C" />
-      <SolidColorBrush x:Key="HoverBackground" Color="#2C2319" />
-      <SolidColorBrush x:Key="IconHoverBackground" Color="#332818" />
-      <SolidColorBrush x:Key="FavoriteBorderColor" Color="#5C4F3D" />
+      <SolidColorBrush x:Key="WorkspaceBackground" Color="#202020" />
+      <SolidColorBrush x:Key="CardBackground" Color="#2B2B2B" />
+      <SolidColorBrush x:Key="CardBorder" Color="#3A3A3A" />
+      <SolidColorBrush x:Key="TitleBar" Color="#1C1C1C" />
+      <SolidColorBrush x:Key="TitleBarBorder" Color="#2F2F2F" />
+      <SolidColorBrush x:Key="InputBackground" Color="#2D2D2D" />
+      <SolidColorBrush x:Key="InputBorder" Color="#474747" />
+      <SolidColorBrush x:Key="RowHover" Color="#333333" />
+      <SolidColorBrush x:Key="Separator" Color="#353535" />
+      <SolidColorBrush x:Key="Footer" Color="#262626" />
+      <SolidColorBrush x:Key="AccentPrimary" Color="#60CDFF" />
+      <SolidColorBrush x:Key="AccentHover" Color="#4CC2FF" />
+      <SolidColorBrush x:Key="AccentLight" Color="#2A3A44" />
+      <SolidColorBrush x:Key="AccentText" Color="#99EBFF" />
+      <SolidColorBrush x:Key="StrengthWeak" Color="#FF99A4" />
+      <SolidColorBrush x:Key="StrengthMedium" Color="#F2C14E" />
+      <SolidColorBrush x:Key="TextPrimary" Color="#FFFFFF" />
+      <SolidColorBrush x:Key="TextSecondary" Color="#C8C8C8" />
+      <SolidColorBrush x:Key="TextTertiary" Color="#A0A0A0" />
+      <SolidColorBrush x:Key="TextHeader" Color="#A0A0A0" />
+      <SolidColorBrush x:Key="TrailInactive" Color="#404040" />
+      <SolidColorBrush x:Key="ToggleOff" Color="#5C5C5C" />
+      <SolidColorBrush x:Key="HoverBackground" Color="#323232" />
+      <SolidColorBrush x:Key="IconHoverBackground" Color="#383838" />
+      <SolidColorBrush x:Key="FavoriteBorderColor" Color="#6E6E6E" />
       <SolidColorBrush x:Key="CategoryWorkFg" Color="#8C9AE8" />
       <SolidColorBrush x:Key="CategoryWorkBg" Color="#262A47" />
       <SolidColorBrush x:Key="CategoryPersonalFg" Color="#E8A468" />
@@ -43,31 +43,31 @@
       <SolidColorBrush x:Key="CategoryOtherBg" Color="#2A2C33" />
     </ResourceDictionary>
     <ResourceDictionary x:Key="Light">
-      <SolidColorBrush x:Key="WorkspaceBackground" Color="#F7F4EF" />
-      <SolidColorBrush x:Key="CardBackground" Color="#FFFFFF" />
-      <SolidColorBrush x:Key="CardBorder" Color="#E6DFD1" />
-      <SolidColorBrush x:Key="TitleBar" Color="#F1ECE2" />
-      <SolidColorBrush x:Key="TitleBarBorder" Color="#E0D8C7" />
-      <SolidColorBrush x:Key="InputBackground" Color="#FBF8F2" />
-      <SolidColorBrush x:Key="InputBorder" Color="#D8CDB8" />
-      <SolidColorBrush x:Key="RowHover" Color="#F1EADD" />
-      <SolidColorBrush x:Key="Separator" Color="#EAE2D3" />
-      <SolidColorBrush x:Key="Footer" Color="#F1ECE2" />
-      <SolidColorBrush x:Key="AccentPrimary" Color="#9C7322" />
-      <SolidColorBrush x:Key="AccentHover" Color="#7F5C16" />
-      <SolidColorBrush x:Key="AccentLight" Color="#F3E8CD" />
-      <SolidColorBrush x:Key="AccentText" Color="#785713" />
-      <SolidColorBrush x:Key="StrengthWeak" Color="#C0392B" />
-      <SolidColorBrush x:Key="StrengthMedium" Color="#B07714" />
-      <SolidColorBrush x:Key="TextPrimary" Color="#2A2317" />
-      <SolidColorBrush x:Key="TextSecondary" Color="#6A6051" />
-      <SolidColorBrush x:Key="TextTertiary" Color="#938878" />
-      <SolidColorBrush x:Key="TextHeader" Color="#938878" />
-      <SolidColorBrush x:Key="TrailInactive" Color="#DDD3C1" />
-      <SolidColorBrush x:Key="ToggleOff" Color="#CFC4AF" />
-      <SolidColorBrush x:Key="HoverBackground" Color="#F1EADD" />
-      <SolidColorBrush x:Key="IconHoverBackground" Color="#EFE6D3" />
-      <SolidColorBrush x:Key="FavoriteBorderColor" Color="#C9BB9F" />
+      <SolidColorBrush x:Key="WorkspaceBackground" Color="#F3F3F3" />
+      <SolidColorBrush x:Key="CardBackground" Color="#FBFBFB" />
+      <SolidColorBrush x:Key="CardBorder" Color="#E3E3E3" />
+      <SolidColorBrush x:Key="TitleBar" Color="#EEEEEE" />
+      <SolidColorBrush x:Key="TitleBarBorder" Color="#E0E0E0" />
+      <SolidColorBrush x:Key="InputBackground" Color="#FFFFFF" />
+      <SolidColorBrush x:Key="InputBorder" Color="#CFCFCF" />
+      <SolidColorBrush x:Key="RowHover" Color="#F0F0F0" />
+      <SolidColorBrush x:Key="Separator" Color="#E6E6E6" />
+      <SolidColorBrush x:Key="Footer" Color="#F5F5F5" />
+      <SolidColorBrush x:Key="AccentPrimary" Color="#005FB8" />
+      <SolidColorBrush x:Key="AccentHover" Color="#004C93" />
+      <SolidColorBrush x:Key="AccentLight" Color="#E1ECF6" />
+      <SolidColorBrush x:Key="AccentText" Color="#003E92" />
+      <SolidColorBrush x:Key="StrengthWeak" Color="#C42B1C" />
+      <SolidColorBrush x:Key="StrengthMedium" Color="#9D5D00" />
+      <SolidColorBrush x:Key="TextPrimary" Color="#1B1B1B" />
+      <SolidColorBrush x:Key="TextSecondary" Color="#5D5D5D" />
+      <SolidColorBrush x:Key="TextTertiary" Color="#6E6E6E" />
+      <SolidColorBrush x:Key="TextHeader" Color="#6E6E6E" />
+      <SolidColorBrush x:Key="TrailInactive" Color="#D6D6D6" />
+      <SolidColorBrush x:Key="ToggleOff" Color="#8A8A8A" />
+      <SolidColorBrush x:Key="HoverBackground" Color="#EDEDED" />
+      <SolidColorBrush x:Key="IconHoverBackground" Color="#E8E8E8" />
+      <SolidColorBrush x:Key="FavoriteBorderColor" Color="#A0A0A0" />
       <SolidColorBrush x:Key="CategoryWorkFg" Color="#3B4FA0" />
       <SolidColorBrush x:Key="CategoryWorkBg" Color="#E7E9F7" />
       <SolidColorBrush x:Key="CategoryPersonalFg" Color="#A0551C" />
@@ -81,18 +81,19 @@
     </ResourceDictionary>
   </ResourceDictionary.ThemeDictionaries>
 
-  <SolidColorBrush x:Key="StrengthStrong" Color="#7E9B6C" />
-  <SolidColorBrush x:Key="StrengthExcellent" Color="#6FA0C9" />
-  <SolidColorBrush x:Key="CloseButtonHover" Color="#E5484D" />
-  <SolidColorBrush x:Key="CloseButtonPressed" Color="#C93A3E" />
-  <SolidColorBrush x:Key="FavoriteColor" Color="#E8A23D" />
-  <SolidColorBrush x:Key="StatusLocal" Color="#7E9B6C" />
-  <SolidColorBrush x:Key="StatusWarning" Color="#C98A3E" />
-  <SolidColorBrush x:Key="StatusConnected" Color="#6FA0C9" />
+  <SolidColorBrush x:Key="TextOnAccent" Color="#000000" />
+  <SolidColorBrush x:Key="StrengthStrong" Color="#6CCB5F" />
+  <SolidColorBrush x:Key="StrengthExcellent" Color="#60CDFF" />
+  <SolidColorBrush x:Key="CloseButtonHover" Color="#C42B1C" />
+  <SolidColorBrush x:Key="CloseButtonPressed" Color="#A52313" />
+  <SolidColorBrush x:Key="FavoriteColor" Color="#F7C948" />
+  <SolidColorBrush x:Key="StatusLocal" Color="#6CCB5F" />
+  <SolidColorBrush x:Key="StatusWarning" Color="#F2C14E" />
+  <SolidColorBrush x:Key="StatusConnected" Color="#60CDFF" />
 
-  <FontFamily x:Key="FonteMono">DejaVu Sans Mono, Liberation Mono, Noto Sans Mono, Ubuntu Mono, Consolas, monospace</FontFamily>
-  <FontFamily x:Key="FontePadrao">avares://CofreDeSenhas/Ativos/Fontes/PlusJakartaSans#Plus Jakarta Sans, Inter</FontFamily>
-  <FontFamily x:Key="FonteDisplay">Georgia, Constantia, Cambria, Noto Serif, DejaVu Serif, Liberation Serif, serif</FontFamily>
+  <FontFamily x:Key="FonteMono">Cascadia Mono, Consolas, DejaVu Sans Mono, Liberation Mono, Noto Sans Mono, Ubuntu Mono, monospace</FontFamily>
+  <FontFamily x:Key="FontePadrao">Segoe UI Variable Text, Segoe UI, Inter</FontFamily>
+  <FontFamily x:Key="FonteDisplay">Segoe UI Variable Display, Segoe UI, Inter</FontFamily>
 
   <x:Double x:Key="TamDisplay">26</x:Double>
   <x:Double x:Key="TamTitulo">21</x:Double>
@@ -104,12 +105,12 @@
   <x:Double x:Key="TamMonoCorpo">15</x:Double>
   <x:Double x:Key="TamMonoDisplay">22</x:Double>
 
-  <CornerRadius x:Key="RadiusBotao">10</CornerRadius>
-  <CornerRadius x:Key="RadiusIcone">10</CornerRadius>
-  <CornerRadius x:Key="RadiusCartao">14</CornerRadius>
-  <CornerRadius x:Key="RadiusInput">12</CornerRadius>
-  <CornerRadius x:Key="RadiusNavItem">10</CornerRadius>
-  <CornerRadius x:Key="RadiusDialogo">16</CornerRadius>
+  <CornerRadius x:Key="RadiusBotao">4</CornerRadius>
+  <CornerRadius x:Key="RadiusIcone">4</CornerRadius>
+  <CornerRadius x:Key="RadiusCartao">8</CornerRadius>
+  <CornerRadius x:Key="RadiusInput">4</CornerRadius>
+  <CornerRadius x:Key="RadiusNavItem">4</CornerRadius>
+  <CornerRadius x:Key="RadiusDialogo">8</CornerRadius>
   <CornerRadius x:Key="RadiusPill">999</CornerRadius>
 
   <x:Double x:Key="EspacoXs">8</x:Double>
@@ -137,8 +138,8 @@
   <x:Double x:Key="LarguraBotaoRodape">120</x:Double>
   <x:Double x:Key="LarguraBotaoRodapePrimario">140</x:Double>
 
-  <BoxShadows x:Key="CardShadow">0 1 2 0 #33000000, 0 10 26 -6 #52000000</BoxShadows>
-  <BoxShadows x:Key="DialogShadow">0 6 16 -6 #45000000, 0 26 58 -14 #61000000</BoxShadows>
+  <BoxShadows x:Key="CardShadow">0 0 0 0 #00000000</BoxShadows>
+  <BoxShadows x:Key="DialogShadow">0 8 24 -4 #47000000</BoxShadows>
   <BoxShadows x:Key="FabShadow">0 3 16 -2 #4DC8A24C</BoxShadows>
 
   <x:Double x:Key="EspacamentoTexto">0</x:Double>

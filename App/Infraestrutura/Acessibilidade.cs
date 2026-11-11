@@ -27,16 +27,6 @@ namespace CofreDeSenhas
         Escuro
     }
 
-    public enum CorDestaque
-    {
-        Ambar,
-        Azul,
-        Verde,
-        Ameixa,
-        Terracota,
-        Grafite
-    }
-
     public enum Densidade
     {
         Confortavel,
@@ -113,6 +103,7 @@ namespace CofreDeSenhas
         AccentHover,
         AccentLight,
         AccentText,
+        TextOnAccent,
         TextPrimary,
         TextSecondary,
         TextTertiary,
@@ -145,12 +136,9 @@ namespace CofreDeSenhas
 
         public static TipoDaltonismo Daltonismo { get; private set; } = TipoDaltonismo.Nenhum;
         public static ModoTema Modo { get; private set; } = ModoTema.Escuro;
-        public static CorDestaque Destaque { get; private set; } = CorDestaque.Ambar;
         public static Densidade Densidade { get; private set; } = Densidade.Confortavel;
         public static LayoutDetalhe LayoutDetalhe { get; private set; } = LayoutDetalhe.Lateral;
         public static ColunasLista ColunasLista { get; private set; } = ColunasLista.Todas;
-
-        public static bool DestaqueDisponivel => Daltonismo == TipoDaltonismo.Nenhum;
 
         public static double AlturaLinhaLista => Densidade == Densidade.Compacto ? 46 : 52;
 
@@ -215,6 +203,7 @@ namespace CofreDeSenhas
             ("AccentHover", CorVisual.AccentHover),
             ("AccentLight", CorVisual.AccentLight),
             ("AccentText", CorVisual.AccentText),
+            ("TextOnAccent", CorVisual.TextOnAccent),
             ("TextPrimary", CorVisual.TextPrimary),
             ("TextSecondary", CorVisual.TextSecondary),
             ("TextTertiary", CorVisual.TextTertiary),
@@ -236,40 +225,43 @@ namespace CofreDeSenhas
             ("StatusConnected", CorVisual.StatusConnected)
         };
 
+        // Neutro, nos tons do Windows 11 escuro (Mica #202020, cartões #2B2B2B).
+        // O destaque (Accent*) não vem daqui: é derivado da cor de destaque do
+        // sistema em ValoresTema — estes valores só valem de reserva.
         private static readonly IReadOnlyDictionary<CorVisual, uint> PadraoEscuro = D(
-            (CorVisual.WorkspaceBackground, 0xFF17130F),
-            (CorVisual.CardBackground, 0xFF241C15),
-            (CorVisual.CardBorder, 0xFF3D3120),
-            (CorVisual.TitleBar, 0xFF1C1712),
-            (CorVisual.TitleBarBorder, 0xFF362B1C),
-            (CorVisual.InputBackground, 0xFF2B2116),
-            (CorVisual.InputBorder, 0xFF46392A),
-            (CorVisual.RowHover, 0xFF2A2117),
-            (CorVisual.Separator, 0xFF33291A),
-            (CorVisual.Footer, 0xFF1A1510),
-            (CorVisual.AccentPrimary, 0xFFC8A24C),
-            (CorVisual.AccentHover, 0xFFA8853D),
-            (CorVisual.AccentLight, 0xFF3A2E1C),
-            (CorVisual.AccentText, 0xFFE4C374),
-            (CorVisual.TextPrimary, 0xFFF3EADC),
-            (CorVisual.TextSecondary, 0xFFB7A791),
-            (CorVisual.TextTertiary, 0xFF8B7C68),
-            (CorVisual.TextHeader, 0xFF8B7C68),
-            (CorVisual.TrailInactive, 0xFF3C3225),
-            (CorVisual.ToggleOff, 0xFF4A3D2C),
-            (CorVisual.HoverBackground, 0xFF2C2319),
-            (CorVisual.IconHoverBackground, 0xFF332818),
-            (CorVisual.FavoriteColor, 0xFFE8A23D),
-            (CorVisual.FavoriteBorderColor, 0xFF5C4F3D),
-            (CorVisual.StrengthWeak, 0xFFC96B58),
-            (CorVisual.StrengthMedium, 0xFFC98A3E),
-            (CorVisual.StrengthStrong, 0xFF7E9B6C),
-            (CorVisual.StrengthExcellent, 0xFF6FA0C9),
-            (CorVisual.CloseButtonHover, 0xFFE5484D),
-            (CorVisual.CloseButtonPressed, 0xFFC93A3E),
-            (CorVisual.StatusLocal, 0xFF7E9B6C),
-            (CorVisual.StatusWarning, 0xFFC98A3E),
-            (CorVisual.StatusConnected, 0xFF6FA0C9));
+            (CorVisual.WorkspaceBackground, 0xFF202020),
+            (CorVisual.CardBackground, 0xFF2B2B2B),
+            (CorVisual.CardBorder, 0x1AFFFFFF),
+            (CorVisual.TitleBar, 0xFF1C1C1C),
+            (CorVisual.TitleBarBorder, 0x12FFFFFF),
+            (CorVisual.InputBackground, 0x0FFFFFFF),
+            (CorVisual.InputBorder, 0x17FFFFFF),
+            (CorVisual.RowHover, 0x0FFFFFFF),
+            (CorVisual.Separator, 0x15FFFFFF),
+            (CorVisual.Footer, 0xFF262626),
+            (CorVisual.AccentPrimary, 0xFF60CDFF),
+            (CorVisual.AccentHover, 0xFF4CC2FF),
+            (CorVisual.AccentLight, 0xFF2A3A44),
+            (CorVisual.AccentText, 0xFF99EBFF),
+            (CorVisual.TextPrimary, 0xFFFFFFFF),
+            (CorVisual.TextSecondary, 0xFFC8C8C8),
+            (CorVisual.TextTertiary, 0xFFA0A0A0),
+            (CorVisual.TextHeader, 0xFFA0A0A0),
+            (CorVisual.TrailInactive, 0xFF404040),
+            (CorVisual.ToggleOff, 0xFF5C5C5C),
+            (CorVisual.HoverBackground, 0x0FFFFFFF),
+            (CorVisual.IconHoverBackground, 0x15FFFFFF),
+            (CorVisual.FavoriteColor, 0xFFF7C948),
+            (CorVisual.FavoriteBorderColor, 0xFF6E6E6E),
+            (CorVisual.StrengthWeak, 0xFFFF99A4),
+            (CorVisual.StrengthMedium, 0xFFF2C14E),
+            (CorVisual.StrengthStrong, 0xFF6CCB5F),
+            (CorVisual.StrengthExcellent, 0xFF60CDFF),
+            (CorVisual.CloseButtonHover, 0xFFC42B1C),
+            (CorVisual.CloseButtonPressed, 0xFFA52313),
+            (CorVisual.StatusLocal, 0xFF6CCB5F),
+            (CorVisual.StatusWarning, 0xFFF2C14E),
+            (CorVisual.StatusConnected, 0xFF60CDFF));
 
         private static readonly IReadOnlyDictionary<CorVisual, uint> ProtanopiaEscuro = D(
             (CorVisual.WorkspaceBackground, 0xFF0F151A),
@@ -407,40 +399,41 @@ namespace CofreDeSenhas
             (CorVisual.StatusWarning, 0xFFC6CBD3),
             (CorVisual.StatusConnected, 0xFFE5E7EB));
 
+        // Neutro, nos tons do Windows 11 claro (Mica #F3F3F3, cartões #FBFBFB).
         private static readonly IReadOnlyDictionary<CorVisual, uint> PadraoClaro = D(
-            (CorVisual.WorkspaceBackground, 0xFFF7F4EF),
-            (CorVisual.CardBackground, 0xFFFFFFFF),
-            (CorVisual.CardBorder, 0xFFE6DFD1),
-            (CorVisual.TitleBar, 0xFFF1ECE2),
-            (CorVisual.TitleBarBorder, 0xFFE0D8C7),
-            (CorVisual.InputBackground, 0xFFFBF8F2),
-            (CorVisual.InputBorder, 0xFFD8CDB8),
-            (CorVisual.RowHover, 0xFFF1EADD),
-            (CorVisual.Separator, 0xFFEAE2D3),
-            (CorVisual.Footer, 0xFFF1ECE2),
-            (CorVisual.AccentPrimary, 0xFF9C7322),
-            (CorVisual.AccentHover, 0xFF7F5C16),
-            (CorVisual.AccentLight, 0xFFF3E8CD),
-            (CorVisual.AccentText, 0xFF785713),
-            (CorVisual.TextPrimary, 0xFF2A2317),
-            (CorVisual.TextSecondary, 0xFF6A6051),
-            (CorVisual.TextTertiary, 0xFF938878),
-            (CorVisual.TextHeader, 0xFF938878),
-            (CorVisual.TrailInactive, 0xFFDDD3C1),
-            (CorVisual.ToggleOff, 0xFFCFC4AF),
-            (CorVisual.HoverBackground, 0xFFF1EADD),
-            (CorVisual.IconHoverBackground, 0xFFEFE6D3),
-            (CorVisual.FavoriteColor, 0xFFD5901F),
-            (CorVisual.FavoriteBorderColor, 0xFFC9BB9F),
-            (CorVisual.StrengthWeak, 0xFFC0392B),
-            (CorVisual.StrengthMedium, 0xFFB07714),
-            (CorVisual.StrengthStrong, 0xFF4F7942),
-            (CorVisual.StrengthExcellent, 0xFF3A6FA0),
-            (CorVisual.CloseButtonHover, 0xFFE5484D),
-            (CorVisual.CloseButtonPressed, 0xFFC93A3E),
-            (CorVisual.StatusLocal, 0xFF4F7942),
-            (CorVisual.StatusWarning, 0xFFB07714),
-            (CorVisual.StatusConnected, 0xFF3A6FA0));
+            (CorVisual.WorkspaceBackground, 0xFFF3F3F3),
+            (CorVisual.CardBackground, 0xFFFBFBFB),
+            (CorVisual.CardBorder, 0x14000000),
+            (CorVisual.TitleBar, 0xFFEEEEEE),
+            (CorVisual.TitleBarBorder, 0x0F000000),
+            (CorVisual.InputBackground, 0xB3FFFFFF),
+            (CorVisual.InputBorder, 0x1A000000),
+            (CorVisual.RowHover, 0x09000000),
+            (CorVisual.Separator, 0x0F000000),
+            (CorVisual.Footer, 0xFFF5F5F5),
+            (CorVisual.AccentPrimary, 0xFF005FB8),
+            (CorVisual.AccentHover, 0xFF004C93),
+            (CorVisual.AccentLight, 0xFFE1ECF6),
+            (CorVisual.AccentText, 0xFF003E92),
+            (CorVisual.TextPrimary, 0xFF1B1B1B),
+            (CorVisual.TextSecondary, 0xFF5D5D5D),
+            (CorVisual.TextTertiary, 0xFF6E6E6E),
+            (CorVisual.TextHeader, 0xFF6E6E6E),
+            (CorVisual.TrailInactive, 0xFFD6D6D6),
+            (CorVisual.ToggleOff, 0xFF8A8A8A),
+            (CorVisual.HoverBackground, 0x09000000),
+            (CorVisual.IconHoverBackground, 0x0F000000),
+            (CorVisual.FavoriteColor, 0xFFB98300),
+            (CorVisual.FavoriteBorderColor, 0xFFA0A0A0),
+            (CorVisual.StrengthWeak, 0xFFC42B1C),
+            (CorVisual.StrengthMedium, 0xFF9D5D00),
+            (CorVisual.StrengthStrong, 0xFF0F7B0F),
+            (CorVisual.StrengthExcellent, 0xFF005FB8),
+            (CorVisual.CloseButtonHover, 0xFFC42B1C),
+            (CorVisual.CloseButtonPressed, 0xFFA52313),
+            (CorVisual.StatusLocal, 0xFF0F7B0F),
+            (CorVisual.StatusWarning, 0xFF9D5D00),
+            (CorVisual.StatusConnected, 0xFF005FB8));
 
         private static readonly IReadOnlyDictionary<TipoDaltonismo, IReadOnlyDictionary<CorVisual, uint>> AjustesDaltonismoClaro =
             new Dictionary<TipoDaltonismo, IReadOnlyDictionary<CorVisual, uint>>
@@ -480,111 +473,6 @@ namespace CofreDeSenhas
             };
 
         private static readonly Dictionary<TipoDaltonismo, IReadOnlyDictionary<CorVisual, uint>> _claroMesclado = new();
-
-        private static readonly IReadOnlyDictionary<CorDestaque, (uint[] Escuro, uint[] Claro)> Destaques =
-            new Dictionary<CorDestaque, (uint[], uint[])>
-            {
-                [CorDestaque.Azul] = (
-                    new uint[] { 0xFF5B9BD5, 0xFF4A82B4, 0xFF1E2E3D, 0xFF9FC7E8 },
-                    new uint[] { 0xFF2F6FB0, 0xFF245A93, 0xFFDCEAF6, 0xFF1F5486 }),
-                [CorDestaque.Verde] = (
-                    new uint[] { 0xFF6FB07A, 0xFF5A9166, 0xFF1F3222, 0xFFA7D3AE },
-                    new uint[] { 0xFF3B7D48, 0xFF2E6339, 0xFFDCEFDF, 0xFF2A5C34 }),
-                [CorDestaque.Ameixa] = (
-                    new uint[] { 0xFFA986C9, 0xFF8C6BAB, 0xFF2E2438, 0xFFCBB0DE },
-                    new uint[] { 0xFF7B4EA8, 0xFF63407F, 0xFFEEE3F5, 0xFF5B3A7E }),
-                [CorDestaque.Terracota] = (
-                    new uint[] { 0xFFCC7A5C, 0xFFA8624A, 0xFF3A241C, 0xFFE4A98F },
-                    new uint[] { 0xFFB0553A, 0xFF8C4530, 0xFFF6E4DC, 0xFF96432E }),
-                [CorDestaque.Grafite] = (
-                    new uint[] { 0xFF9AA3AE, 0xFF7E8792, 0xFF2A2E33, 0xFFC2C9D1 },
-                    new uint[] { 0xFF5B6470, 0xFF48505A, 0xFFE6E8EB, 0xFF444B54 })
-            };
-
-        private static readonly CorVisual[] ChavesDestaque =
-            { CorVisual.AccentPrimary, CorVisual.AccentHover, CorVisual.AccentLight, CorVisual.AccentText };
-
-        private static readonly IReadOnlyDictionary<CorDestaque, IReadOnlyDictionary<CorVisual, uint>> SuperficiesEscuras =
-            new Dictionary<CorDestaque, IReadOnlyDictionary<CorVisual, uint>>
-            {
-                [CorDestaque.Azul] = D(
-                    (CorVisual.WorkspaceBackground, 0xFF121319),
-                    (CorVisual.CardBackground, 0xFF1B1D25),
-                    (CorVisual.CardBorder, 0xFF2E323F),
-                    (CorVisual.TitleBar, 0xFF16171E),
-                    (CorVisual.TitleBarBorder, 0xFF282C37),
-                    (CorVisual.InputBackground, 0xFF1F222B),
-                    (CorVisual.InputBorder, 0xFF353A49),
-                    (CorVisual.RowHover, 0xFF1F222B),
-                    (CorVisual.Separator, 0xFF262A35),
-                    (CorVisual.Footer, 0xFF14161B),
-                    (CorVisual.TrailInactive, 0xFF2E3340),
-                    (CorVisual.ToggleOff, 0xFF393E4E),
-                    (CorVisual.HoverBackground, 0xFF21242D),
-                    (CorVisual.IconHoverBackground, 0xFF252934)),
-                [CorDestaque.Verde] = D(
-                    (CorVisual.WorkspaceBackground, 0xFF111513),
-                    (CorVisual.CardBackground, 0xFF1A201C),
-                    (CorVisual.CardBorder, 0xFF2D3630),
-                    (CorVisual.TitleBar, 0xFF151A17),
-                    (CorVisual.TitleBarBorder, 0xFF27302A),
-                    (CorVisual.InputBackground, 0xFF1F2521),
-                    (CorVisual.InputBorder, 0xFF343F38),
-                    (CorVisual.RowHover, 0xFF1E2521),
-                    (CorVisual.Separator, 0xFF252D28),
-                    (CorVisual.Footer, 0xFF131715),
-                    (CorVisual.TrailInactive, 0xFF2D3730),
-                    (CorVisual.ToggleOff, 0xFF37433B),
-                    (CorVisual.HoverBackground, 0xFF202722),
-                    (CorVisual.IconHoverBackground, 0xFF252C27)),
-                [CorDestaque.Ameixa] = D(
-                    (CorVisual.WorkspaceBackground, 0xFF161218),
-                    (CorVisual.CardBackground, 0xFF211B24),
-                    (CorVisual.CardBorder, 0xFF392E3D),
-                    (CorVisual.TitleBar, 0xFF1B161D),
-                    (CorVisual.TitleBarBorder, 0xFF322836),
-                    (CorVisual.InputBackground, 0xFF271F2A),
-                    (CorVisual.InputBorder, 0xFF423547),
-                    (CorVisual.RowHover, 0xFF271F2A),
-                    (CorVisual.Separator, 0xFF2F2633),
-                    (CorVisual.Footer, 0xFF19141A),
-                    (CorVisual.TrailInactive, 0xFF3A2E3E),
-                    (CorVisual.ToggleOff, 0xFF47394C),
-                    (CorVisual.HoverBackground, 0xFF29212C),
-                    (CorVisual.IconHoverBackground, 0xFF2F2532)),
-                [CorDestaque.Terracota] = D(
-                    (CorVisual.WorkspaceBackground, 0xFF18130E),
-                    (CorVisual.CardBackground, 0xFF241D15),
-                    (CorVisual.CardBorder, 0xFF3E3224),
-                    (CorVisual.TitleBar, 0xFF1D1711),
-                    (CorVisual.TitleBarBorder, 0xFF362C1F),
-                    (CorVisual.InputBackground, 0xFF2A2218),
-                    (CorVisual.InputBorder, 0xFF483A29),
-                    (CorVisual.RowHover, 0xFF2A2218),
-                    (CorVisual.Separator, 0xFF342A1E),
-                    (CorVisual.Footer, 0xFF1B160F),
-                    (CorVisual.TrailInactive, 0xFF3F3324),
-                    (CorVisual.ToggleOff, 0xFF4D3E2C),
-                    (CorVisual.HoverBackground, 0xFF2D241A),
-                    (CorVisual.IconHoverBackground, 0xFF33291D)),
-                [CorDestaque.Grafite] = D(
-                    (CorVisual.WorkspaceBackground, 0xFF141414),
-                    (CorVisual.CardBackground, 0xFF1E1E1F),
-                    (CorVisual.CardBorder, 0xFF333334),
-                    (CorVisual.TitleBar, 0xFF181819),
-                    (CorVisual.TitleBarBorder, 0xFF2D2D2E),
-                    (CorVisual.InputBackground, 0xFF232324),
-                    (CorVisual.InputBorder, 0xFF3B3B3D),
-                    (CorVisual.RowHover, 0xFF232324),
-                    (CorVisual.Separator, 0xFF2A2A2C),
-                    (CorVisual.Footer, 0xFF161617),
-                    (CorVisual.TrailInactive, 0xFF343435),
-                    (CorVisual.ToggleOff, 0xFF3F3F41),
-                    (CorVisual.HoverBackground, 0xFF252526),
-                    (CorVisual.IconHoverBackground, 0xFF2A2A2B))
-            };
-
-        private static readonly Dictionary<(CorDestaque, bool), IReadOnlyDictionary<CorVisual, uint>> _comDestaque = new();
 
         private static readonly IReadOnlyDictionary<Categoria, (uint Bg, uint Fg)> CategoriasPadrao = DCat(
             (Categoria.Personal, 0xFFFBEDE0, 0xFFA0551C),
@@ -642,12 +530,11 @@ namespace CofreDeSenhas
             public double Valor = EscalaNormal;
         }
 
-        public static void Hidratar(TipoDaltonismo daltonismo, ModoTema modo, CorDestaque destaque, Densidade densidade,
+        public static void Hidratar(TipoDaltonismo daltonismo, ModoTema modo, Densidade densidade,
             LayoutDetalhe layoutDetalhe, bool altoContraste, double escala, bool reduzirAnimacoes, bool leitorTela)
         {
             Daltonismo = daltonismo;
             Modo = modo;
-            Destaque = destaque;
             Densidade = densidade;
             LayoutDetalhe = layoutDetalhe;
             Contraste = altoContraste ? NivelContraste.Alto : NivelContraste.Padrao;
@@ -682,11 +569,10 @@ namespace CofreDeSenhas
             Alterado?.Invoke(null, EventArgs.Empty);
         }
 
-        public static void AplicarPerfil(ModoTema modo, CorDestaque destaque, Densidade densidade, LayoutDetalhe layout,
+        public static void AplicarPerfil(ModoTema modo, Densidade densidade, LayoutDetalhe layout,
             TipoDaltonismo daltonismo, bool altoContraste, double escala, bool reduzirAnimacoes)
         {
             Modo = modo;
-            Destaque = destaque;
             Densidade = densidade;
             LayoutDetalhe = layout;
             Daltonismo = daltonismo;
@@ -694,16 +580,6 @@ namespace CofreDeSenhas
             Escala = NormalizarEscala(escala);
             Movimento = reduzirAnimacoes ? NivelMovimento.Reduzido : NivelMovimento.Completo;
 
-            Aplicar();
-            Alterado?.Invoke(null, EventArgs.Empty);
-        }
-
-        public static void DefinirCorDestaque(CorDestaque destaque)
-        {
-            if (Destaque == destaque)
-                return;
-
-            Destaque = destaque;
             Aplicar();
             Alterado?.Invoke(null, EventArgs.Empty);
         }
@@ -743,7 +619,8 @@ namespace CofreDeSenhas
 
         public static void ReavaliarTemaDoSistema()
         {
-            if (Modo != ModoTema.Sistema)
+            bool destaqueMudou = AtualizarDestaqueSistema();
+            if (Modo != ModoTema.Sistema && !destaqueMudou)
                 return;
 
             Aplicar();
@@ -910,16 +787,6 @@ namespace CofreDeSenhas
 
             DefinirModoTema(modo);
             Preferencias.ModoTema = modo.ToString();
-            Preferencias.Salvar();
-        }
-
-        public static void SelecionarCorDestaque(string? tag)
-        {
-            if (!Enum.TryParse<CorDestaque>(tag, ignoreCase: true, out var destaque))
-                return;
-
-            DefinirCorDestaque(destaque);
-            Preferencias.CorDestaque = destaque.ToString();
             Preferencias.Salvar();
         }
 
@@ -1126,6 +993,9 @@ namespace CofreDeSenhas
 
         internal static Color Cor(CorVisual cor)
         {
+            if (cor == CorVisual.TextOnAccent)
+                return TextoSobreDestaque();
+
             var nivel = ContrasteEfetivo;
             if (nivel >= NivelContraste.Medio && TentarCorContraste(cor, nivel, out var reforcada))
                 return reforcada;
@@ -1176,16 +1046,92 @@ namespace CofreDeSenhas
             return (Color.FromUInt32(cor.Bg), Color.FromUInt32(cor.Fg));
         }
 
+        // ---- Material (Mica) ------------------------------------------------------
+        //
+        // Nas janelas que chamam Material.Aplicar, fundo, barra de título e barra
+        // lateral ficam totalmente transparentes — o Mica aparece inteiro, como nas
+        // Configurações do Windows 11 — e os cartões viram uma camada translúcida
+        // por cima dele. Sem Mica (Linux, Windows 10) ou em alto contraste, tudo
+        // volta às cores opacas da paleta.
+
+        internal static bool MaterialAtivo => Material.Suportado && !AltoContraste;
+
+        // Camada de cartão do WinUI: branco a 5% no escuro, branco a 70% no claro.
+        internal static Color CorCamadaCartao => MaterialAtivo
+            ? (TemaClaroEfetivo ? Color.FromArgb(0xB3, 0xFF, 0xFF, 0xFF) : Color.FromArgb(0x0D, 0xFF, 0xFF, 0xFF))
+            : Cor(CorVisual.CardBackground);
+
+        private static Color TransparenteNoMaterial(CorVisual cor) => MaterialAtivo ? Colors.Transparent : Cor(cor);
+
+        // O painel de detalhes desliza por cima da lista: precisa ser quase opaco,
+        // senão o texto das linhas vaza por baixo dele (o Avalonia não desfoca o
+        // conteúdo da própria janela, que é o que o Acrylic do Windows faria).
+        private static Color CorPainelFlutuante()
+        {
+            var c = Cor(CorVisual.CardBackground);
+            return MaterialAtivo ? Color.FromArgb(0xF5, c.R, c.G, c.B) : c;
+        }
+
+        // Borda dos campos no estilo do Windows 11: contorno sutil com a base mais
+        // marcada; no foco, a base vira um sublinhado na cor de destaque.
+        private static IBrush BordaCampo(bool foco)
+        {
+            var contorno = Cor(CorVisual.InputBorder);
+            if (ContrasteEfetivo >= NivelContraste.Medio)
+                return new SolidColorBrush(foco ? Cor(CorVisual.AccentPrimary) : contorno);
+
+            var baseCor = foco
+                ? Cor(CorVisual.AccentPrimary)
+                : (TemaClaroEfetivo ? Color.FromArgb(0x5C, 0, 0, 0) : Color.FromArgb(0x66, 0xFF, 0xFF, 0xFF));
+            double corte = foco ? 0.955 : 0.975;
+            return new LinearGradientBrush
+            {
+                StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative),
+                EndPoint = new RelativePoint(0, 1, RelativeUnit.Relative),
+                GradientStops =
+                {
+                    new GradientStop(contorno, 0),
+                    new GradientStop(contorno, corte),
+                    new GradientStop(baseCor, corte),
+                    new GradientStop(baseCor, 1)
+                }
+            };
+        }
+
         public static void Aplicar()
         {
             var app = Application.Current;
             if (app == null)
                 return;
 
+            AtualizarDestaqueSistema();
             app.RequestedThemeVariant = TemaClaroEfetivo ? ThemeVariant.Light : ThemeVariant.Dark;
 
             foreach (var (chave, cor) in RecursosTema)
                 app.Resources[chave] = new SolidColorBrush(Cor(cor));
+
+            app.Resources["MaterialWorkspace"] = new SolidColorBrush(TransparenteNoMaterial(CorVisual.WorkspaceBackground));
+            app.Resources["MaterialTitleBar"] = new SolidColorBrush(TransparenteNoMaterial(CorVisual.TitleBar));
+            app.Resources["MaterialCard"] = new SolidColorBrush(CorCamadaCartao);
+            app.Resources["MaterialFooter"] = new SolidColorBrush(TransparenteNoMaterial(CorVisual.Footer));
+            app.Resources["MaterialPainel"] = new SolidColorBrush(CorPainelFlutuante());
+
+            app.Resources["InputHoverBackground"] = new SolidColorBrush(TemaClaroEfetivo
+                ? Color.FromArgb(0x80, 0xF9, 0xF9, 0xF9) : Color.FromArgb(0x15, 0xFF, 0xFF, 0xFF));
+            app.Resources["InputFocusBackground"] = new SolidColorBrush(TemaClaroEfetivo
+                ? Colors.White : Color.FromArgb(0xB3, 0x1E, 0x1E, 0x1E));
+            app.Resources["BordaCampo"] = BordaCampo(foco: false);
+            app.Resources["BordaCampoFoco"] = BordaCampo(foco: true);
+
+            // Controles do FluentTheme (caixa de seleção, seleção de texto etc.) leem
+            // estes recursos; alinhados ao mesmo tom derivado do destaque do sistema.
+            var destaque = Cor(CorVisual.AccentPrimary);
+            var destaqueHover = Cor(CorVisual.AccentHover);
+            app.Resources["SystemAccentColor"] = destaque;
+            foreach (var n in new[] { "Light1", "Light2", "Light3" })
+                app.Resources["SystemAccentColor" + n] = TemaClaroEfetivo ? destaqueHover : destaque;
+            foreach (var n in new[] { "Dark1", "Dark2", "Dark3" })
+                app.Resources["SystemAccentColor" + n] = TemaClaroEfetivo ? destaque : destaqueHover;
 
             var brilho = Cor(CorVisual.AccentPrimary);
             app.Resources["FabShadow"] = BoxShadows.Parse($"0 3 16 -2 #4D{brilho.R:X2}{brilho.G:X2}{brilho.B:X2}");
@@ -1222,11 +1168,13 @@ namespace CofreDeSenhas
                 : null;
         }
 
-        private const string FontePadraoStack = "avares://CofreDeSenhas/Ativos/Fontes/PlusJakartaSans#Plus Jakarta Sans, Inter";
-        private const string FonteDisplayStack = "Georgia, Constantia, Cambria, Noto Serif, DejaVu Serif, Liberation Serif, serif";
-        private const string FonteAtkinson = "avares://CofreDeSenhas/Ativos/Fontes/AtkinsonHyperlegible#Atkinson Hyperlegible, Plus Jakarta Sans, Inter";
+        // Tipografia do Windows 11: Segoe UI Variable (Text no corpo, Display nos
+        // títulos). Fora do Windows cai na Inter, embutida pelo Avalonia.Fonts.Inter.
+        private const string FontePadraoStack = "Segoe UI Variable Text, Segoe UI, Inter";
+        private const string FonteDisplayStack = "Segoe UI Variable Display, Segoe UI, Inter";
+        private const string FonteAtkinson = "avares://CofreDeSenhas/Ativos/Fontes/AtkinsonHyperlegible#Atkinson Hyperlegible, Segoe UI Variable Text, Segoe UI, Inter";
         private const string FonteSerifada = "Georgia, Constantia, Cambria, Noto Serif, DejaVu Serif, Liberation Serif, serif";
-        private const string FonteMonoStack = "DejaVu Sans Mono, Liberation Mono, Noto Sans Mono, Ubuntu Mono, Consolas, monospace";
+        private const string FonteMonoStack = "Cascadia Mono, Consolas, DejaVu Sans Mono, Liberation Mono, Noto Sans Mono, Ubuntu Mono, monospace";
 
         public static void Vincular(Window janela)
         {
@@ -1403,37 +1351,171 @@ namespace CofreDeSenhas
 
         private static IReadOnlyDictionary<CorVisual, uint> ValoresTema()
         {
-            var baseTema = TemaClaroEfetivo
-                ? ClaroPara(Daltonismo)
-                : Daltonismo switch
-                {
-                    TipoDaltonismo.Protanopia => ProtanopiaEscuro,
-                    TipoDaltonismo.Deuteranopia => DeuteranopiaEscuro,
-                    TipoDaltonismo.Tritanopia => TritanopiaEscuro,
-                    TipoDaltonismo.Monocromacia => MonocromaciaEscuro,
-                    _ => PadraoEscuro
-                };
+            var baseTema = TemaClaroEfetivo ? ClaroPara(Daltonismo) : EscuroPara(Daltonismo);
 
-            if (Daltonismo != TipoDaltonismo.Nenhum || Destaque == CorDestaque.Ambar || !Destaques.ContainsKey(Destaque))
+            // As paletas de daltonismo têm destaques escolhidos para serem
+            // distinguíveis; a cor do sistema só entra no tema padrão.
+            if (Daltonismo != TipoDaltonismo.Nenhum)
                 return baseTema;
 
-            var chave = (Destaque, TemaClaroEfetivo);
-            if (_comDestaque.TryGetValue(chave, out var pronto))
+            var chave = (DestaqueSistema.ToUInt32(), TemaClaroEfetivo);
+            if (_comDestaqueSistema.TryGetValue(chave, out var pronto))
                 return pronto;
 
-            var (escuro, claro) = Destaques[Destaque];
-            var overrides = TemaClaroEfetivo ? claro : escuro;
-
             var combinado = new Dictionary<CorVisual, uint>(baseTema);
+            var (primario, hover, fundo, texto) = DerivarDestaque(DestaqueSistema, TemaClaroEfetivo,
+                Color.FromUInt32(baseTema[CorVisual.CardBackground]));
+            combinado[CorVisual.AccentPrimary] = primario;
+            combinado[CorVisual.AccentHover] = hover;
+            combinado[CorVisual.AccentLight] = fundo;
+            combinado[CorVisual.AccentText] = texto;
 
-            if (!TemaClaroEfetivo && SuperficiesEscuras.TryGetValue(Destaque, out var superficies))
-                foreach (var (nome, valor) in superficies)
-                    combinado[nome] = valor;
+            _comDestaqueSistema[chave] = combinado;
+            return combinado;
+        }
 
-            for (int i = 0; i < ChavesDestaque.Length; i++)
-                combinado[ChavesDestaque[i]] = overrides[i];
+        // ---- Cor de destaque do sistema -------------------------------------------
+        //
+        // O app não tem mais paleta de destaque própria: segue a cor de destaque do
+        // Windows (Configurações > Personalização > Cores), como os apps nativos do
+        // Windows 11. Fora do Windows usa o azul padrão do Windows 11.
 
-            _comDestaque[chave] = combinado;
+        public static readonly Color DestaquePadraoWindows = Color.FromRgb(0x00, 0x78, 0xD4);
+
+        // internal só pra teste fixar uma cor de destaque sem depender do sistema
+        // em que a suíte roda — ver App.Testes (InternalsVisibleTo).
+        internal static Color? DestaqueSistemaFixo { get; set; }
+
+        private static Color _destaqueSistemaLido = DestaquePadraoWindows;
+
+        public static Color DestaqueSistema => DestaqueSistemaFixo ?? _destaqueSistemaLido;
+
+        private static readonly Dictionary<(uint, bool), IReadOnlyDictionary<CorVisual, uint>> _comDestaqueSistema = new();
+
+        /// <summary>Relê a cor de destaque do sistema. Devolve true se mudou.</summary>
+        internal static bool AtualizarDestaqueSistema()
+        {
+            var lido = DestaquePadraoWindows;
+            if (OperatingSystem.IsWindows())
+            {
+                try
+                {
+                    var valores = Application.Current?.PlatformSettings?.GetColorValues();
+                    if (valores != null && valores.AccentColor1.A > 0)
+                        lido = Color.FromRgb(valores.AccentColor1.R, valores.AccentColor1.G, valores.AccentColor1.B);
+                }
+                catch (Exception ex)
+                {
+                    Diagnostico.Registrar(ex, "LerDestaqueSistema");
+                }
+            }
+
+            if (lido == _destaqueSistemaLido)
+                return false;
+
+            _destaqueSistemaLido = lido;
+            return true;
+        }
+
+        // Mesma lógica do Windows 11: no tema escuro o destaque vira um tom claro
+        // da cor (texto preto por cima); no claro, um tom escuro (texto branco).
+        // A luminosidade é ajustada até fechar contraste AA com o texto do botão
+        // e com o fundo dos cartões, então qualquer cor escolhida no sistema serve.
+        internal static (uint Primario, uint Hover, uint Fundo, uint Texto) DerivarDestaque(Color cor, bool claro, Color cartao)
+        {
+            var hsl = cor.ToHsl();
+            double h = hsl.H, s = Math.Max(hsl.S, 0.05);
+
+            Color ComL(double l) => new HslColor(1, h, s, Math.Clamp(l, 0, 1)).ToRgb();
+
+            Color primario, hover, texto;
+            if (claro)
+            {
+                double l = Math.Min(hsl.L, 0.38);
+                while (l > 0.05 && RazaoContraste(ComL(l), Colors.White) < 4.5)
+                    l -= 0.01;
+                primario = ComL(l);
+                hover = ComL(l - 0.06);
+
+                double lt = Math.Min(l, 0.32);
+                while (lt > 0.05 && RazaoContraste(ComL(lt), cartao) < 7)
+                    lt -= 0.01;
+                texto = ComL(lt);
+            }
+            else
+            {
+                double l = Math.Max(hsl.L, 0.66);
+                while (l < 0.95 && RazaoContraste(ComL(l), Colors.Black) < 7)
+                    l += 0.01;
+                primario = ComL(l);
+                hover = ComL(l - 0.05);
+
+                double lt = Math.Max(l, 0.78);
+                while (lt < 0.97 && RazaoContraste(ComL(lt), cartao) < 7)
+                    lt += 0.01;
+                texto = ComL(lt);
+            }
+
+            // Fundo de item selecionado: o destaque bem diluído sobre o cartão.
+            double peso = claro ? 0.12 : 0.20;
+            var fundo = Color.FromRgb(
+                (byte)Math.Round(cartao.R + (primario.R - cartao.R) * peso),
+                (byte)Math.Round(cartao.G + (primario.G - cartao.G) * peso),
+                (byte)Math.Round(cartao.B + (primario.B - cartao.B) * peso));
+
+            return (primario.ToUInt32(), hover.ToUInt32(), fundo.ToUInt32(), texto.ToUInt32());
+        }
+
+        private static double RazaoContraste(Color a, Color b)
+        {
+            double la = Luminancia(a), lb = Luminancia(b);
+            return (Math.Max(la, lb) + 0.05) / (Math.Min(la, lb) + 0.05);
+        }
+
+        // Texto/ícone sobre um fundo de destaque: preto ou branco, o que der mais
+        // contraste (no Windows 11 escuro é preto; no claro, branco).
+        private static Color TextoSobreDestaque()
+        {
+            var fundo = Cor(CorVisual.AccentPrimary);
+            return RazaoContraste(fundo, Colors.Black) >= RazaoContraste(fundo, Colors.White) ? Colors.Black : Colors.White;
+        }
+
+        // As superfícies e textos das paletas escuras de daltonismo eram tingidas;
+        // agora todas usam as superfícies neutras do tema padrão e só mantêm as
+        // cores com significado (destaque, força, status, favorito).
+        private static readonly CorVisual[] ChavesNeutras =
+        {
+            CorVisual.WorkspaceBackground, CorVisual.CardBackground, CorVisual.CardBorder,
+            CorVisual.TitleBar, CorVisual.TitleBarBorder, CorVisual.InputBackground, CorVisual.InputBorder,
+            CorVisual.RowHover, CorVisual.Separator, CorVisual.Footer, CorVisual.TextPrimary,
+            CorVisual.TextSecondary, CorVisual.TextTertiary, CorVisual.TextHeader, CorVisual.TrailInactive,
+            CorVisual.ToggleOff, CorVisual.HoverBackground, CorVisual.IconHoverBackground,
+            CorVisual.FavoriteBorderColor, CorVisual.CloseButtonHover, CorVisual.CloseButtonPressed
+        };
+
+        private static readonly Dictionary<TipoDaltonismo, IReadOnlyDictionary<CorVisual, uint>> _escuroMesclado = new();
+
+        private static IReadOnlyDictionary<CorVisual, uint> EscuroPara(TipoDaltonismo daltonismo)
+        {
+            var paleta = daltonismo switch
+            {
+                TipoDaltonismo.Protanopia => ProtanopiaEscuro,
+                TipoDaltonismo.Deuteranopia => DeuteranopiaEscuro,
+                TipoDaltonismo.Tritanopia => TritanopiaEscuro,
+                TipoDaltonismo.Monocromacia => MonocromaciaEscuro,
+                _ => null
+            };
+            if (paleta == null)
+                return PadraoEscuro;
+
+            if (_escuroMesclado.TryGetValue(daltonismo, out var pronto))
+                return pronto;
+
+            var combinado = new Dictionary<CorVisual, uint>(paleta);
+            foreach (var chave in ChavesNeutras)
+                combinado[chave] = PadraoEscuro[chave];
+
+            _escuroMesclado[daltonismo] = combinado;
             return combinado;
         }
 

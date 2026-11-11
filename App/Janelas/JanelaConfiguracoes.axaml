@@ -13,14 +13,14 @@
 
   <Border CornerRadius="{StaticResource RadiusDialogo}"
           ClipToBounds="True"
-          Background="{DynamicResource WorkspaceBackground}"
+          Background="{DynamicResource MaterialWorkspace}"
           BorderBrush="{DynamicResource CardBorder}"
           BorderThickness="1">
 
     <DockPanel>
       <Border DockPanel.Dock="Top"
               Height="56"
-              Background="{DynamicResource TitleBar}"
+              Background="{DynamicResource MaterialTitleBar}"
               BorderBrush="{DynamicResource TitleBarBorder}"
               BorderThickness="0,0,0,1"
               PointerPressed="Arrastar">
@@ -45,7 +45,7 @@
 
       <Border DockPanel.Dock="Bottom"
               Height="66"
-              Background="{DynamicResource Footer}"
+              Background="{DynamicResource MaterialFooter}"
               BorderBrush="{DynamicResource CardBorder}"
               BorderThickness="0,1,0,0">
         <Button Classes="secundario"
@@ -57,7 +57,7 @@
 
       <Border DockPanel.Dock="Left"
               Width="238"
-              Background="{DynamicResource TitleBar}"
+              Background="{DynamicResource MaterialTitleBar}"
               BorderBrush="{DynamicResource TitleBarBorder}"
               BorderThickness="0,0,1,0">
         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">

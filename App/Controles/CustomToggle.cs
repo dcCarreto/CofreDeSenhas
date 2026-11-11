@@ -115,7 +115,7 @@ namespace CofreDeSenhas.Controles
             double thumbX = _checked ? w - diametroThumb - 2 : 2;
             var centro = new Point(thumbX + diametroThumb / 2, h / 2);
             var contorno = _hovered ? new Pen(Tema.Pincel(Tema.AccentPrimary), 2) : null;
-            g.DrawEllipse(Brushes.White, contorno, centro, diametroThumb / 2, diametroThumb / 2);
+            g.DrawEllipse(_checked ? Tema.Pincel(Tema.TextOnAccent) : Brushes.White, contorno, centro, diametroThumb / 2, diametroThumb / 2);
 
             if (IsFocused)
             {

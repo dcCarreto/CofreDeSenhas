@@ -7,12 +7,13 @@ Tudo aqui fica em **Configurações**, dividido em abas.
 - **Idioma**: português, inglês, espanhol, francês, alemão e italiano. A
   troca é imediata.
 - **Tema**: claro, escuro ou seguir o sistema.
-- **Cor de destaque**: um conjunto curado de seis cores.
+- **Cor de destaque**: segue a cor de destaque do Windows
+  (Personalização > Cores). Fora do Windows, azul.
 - **Densidade**: linhas e campos confortáveis ou compactos.
 - **Painel de detalhes**: ao lado da lista ou embaixo dela.
 - **Colunas da lista**: mostrar ou esconder as colunas Usuário, Categoria
   e Força.
-- **Perfil**: presets ("Clássico escuro", "Claro compacto", "Alto
+- **Perfil**: presets ("Escuro padrão", "Claro compacto", "Alto
   contraste") e perfis que você mesmo salva, que aplicam a aparência
   inteira num clique.
 
