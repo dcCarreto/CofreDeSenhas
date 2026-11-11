@@ -1061,6 +1061,16 @@ namespace CofreDeSenhas
             ? (TemaClaroEfetivo ? Color.FromArgb(0xB3, 0xFF, 0xFF, 0xFF) : Color.FromArgb(0x0D, 0xFF, 0xFF, 0xFF))
             : Cor(CorVisual.CardBackground);
 
+        // Hover e pressionado do cartão clicável (SettingsCard do WinUI). Sem Mica,
+        // sobre o cartão opaco: o realce translúcido da paleta.
+        internal static Color CorCamadaCartaoHover => MaterialAtivo
+            ? (TemaClaroEfetivo ? Color.FromArgb(0xFF, 0xF6, 0xF6, 0xF6) : Color.FromArgb(0x15, 0xFF, 0xFF, 0xFF))
+            : Cor(CorVisual.RowHover);
+
+        internal static Color CorCamadaCartaoPressionada => MaterialAtivo
+            ? (TemaClaroEfetivo ? Color.FromArgb(0x80, 0xF6, 0xF6, 0xF6) : Color.FromArgb(0x08, 0xFF, 0xFF, 0xFF))
+            : Cor(CorVisual.HoverBackground);
+
         private static Color TransparenteNoMaterial(CorVisual cor) => MaterialAtivo ? Colors.Transparent : Cor(cor);
 
         // O painel de detalhes desliza por cima da lista: precisa ser quase opaco,
@@ -1113,6 +1123,8 @@ namespace CofreDeSenhas
             app.Resources["MaterialWorkspace"] = new SolidColorBrush(TransparenteNoMaterial(CorVisual.WorkspaceBackground));
             app.Resources["MaterialTitleBar"] = new SolidColorBrush(TransparenteNoMaterial(CorVisual.TitleBar));
             app.Resources["MaterialCard"] = new SolidColorBrush(CorCamadaCartao);
+            app.Resources["MaterialCardHover"] = new SolidColorBrush(CorCamadaCartaoHover);
+            app.Resources["MaterialCardPressed"] = new SolidColorBrush(CorCamadaCartaoPressionada);
             app.Resources["MaterialFooter"] = new SolidColorBrush(TransparenteNoMaterial(CorVisual.Footer));
             app.Resources["MaterialPainel"] = new SolidColorBrush(CorPainelFlutuante());
 
