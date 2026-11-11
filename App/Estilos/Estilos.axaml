@@ -85,13 +85,10 @@
     </Setter>
   </Style>
 
-  <Style Selector="Button /template/ ContentPresenter#PART_ContentPresenter">
-    <Setter Property="Transitions">
-      <Transitions>
-        <BrushTransition Property="Background" Duration="0:0:0.12" />
-      </Transitions>
-    </Setter>
-  </Style>
+  <!-- Sem BrushTransition no fundo dos botões: uma transição interrompida (hover,
+       pressionado, saída do mouse em sequência rápida) ficava presa num valor
+       intermediário e o item continuava realçado depois que o mouse saía — ver
+       NavegacaoEstiloTests. -->
 
   <Style Selector="Button.primario">
     <Setter Property="Background" Value="{DynamicResource AccentPrimary}" />
@@ -203,8 +200,11 @@
     <Setter Property="BorderBrush" Value="{DynamicResource InputBorder}" />
   </Style>
 
+  <!-- Cartão clicável (ações das Configurações): a mesma camada translúcida dos
+       outros cartões, um pouco mais clara no hover e mais apagada ao pressionar,
+       como os SettingsCard do Windows 11. -->
   <Style Selector="Button.cartao">
-    <Setter Property="Background" Value="{DynamicResource CardBackground}" />
+    <Setter Property="Background" Value="{DynamicResource MaterialCard}" />
     <Setter Property="BorderBrush" Value="{DynamicResource CardBorder}" />
     <Setter Property="BorderThickness" Value="1" />
     <Setter Property="CornerRadius" Value="{StaticResource RadiusInput}" />
@@ -214,7 +214,12 @@
     <Setter Property="Cursor" Value="Hand" />
   </Style>
   <Style Selector="Button.cartao:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-    <Setter Property="Background" Value="{DynamicResource RowHover}" />
+    <Setter Property="Background" Value="{DynamicResource MaterialCardHover}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource CardBorder}" />
+  </Style>
+  <Style Selector="Button.cartao:pressed /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource MaterialCardPressed}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource CardBorder}" />
   </Style>
 
   <Style Selector="Button.icone-linha">
@@ -422,13 +427,6 @@
     <Setter Property="FontSize" Value="{StaticResource TamCorpo}" />
     <Setter Property="VerticalContentAlignment" Value="Center" />
   </Style>
-  <Style Selector="TextBox.campo /template/ Border#PART_BorderElement">
-    <Setter Property="Transitions">
-      <Transitions>
-        <BrushTransition Property="BorderBrush" Duration="0:0:0.15" />
-      </Transitions>
-    </Setter>
-  </Style>
   <Style Selector="TextBox.campo:pointerover /template/ Border#PART_BorderElement">
     <Setter Property="Background" Value="{DynamicResource InputHoverBackground}" />
     <Setter Property="BorderBrush" Value="{DynamicResource BordaCampo}" />
@@ -499,12 +497,6 @@
     <Setter Property="Stroke" Value="{DynamicResource TextSecondary}" />
     <Setter Property="Fill" Value="Transparent" />
     <Setter Property="StrokeThickness" Value="1.4" />
-    <Setter Property="Transitions">
-      <Transitions>
-        <BrushTransition Property="Stroke" Duration="0:0:0.12" />
-        <BrushTransition Property="Fill" Duration="0:0:0.12" />
-      </Transitions>
-    </Setter>
   </Style>
   <Style Selector="controles|Icone[Preenchido=True]">
     <Setter Property="Fill" Value="{DynamicResource TextSecondary}" />
