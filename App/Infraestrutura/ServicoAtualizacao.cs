@@ -91,7 +91,7 @@ namespace CofreDeSenhas
 
         public static async Task<ResultadoAtualizacao> AtualizarAgoraAsync(string tag)
         {
-            if (!OperatingSystem.IsWindows() && !OperatingSystem.IsLinux())
+            if (PacoteLoja.Empacotado || (!OperatingSystem.IsWindows() && !OperatingSystem.IsLinux()))
                 return ResultadoAtualizacao.NaoSuportado();
 
             // No Linux só dá pra fazer a troca em um clique rodando como AppImage: é o único

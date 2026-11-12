@@ -389,10 +389,14 @@ namespace CofreDeSenhas.Janelas
                     Preferencias.Salvar();
                 }));
 
-            painel.Children.Add(LinhaCheck(
-                Idioma.Texto("Settings.CheckUpdates"), Idioma.Texto("Settings.CheckUpdatesTooltip"),
-                Preferencias.VerificarAtualizacoes,
-                valor => _acoes.DefinirVerificarAtualizacoes(valor)));
+            // Instalado pela Microsoft Store, quem atualiza é a Loja; a opção não faria nada.
+            if (!PacoteLoja.Empacotado)
+            {
+                painel.Children.Add(LinhaCheck(
+                    Idioma.Texto("Settings.CheckUpdates"), Idioma.Texto("Settings.CheckUpdatesTooltip"),
+                    Preferencias.VerificarAtualizacoes,
+                    valor => _acoes.DefinirVerificarAtualizacoes(valor)));
+            }
 
             painel.Children.Add(LinhaCheck(
                 Idioma.Texto("Settings.OnlineIcons"), Idioma.Texto("Settings.OnlineIconsTooltip"),

@@ -182,6 +182,10 @@ publish/
 # Instalador Windows gerado (Inno Setup)
 dist/
 
+# Pacote MSIX da Microsoft Store e ferramentas baixadas para gerá-lo
+publish-msix/
+dist-loja/
+
 # AppImage gerado e ferramenta baixada para gerá-lo
 publish-appimage/
 *.AppImage

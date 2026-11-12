@@ -46,6 +46,19 @@ em `%APPDATA%\GerenciadorSenhas` são preservados por padrão — apagá-los exi
 confirmação explícita numa caixa de diálogo (com "Não" como opção padrão);
 desinstalações silenciosas (`/VERYSILENT`) nunca apagam o cofre.
 
+## Pacote da Microsoft Store (MSIX)
+
+```
+.\App\distribuicao\gerar-msix.ps1
+```
+
+Publica o aplicativo em pasta (sem arquivo único), monta o manifesto a partir de
+`App/distribuicao/msix/AppxManifest.xml` e empacota o `.msix` em `dist-loja/`,
+sem assinatura (a Loja assina na certificação). Usa o `makeappx`/`makepri` do
+Windows SDK; sem o SDK instalado, baixa o pacote NuGet
+`Microsoft.Windows.SDK.BuildTools` com hash conferido. A identidade do pacote,
+o envio e o teste local estão em [LOJA-MICROSOFT.md](LOJA-MICROSOFT.md).
+
 ## AppImage e instalação no Linux
 
 O script `App/distribuicao/instalar.sh` faz o publish para Linux e ainda

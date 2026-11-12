@@ -21,7 +21,8 @@ namespace CofreDeSenhas.Janelas
 
         private async Task VerificarAtualizacaoAsync()
         {
-            if (!Preferencias.VerificarAtualizacoes)
+            // Na versão da Microsoft Store quem atualiza é a Loja (ver PacoteLoja).
+            if (PacoteLoja.Empacotado || !Preferencias.VerificarAtualizacoes)
                 return;
 
             var atualizacao = await ServicoAtualizacao.VerificarNovaVersaoAsync();
