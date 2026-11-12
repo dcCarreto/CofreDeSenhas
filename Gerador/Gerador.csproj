@@ -23,6 +23,15 @@
 
     <!-- Janelas só têm construtor com parâmetros; não usamos o loader dinâmico de XAML -->
     <NoWarn>$(NoWarn);AVLN3001</NoWarn>
+
+    <!-- Publicação em arquivo único (portátil e instalador no Windows): as DLLs
+         nativas do Avalonia/Skia (libSkiaSharp, libHarfBuzzSharp, av_libglesv2) e
+         das demais dependências vão dentro do .exe e são extraídas na primeira
+         execução. Sem isto elas ficavam soltas ao lado do .exe na pasta de
+         publicação; o instalador funcionava porque copia a pasta inteira, mas o
+         portátil — só o .exe — quebrava na inicialização com DllNotFoundException
+         ao carregar o SkiaSharp. Só tem efeito com PublishSingleFile=true. -->
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
   </PropertyGroup>
 
   <ItemGroup>
