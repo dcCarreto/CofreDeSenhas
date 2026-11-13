@@ -54,7 +54,7 @@ texto continuam disponíveis em **Configurações > Aparência** e
 - **Windows**: `winget install dcCarreto.CofreDeSenhas`, ou baixe e rode
   `CofreDeSenhas-Setup-*.exe` (instalador, não exige administrador) ou
   `CofreDeSenhas.exe` (portátil) na [última release](../../releases/latest).
-  Em breve também na **Microsoft Store**, com as atualizações feitas pela
+  Também na [**Microsoft Store**](https://apps.microsoft.com/detail/9ND5J5DZBH90), com as atualizações feitas pela
   própria Loja.
 - **Linux**: baixe `CofreDeSenhas-*-x86_64.AppImage` na
   [última release](../../releases/latest), dê permissão de execução e rode.

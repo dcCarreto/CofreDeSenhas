@@ -59,8 +59,8 @@ are still available under **Settings > Appearance** and **Accessibility**.
 - **Windows**: `winget install dcCarreto.CofreDeSenhas`, or download and run
   `CofreDeSenhas-Setup-*.exe` (installer, no admin rights required) or
   `CofreDeSenhas.exe` (portable) from the [latest release](../../releases/latest).
-  Coming soon to the **Microsoft Store** as well, with updates handled by the
-  Store itself.
+  Also on the [**Microsoft Store**](https://apps.microsoft.com/detail/9ND5J5DZBH90), with updates handled by the Store
+  itself.
 - **Linux**: download `CofreDeSenhas-*-x86_64.AppImage` from the [latest
   release](../../releases/latest), `chmod +x` it and run it.
 
