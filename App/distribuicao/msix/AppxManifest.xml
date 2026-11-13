@@ -30,7 +30,10 @@
     ProcessorArchitecture="x64" />
 
   <Properties>
-    <DisplayName>Cofre de Senhas</DisplayName>
+    <!-- Tem que ser igual ao nome reservado no Partner Center ("Cofre de Senhas" já
+         estava reservado por outra conta). O nome curto no menu Iniciar fica em
+         uap:VisualElements, abaixo. -->
+    <DisplayName>Cofre de Senhas - Gerenciador de Senhas</DisplayName>
     <PublisherDisplayName>__NOME_EDITOR__</PublisherDisplayName>
     <Logo>Imagens\StoreLogo.png</Logo>
     <desktop6:FileSystemWriteVirtualization>disabled</desktop6:FileSystemWriteVirtualization>
