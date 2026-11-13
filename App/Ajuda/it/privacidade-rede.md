@@ -1,7 +1,9 @@
 # Privacy e rete
 
-Per impostazione predefinita, l'applicazione **non accede a internet**. Le
-funzioni qui sotto sono facoltative e attivi ciascuna sapendo cosa fa.
+Per impostazione predefinita, l'applicazione usa internet solo per cercare e
+scaricare i propri aggiornamenti, senza inviare alcun tuo dato (vedi
+[Aggiornamenti](atualizacoes)); si può disattivare. Le altre funzioni qui
+sotto sono facoltative e attivi ciascuna sapendo cosa fa.
 
 ## Icone dei servizi online
 

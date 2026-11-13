@@ -42,6 +42,12 @@ computador; o QR é independente. Se ainda consegue abrir o cofre (pela
 senha ou pelo Hello), gere um **novo QR code** em
 *Configurações → Segurança* e guarde-o.
 
+## O aplicativo se atualiza sozinho?
+
+Sim. Ele baixa as versões novas em segundo plano, confere a assinatura e
+instala quando o cofre é bloqueado; o cofre e as preferências continuam os
+mesmos. Detalhes e como desligar em [Atualizações](atualizacoes).
+
 ## Posso usar sem instalar nada além do aplicativo?
 
 Sim. O cofre local não precisa de banco, servidor nem conta. Os recursos

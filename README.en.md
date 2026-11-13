@@ -68,7 +68,7 @@ Once installed, the app updates itself: it downloads new versions in the
 background, checks their signature and installs them when the vault is locked
 (you can turn this off under **Settings > Behavior**).
 
-Full walkthrough, the `cofre` command-line tool and file integrity
+Full walkthrough, updates, the `cofre` command-line tool and file integrity
 verification in [docs/INSTALACAO.md](docs/INSTALACAO.md) (in Portuguese).
 
 ## Learn more
@@ -85,8 +85,8 @@ verification in [docs/INSTALACAO.md](docs/INSTALACAO.md) (in Portuguese).
   Portuguese).
 - [Privacy policy](PRIVACY.en.md) — what data the app stores, what goes over
   the network (and when), and how to delete everything.
-- [Download and installation](docs/INSTALACAO.md) — Windows, Linux, the CLI
-  and integrity verification (in Portuguese).
+- [Download and installation](docs/INSTALACAO.md) — Windows, Linux, updates,
+  the CLI and integrity verification (in Portuguese).
 - [Architecture and technologies](docs/ARQUITETURA.md) — project structure,
   layers and stack (in Portuguese).
 - [Building and testing](docs/DESENVOLVIMENTO.md) — running, testing and

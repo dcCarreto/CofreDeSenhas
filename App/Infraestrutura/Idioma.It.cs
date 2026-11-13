@@ -141,7 +141,7 @@ namespace CofreDeSenhas
             ("Ajuda.Topico.BancoDeDados", "Database"),
             ("Ajuda.Topico.WindowsHello", "Windows Hello"),
             ("Ajuda.Topico.ImportarExportar", "Importa ed esporta"),
-            ("Ajuda.Topico.PrivacidadeRede", "Privacy e rete"),
+            ("Ajuda.Topico.PrivacidadeRede", "Privacy e rete"), ("Ajuda.Topico.Atualizacoes", "Aggiornamenti"),
             ("Ajuda.Topico.AparenciaAcessibilidade", "Aspetto e accessibilità"),
             ("Ajuda.Topico.Atalhos", "Scorciatoie da tastiera"),
             ("Ajuda.Topico.Faq", "Domande frequenti"),

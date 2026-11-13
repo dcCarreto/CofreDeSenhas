@@ -12,8 +12,9 @@ nur durch Ihr Master-Passwort geöffnet wird.
   Ihrem Master-Passwort abgeleitet.
 - Ohne das Master-Passwort ist die Tresordatei unlesbar — auch für
   jemanden mit Zugriff auf Ihren Computer.
-- Nichts verlässt Ihren Computer von selbst. Die wenigen Funktionen, die
-  das Netzwerk nutzen, sind optional und in
+- Ihre Daten verlassen Ihren Computer nicht. Von sich aus nutzt die App
+  das Netzwerk nur, um sich aktuell zu halten (siehe [Updates](atualizacoes));
+  die übrigen Funktionen, die das Netzwerk nutzen, sind optional und in
   [Datenschutz und Netzwerk](privacidade-rede) beschrieben.
 
 ## Wo der Tresor liegt

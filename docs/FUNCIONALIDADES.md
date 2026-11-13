@@ -259,7 +259,7 @@ cofre, tudo calculado localmente e sem enviar nada para fora:
   do sistema. A aba Aparência oferece tema Claro, Escuro ou Sistema, densidade
   Confortável ou Compacta, posição do painel de detalhes e perfis de aparência
   salvos. Catálogo de ícones de traço fino e consistente em toda a interface.
-- Manual embutido nos seis idiomas da interface, com 15 tópicos do primeiro
+- Manual embutido nos seis idiomas da interface, com 16 tópicos do primeiro
   acesso ao FAQ, aberto pelo botão "?" na barra de título, pelo menu Ajuda ou
   pela tecla F1 — que abre no tópico da tela atual.
 - Modo privacidade: um botão na barra de título (ou o atalho `Ctrl+H`) oculta
@@ -298,7 +298,8 @@ cofre, tudo calculado localmente e sem enviar nada para fora:
 - Mesma interface e comportamento no Windows e no Linux.
 
 A janela de Configurações reúne, em abas, a aparência, o comportamento (senha
-mestra, bloqueio automático, idioma, ícones online), a segurança e o Windows
+mestra, bloqueio automático, idioma, ícones online, atualização automática), a
+segurança e o Windows
 Hello, o backup e a sincronização, a acessibilidade e a ajuda, além de uma aba
 "Zona de perigo" para limpar ou excluir o cofre:
 

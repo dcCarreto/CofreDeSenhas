@@ -1,7 +1,9 @@
 # Privacy and network
 
-By default, the app **does not access the internet**. The features below
-are optional and you turn each one on knowing what it does.
+By default, the app only uses the internet to check for and download its
+own updates, without sending any of your data (see [Updates](atualizacoes));
+you can turn this off. The other features below are optional and you turn
+each one on knowing what it does.
 
 ## Online service icons
 

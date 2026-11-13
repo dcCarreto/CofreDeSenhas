@@ -2,8 +2,8 @@
 
 [← Voltar ao README](../README.md)
 
-Passo a passo completo de instalação, desinstalação, CLI e verificação de
-integridade.
+Passo a passo completo de instalação, atualização, desinstalação, CLI e
+verificação de integridade.
 
 A forma mais simples de usar o programa é baixar o executável pronto na página de
 [releases](../../../releases). Em qualquer plataforma, o binário é autocontido: não
@@ -126,9 +126,43 @@ funcionam em ambientes X11 e Wayland.
 
 Pacotes `.deb` e Flatpak foram avaliados e ficaram de fora por enquanto: exigem
 manter um repositório próprio (ou publicação no Flathub) para atualizações
-automáticas, o que não compensa o esforço com um único mantenedor e o AppImage
-já cobre o caso de uso de "baixar e rodar" sem depender de gerenciador de
-pacotes. Fica como possibilidade futura se houver demanda.
+automáticas, o que não compensa o esforço com um único mantenedor, e o AppImage
+já cobre o caso de uso de "baixar e rodar" — e se atualiza sozinho — sem
+depender de gerenciador de pacotes. Fica como possibilidade futura se houver
+demanda.
+
+## Atualizações
+
+O programa se atualiza sozinho, sem você precisar baixar nem clicar em nada:
+
+1. Ao abrir o cofre, e depois a cada 6 horas, ele consulta a última release no
+   GitHub.
+2. Havendo versão nova, baixa em segundo plano e confere a assinatura do
+   `CHECKSUMS.txt` e o SHA256 do arquivo (detalhes em
+   [SECURITY.md](../SECURITY.md#confiança-nos-binários-e-verificação-dos-downloads)).
+   Se algo não conferir, a atualização é descartada.
+3. O rodapé passa a mostrar "Atualização pronta". No próximo bloqueio do cofre
+   (manual ou por inatividade), o programa fecha, instala a versão nova e abre
+   de novo, já na tela de desbloqueio. O botão **Instalar agora** do rodapé
+   antecipa, mostrando antes o que muda na versão.
+
+Para desligar: **Configurações > Comportamento > Atualizar automaticamente**.
+Quem já usava o programa antes dessa mudança (quando a verificação era opcional
+e só avisava) passa a ter a atualização automática ligada e vê um aviso no
+rodapé na primeira abertura.
+
+| Instalado por | Como atualiza |
+|---|---|
+| Instalador ou `winget` | Sozinho. Se você instalou "para todos os usuários" (em Arquivos de Programas), o Windows pede permissão de administrador: clique em **Instalar agora** quando o rodapé avisar. `winget upgrade dcCarreto.CofreDeSenhas` também funciona. |
+| Executável portátil | Sozinho; o próprio `.exe` é trocado pela versão nova. Ele precisa estar numa pasta em que você possa gravar. |
+| Microsoft Store | Pela Loja, conforme a configuração de atualização de aplicativos dela; o programa baixa assim que a Loja oferece e instala no bloqueio do cofre. |
+| AppImage (Linux) | Sozinho; o `.AppImage` é trocado pelo novo. |
+| `.tar.gz` ou `instalar.sh` (Linux) | Manualmente: baixe a release nova (ou, compilando do código-fonte, atualize o repositório e rode `instalar.sh` de novo). |
+| Linha de comando `cofre` e gerador avulso | Manualmente: são arquivos à parte; baixe as versões novas na [página de releases](../../../releases/latest). |
+
+A atualização não toca no cofre, nos backups nem nas preferências. O arquivo
+baixado fica na pasta temporária do sistema até ser instalado e é apagado na
+abertura seguinte do programa — veja [Armazenamento de dados](ARMAZENAMENTO.md).
 
 ## Primeiro uso
 
@@ -174,6 +208,7 @@ gh attestation verify arquivo-baixado --owner dcCarreto
 
 Os arquivos ainda não são assinados digitalmente (Authenticode, no caso do
 Windows) — por ora, hash + attestation são as formas de verificação
-disponíveis. Veja também a [verificação com assinatura
+disponíveis. A versão da Microsoft Store, quando sair, é assinada pela própria
+Microsoft. Veja também a [verificação com assinatura
 RSA/GPG](../SECURITY.md#confiança-nos-binários-e-verificação-dos-downloads)
 usada pelo atualizador automático.

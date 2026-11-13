@@ -12,8 +12,9 @@ password principale.
   la cassaforte.
 - Senza la password principale, il file della cassaforte è illeggibile —
   anche per chi ha accesso al tuo computer.
-- Niente lascia il tuo computer da solo. Le poche funzioni che usano la
-  rete sono facoltative e descritte in
+- I tuoi dati non lasciano il computer. Da sola, l'app usa la rete solo
+  per restare aggiornata (vedi [Aggiornamenti](atualizacoes)); le altre
+  funzioni che usano la rete sono facoltative e descritte in
   [Privacy e rete](privacidade-rede).
 
 ## Dove risiede la cassaforte

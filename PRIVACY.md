@@ -17,9 +17,11 @@ Microsoft Store.
 - O autor **não opera nenhum servidor** para o aplicativo e **não recebe, coleta
   nem armazena** nenhum dado seu. Não há conta, cadastro, telemetria, análise de
   uso, relatório de falhas automático nem publicidade.
-- Por padrão, o aplicativo **não acessa a internet**. Os poucos recursos que usam
-  a rede são opcionais, ligados por você, e estão descritos abaixo com exatamente
-  o que enviam e para quem.
+- Por padrão, o aplicativo só acessa a internet para **procurar e baixar as
+  próprias atualizações** nas releases do GitHub, sem enviar nenhum dado seu
+  (seção 3.3); isso pode ser desligado. Os demais recursos que usam a rede são
+  opcionais, ligados por você, e estão descritos abaixo com exatamente o que
+  enviam e para quem.
 
 ## 1. Dados que o aplicativo guarda no seu computador
 
@@ -61,6 +63,13 @@ Além do cofre, a mesma pasta pode conter:
 | `logs/erros.log` | Log de diagnóstico (ver seção 2). | Não |
 | `icones/` | Cache de ícones de sites, só com os ícones online ligados. O nome de cada arquivo é um hash do domínio. | Não |
 | `vozes/` | Modelos de voz para leitura em voz alta, só se você baixá-los. | Não |
+
+Fora dessa pasta, o aplicativo grava apenas os **downloads de atualização**, numa
+pasta `CofreDeSenhas-update-*` dentro da pasta temporária do sistema. São os
+mesmos arquivos públicos das releases do GitHub, sem nenhum dado seu, e são
+apagados na abertura seguinte do aplicativo. A versão da Microsoft Store usa a
+mesma pasta de dados acima (não uma pasta privada do pacote), por isso
+desinstalá-la não apaga o cofre.
 
 ## 2. Logs de diagnóstico
 
@@ -203,6 +212,10 @@ Como os dados ficam no seu computador, você controla quanto tempo eles existem:
 - **Para apagar tudo**, inclusive logs, cache de ícones, vozes e preferências,
   apague a pasta de dados inteira (seção 1). No Windows, o desinstalador oferece
   essa opção ao final da desinstalação.
+- **Downloads de atualização** ficam na pasta temporária do sistema só até
+  serem instalados e são apagados na abertura seguinte do aplicativo.
+- Desinstalar o aplicativo pela **Microsoft Store** não apaga a pasta de dados;
+  para apagar tudo, remova-a manualmente.
 - Dados gravados **fora** do computador por sua escolha — a pasta de
   sincronização, um banco de dados externo ou arquivos exportados — não são
   apagados pelo aplicativo; remova-os diretamente onde estão.

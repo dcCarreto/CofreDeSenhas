@@ -1,8 +1,10 @@
 # Confidentialité et réseau
 
-Par défaut, l'application **n'accède pas à Internet**. Les fonctions
-ci-dessous sont facultatives et vous activez chacune en sachant ce qu'elle
-fait.
+Par défaut, l'application n'utilise Internet que pour rechercher et
+télécharger ses propres mises à jour, sans envoyer aucune de vos données
+(voyez [Mises à jour](atualizacoes)) ; vous pouvez le désactiver. Les autres
+fonctions ci-dessous sont facultatives et vous activez chacune en sachant ce
+qu'elle fait.
 
 ## Icônes en ligne des services
 

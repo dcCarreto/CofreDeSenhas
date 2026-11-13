@@ -17,9 +17,11 @@ Microsoft Store.
 - The author **runs no server** for the app and **does not receive, collect or
   store** any of your data. There is no account, sign-up, telemetry, usage
   analytics, automatic crash reporting or advertising.
-- By default, the app **does not access the internet**. The few features that use
-  the network are optional, turned on by you, and described below with exactly
-  what they send and to whom.
+- By default, the app only accesses the internet to **check for and download
+  its own updates** from GitHub releases, without sending any of your data
+  (section 3.3); this can be turned off. The other features that use the network
+  are optional, turned on by you, and described below with exactly what they send
+  and to whom.
 
 ## 1. Data the app stores on your computer
 
@@ -58,6 +60,13 @@ Besides the vault, the same folder may contain:
 | `logs/erros.log` | Diagnostic log (see section 2). | No |
 | `icones/` | Website icon cache, only with online icons turned on. Each file name is a hash of the domain. | No |
 | `vozes/` | Text-to-speech voice models, only if you download them. | No |
+
+Outside that folder, the app only writes **update downloads**, in a
+`CofreDeSenhas-update-*` folder inside the system's temporary folder. They are
+the same public files as the GitHub releases, with none of your data, and are
+deleted the next time the app opens. The Microsoft Store version uses the same
+data folder above (not a private package folder), so uninstalling it does not
+delete the vault.
 
 ## 2. Diagnostic logs
 
@@ -198,6 +207,10 @@ Because the data stays on your computer, you control how long it exists:
 - **To delete everything**, including logs, icon cache, voices and preferences,
   delete the whole data folder (section 1). On Windows, the uninstaller offers this
   option at the end of uninstallation.
+- **Update downloads** stay in the system's temporary folder only until they
+  are installed and are deleted the next time the app opens.
+- Uninstalling the app from the **Microsoft Store** does not delete the data
+  folder; to delete everything, remove it manually.
 - Data written **outside** the computer by your choice — the sync folder, an
   external database or exported files — is not deleted by the app; remove it
   directly where it lives.

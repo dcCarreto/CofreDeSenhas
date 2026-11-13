@@ -1,8 +1,10 @@
 # Privatsphäre und Netzwerk
 
-Standardmäßig **greift die Anwendung nicht auf das Internet zu**. Die
-folgenden Funktionen sind optional, und Sie schalten jede einzeln ein, im
-Wissen, was sie tut.
+Standardmäßig nutzt die Anwendung das Internet nur, um nach eigenen Updates
+zu suchen und sie herunterzuladen, ohne Daten von Ihnen zu senden (siehe
+[Updates](atualizacoes)); das lässt sich ausschalten. Die übrigen Funktionen
+unten sind optional, und Sie schalten jede einzeln ein, im Wissen, was sie
+tut.
 
 ## Online-Symbole für Dienste
 

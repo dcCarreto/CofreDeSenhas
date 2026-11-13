@@ -1,7 +1,9 @@
 # Privacidade e rede
 
-Por padrão, o aplicativo **não acessa a internet**. Os recursos abaixo são
-opcionais e você liga cada um sabendo o que ele faz.
+Por padrão, o aplicativo só usa a internet para procurar e baixar as
+própias atualizações, sem enviar nenhum dado seu (veja
+[Atualizações](atualizacoes)); dá para desligar. Os demais recursos abaixo
+são opcionais e você liga cada um sabendo o que ele faz.
 
 ## Ícones online dos serviços
 

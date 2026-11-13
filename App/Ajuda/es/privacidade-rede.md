@@ -1,7 +1,9 @@
 # Privacidad y red
 
-Por defecto, la aplicación **no accede a internet**. Las funciones de abajo
-son opcionales y activas cada una sabiendo lo que hace.
+Por defecto, la aplicación solo usa internet para buscar y descargar sus
+propias actualizaciones, sin enviar ningún dato tuyo (consulta
+[Actualizaciones](atualizacoes)); se puede desactivar. Las demás funciones de
+abajo son opcionales y activas cada una sabiendo lo que hace.
 
 ## Iconos en línea de los servicios
 

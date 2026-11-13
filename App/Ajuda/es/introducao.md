@@ -10,9 +10,10 @@ archivo en tu disco, abierto solo por tu contraseña maestra.
   se deriva de tu contraseña maestra cada vez que abres la caja.
 - Sin la contraseña maestra, el archivo de la caja es ilegible, incluso
   para quien tenga acceso a tu ordenador.
-- Nada sale de tu ordenador por sí solo. Las pocas funciones que usan la
-  red son opcionales y están descritas en
-  [Privacidad y red](privacidade-rede).
+- Tus datos no salen de tu ordenador. Por sí sola, la aplicación solo usa
+  la red para mantenerse actualizada (consulta
+  [Actualizaciones](atualizacoes)); las demás funciones que usan la red son
+  opcionales y están descritas en [Privacidad y red](privacidade-rede).
 
 ## Dónde vive la caja
 

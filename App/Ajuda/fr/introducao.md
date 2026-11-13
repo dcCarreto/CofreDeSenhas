@@ -12,8 +12,10 @@ uniquement par votre mot de passe maître.
   ouverture du coffre.
 - Sans le mot de passe maître, le fichier du coffre est illisible — y
   compris pour quelqu'un ayant accès à votre ordinateur.
-- Rien ne quitte votre ordinateur de lui-même. Les rares fonctions qui
-  utilisent le réseau sont facultatives et décrites dans
+- Vos données ne quittent pas votre ordinateur. De lui-même,
+  l'application n'utilise le réseau que pour rester à jour (voyez
+  [Mises à jour](atualizacoes)) ; les autres fonctions qui utilisent le
+  réseau sont facultatives et décrites dans
   [Confidentialité et réseau](privacidade-rede).
 
 ## Où se trouve le coffre
