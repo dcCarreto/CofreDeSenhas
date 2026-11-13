@@ -28,6 +28,17 @@ embutido do programa também continua funcionando). O pacote no `winget`
 costuma chegar algumas horas depois de cada release, porque cada versão passa
 pela validação da Microsoft.
 
+Em breve o Cofre de Senhas também estará na **Microsoft Store**. A versão da
+Loja é o mesmo programa, com duas diferenças:
+
+- as atualizações chegam pela própria Loja, e o atualizador embutido fica
+  desligado (a opção "Verificar atualizações" não aparece nas Configurações);
+- desinstalar pela Loja nunca apaga o cofre. Ele fica no mesmo
+  `%APPDATA%\GerenciadorSenhas` das outras formas de instalação. Por isso dá
+  para trocar entre a Loja, o instalador e o portátil sem perder nada, e a
+  linha de comando `cofre` enxerga os mesmos dados. Para apagar o cofre de
+  vez, remova essa pasta manualmente.
+
 Para instalar sem o `winget`:
 
 1. Acesse a [última release](../../../releases/latest).

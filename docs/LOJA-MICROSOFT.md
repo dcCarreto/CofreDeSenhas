@@ -60,6 +60,10 @@ assinatura de código.
    - **Notas para a certificação:** cole a justificativa das capacidades
      restritas, abaixo.
 5. A certificação costuma levar de algumas horas a 3 dias úteis.
+6. Com o app no ar, troque o "Em breve também na Microsoft Store" do
+   [README](../README.md), do [README.en](../README.en.md) e do
+   [INSTALACAO.md](INSTALACAO.md) pelo link da página da Loja
+   (`https://apps.microsoft.com/detail/<ID da Loja>`).
 
 ### Justificativa das capacidades restritas
 
