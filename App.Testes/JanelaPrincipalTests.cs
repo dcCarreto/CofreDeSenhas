@@ -1910,16 +1910,16 @@ namespace App.Testes
         [AvaloniaFact]
         public async Task AtualizarAgora_Click_PedeConfirmacaoComNotasAntesDeIniciarAAtualizacao()
         {
-            // Antes da correção, "Atualizar agora" já disparava o download e a
-            // instalação silenciosa direto — sem mostrar o que mudava, o app podia
-            // se fechar sozinho pra aplicar a atualização sem o usuário nunca ter
+            // A instalação automática acontece no bloqueio do cofre; o botão do rodapé
+            // antecipa e fecha o app na hora. Antes disso ele mostra o que muda e pede
+            // confirmação — sem isso o app se fecharia no meio do uso sem o usuário ter
             // visto do que se tratava.
             var (servico, chave) = CriarServico();
             var janela = new JanelaPrincipal(servico, chave);
             janela.Show();
             await TesteUtil.AguardarAsync(() => false, tentativas: 5);
 
-            janela.ExibirAtualizacaoDisponivel(new AtualizacaoDisponivel("v2026.9.9", "- Item um\n- Item dois"));
+            janela.ExibirAtualizacaoPronta("- Item um\n- Item dois");
 
             janela.Encontrar<Button>("BtnAtualizarAgora").RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
             await TesteUtil.AguardarAsync(() => janela.OwnedWindows.OfType<CaixaMensagem>().Any());
@@ -1927,13 +1927,39 @@ namespace App.Testes
             var dialogo = janela.OwnedWindows.OfType<CaixaMensagem>().Single();
             Assert.Equal(Idioma.Texto("Update.ConfirmTitle"), dialogo.Title);
 
-            // Cancelar aqui não pode chegar a chamar ServicoAtualizacao.AtualizarAgoraAsync
-            // (rede de verdade) — o texto do botão só muda pra "Baixando..." se o fluxo
-            // de download/instalação for iniciado.
+            // Cancelar aqui não pode chegar a instalar nada — o texto do botão só muda
+            // pra "Instalando..." se a instalação for iniciada.
             dialogo.BotaoPorTexto(Idioma.Texto("Common.No")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
             await TesteUtil.AguardarAsync(() => false, tentativas: 5);
 
             Assert.Equal(Idioma.Texto("Update.Now"), janela.Encontrar<TextBlock>("LblBtnAtualizarAgora").Text);
+        }
+
+        [AvaloniaFact]
+        public async Task AvisoAtualizacaoAutomatica_NaoAbreDialogoEFicaMarcadoComoVisto()
+        {
+            // Nada da atualização automática pode depender de um clique: o aviso único
+            // para quem já usava o app não pode ser uma caixa com botão OK esperando.
+            var original = Preferencias.AvisoAtualizacaoAutomaticaPendente;
+            try
+            {
+                var (servico, chave) = CriarServico();
+                var janela = new JanelaPrincipal(servico, chave);
+                janela.Show();
+                await TesteUtil.AguardarAsync(() => false, tentativas: 5);
+
+                Preferencias.AvisoAtualizacaoAutomaticaPendente = true;
+                janela.MostrarAvisoAtualizacaoAutomatica();
+                await TesteUtil.AguardarAsync(() => false, tentativas: 5);
+
+                Assert.Empty(janela.OwnedWindows.OfType<CaixaMensagem>());
+                Assert.False(Preferencias.AvisoAtualizacaoAutomaticaPendente);
+            }
+            finally
+            {
+                Preferencias.AvisoAtualizacaoAutomaticaPendente = original;
+                Preferencias.Salvar();
+            }
         }
 
         [AvaloniaFact]

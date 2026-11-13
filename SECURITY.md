@@ -6,8 +6,10 @@ O Cofre de Senhas não tem número de versão: é um produto único, atualizado 
 updates comuns, sem branches de manutenção paralelas. Correções de segurança
 entram na release mais recente, disponível nas
 [releases do GitHub](https://github.com/dcCarreto/CofreDeSenhas/releases). O próprio
-aplicativo pode avisar sobre atualizações pelo menu de configurações
-("Verificar atualizações"), recurso opcional e desligado por padrão.
+aplicativo se atualiza sozinho ("Atualizar automaticamente", ligado por padrão
+e desligável nas configurações): baixa a release nova em segundo plano, confere a
+assinatura do `CHECKSUMS.txt` e o SHA256 e instala quando o cofre é bloqueado. A
+versão da Microsoft Store é atualizada pela própria Loja.
 
 ## Confiança nos binários e verificação dos downloads
 
@@ -27,6 +29,8 @@ Na prática, hoje:
   em "Mais informações" e depois em "Executar assim mesmo". A reputação do
   SmartScreen tende a se acumular sozinha conforme mais gente baixa a mesma
   release.
+- **Microsoft Store** (em breve): o pacote é assinado pela própria Microsoft na
+  certificação, então quem instala por lá não vê o aviso do SmartScreen.
 - **Linux**: o `.AppImage` precisa de permissão de execução (`chmod +x`) e não
   há, por ora, pacote assinado em repositório de distribuição nem loja.
 

@@ -20,6 +20,7 @@ namespace CofreDeSenhas
             ("windows-hello", "Ajuda.Topico.WindowsHello"),
             ("importar-exportar", "Ajuda.Topico.ImportarExportar"),
             ("privacidade-rede", "Ajuda.Topico.PrivacidadeRede"),
+            ("atualizacoes", "Ajuda.Topico.Atualizacoes"),
             ("aparencia-acessibilidade", "Ajuda.Topico.AparenciaAcessibilidade"),
             ("atalhos", "Ajuda.Topico.Atalhos"),
             ("faq", "Ajuda.Topico.Faq")

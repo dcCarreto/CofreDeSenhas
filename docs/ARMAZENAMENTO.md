@@ -14,8 +14,28 @@ em `~/.config/GerenciadorSenhas/` no Linux:
   do cofre (nunca em texto puro).
 - `anexos/`: um arquivo `.enc` por anexo, cada um cifrado com a chave do cofre.
 - `backups/`: cópias de segurança do cofre.
+- `recuperacao.dat`: só com a chave de recuperação ativada; a chave do cofre
+  cifrada pelo segredo de recuperação.
+- `pontuacao-historico.json`: datas e notas da pontuação de segurança, para o
+  gráfico de evolução (sem nomes de serviço nem senhas).
+- `logs/erros.log`: log de diagnóstico, sem dados do cofre.
+- `icones/`: cache dos ícones dos sites, só com os ícones online ligados.
+- `vozes/`: modelos de voz para leitura em voz alta, só se você baixá-los.
 
-Esses arquivos não fazem parte do repositório e contêm dados sensíveis.
+Esses arquivos não fazem parte do repositório e contêm dados sensíveis. A lista
+completa, com o que é cifrado e o que não é, está na
+[política de privacidade](../PRIVACY.md#1-dados-que-o-aplicativo-guarda-no-seu-computador).
+
+A versão da **Microsoft Store** usa exatamente a mesma pasta: o pacote não
+redireciona a gravação para uma pasta privada. Por isso o cofre é o mesmo do
+instalador, do portátil e da linha de comando `cofre`, e desinstalar a versão
+da Loja não o apaga.
+
+Os **downloads de atualização** ficam numa pasta `CofreDeSenhas-update-*`
+dentro da pasta temporária do sistema (`%TEMP%` no Windows, `/tmp` no Linux) até
+serem instalados, e são apagados na abertura seguinte do aplicativo. São os
+mesmos arquivos públicos das releases, sem nenhum dado seu. A atualização nunca
+mexe na pasta de dados.
 
 Com a sincronização por pasta ligada, a pasta compartilhada escolhida recebe:
 

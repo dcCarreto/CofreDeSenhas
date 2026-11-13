@@ -51,14 +51,20 @@ texto continuam disponíveis em **Configurações > Aparência** e
 
 ## Baixe e instale
 
-- **Windows**: baixe e rode `CofreDeSenhas-Setup-*.exe` (instalador, não exige
-  administrador) ou `CofreDeSenhas.exe` (portátil) na
-  [última release](../../releases/latest).
+- **Windows**: `winget install dcCarreto.CofreDeSenhas`, ou baixe e rode
+  `CofreDeSenhas-Setup-*.exe` (instalador, não exige administrador) ou
+  `CofreDeSenhas.exe` (portátil) na [última release](../../releases/latest).
+  Em breve também na **Microsoft Store**, com as atualizações feitas pela
+  própria Loja.
 - **Linux**: baixe `CofreDeSenhas-*-x86_64.AppImage` na
   [última release](../../releases/latest), dê permissão de execução e rode.
 
-Passo a passo completo, linha de comando `cofre` e verificação de integridade
-dos arquivos em [docs/INSTALACAO.md](docs/INSTALACAO.md).
+Depois de instalado, o programa se atualiza sozinho: baixa as versões novas em
+segundo plano, confere a assinatura e instala quando o cofre é bloqueado (dá para
+desligar em **Configurações > Comportamento**).
+
+Passo a passo completo, atualizações, linha de comando `cofre` e verificação
+de integridade dos arquivos em [docs/INSTALACAO.md](docs/INSTALACAO.md).
 
 ## Saiba mais
 
@@ -73,8 +79,8 @@ dos arquivos em [docs/INSTALACAO.md](docs/INSTALACAO.md).
 - [Política de segurança](SECURITY.md) — como reportar uma vulnerabilidade.
 - [Política de privacidade](PRIVACY.md) — que dados o aplicativo guarda, o que
   vai para a rede (e quando) e como apagar tudo.
-- [Download e instalação](docs/INSTALACAO.md) — Windows, Linux, CLI e
-  verificação de integridade.
+- [Download e instalação](docs/INSTALACAO.md) — Windows, Linux, atualizações,
+  CLI e verificação de integridade.
 - [Arquitetura e tecnologias](docs/ARQUITETURA.md) — estrutura do projeto,
   camadas e stack.
 - [Compilando e testando](docs/DESENVOLVIMENTO.md) — rodar, testar e gerar o

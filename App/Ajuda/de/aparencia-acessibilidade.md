@@ -25,7 +25,7 @@ Registerkarten.
   Passworts es aus der Zwischenablage gelöscht wird.
 - **Nutzungsverlauf aufzeichnen**: hält das Datum der letzten Kopie jedes
   Eintrags fest, was in den [Sicherheitsbericht](seguranca) einfließt.
-- **Nach Updates suchen**: siehe [Privatsphäre und Netzwerk](privacidade-rede).
+- **Automatisch aktualisieren**: siehe [Privatsphäre und Netzwerk](privacidade-rede).
 
 ## Barrierefreiheit
 

@@ -56,13 +56,19 @@ are still available under **Settings > Appearance** and **Accessibility**.
 
 ## Download and install
 
-- **Windows**: download and run `CofreDeSenhas-Setup-*.exe` (installer, no
-  admin rights required) or `CofreDeSenhas.exe` (portable) from the
-  [latest release](../../releases/latest).
+- **Windows**: `winget install dcCarreto.CofreDeSenhas`, or download and run
+  `CofreDeSenhas-Setup-*.exe` (installer, no admin rights required) or
+  `CofreDeSenhas.exe` (portable) from the [latest release](../../releases/latest).
+  Coming soon to the **Microsoft Store** as well, with updates handled by the
+  Store itself.
 - **Linux**: download `CofreDeSenhas-*-x86_64.AppImage` from the [latest
   release](../../releases/latest), `chmod +x` it and run it.
 
-Full walkthrough, the `cofre` command-line tool and file integrity
+Once installed, the app updates itself: it downloads new versions in the
+background, checks their signature and installs them when the vault is locked
+(you can turn this off under **Settings > Behavior**).
+
+Full walkthrough, updates, the `cofre` command-line tool and file integrity
 verification in [docs/INSTALACAO.md](docs/INSTALACAO.md) (in Portuguese).
 
 ## Learn more
@@ -79,8 +85,8 @@ verification in [docs/INSTALACAO.md](docs/INSTALACAO.md) (in Portuguese).
   Portuguese).
 - [Privacy policy](PRIVACY.en.md) — what data the app stores, what goes over
   the network (and when), and how to delete everything.
-- [Download and installation](docs/INSTALACAO.md) — Windows, Linux, the CLI
-  and integrity verification (in Portuguese).
+- [Download and installation](docs/INSTALACAO.md) — Windows, Linux, updates,
+  the CLI and integrity verification (in Portuguese).
 - [Architecture and technologies](docs/ARQUITETURA.md) — project structure,
   layers and stack (in Portuguese).
 - [Building and testing](docs/DESENVOLVIMENTO.md) — running, testing and

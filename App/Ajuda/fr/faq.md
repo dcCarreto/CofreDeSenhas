@@ -43,6 +43,13 @@ ordinateur ; le QR est indépendant. Si vous pouvez encore ouvrir le coffre
 (par mot de passe ou par Hello), générez un **nouveau QR code** dans
 *Paramètres → Sécurité* et conservez-le.
 
+## L'application se met-elle à jour toute seule ?
+
+Oui. Elle télécharge les nouvelles versions en arrière-plan, vérifie leur
+signature et les installe au verrouillage du coffre ; le coffre et les
+préférences restent les mêmes. Détails et désactivation dans
+[Mises à jour](atualizacoes).
+
 ## Puis-je l'utiliser sans rien installer d'autre que l'application ?
 
 Oui. Le coffre local n'a besoin ni de base de données, ni de serveur, ni

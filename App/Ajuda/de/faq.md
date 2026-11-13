@@ -46,6 +46,13 @@ noch öffnen können (per Passwort oder per Hello), erzeugen Sie einen
 **neuen QR-Code** unter *Einstellungen → Sicherheit* und bewahren Sie ihn
 auf.
 
+## Aktualisiert sich die App selbst?
+
+Ja. Sie lädt neue Versionen im Hintergrund herunter, prüft die Signatur und
+installiert sie, wenn der Tresor gesperrt wird; Tresor und Einstellungen
+bleiben gleich. Details und wie Sie es ausschalten unter
+[Updates](atualizacoes).
+
 ## Kann ich es nutzen, ohne außer der Anwendung etwas zu installieren?
 
 Ja. Der lokale Tresor braucht keine Datenbank, keinen Server und kein

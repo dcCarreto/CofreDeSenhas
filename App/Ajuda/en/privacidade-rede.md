@@ -1,7 +1,9 @@
 # Privacy and network
 
-By default, the app **does not access the internet**. The features below
-are optional and you turn each one on knowing what it does.
+By default, the app only uses the internet to check for and download its
+own updates, without sending any of your data (see [Updates](atualizacoes));
+you can turn this off. The other features below are optional and you turn
+each one on knowing what it does.
 
 ## Online service icons
 
@@ -10,11 +12,15 @@ sending **only the domain** (for example `github.com`). No password,
 username or note leaves the computer. Downloaded icons are cached on disk.
 When off, the vault shows initials only and never touches the network.
 
-## Check for updates
+## Update automatically
 
-When on, it queries the project's releases page to let you know if there's
-an update. Nothing is downloaded automatically, and nothing beyond that
-query is sent. Off by default.
+On by default. Checks the project's releases page when the vault is opened
+and every 6 hours; when there is a new version, it downloads it in the
+background, checks its signature and SHA-256 hash, and installs it when the
+vault is locked. The app closes and reopens already updated, on the unlock
+screen. To install right away, use **Install now** in the footer. No vault
+data is sent. When installed from the Microsoft Store, the Store itself
+handles updates and this option is not shown.
 
 ## Breach check
 

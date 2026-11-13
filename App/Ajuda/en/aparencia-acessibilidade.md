@@ -22,7 +22,7 @@ Everything here lives in **Settings**, split into tabs.
   wiped from the clipboard.
 - **Track usage history**: records the date of the last copy of each
   credential, which feeds the [Security report](seguranca).
-- **Check for updates**: see [Privacy and network](privacidade-rede).
+- **Update automatically**: see [Privacy and network](privacidade-rede).
 
 ## Accessibility
 

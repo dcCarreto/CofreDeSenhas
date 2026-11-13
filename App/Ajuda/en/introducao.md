@@ -11,8 +11,9 @@ is a file on your disk, opened only by your master password.
   vault.
 - Without the master password, the vault file is unreadable — including to
   anyone with access to your computer.
-- Nothing leaves your computer on its own. The few features that use the
-  network are optional and described in
+- Your data never leaves your computer. On its own, the app only uses the
+  network to keep itself up to date (see [Updates](atualizacoes)); the other
+  features that use the network are optional and described in
   [Privacy and network](privacidade-rede).
 
 ## Where the vault lives
