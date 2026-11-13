@@ -59,6 +59,10 @@ texto continuam disponíveis em **Configurações > Aparência** e
 - **Linux**: baixe `CofreDeSenhas-*-x86_64.AppImage` na
   [última release](../../releases/latest), dê permissão de execução e rode.
 
+Depois de instalado, o programa se atualiza sozinho: baixa as versões novas em
+segundo plano, confere a assinatura e instala quando o cofre é bloqueado (dá para
+desligar em **Configurações > Comportamento**).
+
 Passo a passo completo, linha de comando `cofre` e verificação de integridade
 dos arquivos em [docs/INSTALACAO.md](docs/INSTALACAO.md).
 

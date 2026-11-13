@@ -95,7 +95,9 @@ namespace CofreDeSenhas.Janelas
         private bool _naLixeira;
         private bool _modoPrivacidade;
         private bool _bloqueadoAteReiniciar;
-        private string? _versaoDisponivel;
+        private bool _atualizacaoPronta;
+        private bool _avisoAtualizacaoOculto;
+        private bool _mostrandoAvisoAtualizacaoAutomatica;
         private string? _notasVersaoDisponivel;
         private bool _atualizando;
         private List<Senha> _itensLixeira = new();
@@ -237,8 +239,9 @@ namespace CofreDeSenhas.Janelas
                 AjustarLargurasIniciais();
                 DigitacaoAutomatica.ComecarAObservar();
                 await IniciarAsync();
-                _ = VerificarAtualizacaoAsync();
+                IniciarAtualizacaoAutomatica();
                 _ = SincronizarAsync(silencioso: true);
+                MostrarAvisoAtualizacaoAutomatica();
             };
 
             GridCabecalhoTabela.SizeChanged += GridCabecalhoTabela_SizeChanged;
@@ -362,7 +365,7 @@ namespace CofreDeSenhas.Janelas
                 LimparCofre = () => LimparCofre_Click(this, vazio),
                 ExcluirCofre = () => ExcluirCofre_Click(this, vazio),
                 DefinirBloqueioAutomatico = AplicarBloqueioAutomatico,
-                DefinirVerificarAtualizacoes = AplicarVerificarAtualizacoes,
+                DefinirAtualizacaoAutomatica = AplicarAtualizacaoAutomatica,
                 DefinirIconesOnline = AplicarIconesOnline,
                 WindowsHelloSuportado = _biometria.SistemaSuportado,
                 WindowsHelloAtivo = _biometria.EstaHabilitado,
@@ -490,8 +493,8 @@ namespace CofreDeSenhas.Janelas
                 LblBtnAtualizarAgora.Text = Idioma.Texto("Update.Now");
                 AutomationProperties.SetName(BtnAtualizarAgora, LblBtnAtualizarAgora.Text);
             }
-            if (_versaoDisponivel != null)
-                LblAtualizacaoDisponivel.Text = Idioma.Texto("Update.Available");
+            if (_atualizacaoPronta)
+                LblAtualizacaoDisponivel.Text = TextoAtualizacaoPronta();
         }
 
         internal void AplicarIconesOnline(bool ligado)

@@ -2,11 +2,12 @@
 
 [English version](PRIVACY.en.md)
 
-**Vigente desde:** 6 de novembro de 2026
+**Vigente desde:** 12 de novembro de 2026
 **Aplica-se a:** Cofre de Senhas — aplicativo desktop para Windows e Linux, a
 linha de comando `cofre` e os instaladores distribuídos pelas
-[releases do GitHub](https://github.com/dcCarreto/CofreDeSenhas/releases) e pelo
-Windows Package Manager (winget, pacote `dcCarreto.CofreDeSenhas`).
+[releases do GitHub](https://github.com/dcCarreto/CofreDeSenhas/releases), pelo
+Windows Package Manager (winget, pacote `dcCarreto.CofreDeSenhas`) e pela
+Microsoft Store.
 **Responsável:** Denis Cristino Cantagallo Carreto, autor e mantenedor do projeto.
 
 ## Resumo
@@ -108,15 +109,24 @@ com esses dados é regido pela política de privacidade dele, não por esta.
 
 ### 3.3 Verificação e instalação de atualizações
 
-- **Quando:** só se você ligar "Verificar atualizações" nas configurações
-  (desligado por padrão). Com ele ligado, o aplicativo consulta a última release
-  ao iniciar.
+- **Quando:** com "Atualizar automaticamente" ligado nas configurações (ligado
+  por padrão), o aplicativo consulta a última release ao abrir o cofre e depois a
+  cada 6 horas enquanto ele fica aberto.
 - **O que é enviado:** uma consulta pública à API do GitHub
   (`api.github.com/repos/dcCarreto/CofreDeSenhas/releases/latest`), sem nenhum
   dado do cofre nem identificador seu ou do seu dispositivo.
-- Se você escolher "Atualizar agora", o instalador e os arquivos de verificação
-  (`CHECKSUMS.txt` e assinatura) são baixados das releases do GitHub. Nada é
-  baixado nem instalado sem a sua confirmação.
+- Havendo uma versão nova, o instalador (ou o executável portátil/AppImage) e os
+  arquivos de verificação (`CHECKSUMS.txt` e assinatura) são baixados das releases
+  do GitHub em segundo plano. A atualização só é instalada se a assinatura e o
+  SHA256 conferirem, e a instalação acontece quando o cofre é bloqueado.
+- Até a versão de 6 de novembro de 2026 esta verificação vinha desligada e nada
+  era instalado sem confirmação. Quem já usava o aplicativo passa a ter a
+  atualização automática ligada e vê um aviso na primeira abertura depois da
+  mudança. Ela pode ser desligada a qualquer momento em Configurações >
+  Comportamento.
+- **Versão da Microsoft Store:** não consulta o GitHub. Quem atualiza é a
+  própria Loja, conforme a configuração de atualização de aplicativos dela, sob a
+  [política de privacidade da Microsoft](https://privacy.microsoft.com/privacystatement).
 - **Destino:** GitHub — <https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement>.
 
 ### 3.4 Download de vozes para leitura em voz alta
@@ -202,7 +212,7 @@ Como os dados ficam no seu computador, você controla quanto tempo eles existem:
 | Recurso | Padrão | Onde mudar |
 |---|---|---|
 | Ícones online | Desligado | Configurações |
-| Verificar atualizações | Desligado | Configurações |
+| Atualizar automaticamente | Ligado | Configurações |
 | Verificação de vazamentos | Só sob demanda | Relatório de segurança |
 | Registro da última cópia | Ligado (fica dentro do cofre cifrado) | Configurações |
 | Sincronização por pasta | Desligada | Configurações |

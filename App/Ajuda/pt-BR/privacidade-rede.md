@@ -11,11 +11,15 @@ senha, usuário ou nota sai do computador. Os ícones baixados ficam em
 cache no disco. Desligado, o cofre mostra só as iniciais e não toca na
 rede.
 
-## Verificar atualizações
+## Atualizar automaticamente
 
-Quando ligado, consulta a página de lançamentos do projeto para avisar se
-há uma atualização. Nenhum download é feito automaticamente, e nada além
-dessa consulta é enviado. Desligado por padrão.
+Ligado por padrão. Consulta a página de lançamentos do projeto ao abrir o
+cofre e a cada 6 horas; havendo versão nova, baixa em segundo plano, confere
+a assinatura e o SHA256 e instala quando o cofre é bloqueado. O aplicativo
+fecha e abre de novo já atualizado, na tela de desbloqueio. Para instalar na
+hora, use **Instalar agora** no rodapé. Nenhum dado do cofre é enviado.
+Instalado pela Microsoft Store, quem atualiza é a própria Loja e a opção não
+aparece.
 
 ## Verificação de vazamentos
 

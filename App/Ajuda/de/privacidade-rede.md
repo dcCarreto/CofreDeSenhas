@@ -13,12 +13,16 @@ den Computer. Heruntergeladene Symbole werden auf der Festplatte
 zwischengespeichert. Ist es aus, zeigt der Tresor nur Initialen und rührt
 das Netzwerk nie an.
 
-## Nach Updates suchen
+## Automatisch aktualisieren
 
-Ist dies aktiv, wird die Release-Seite des Projekts abgefragt, um Sie auf
-ein Update hinzuweisen. Es wird nichts automatisch
-heruntergeladen, und außer dieser Abfrage wird nichts gesendet.
-Standardmäßig aus.
+Standardmäßig aktiv. Fragt beim Öffnen des Tresors und alle 6 Stunden die
+Release-Seite des Projekts ab; gibt es eine neue Version, wird sie im
+Hintergrund heruntergeladen, Signatur und SHA256 werden geprüft, und sie
+wird installiert, wenn der Tresor gesperrt wird. Die App schließt sich und
+startet bereits aktualisiert auf dem Entsperrbildschirm neu. Zum sofortigen
+Installieren **Jetzt installieren** in der Fußleiste verwenden. Es werden
+keine Tresordaten gesendet. Bei Installation aus dem Microsoft Store
+übernimmt der Store die Updates, und die Option wird nicht angezeigt.
 
 ## Leak-Prüfung
 

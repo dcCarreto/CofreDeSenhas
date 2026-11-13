@@ -306,18 +306,27 @@ Hello, o backup e a sincronização, a acessibilidade e a ajuda, além de uma ab
 
 ## Atualização automática
 
-- O item "Verificar atualizações" no menu de configurações (ligado por padrão)
-  consulta a release mais recente do GitHub a cada abertura do cofre. Havendo
-  uma atualização, a barra inferior mostra um botão "Atualizar agora".
-- No Windows, o botão baixa o instalador (ou o executável portátil, conforme
-  como o cofre está rodando); no Linux, funciona rodando como **AppImage**
-  (baixa o `.AppImage` novo). Em ambos os casos, confere o hash SHA256 contra
-  o `CHECKSUMS.txt` da própria release e, só se bater, aplica a atualização
-  sozinho: instala em modo silencioso, troca o executável portátil ou o
-  AppImage no lugar, fecha o cofre e reabre a versão atualizada automaticamente —
-  sem instalador para rodar na mão.
-- Qualquer falha (sem internet, checksum não bate, arquivo não encontrado) ou
-  fora de um desses dois cenários (por exemplo, rodando do `.tar.gz`
-  extraído no Linux, sem ser via AppImage) cai de volta no comportamento
-  antigo, abrindo a página de releases no navegador. A consulta e o download
-  são leitura pública da API do GitHub, sem enviar nenhum dado além disso.
+- **Ligada por padrão** ("Atualizar automaticamente", em Configurações >
+  Comportamento). Ao abrir o cofre e a cada 6 horas, o aplicativo consulta a
+  release mais recente do GitHub; havendo versão nova, baixa em segundo plano
+  o instalador (ou o executável portátil, conforme como o cofre está rodando)
+  ou, no Linux, o `.AppImage` novo.
+- Confere a assinatura do `CHECKSUMS.txt` contra a chave pública fixada no
+  binário e o SHA256 do arquivo; sem isso, a atualização é descartada.
+- **Instala no próximo bloqueio do cofre**, manual ou por inatividade — o
+  único momento em que reiniciar não interrompe nada. O aplicativo fecha,
+  instala em silêncio e abre de novo já atualizado, na tela de desbloqueio.
+  O rodapé avisa quando há uma atualização pronta e oferece **Instalar agora**
+  (com as notas da versão e confirmação).
+- Instalado "para todos os usuários" (em Arquivos de Programas), o instalador
+  pede permissão de administrador; nesse caso a atualização espera o botão
+  **Instalar agora**, para o pedido de permissão não aparecer com ninguém por
+  perto.
+- Quem instalou pelo `winget` recebe as atualizações do mesmo jeito (é o mesmo
+  instalador). Na **Microsoft Store**, quem atualiza é a própria Loja: o app
+  baixa a atualização assim que ela é oferecida e a instala no bloqueio do
+  cofre, conforme a configuração de atualização de aplicativos da Loja.
+- Builds de desenvolvimento e execuções com `COFRE_BASE` nunca se atualizam,
+  nem a versão do `.tar.gz` no Linux (só o AppImage). A consulta e o download
+  são leitura pública da API do GitHub, sem enviar nenhum dado do cofre.
+

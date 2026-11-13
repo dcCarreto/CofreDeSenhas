@@ -8,9 +8,14 @@ assinatura de código.
 ## O que muda na versão da Loja
 
 - **Atualizações vêm da Loja.** O app detecta que está empacotado
-  (`PacoteLoja.Empacotado`) e desliga o atualizador embutido: não consulta o
-  GitHub e esconde a opção "Verificar atualizações" nas Configurações. A
-  política da Loja proíbe app empacotado se atualizar por fora.
+  (`PacoteLoja.Empacotado`), não consulta o GitHub e esconde a opção
+  "Atualizar automaticamente" nas Configurações — a política da Loja proíbe
+  app empacotado se atualizar por fora. Em vez de esperar o ritmo da Loja (que
+  prefere o app fechado, e um cofre fica aberto na bandeja o dia todo), o app
+  usa as APIs da Loja (`AtualizacaoLoja`): baixa a atualização assim que ela é
+  oferecida e pede a instalação no próximo bloqueio do cofre; o Windows fecha e
+  reabre o app. Se o usuário desligou as atualizações automáticas na Loja, nada
+  acontece.
 - **O cofre fica no mesmo lugar** (`%APPDATA%\GerenciadorSenhas`). Por padrão
   um app MSIX grava em uma cópia privada dessa pasta, que o Windows apaga ao
   desinstalar; o manifesto desliga esse desvio (`FileSystemWriteVirtualization`)

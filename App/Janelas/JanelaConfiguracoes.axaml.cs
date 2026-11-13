@@ -32,7 +32,7 @@ namespace CofreDeSenhas.Janelas
         public required Action LimparCofre { get; init; }
         public required Action ExcluirCofre { get; init; }
         public required Action<int> DefinirBloqueioAutomatico { get; init; }
-        public required Action<bool> DefinirVerificarAtualizacoes { get; init; }
+        public required Action<bool> DefinirAtualizacaoAutomatica { get; init; }
         public required Action<bool> DefinirIconesOnline { get; init; }
         public bool WindowsHelloSuportado { get; init; }
         public bool WindowsHelloAtivo { get; init; }
@@ -394,8 +394,8 @@ namespace CofreDeSenhas.Janelas
             {
                 painel.Children.Add(LinhaCheck(
                     Idioma.Texto("Settings.CheckUpdates"), Idioma.Texto("Settings.CheckUpdatesTooltip"),
-                    Preferencias.VerificarAtualizacoes,
-                    valor => _acoes.DefinirVerificarAtualizacoes(valor)));
+                    Preferencias.AtualizacaoAutomatica,
+                    valor => _acoes.DefinirAtualizacaoAutomatica(valor)));
             }
 
             painel.Children.Add(LinhaCheck(

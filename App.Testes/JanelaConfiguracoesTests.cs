@@ -31,7 +31,7 @@ namespace App.Testes
             LimparCofre = () => { },
             ExcluirCofre = () => { },
             DefinirBloqueioAutomatico = _ => { },
-            DefinirVerificarAtualizacoes = _ => { },
+            DefinirAtualizacaoAutomatica = _ => { },
             DefinirIconesOnline = _ => { },
             WindowsHelloSuportado = true,
             WindowsHelloAtivo = false,

@@ -23,16 +23,19 @@ winget install dcCarreto.CofreDeSenhas
 
 Ele baixa da página de releases o mesmo instalador descrito abaixo, confere o
 SHA256 e instala só para o usuário atual, sem pedir administrador. Para
-atualizar depois, `winget upgrade dcCarreto.CofreDeSenhas` (o atualizador
-embutido do programa também continua funcionando). O pacote no `winget`
+atualizar não é preciso fazer nada: o próprio programa baixa as versões novas
+e as instala quando o cofre é bloqueado (dá para desligar em Configurações >
+Comportamento). `winget upgrade dcCarreto.CofreDeSenhas` também funciona. O pacote no `winget`
 costuma chegar algumas horas depois de cada release, porque cada versão passa
 pela validação da Microsoft.
 
 Em breve o Cofre de Senhas também estará na **Microsoft Store**. A versão da
 Loja é o mesmo programa, com duas diferenças:
 
-- as atualizações chegam pela própria Loja, e o atualizador embutido fica
-  desligado (a opção "Verificar atualizações" não aparece nas Configurações);
+- as atualizações chegam pela própria Loja: o app as baixa assim que ela as
+  oferece e as instala quando o cofre é bloqueado, conforme a configuração de
+  atualização de aplicativos da Loja (a opção "Atualizar automaticamente" não
+  aparece nas Configurações);
 - desinstalar pela Loja nunca apaga o cofre. Ele fica no mesmo
   `%APPDATA%\GerenciadorSenhas` das outras formas de instalação. Por isso dá
   para trocar entre a Loja, o instalador e o portátil sem perder nada, e a

@@ -249,11 +249,16 @@ acesso com uma chave desatualizada.
   a partir daquele commit exato. As dependências de terceiros usadas *pelo próprio
   workflow* (GitHub Actions de checkout, build, upload/download e publicação) são fixadas
   por hash de commit, não por tag flutuante, e o `appimagetool` baixado durante o build do
-  Linux tem versão fixa com hash conferido antes de rodar. O atualizador em um clique
-  embutido no aplicativo, além de conferir o SHA256, exige uma assinatura destacada de
-  `CHECKSUMS.txt` verificada contra uma chave pública fixada no binário antes de executar
-  o instalador/portátil/AppImage baixado — se a assinatura faltar ou não conferir, a
-  atualização automática é recusada e a página de releases é aberta para download manual.
+  Linux tem versão fixa com hash conferido antes de rodar. O atualizador automático
+  embutido no aplicativo (ligado por padrão), além de conferir o SHA256, exige uma
+  assinatura destacada de `CHECKSUMS.txt` verificada contra uma chave pública fixada no
+  binário antes de executar o instalador/portátil/AppImage baixado, e confere o SHA256 de
+  novo no momento da instalação (no bloqueio do cofre, que pode ser horas depois do
+  download) — se a assinatura faltar ou algo não conferir, a atualização é descartada e
+  tentada de novo na próxima verificação. Como agora a instalação não passa por
+  confirmação, essa assinatura é a única barreira entre um comprometimento da release e
+  código rodando na máquina de todos os usuários: a chave privada (secret
+  `UPDATE_SIGNING_KEY`) é o ativo mais sensível do pipeline.
   Essa mesma chave pública RSA está versionada no repositório (`update-signing-public.pem`)
   para conferência manual da assinatura, e a release ainda carrega uma assinatura GPG
   destacada do `CHECKSUMS.txt` quando há chave configurada; o `SECURITY.md` descreve os

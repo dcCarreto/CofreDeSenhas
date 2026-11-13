@@ -76,8 +76,9 @@ namespace CofreDeSenhas
             public string FrequenciaBackup { get; set; } = FrequenciaBackupPadrao;
             public int MaximoBackups { get; set; } = MaximoBackupsPadrao;
             public bool RegistrarHistoricoUso { get; set; } = true;
-            public bool VerificarAtualizacoes { get; set; }
-            public string? VersaoDispensada { get; set; }
+            // null = config de antes da atualização automática (ver Carregar).
+            public bool? AtualizacaoAutomatica { get; set; }
+            public bool AvisoAtualizacaoAutomaticaPendente { get; set; }
             public PerfilSincronizacao? Sincronizacao { get; set; }
         }
 
@@ -113,8 +114,13 @@ namespace CofreDeSenhas
         public static string FrequenciaBackup { get; set; } = FrequenciaBackupPadrao;
         public static int MaximoBackups { get; set; } = MaximoBackupsPadrao;
         public static bool RegistrarHistoricoUso { get; set; } = true;
-        public static bool VerificarAtualizacoes { get; set; }
-        public static string? VersaoDispensada { get; set; }
+        // Baixa as atualizações em segundo plano e instala no próximo bloqueio do cofre
+        // (AtualizacaoAutomatica). Ligada por padrão; a versão da Loja ignora — lá quem
+        // decide é a configuração de atualização da própria Loja.
+        public static bool AtualizacaoAutomatica { get; set; } = true;
+        // Aviso único para quem já usava o app antes de a atualização passar a ser
+        // automática (até então era opt-in e só avisava, sem instalar nada sozinha).
+        public static bool AvisoAtualizacaoAutomaticaPendente { get; set; }
         public static PerfilSincronizacao? Sincronizacao { get; set; }
 
         public static GerenciadorDeSenhas.Servicos.FrequenciaBackup FrequenciaBackupAtual =>
@@ -161,8 +167,19 @@ namespace CofreDeSenhas
                         FrequenciaBackup = string.IsNullOrEmpty(d.FrequenciaBackup) ? FrequenciaBackupPadrao : d.FrequenciaBackup;
                         MaximoBackups = d.MaximoBackups <= 0 ? MaximoBackupsPadrao : d.MaximoBackups;
                         RegistrarHistoricoUso = d.RegistrarHistoricoUso;
-                        VerificarAtualizacoes = d.VerificarAtualizacoes;
-                        VersaoDispensada = d.VersaoDispensada;
+                        // Config sem o campo é de antes da mudança: liga para todos (decisão
+                        // de produto) e deixa o aviso único pendente, para ninguém descobrir
+                        // pela primeira vez que o app se atualizou sozinho.
+                        if (d.AtualizacaoAutomatica is { } automatica)
+                        {
+                            AtualizacaoAutomatica = automatica;
+                            AvisoAtualizacaoAutomaticaPendente = d.AvisoAtualizacaoAutomaticaPendente;
+                        }
+                        else
+                        {
+                            AtualizacaoAutomatica = true;
+                            AvisoAtualizacaoAutomaticaPendente = true;
+                        }
                         Sincronizacao = d.Sincronizacao;
                     }
                 }
@@ -179,7 +196,7 @@ namespace CofreDeSenhas
             {
                 var dir = Path.GetDirectoryName(_caminho)!;
                 if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
-                File.WriteAllText(_caminho, JsonSerializer.Serialize(new Dados { UltimoBanco = UltimoBanco, MinutosBloqueio = MinutosBloqueio, Idioma = Idioma, ModoTema = ModoTema, Densidade = Densidade, LayoutDetalhe = LayoutDetalhe, OrdenacaoColuna = OrdenacaoColuna, OrdenacaoDescendente = OrdenacaoDescendente, ColunasLista = ColunasLista, PerfisAparencia = PerfisAparencia, Daltonismo = Daltonismo, AltoContraste = AltoContraste, NivelContraste = NivelContraste, EscalaInterface = EscalaInterface, EscalaAutomatica = EscalaAutomatica, ReduzirAnimacoes = ReduzirAnimacoes, NivelMovimento = NivelMovimento, FonteLeitura = FonteLeitura, EspacamentoTexto = EspacamentoTexto, VerbosidadeLeitor = VerbosidadeLeitor, SublinharLinks = SublinharLinks, FocoReforcado = FocoReforcado, AnunciarAcoes = AnunciarAcoes, AvisarAntesBloqueio = AvisarAntesBloqueio, LeitorTela = LeitorTela, IconesOnline = IconesOnline, SegundosLimpezaClipboard = SegundosLimpezaClipboard, FrequenciaBackup = FrequenciaBackup, MaximoBackups = MaximoBackups, RegistrarHistoricoUso = RegistrarHistoricoUso, VerificarAtualizacoes = VerificarAtualizacoes, VersaoDispensada = VersaoDispensada, Sincronizacao = Sincronizacao }));
+                File.WriteAllText(_caminho, JsonSerializer.Serialize(new Dados { UltimoBanco = UltimoBanco, MinutosBloqueio = MinutosBloqueio, Idioma = Idioma, ModoTema = ModoTema, Densidade = Densidade, LayoutDetalhe = LayoutDetalhe, OrdenacaoColuna = OrdenacaoColuna, OrdenacaoDescendente = OrdenacaoDescendente, ColunasLista = ColunasLista, PerfisAparencia = PerfisAparencia, Daltonismo = Daltonismo, AltoContraste = AltoContraste, NivelContraste = NivelContraste, EscalaInterface = EscalaInterface, EscalaAutomatica = EscalaAutomatica, ReduzirAnimacoes = ReduzirAnimacoes, NivelMovimento = NivelMovimento, FonteLeitura = FonteLeitura, EspacamentoTexto = EspacamentoTexto, VerbosidadeLeitor = VerbosidadeLeitor, SublinharLinks = SublinharLinks, FocoReforcado = FocoReforcado, AnunciarAcoes = AnunciarAcoes, AvisarAntesBloqueio = AvisarAntesBloqueio, LeitorTela = LeitorTela, IconesOnline = IconesOnline, SegundosLimpezaClipboard = SegundosLimpezaClipboard, FrequenciaBackup = FrequenciaBackup, MaximoBackups = MaximoBackups, RegistrarHistoricoUso = RegistrarHistoricoUso, AtualizacaoAutomatica = AtualizacaoAutomatica, AvisoAtualizacaoAutomaticaPendente = AvisoAtualizacaoAutomaticaPendente, Sincronizacao = Sincronizacao }));
             }
             catch (Exception ex)
             {

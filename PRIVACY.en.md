@@ -2,11 +2,12 @@
 
 [Versão em português](PRIVACY.md) — the Portuguese version is the reference text.
 
-**Effective:** November 6, 2026
+**Effective:** November 12, 2026
 **Applies to:** Cofre de Senhas — the desktop app for Windows and Linux, the
 `cofre` command-line tool, and the installers distributed through
-[GitHub releases](https://github.com/dcCarreto/CofreDeSenhas/releases) and the
-Windows Package Manager (winget, package `dcCarreto.CofreDeSenhas`).
+[GitHub releases](https://github.com/dcCarreto/CofreDeSenhas/releases), the
+Windows Package Manager (winget, package `dcCarreto.CofreDeSenhas`) and the
+Microsoft Store.
 **Responsible party:** Denis Cristino Cantagallo Carreto, author and maintainer.
 
 ## Summary
@@ -105,14 +106,24 @@ data is governed by its own privacy policy, not this one.
 
 ### 3.3 Update check and installation
 
-- **When:** only if you turn on "Check for updates" in settings (off by
-  default). When on, the app checks for the latest release at startup.
+- **When:** with "Update automatically" on in settings (on by default), the app
+  checks for the latest release when the vault is opened and then every 6 hours
+  while it stays open.
 - **What is sent:** a public GitHub API request
   (`api.github.com/repos/dcCarreto/CofreDeSenhas/releases/latest`), with no vault
   data and no identifier of you or your device.
-- If you choose "Update now", the installer and verification files
-  (`CHECKSUMS.txt` and its signature) are downloaded from GitHub releases.
-  Nothing is downloaded or installed without your confirmation.
+- When there is a new version, the installer (or the portable executable/AppImage)
+  and the verification files (`CHECKSUMS.txt` and its signature) are downloaded
+  from GitHub releases in the background. The update is only installed if the
+  signature and the SHA-256 hash match, and it is installed when the vault is
+  locked.
+- Up to the November 6, 2026 version this check was off by default and nothing
+  was installed without confirmation. Existing users now have automatic updates
+  turned on and see a notice the first time they open the app after the change.
+  It can be turned off at any time under Settings > Behavior.
+- **Microsoft Store version:** does not contact GitHub. Updates come from the
+  Store itself, according to its app update setting, under the
+  [Microsoft privacy statement](https://privacy.microsoft.com/privacystatement).
 - **Recipient:** GitHub — <https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement>.
 
 ### 3.4 Text-to-speech voice downloads
@@ -196,7 +207,7 @@ Because the data stays on your computer, you control how long it exists:
 | Feature | Default | Where to change |
 |---|---|---|
 | Online icons | Off | Settings |
-| Check for updates | Off | Settings |
+| Update automatically | On | Settings |
 | Breached-password check | On demand only | Security report |
 | Last-copy tracking | On (kept inside the encrypted vault) | Settings |
 | Folder synchronization | Off | Settings |
