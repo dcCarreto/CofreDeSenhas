@@ -14,6 +14,22 @@ o porquê e como verificar a autenticidade do que foi baixado.
 
 ## Windows
 
+O jeito mais rápido é pelo `winget` (gerenciador de pacotes do Windows), num
+terminal:
+
+```
+winget install dcCarreto.CofreDeSenhas
+```
+
+Ele baixa da página de releases o mesmo instalador descrito abaixo, confere o
+SHA256 e instala só para o usuário atual, sem pedir administrador. Para
+atualizar depois, `winget upgrade dcCarreto.CofreDeSenhas` (o atualizador
+embutido do programa também continua funcionando). O pacote no `winget`
+costuma chegar algumas horas depois de cada release, porque cada versão passa
+pela validação da Microsoft.
+
+Para instalar sem o `winget`:
+
 1. Acesse a [última release](../../../releases/latest).
 2. Baixe o instalador `CofreDeSenhas-Setup-*.exe`.
 3. Execute e siga o assistente. Não é preciso ser administrador: por padrão o
@@ -56,11 +72,10 @@ nunca imprime uma senha do cofre — ela só sai pela área de transferência. N
 cria nem edita credenciais (isso é só pelo aplicativo). Aponta para o mesmo
 cofre do app; `COFRE_BASE=<pasta>` usa outro. Veja `cofre --help`.
 
-Cada release gera também os manifests necessários para publicação no
-`winget` (gerenciador de pacotes do Windows), como um passo em direção a
-`winget install` — a submissão a `microsoft/winget-pkgs` ainda não foi
-feita, então por enquanto o instalador da página de releases continua sendo
-a forma de instalar.
+Cada release gera também os manifests do `winget`
+(`winget-manifests-*.zip`), que são enviados para o
+[`microsoft/winget-pkgs`](https://github.com/microsoft/winget-pkgs/tree/master/manifests/d/dcCarreto/CofreDeSenhas)
+a cada versão.
 
 ## Linux
 
