@@ -126,5 +126,17 @@ namespace App.Testes
             Assert.True(ServicoAtualizacao.ExtrairVersao("v2026.9.10") >
                         ServicoAtualizacao.ExtrairVersao("v2026.9.9.2"));
         }
+
+        [Fact]
+        public void AtualizacaoAutomatica_ForaDoAppInstalado_NuncaRoda()
+        {
+            // A suíte roda com COFRE_BASE (ver o ModuleInitializer), igual à skill verify
+            // e a um build Debug. Com a atualização automática ligada por padrão, isto é
+            // o que impede uma execução de teste/desenvolvimento de baixar uma release e
+            // trocar o próprio executável de bin/ por ela.
+            Assert.True(GerenciadorDeSenhas.AmbienteCofre.Isolado);
+            Assert.False(ServicoAtualizacao.Suportada);
+            Assert.False(AtualizacaoAutomatica.Ativa);
+        }
     }
 }

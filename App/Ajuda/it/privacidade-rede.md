@@ -1,7 +1,9 @@
 # Privacy e rete
 
-Per impostazione predefinita, l'applicazione **non accede a internet**. Le
-funzioni qui sotto sono facoltative e attivi ciascuna sapendo cosa fa.
+Per impostazione predefinita, l'applicazione usa internet solo per cercare e
+scaricare i propri aggiornamenti, senza inviare alcun tuo dato (vedi
+[Aggiornamenti](atualizacoes)); si può disattivare. Le altre funzioni qui
+sotto sono facoltative e attivi ciascuna sapendo cosa fa.
 
 ## Icone dei servizi online
 
@@ -11,12 +13,16 @@ pubblico di icone, inviando **solo il dominio** (per esempio
 icone scaricate vengono messe in cache su disco. Quando è disattivata, la
 cassaforte mostra solo le iniziali e non tocca mai la rete.
 
-## Controllo aggiornamenti
+## Aggiorna automaticamente
 
-Quando è attivo, interroga la pagina delle release del progetto per
-avvisarti se c'è un aggiornamento. Niente viene scaricato
-automaticamente, e non viene inviato nulla oltre a quella richiesta.
-Disattivato per impostazione predefinita.
+Attivo per impostazione predefinita. Interroga la pagina delle release del
+progetto all'apertura della cassaforte e ogni 6 ore; se c'è una nuova
+versione, la scarica in background, ne verifica la firma e lo SHA256 e la
+installa quando la cassaforte viene bloccata. L'app si chiude e si riapre
+già aggiornata, sulla schermata di sblocco. Per installarla subito, usa
+**Installa ora** nel piè di pagina. Nessun dato della cassaforte viene
+inviato. Se installata dal Microsoft Store, gli aggiornamenti li gestisce
+lo Store e l'opzione non compare.
 
 ## Controllo violazioni
 

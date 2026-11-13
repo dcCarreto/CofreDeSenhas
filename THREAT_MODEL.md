@@ -249,11 +249,16 @@ acesso com uma chave desatualizada.
   a partir daquele commit exato. As dependências de terceiros usadas *pelo próprio
   workflow* (GitHub Actions de checkout, build, upload/download e publicação) são fixadas
   por hash de commit, não por tag flutuante, e o `appimagetool` baixado durante o build do
-  Linux tem versão fixa com hash conferido antes de rodar. O atualizador em um clique
-  embutido no aplicativo, além de conferir o SHA256, exige uma assinatura destacada de
-  `CHECKSUMS.txt` verificada contra uma chave pública fixada no binário antes de executar
-  o instalador/portátil/AppImage baixado — se a assinatura faltar ou não conferir, a
-  atualização automática é recusada e a página de releases é aberta para download manual.
+  Linux tem versão fixa com hash conferido antes de rodar. O atualizador automático
+  embutido no aplicativo (ligado por padrão), além de conferir o SHA256, exige uma
+  assinatura destacada de `CHECKSUMS.txt` verificada contra uma chave pública fixada no
+  binário antes de executar o instalador/portátil/AppImage baixado, e confere o SHA256 de
+  novo no momento da instalação (no bloqueio do cofre, que pode ser horas depois do
+  download) — se a assinatura faltar ou algo não conferir, a atualização é descartada e
+  tentada de novo na próxima verificação. Como agora a instalação não passa por
+  confirmação, essa assinatura é a única barreira entre um comprometimento da release e
+  código rodando na máquina de todos os usuários: a chave privada (secret
+  `UPDATE_SIGNING_KEY`) é o ativo mais sensível do pipeline.
   Essa mesma chave pública RSA está versionada no repositório (`update-signing-public.pem`)
   para conferência manual da assinatura, e a release ainda carrega uma assinatura GPG
   destacada do `CHECKSUMS.txt` quando há chave configurada; o `SECURITY.md` descreve os
@@ -262,6 +267,16 @@ acesso com uma chave desatualizada.
   mas inativa: falta um certificado de assinatura (com custo anual). Configurados
   os secrets `WINDOWS_CERT_BASE64`/`WINDOWS_CERT_PASSWORD`, toda build passa a sair
   assinada — é o que eliminaria o aviso de "editor desconhecido" do SmartScreen.
+  Na versão da Microsoft Store, o pacote MSIX sai do pipeline sem assinatura e é
+  assinado pela Microsoft na certificação; quem instala pela Loja recebe as
+  atualizações dela, não do atualizador embutido. As credenciais de envio (secrets
+  `LOJA_TENANT_ID`, `LOJA_CLIENT_ID`, `LOJA_CLIENT_SECRET` e `LOJA_SELLER_ID`, de um
+  aplicativo do Microsoft Entra com função de Gerente no Partner Center) permitem
+  submeter uma versão nova a todos os usuários da Loja, com a certificação da
+  Microsoft como única revisão no meio do caminho — valem o mesmo cuidado que
+  `UPDATE_SIGNING_KEY`. O job `publicar-loja` só as recebe depois que a release do
+  GitHub foi publicada, e a chave do aplicativo Entra deve ser revogada no Partner
+  Center se houver suspeita de vazamento.
 
 ## Como isso evolui
 

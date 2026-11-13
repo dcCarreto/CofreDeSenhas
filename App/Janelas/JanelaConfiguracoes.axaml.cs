@@ -32,7 +32,7 @@ namespace CofreDeSenhas.Janelas
         public required Action LimparCofre { get; init; }
         public required Action ExcluirCofre { get; init; }
         public required Action<int> DefinirBloqueioAutomatico { get; init; }
-        public required Action<bool> DefinirVerificarAtualizacoes { get; init; }
+        public required Action<bool> DefinirAtualizacaoAutomatica { get; init; }
         public required Action<bool> DefinirIconesOnline { get; init; }
         public bool WindowsHelloSuportado { get; init; }
         public bool WindowsHelloAtivo { get; init; }
@@ -389,10 +389,14 @@ namespace CofreDeSenhas.Janelas
                     Preferencias.Salvar();
                 }));
 
-            painel.Children.Add(LinhaCheck(
-                Idioma.Texto("Settings.CheckUpdates"), Idioma.Texto("Settings.CheckUpdatesTooltip"),
-                Preferencias.VerificarAtualizacoes,
-                valor => _acoes.DefinirVerificarAtualizacoes(valor)));
+            // Instalado pela Microsoft Store, quem atualiza é a Loja; a opção não faria nada.
+            if (!PacoteLoja.Empacotado)
+            {
+                painel.Children.Add(LinhaCheck(
+                    Idioma.Texto("Settings.CheckUpdates"), Idioma.Texto("Settings.CheckUpdatesTooltip"),
+                    Preferencias.AtualizacaoAutomatica,
+                    valor => _acoes.DefinirAtualizacaoAutomatica(valor)));
+            }
 
             painel.Children.Add(LinhaCheck(
                 Idioma.Texto("Settings.OnlineIcons"), Idioma.Texto("Settings.OnlineIconsTooltip"),

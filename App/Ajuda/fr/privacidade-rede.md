@@ -1,8 +1,10 @@
 # Confidentialité et réseau
 
-Par défaut, l'application **n'accède pas à Internet**. Les fonctions
-ci-dessous sont facultatives et vous activez chacune en sachant ce qu'elle
-fait.
+Par défaut, l'application n'utilise Internet que pour rechercher et
+télécharger ses propres mises à jour, sans envoyer aucune de vos données
+(voyez [Mises à jour](atualizacoes)) ; vous pouvez le désactiver. Les autres
+fonctions ci-dessous sont facultatives et vous activez chacune en sachant ce
+qu'elle fait.
 
 ## Icônes en ligne des services
 
@@ -13,12 +15,16 @@ l'ordinateur. Les icônes téléchargées sont mises en cache sur le disque.
 Quand elle est désactivée, le coffre n'affiche que des initiales et ne
 touche pas au réseau.
 
-## Vérifier les mises à jour
+## Mettre à jour automatiquement
 
-Quand elle est activée, elle interroge la page des versions du projet pour
-vous signaler s'il existe une mise à jour. Rien n'est téléchargé
-automatiquement, et rien d'autre que cette requête n'est envoyé.
-Désactivée par défaut.
+Activée par défaut. Interroge la page des versions du projet à l'ouverture
+du coffre et toutes les 6 heures ; s'il y a une nouvelle version, elle la
+télécharge en arrière-plan, vérifie sa signature et son SHA256, puis
+l'installe au verrouillage du coffre. L'application se ferme et se rouvre
+déjà à jour, sur l'écran de déverrouillage. Pour l'installer tout de suite,
+utilisez **Installer maintenant** en bas de la fenêtre. Aucune donnée du
+coffre n'est envoyée. Installée depuis le Microsoft Store, c'est le Store
+qui gère les mises à jour et l'option n'apparaît pas.
 
 ## Vérification des fuites
 

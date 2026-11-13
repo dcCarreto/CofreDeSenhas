@@ -26,7 +26,7 @@ Tout ceci se trouve dans **Paramètres**, réparti en onglets.
 - **Enregistrer l'historique d'utilisation** : conserve la date de la
   dernière copie de chaque identifiant, ce qui alimente le
   [Rapport de sécurité](seguranca).
-- **Vérifier les mises à jour** : voyez
+- **Mettre à jour automatiquement** : voyez
   [Confidentialité et réseau](privacidade-rede).
 
 ## Accessibilité

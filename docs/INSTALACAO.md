@@ -2,8 +2,8 @@
 
 [← Voltar ao README](../README.md)
 
-Passo a passo completo de instalação, desinstalação, CLI e verificação de
-integridade.
+Passo a passo completo de instalação, atualização, desinstalação, CLI e
+verificação de integridade.
 
 A forma mais simples de usar o programa é baixar o executável pronto na página de
 [releases](../../../releases). Em qualquer plataforma, o binário é autocontido: não
@@ -13,6 +13,36 @@ ainda não têm certificado de assinatura de código (Authenticode) — veja em
 o porquê e como verificar a autenticidade do que foi baixado.
 
 ## Windows
+
+O jeito mais rápido é pelo `winget` (gerenciador de pacotes do Windows), num
+terminal:
+
+```
+winget install dcCarreto.CofreDeSenhas
+```
+
+Ele baixa da página de releases o mesmo instalador descrito abaixo, confere o
+SHA256 e instala só para o usuário atual, sem pedir administrador. Para
+atualizar não é preciso fazer nada: o próprio programa baixa as versões novas
+e as instala quando o cofre é bloqueado (dá para desligar em Configurações >
+Comportamento). `winget upgrade dcCarreto.CofreDeSenhas` também funciona. O pacote no `winget`
+costuma chegar algumas horas depois de cada release, porque cada versão passa
+pela validação da Microsoft.
+
+Em breve o Cofre de Senhas também estará na **Microsoft Store**. A versão da
+Loja é o mesmo programa, com duas diferenças:
+
+- as atualizações chegam pela própria Loja: o app as baixa assim que ela as
+  oferece e as instala quando o cofre é bloqueado, conforme a configuração de
+  atualização de aplicativos da Loja (a opção "Atualizar automaticamente" não
+  aparece nas Configurações);
+- desinstalar pela Loja nunca apaga o cofre. Ele fica no mesmo
+  `%APPDATA%\GerenciadorSenhas` das outras formas de instalação. Por isso dá
+  para trocar entre a Loja, o instalador e o portátil sem perder nada, e a
+  linha de comando `cofre` enxerga os mesmos dados. Para apagar o cofre de
+  vez, remova essa pasta manualmente.
+
+Para instalar sem o `winget`:
 
 1. Acesse a [última release](../../../releases/latest).
 2. Baixe o instalador `CofreDeSenhas-Setup-*.exe`.
@@ -56,11 +86,10 @@ nunca imprime uma senha do cofre — ela só sai pela área de transferência. N
 cria nem edita credenciais (isso é só pelo aplicativo). Aponta para o mesmo
 cofre do app; `COFRE_BASE=<pasta>` usa outro. Veja `cofre --help`.
 
-Cada release gera também os manifests necessários para publicação no
-`winget` (gerenciador de pacotes do Windows), como um passo em direção a
-`winget install` — a submissão a `microsoft/winget-pkgs` ainda não foi
-feita, então por enquanto o instalador da página de releases continua sendo
-a forma de instalar.
+Cada release gera também os manifests do `winget`
+(`winget-manifests-*.zip`), que são enviados para o
+[`microsoft/winget-pkgs`](https://github.com/microsoft/winget-pkgs/tree/master/manifests/d/dcCarreto/CofreDeSenhas)
+a cada versão.
 
 ## Linux
 
@@ -97,9 +126,43 @@ funcionam em ambientes X11 e Wayland.
 
 Pacotes `.deb` e Flatpak foram avaliados e ficaram de fora por enquanto: exigem
 manter um repositório próprio (ou publicação no Flathub) para atualizações
-automáticas, o que não compensa o esforço com um único mantenedor e o AppImage
-já cobre o caso de uso de "baixar e rodar" sem depender de gerenciador de
-pacotes. Fica como possibilidade futura se houver demanda.
+automáticas, o que não compensa o esforço com um único mantenedor, e o AppImage
+já cobre o caso de uso de "baixar e rodar" — e se atualiza sozinho — sem
+depender de gerenciador de pacotes. Fica como possibilidade futura se houver
+demanda.
+
+## Atualizações
+
+O programa se atualiza sozinho, sem você precisar baixar nem clicar em nada:
+
+1. Ao abrir o cofre, e depois a cada 6 horas, ele consulta a última release no
+   GitHub.
+2. Havendo versão nova, baixa em segundo plano e confere a assinatura do
+   `CHECKSUMS.txt` e o SHA256 do arquivo (detalhes em
+   [SECURITY.md](../SECURITY.md#confiança-nos-binários-e-verificação-dos-downloads)).
+   Se algo não conferir, a atualização é descartada.
+3. O rodapé passa a mostrar "Atualização pronta". No próximo bloqueio do cofre
+   (manual ou por inatividade), o programa fecha, instala a versão nova e abre
+   de novo, já na tela de desbloqueio. O botão **Instalar agora** do rodapé
+   antecipa, mostrando antes o que muda na versão.
+
+Para desligar: **Configurações > Comportamento > Atualizar automaticamente**.
+Quem já usava o programa antes dessa mudança (quando a verificação era opcional
+e só avisava) passa a ter a atualização automática ligada e vê um aviso no
+rodapé na primeira abertura.
+
+| Instalado por | Como atualiza |
+|---|---|
+| Instalador ou `winget` | Sozinho. Se você instalou "para todos os usuários" (em Arquivos de Programas), o Windows pede permissão de administrador: clique em **Instalar agora** quando o rodapé avisar. `winget upgrade dcCarreto.CofreDeSenhas` também funciona. |
+| Executável portátil | Sozinho; o próprio `.exe` é trocado pela versão nova. Ele precisa estar numa pasta em que você possa gravar. |
+| Microsoft Store | Pela Loja, conforme a configuração de atualização de aplicativos dela; o programa baixa assim que a Loja oferece e instala no bloqueio do cofre. |
+| AppImage (Linux) | Sozinho; o `.AppImage` é trocado pelo novo. |
+| `.tar.gz` ou `instalar.sh` (Linux) | Manualmente: baixe a release nova (ou, compilando do código-fonte, atualize o repositório e rode `instalar.sh` de novo). |
+| Linha de comando `cofre` e gerador avulso | Manualmente: são arquivos à parte; baixe as versões novas na [página de releases](../../../releases/latest). |
+
+A atualização não toca no cofre, nos backups nem nas preferências. O arquivo
+baixado fica na pasta temporária do sistema até ser instalado e é apagado na
+abertura seguinte do programa — veja [Armazenamento de dados](ARMAZENAMENTO.md).
 
 ## Primeiro uso
 
@@ -145,6 +208,7 @@ gh attestation verify arquivo-baixado --owner dcCarreto
 
 Os arquivos ainda não são assinados digitalmente (Authenticode, no caso do
 Windows) — por ora, hash + attestation são as formas de verificação
-disponíveis. Veja também a [verificação com assinatura
+disponíveis. A versão da Microsoft Store, quando sair, é assinada pela própria
+Microsoft. Veja também a [verificação com assinatura
 RSA/GPG](../SECURITY.md#confiança-nos-binários-e-verificação-dos-downloads)
 usada pelo atualizador automático.

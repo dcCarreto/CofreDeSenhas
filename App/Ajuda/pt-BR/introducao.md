@@ -10,8 +10,9 @@ arquivo no seu disco, aberto apenas pela sua senha mestra.
   derivada da sua senha mestra toda vez que você abre o cofre.
 - Sem a senha mestra, o arquivo do cofre é ilegível — inclusive para quem
   tem acesso ao seu computador.
-- Nada sai do seu computador por conta própria. Os poucos recursos que
-  usam a rede são opcionais e estão descritos em
+- Seus dados não saem do computador. Por conta própria, o aplicativo só
+  usa a rede para se manter atualizado (veja [Atualizações](atualizacoes));
+  os demais recursos que usam a rede são opcionais e estão descritos em
   [Privacidade e rede](privacidade-rede).
 
 ## Onde o cofre fica

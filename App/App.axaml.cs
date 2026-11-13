@@ -183,11 +183,41 @@ namespace CofreDeSenhas
                     if (janela != cofre)
                         janela.Close();
 
+                // Atualização já baixada: o bloqueio é a hora de instalar — o cofre acabou
+                // de ser fechado e ninguém está digitando nele (ver AtualizacaoAutomatica).
+                // Fora da Loja, o instalador/troca do executável abre a versão nova sozinho;
+                // o app só precisa sair, sem nem mostrar a tela de login.
+                if (AtualizacaoAutomatica.InstalavelNoBloqueio && !PacoteLoja.Empacotado)
+                {
+                    cofre.Hide();
+                    if (await AtualizacaoAutomatica.AplicarLocalAsync())
+                    {
+                        desktop.Shutdown();
+                        return;
+                    }
+                }
+
+                // Na Loja a instalação leva alguns segundos e é o Windows quem fecha o app.
+                // Até lá a tela de login aparece sem roubar o foco e desabilitada: quem
+                // começasse a digitar a senha mestra não pode ter o resto das teclas indo
+                // parar em outra janela quando o app fechar.
+                var instalarDaLoja = AtualizacaoAutomatica.InstalavelNoBloqueio && PacoteLoja.Empacotado;
                 var login = new JanelaLogin(new AutenticacaoMestra(),
                     (chave, senhaPlano) => AbrirCofre(desktop, chave, senhaPlano));
+                if (instalarDaLoja)
+                {
+                    login.ShowActivated = false;
+                    login.IsEnabled = false;
+                }
                 desktop.MainWindow = login;
                 login.Show();
                 cofre.Close();
+
+                if (instalarDaLoja)
+                {
+                    await AtualizacaoAutomatica.InstalarLojaAsync();
+                    login.IsEnabled = true;
+                }
             }
             finally
             {

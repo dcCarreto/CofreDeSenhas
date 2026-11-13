@@ -181,6 +181,25 @@ jobs:
           path: dist/*
           if-no-files-found: error
 
+      - name: Gerar o pacote MSIX da Microsoft Store
+        # Sai sem assinatura — a Loja assina na certificação — e por isso fica fora
+        # da release do GitHub (vai em dist-loja/, não em dist/). A identidade vem das
+        # variáveis do repositório; sem elas o pacote ainda é gerado com identidade
+        # local, só para o pipeline acusar se o empacotamento quebrar.
+        shell: pwsh
+        env:
+          LOJA_IDENTIDADE_NOME: ${{ vars.LOJA_IDENTIDADE_NOME }}
+          LOJA_EDITOR: ${{ vars.LOJA_EDITOR }}
+          LOJA_NOME_EDITOR: ${{ vars.LOJA_NOME_EDITOR }}
+        run: .\App\distribuicao\gerar-msix.ps1 -Versao "${{ needs.versao.outputs.versao }}"
+
+      - name: Enviar o pacote da Microsoft Store
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: pacote-loja-microsoft
+          path: dist-loja/*.msix
+          if-no-files-found: error
+
   build-linux:
     name: Gerar artefato do Linux
     needs: [ versao, testar ]
@@ -243,8 +262,10 @@ jobs:
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
       - name: Baixar artefatos
+        # Só os artefatos-*: o pacote da Loja (sem assinatura) não vai para a release.
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
+          pattern: artefatos-*
           path: artefatos
           merge-multiple: true
 
@@ -367,3 +388,53 @@ jobs:
             dist/CofreDeSenhas-*-win-x64-portatil.exe
             dist/GeradorDeSenhas-*-win-x64-portatil.exe
             dist/cofre-*-win-x64.exe
+
+  publicar-loja:
+    name: Enviar à Microsoft Store
+    # Opcional, como as demais assinaturas do pipeline: só roda com a variável
+    # LOJA_ID_PRODUTO configurada (ver docs/LOJA-MICROSOFT.md). Vem depois da release
+    # do GitHub para a Loja nunca receber uma atualização que não chegou a ser publicada.
+    # O primeiro envio do app é sempre manual pelo Partner Center — a API de envio só
+    # aceita produtos que já passaram por uma certificação.
+    needs: [ versao, build-windows, publicar-release ]
+    if: needs.versao.outputs.publicar == 'true' && vars.LOJA_ID_PRODUTO != ''
+    runs-on: windows-latest
+    env:
+      LOJA_ID_PRODUTO: ${{ vars.LOJA_ID_PRODUTO }}
+      LOJA_IDENTIDADE_NOME: ${{ vars.LOJA_IDENTIDADE_NOME }}
+      LOJA_TENANT_ID: ${{ secrets.LOJA_TENANT_ID }}
+      LOJA_SELLER_ID: ${{ secrets.LOJA_SELLER_ID }}
+      LOJA_CLIENT_ID: ${{ secrets.LOJA_CLIENT_ID }}
+      LOJA_CLIENT_SECRET: ${{ secrets.LOJA_CLIENT_SECRET }}
+    steps:
+      - name: Conferir a configuração
+        # Sem a identidade, o pacote foi gerado com identidade local e a Loja o
+        # recusaria; melhor falhar aqui com a causa do que lá com um erro genérico.
+        shell: pwsh
+        run: |
+          $faltando = @('LOJA_IDENTIDADE_NOME', 'LOJA_TENANT_ID', 'LOJA_SELLER_ID', 'LOJA_CLIENT_ID', 'LOJA_CLIENT_SECRET') |
+            Where-Object { -not [Environment]::GetEnvironmentVariable($_) }
+          if ($faltando) {
+            Write-Error "LOJA_ID_PRODUTO está configurada, mas faltam: $($faltando -join ', '). Ver docs/LOJA-MICROSOFT.md."
+            exit 1
+          }
+
+      - name: Baixar o pacote da Microsoft Store
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: pacote-loja-microsoft
+          path: pacote-loja
+
+      - name: Instalar o Microsoft Store Developer CLI
+        uses: microsoft/microsoft-store-apppublisher@cc9910a8d59f2eb55cbb83df0a3800cf3b5300e0 # v1.4
+
+      - name: Enviar a atualização para certificação
+        # Sem --noCommit: o envio já entra na fila de certificação da Loja, que
+        # costuma levar de algumas horas a 3 dias úteis até chegar aos usuários.
+        shell: pwsh
+        run: |
+          msstore reconfigure --tenantId $env:LOJA_TENANT_ID --sellerId $env:LOJA_SELLER_ID `
+            --clientId $env:LOJA_CLIENT_ID --clientSecret $env:LOJA_CLIENT_SECRET
+          if ($LASTEXITCODE -ne 0) { throw "msstore reconfigure falhou." }
+          msstore publish "pacote-loja\CofreDeSenhas-${{ needs.versao.outputs.versao }}-win-x64.msix" --appId $env:LOJA_ID_PRODUTO
+          if ($LASTEXITCODE -ne 0) { throw "msstore publish falhou." }

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Manifesto do pacote MSIX enviado à Microsoft Store. É um modelo: o
+  gerar-msix.ps1 troca os marcadores __ASSIM__ pelos valores da página
+  "Identidade do produto" do Partner Center e pela versão da atualização.
+
+  Duas decisões que não são padrão e não devem sair sem pensar:
+
+  * FileSystemWriteVirtualization desligada (exige a capacidade restrita
+    unvirtualizedResources). Por padrão o Windows desvia o que um app
+    empacotado grava em %APPDATA% para uma pasta privada do pacote, que é
+    APAGADA na desinstalação — num cofre de senhas, desinstalar apagaria o
+    cofre. Desligada, o cofre fica em %APPDATA%\GerenciadorSenhas como no
+    instalador e no portátil: sobrevive à desinstalação e continua visível
+    para o CLI (cofre.exe) e para quem migrar entre as formas de instalação.
+
+  * runFullTrust: o app é um executável Win32 comum (Avalonia), não UWP.
+-->
+<Package
+  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  xmlns:desktop6="http://schemas.microsoft.com/appx/manifest/desktop/windows10/6"
+  xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+  IgnorableNamespaces="uap desktop6 rescap">
+
+  <Identity
+    Name="__NOME_IDENTIDADE__"
+    Publisher="__EDITOR__"
+    Version="__VERSAO__"
+    ProcessorArchitecture="x64" />
+
+  <Properties>
+    <DisplayName>Cofre de Senhas</DisplayName>
+    <PublisherDisplayName>__NOME_EDITOR__</PublisherDisplayName>
+    <Logo>Imagens\StoreLogo.png</Logo>
+    <desktop6:FileSystemWriteVirtualization>disabled</desktop6:FileSystemWriteVirtualization>
+  </Properties>
+
+  <Dependencies>
+    <!-- 19041 = mesma versão mínima da TFM net10.0-windows10.0.19041.0 do App. -->
+    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.19041.0" MaxVersionTested="10.0.26100.0" />
+  </Dependencies>
+
+  <!-- Cada idioma declarado aqui exige uma página da Loja no mesmo idioma no
+       Partner Center. Os demais idiomas da interface (es, fr, it, de) funcionam
+       igual; só não ganham página própria na Loja enquanto não forem listados. -->
+  <Resources>
+    <Resource Language="pt-BR" />
+    <Resource Language="en-US" />
+  </Resources>
+
+  <Applications>
+    <Application Id="CofreDeSenhas" Executable="CofreDeSenhas.exe" EntryPoint="Windows.FullTrustApplication">
+      <uap:VisualElements
+        DisplayName="Cofre de Senhas"
+        Description="Gerenciador de senhas local, com criptografia AES-256-GCM e senha mestra."
+        BackgroundColor="transparent"
+        Square150x150Logo="Imagens\Square150x150Logo.png"
+        Square44x44Logo="Imagens\Square44x44Logo.png">
+        <uap:DefaultTile Wide310x150Logo="Imagens\Wide310x150Logo.png" />
+      </uap:VisualElements>
+    </Application>
+  </Applications>
+
+  <Capabilities>
+    <rescap:Capability Name="runFullTrust" />
+    <rescap:Capability Name="unvirtualizedResources" />
+  </Capabilities>
+</Package>

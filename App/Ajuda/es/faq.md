@@ -43,6 +43,12 @@ este ordenador; el QR es independiente. Si aún puedes abrir la caja (por
 contraseña o por Hello), genera un **nuevo código QR** en *Configuración →
 Seguridad* y guárdalo.
 
+## ¿La aplicación se actualiza sola?
+
+Sí. Descarga las versiones nuevas en segundo plano, verifica la firma y las
+instala cuando se bloquea la caja; la caja y las preferencias siguen igual.
+Detalles y cómo desactivarlo en [Actualizaciones](atualizacoes).
+
 ## ¿Puedo usarla sin instalar nada más que la aplicación?
 
 Sí. La caja local no necesita base de datos, servidor ni cuenta. Las

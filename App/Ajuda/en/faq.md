@@ -41,6 +41,12 @@ computer; the QR is independent. If you can still open the vault (by
 password or by Hello), generate a **new QR code** in *Settings → Security*
 and keep it.
 
+## Does the app update itself?
+
+Yes. It downloads new versions in the background, checks their signature
+and installs them when the vault is locked; your vault and preferences stay
+the same. Details and how to turn it off in [Updates](atualizacoes).
+
 ## Can I use it without installing anything besides the app?
 
 Yes. The local vault needs no database, server or account. The network

@@ -159,3 +159,24 @@ jobs:
             sleep 15
           done
           exit 1
+
+  empacotar-msix:
+    name: Gerar o pacote da Microsoft Store
+    # O release.yml gera o mesmo pacote a cada release; rodar aqui faz um manifesto
+    # quebrado ou uma imagem faltando aparecer no PR, e não só na hora de publicar
+    # (onde a falha seguraria a release inteira). Identidade local: não vai para a Loja.
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: Configurar .NET
+        uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
+        with:
+          dotnet-version: '10.0.x'
+          cache: true
+          cache-dependency-path: '**/*.csproj'
+
+      - name: Gerar o MSIX
+        shell: pwsh
+        run: .\App\distribuicao\gerar-msix.ps1
