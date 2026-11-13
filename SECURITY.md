@@ -29,6 +29,8 @@ Na prática, hoje:
   em "Mais informações" e depois em "Executar assim mesmo". A reputação do
   SmartScreen tende a se acumular sozinha conforme mais gente baixa a mesma
   release.
+- **Microsoft Store** (em breve): o pacote é assinado pela própria Microsoft na
+  certificação, então quem instala por lá não vê o aviso do SmartScreen.
 - **Linux**: o `.AppImage` precisa de permissão de execução (`chmod +x`) e não
   há, por ora, pacote assinado em repositório de distribuição nem loja.
 

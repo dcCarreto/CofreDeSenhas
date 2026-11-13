@@ -14,6 +14,7 @@ CofreDeSenhas.sln
 │  ├─ Ajuda/                     Manual embutido, um .md por tópico e idioma
 │  ├─ Ativos/                    Ícone e fontes do aplicativo
 │  └─ distribuicao/              Scripts e atalhos de instalação (Linux e Windows)
+│     └─ msix/                   Manifesto e imagens do pacote da Microsoft Store
 ├─ Gerador/                      Gerador de senhas standalone (Avalonia)
 ├─ Cli/                          Executável de linha de comando `cofre`
 │                                (somente-leitura; referencia só o .Core)

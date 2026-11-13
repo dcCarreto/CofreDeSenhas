@@ -267,6 +267,16 @@ acesso com uma chave desatualizada.
   mas inativa: falta um certificado de assinatura (com custo anual). Configurados
   os secrets `WINDOWS_CERT_BASE64`/`WINDOWS_CERT_PASSWORD`, toda build passa a sair
   assinada — é o que eliminaria o aviso de "editor desconhecido" do SmartScreen.
+  Na versão da Microsoft Store, o pacote MSIX sai do pipeline sem assinatura e é
+  assinado pela Microsoft na certificação; quem instala pela Loja recebe as
+  atualizações dela, não do atualizador embutido. As credenciais de envio (secrets
+  `LOJA_TENANT_ID`, `LOJA_CLIENT_ID`, `LOJA_CLIENT_SECRET` e `LOJA_SELLER_ID`, de um
+  aplicativo do Microsoft Entra com função de Gerente no Partner Center) permitem
+  submeter uma versão nova a todos os usuários da Loja, com a certificação da
+  Microsoft como única revisão no meio do caminho — valem o mesmo cuidado que
+  `UPDATE_SIGNING_KEY`. O job `publicar-loja` só as recebe depois que a release do
+  GitHub foi publicada, e a chave do aplicativo Entra deve ser revogada no Partner
+  Center se houver suspeita de vazamento.
 
 ## Como isso evolui
 

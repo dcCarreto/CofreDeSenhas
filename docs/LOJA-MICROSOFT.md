@@ -52,36 +52,61 @@ assinatura de código.
    ```
 
 4. **Envio.** Em *Envios → Iniciar envio*, preencha:
-   - **Preços e disponibilidade:** gratuito, todos os mercados.
-   - **Propriedades:** categoria *Segurança*. Em "Requisitos do produto",
-     marque teclado e mouse. Política de privacidade:
-     `https://github.com/dcCarreto/CofreDeSenhas/blob/prod/PRIVACY.md`.
+   - **Preços e disponibilidade:** gratuito, todos os mercados, visibilidade
+     pública.
+   - **Propriedades:**
+     - Categoria *Segurança*.
+     - Política de privacidade:
+       `https://github.com/dcCarreto/CofreDeSenhas/blob/prod/PRIVACY.md`.
+     - Site: `https://github.com/dcCarreto/CofreDeSenhas`.
+     - Contato de suporte: `https://github.com/dcCarreto/CofreDeSenhas/issues`.
+     - "Este produto acessa, coleta ou transmite informações pessoais?":
+       **Sim**. Os nomes dos serviços vão ao Google se os ícones online forem
+       ligados, e os prefixos de hash vão ao Have I Been Pwned. A PRIVACY.md
+       descreve tudo; responder "Sim" é o que exige a política, e ela já existe.
+     - Declarações do produto: marque **"Este produto foi testado para atender
+       às diretrizes de acessibilidade"** (leitor de tela, alto contraste,
+       paletas para daltonismo, escala de texto e navegação por teclado; ver a
+       seção Interface de [FUNCIONALIDADES.md](FUNCIONALIDADES.md)). Deixe
+       marcadas as opções padrão de instalar em outra unidade e de backup pelo
+       Windows.
+     - Requisitos do sistema: teclado e mouse; Windows 10 versão 2004 (19041)
+       ou superior, x64.
    - **Classificação etária:** responda o questionário IARC (não há conteúdo
      sensível nem interação entre usuários; o resultado esperado é "Livre/3+").
    - **Pacotes:** envie o `.msix`.
    - **Páginas da Loja:** uma em **português (Brasil)** e uma em **inglês
-     (Estados Unidos)**, os dois idiomas que o manifesto declara. Textos abaixo.
-     Capturas: as de `docs/*.png` servem (mínimo 1366×768).
-   - **Notas para a certificação:** cole a justificativa das capacidades
-     restritas, abaixo.
+     (Estados Unidos)**, os dois idiomas que o manifesto declara. Textos e
+     palavras de busca abaixo. Capturas: as de `docs/*.png` servem (mínimo
+     1366×768).
+   - **Notas para a certificação:** cole o texto de [Notas para a
+     certificação](#notas-para-a-certificação), abaixo.
 5. A certificação costuma levar de algumas horas a 3 dias úteis.
-6. Com o app no ar, troque o "Em breve também na Microsoft Store" do
-   [README](../README.md), do [README.en](../README.en.md) e do
-   [INSTALACAO.md](INSTALACAO.md) pelo link da página da Loja
+6. Com o app no ar, troque o "em breve" do [README](../README.md), do
+   [README.en](../README.en.md), do [INSTALACAO.md](INSTALACAO.md) e do
+   [SECURITY.md](../SECURITY.md) pelo link da página da Loja
    (`https://apps.microsoft.com/detail/<ID da Loja>`).
 
-### Justificativa das capacidades restritas
+### Notas para a certificação
 
-> runFullTrust: o Cofre de Senhas é um aplicativo de área de trabalho Win32
-> (.NET/Avalonia), não UWP.
+> Não é preciso conta nem login: na primeira abertura, crie um cofre com
+> qualquer senha mestra (mínimo de 8 caracteres) e recuse as ofertas de QR de
+> backup, chave de recuperação e Windows Hello. O app funciona totalmente
+> offline; o acesso à rede é opcional (ícones dos serviços e verificação de
+> senhas vazadas) e descrito na política de privacidade. Na versão da Loja, o
+> atualizador próprio do app fica desligado: as atualizações vêm da Microsoft
+> Store (APIs Windows.Services.Store).
 >
-> unvirtualizedResources: o aplicativo guarda o cofre de senhas criptografado do
-> usuário em %APPDATA%\GerenciadorSenhas. Com a virtualização de gravação
-> ativada, essa pasta seria apagada ao desinstalar o aplicativo, levando junto
-> todas as senhas do usuário sem aviso. A mesma pasta é usada pela ferramenta de
-> linha de comando do projeto e pelas versões instalador/portátil, para que o
-> usuário possa migrar entre elas sem perder dados. O aplicativo não grava em
-> nenhum outro local fora da própria pasta de dados.
+> Capacidades restritas: runFullTrust, porque é um aplicativo de área de
+> trabalho Win32 (.NET/Avalonia), não UWP. unvirtualizedResources, porque o
+> aplicativo guarda o cofre de senhas criptografado do usuário em
+> %APPDATA%\GerenciadorSenhas. Com a virtualização de gravação ativada, essa
+> pasta seria apagada ao desinstalar o aplicativo, levando junto todas as
+> senhas do usuário sem aviso. A mesma pasta é usada pela ferramenta de linha
+> de comando do projeto e pelas versões instalador/portátil, para que o usuário
+> possa migrar entre elas sem perder dados. Fora dessa pasta, o aplicativo só
+> grava onde o usuário escolhe (exportações e cópias de backup) e em arquivos
+> temporários.
 
 ### Textos da página da Loja
 
@@ -92,9 +117,10 @@ assinatura de código.
 - *Descrição:*
 
   > O Cofre de Senhas guarda suas senhas em um cofre criptografado no seu próprio
-  > computador, protegido por uma senha mestra. Nada vai para servidores de
-  > terceiros: a sincronização entre dispositivos é opcional e usa uma pasta ou
-  > um banco de dados escolhido por você.
+  > computador, protegido por uma senha mestra. Suas senhas nunca saem do
+  > computador sem criptografia, e não há conta nem servidor do projeto: a
+  > sincronização entre dispositivos é opcional e usa uma pasta ou um banco de
+  > dados escolhido por você.
   >
   > • Cofre local com criptografia AES-256-GCM
   > • Gerador de senhas integrado, com indicador de força
@@ -107,6 +133,8 @@ assinatura de código.
   >
   > Gratuito e de código aberto (licença MIT):
   > https://github.com/dcCarreto/CofreDeSenhas
+- *Palavras de busca:* gerenciador de senhas, cofre de senhas, gerador de
+  senhas, senhas, criptografia, código aberto, offline
 
 **English (United States)**
 
@@ -115,9 +143,9 @@ assinatura de código.
 - *Description:*
 
   > Cofre de Senhas keeps your passwords in an encrypted vault on your own
-  > computer, protected by a master password. Nothing goes to third-party
-  > servers: syncing between devices is optional and uses a folder or a database
-  > of your choice.
+  > computer, protected by a master password. Your passwords never leave the
+  > computer unencrypted, and there is no account or project server: syncing
+  > between devices is optional and uses a folder or a database of your choice.
   >
   > • Local vault encrypted with AES-256-GCM
   > • Built-in password generator with strength meter
@@ -130,6 +158,8 @@ assinatura de código.
   >
   > Free and open source (MIT license):
   > https://github.com/dcCarreto/CofreDeSenhas
+- *Search terms:* password manager, password vault, password generator,
+  passwords, encryption, open source, offline
 
 ## Envio automático das próximas atualizações
 
