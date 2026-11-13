@@ -29,8 +29,10 @@ Comportamento). `winget upgrade dcCarreto.CofreDeSenhas` também funciona. O pac
 costuma chegar algumas horas depois de cada release, porque cada versão passa
 pela validação da Microsoft.
 
-Em breve o Cofre de Senhas também estará na **Microsoft Store**. A versão da
-Loja é o mesmo programa, com duas diferenças:
+O Cofre de Senhas também está na **Microsoft Store**, como "Cofre de Senhas -
+Gerenciador de Senhas": abra a [página do app na Loja](https://apps.microsoft.com/detail/9ND5J5DZBH90) ou, num terminal,
+`winget install 9ND5J5DZBH90 --source msstore`. A versão da Loja é o mesmo
+programa, com duas diferenças:
 
 - as atualizações chegam pela própria Loja: o app as baixa assim que ela as
   oferece e as instala quando o cofre é bloqueado, conforme a configuração de
@@ -208,7 +210,6 @@ gh attestation verify arquivo-baixado --owner dcCarreto
 
 Os arquivos ainda não são assinados digitalmente (Authenticode, no caso do
 Windows) — por ora, hash + attestation são as formas de verificação
-disponíveis. A versão da Microsoft Store, quando sair, é assinada pela própria
-Microsoft. Veja também a [verificação com assinatura
+disponíveis. A versão da Microsoft Store é assinada pela própria Microsoft. Veja também a [verificação com assinatura
 RSA/GPG](../SECURITY.md#confiança-nos-binários-e-verificação-dos-downloads)
 usada pelo atualizador automático.

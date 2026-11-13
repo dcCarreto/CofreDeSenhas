@@ -85,10 +85,8 @@ assinatura de código.
    - **Notas para a certificação:** cole o texto de [Notas para a
      certificação](#notas-para-a-certificação), abaixo.
 5. A certificação costuma levar de algumas horas a 3 dias úteis.
-6. Com o app no ar, troque o "em breve" do [README](../README.md), do
-   [README.en](../README.en.md), do [INSTALACAO.md](INSTALACAO.md) e do
-   [SECURITY.md](../SECURITY.md) pelo link da página da Loja
-   (`https://apps.microsoft.com/detail/<ID da Loja>`).
+6. Com o app no ar, a documentação aponta para a página da Loja:
+   <https://apps.microsoft.com/detail/9ND5J5DZBH90>.
 
 ### Notas para a certificação
 
