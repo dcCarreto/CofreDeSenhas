@@ -122,7 +122,15 @@ $caminhoManifesto = Join-Path $publicacao "AppxManifest.xml"
 [System.IO.File]::WriteAllText($caminhoManifesto, $manifesto, (New-Object System.Text.UTF8Encoding $false))
 
 Write-Host "Indexando os recursos (resources.pri)..."
-$logMakepri = & $makepri new /pr $publicacao /cf (Join-Path $pastaMsix "priconfig.xml") /mn $caminhoManifesto /of (Join-Path $publicacao "resources.pri") /o 2>&1
+# O makepri indexa uma pasta à parte que só tem Imagens/ (ver priconfig.xml): os
+# nomes ficam "Imagens/...", como o manifesto espera, sem levar junto as pastas de
+# idioma dos assemblies do publish. Os caminhos gravados no .pri são relativos,
+# então o arquivo vale dentro do pacote.
+$pastaIndice = Join-Path $raiz "publish-msix\indice"
+if (Test-Path $pastaIndice) { Remove-Item $pastaIndice -Recurse -Force }
+New-Item -ItemType Directory -Force $pastaIndice | Out-Null
+Copy-Item (Join-Path $pastaMsix "Imagens") (Join-Path $pastaIndice "Imagens") -Recurse
+$logMakepri = & $makepri new /pr $pastaIndice /cf (Join-Path $pastaMsix "priconfig.xml") /mn $caminhoManifesto /of (Join-Path $publicacao "resources.pri") /o 2>&1
 if ($LASTEXITCODE -ne 0) {
     $logMakepri | Write-Host
     throw "makepri falhou."
