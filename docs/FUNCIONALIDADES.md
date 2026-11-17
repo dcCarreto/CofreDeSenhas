@@ -24,6 +24,13 @@ Lista completa de funcionalidades do Cofre de Senhas, por área.
 - Disponível também na tela de senha mestra, antes do desbloqueio: dá para gerar
   e copiar senhas sem abrir o cofre, com a opção de salvar surgindo somente após
   a autenticação.
+- Na tela de senha mestra, o gerador é uma gaveta retrátil: uma seta na borda
+  do formulário o recolhe para a direita, por baixo do formulário, numa
+  animação em que só o gerador se move. O estado (aberto ou recolhido) é
+  lembrado entre as aberturas do app.
+- As opções escolhidas (modo, quantidade, comprimento, tipos de caractere e
+  opções da frase-senha) são lembradas e valem para todo gerador do app. As
+  senhas geradas nunca são gravadas.
 
 O painel do gerador, com a senha gerada, o indicador de força e as opções de
 caractere:

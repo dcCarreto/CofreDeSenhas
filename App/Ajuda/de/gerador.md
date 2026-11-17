@@ -13,6 +13,12 @@ Eintrags.
   akzeptiert.
 - Die Stärkeanzeige zeigt in Echtzeit, wie widerstandsfähig das Passwort
   ist.
+- Der Generator **merkt sich die gewählten Optionen** (Modus, Anzahl, Länge,
+  Zeichentypen und Passphrasen-Optionen) und verwendet sie beim nächsten Mal.
+  Erzeugte Passwörter werden nie gespeichert.
+- Auf dem Entsperrbildschirm **klappt der Pfeil am Rand des Formulars den
+  Generator** nach rechts ein und zeigt ihn wieder an. Die App merkt sich
+  deine Wahl.
 
 ## Das erzeugte Passwort verwenden
 

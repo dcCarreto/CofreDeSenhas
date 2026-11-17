@@ -29,19 +29,6 @@ Comportamento). `winget upgrade dcCarreto.CofreDeSenhas` também funciona. O pac
 costuma chegar algumas horas depois de cada release, porque cada versão passa
 pela validação da Microsoft.
 
-Em breve o Cofre de Senhas também estará na **Microsoft Store**. A versão da
-Loja é o mesmo programa, com duas diferenças:
-
-- as atualizações chegam pela própria Loja: o app as baixa assim que ela as
-  oferece e as instala quando o cofre é bloqueado, conforme a configuração de
-  atualização de aplicativos da Loja (a opção "Atualizar automaticamente" não
-  aparece nas Configurações);
-- desinstalar pela Loja nunca apaga o cofre. Ele fica no mesmo
-  `%APPDATA%\GerenciadorSenhas` das outras formas de instalação. Por isso dá
-  para trocar entre a Loja, o instalador e o portátil sem perder nada, e a
-  linha de comando `cofre` enxerga os mesmos dados. Para apagar o cofre de
-  vez, remova essa pasta manualmente.
-
 Para instalar sem o `winget`:
 
 1. Acesse a [última release](../../../releases/latest).
@@ -155,7 +142,6 @@ rodapé na primeira abertura.
 |---|---|
 | Instalador ou `winget` | Sozinho. Se você instalou "para todos os usuários" (em Arquivos de Programas), o Windows pede permissão de administrador: clique em **Instalar agora** quando o rodapé avisar. `winget upgrade dcCarreto.CofreDeSenhas` também funciona. |
 | Executável portátil | Sozinho; o próprio `.exe` é trocado pela versão nova. Ele precisa estar numa pasta em que você possa gravar. |
-| Microsoft Store | Pela Loja, conforme a configuração de atualização de aplicativos dela; o programa baixa assim que a Loja oferece e instala no bloqueio do cofre. |
 | AppImage (Linux) | Sozinho; o `.AppImage` é trocado pelo novo. |
 | `.tar.gz` ou `instalar.sh` (Linux) | Manualmente: baixe a release nova (ou, compilando do código-fonte, atualize o repositório e rode `instalar.sh` de novo). |
 | Linha de comando `cofre` e gerador avulso | Manualmente: são arquivos à parte; baixe as versões novas na [página de releases](../../../releases/latest). |
@@ -208,7 +194,6 @@ gh attestation verify arquivo-baixado --owner dcCarreto
 
 Os arquivos ainda não são assinados digitalmente (Authenticode, no caso do
 Windows) — por ora, hash + attestation são as formas de verificação
-disponíveis. A versão da Microsoft Store, quando sair, é assinada pela própria
-Microsoft. Veja também a [verificação com assinatura
+disponíveis. Veja também a [verificação com assinatura
 RSA/GPG](../SECURITY.md#confiança-nos-binários-e-verificação-dos-downloads)
 usada pelo atualizador automático.

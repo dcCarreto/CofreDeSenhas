@@ -16,18 +16,25 @@
             Margin="18"
             CornerRadius="20"
             ClipToBounds="True"
-            Background="{DynamicResource MaterialWorkspace}"
+            Background="{DynamicResource WorkspaceBackground}"
             BorderBrush="{DynamicResource CardBorder}"
             BorderThickness="1"
             BoxShadow="{StaticResource DialogShadow}"
             PointerPressed="Arrastar">
 
-      <Grid ColumnDefinitions="360,1,*">
-        <c:GeradorSenha Name="Gerador" Grid.Column="0" />
+      <!-- O gerador é uma gaveta que recolhe para a direita, por baixo do
+           formulário: a gaveta estreita com o conteúdo preso à borda esquerda
+           da moldura, e a moldura anda para a direita na mesma medida. A janela
+           nunca muda de tamanho nem de lugar; a faixa vazia sai da região dela
+           (ver AplicarAbertura no code-behind). -->
+      <Grid ColumnDefinitions="Auto,Auto,*">
+        <Panel Name="GavetaGerador" Grid.Column="0" Width="360" ClipToBounds="True">
+          <c:GeradorSenha Name="Gerador" Width="360" HorizontalAlignment="Left" />
+        </Panel>
 
-        <Border Grid.Column="1" Background="{DynamicResource Separator}" />
+        <Border Name="SeparadorGerador" Grid.Column="1" Width="1" Background="{DynamicResource Separator}" />
 
-        <Grid Grid.Column="2">
+        <Grid Name="ColunaLogin" Grid.Column="2">
           <ScrollViewer VerticalScrollBarVisibility="Auto">
           <StackPanel VerticalAlignment="Center" HorizontalAlignment="Stretch"
                       Margin="44,0" MaxWidth="360">
@@ -156,6 +163,22 @@
             </Button>
           </StackPanel>
           </ScrollViewer>
+
+          <Button Name="BtnAlternarGerador"
+                  Classes="icone"
+                  Width="20" Height="56"
+                  CornerRadius="0,8,8,0"
+                  Background="{DynamicResource MaterialCard}"
+                  BorderBrush="{DynamicResource CardBorder}"
+                  BorderThickness="0,1,1,1"
+                  HorizontalAlignment="Left"
+                  VerticalAlignment="Center"
+                  TabIndex="9"
+                  Click="AlternarGerador_Click">
+            <c:Icone Name="IconeAlternarGerador"
+                   Width="{StaticResource TamIconeCampo}" Height="{StaticResource TamIconeCampo}"
+                   Chave="IconeSetaDireita" />
+          </Button>
 
           <Button Name="BtnAcessibilidade"
                   Classes="icone borda"

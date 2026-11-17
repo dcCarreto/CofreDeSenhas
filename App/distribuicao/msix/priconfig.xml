@@ -1,13 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Configuração do makepri: indexa só a pasta Imagens, para o Windows escolher a
-  variante certa de cada logo (scale-100/200, targetsize, altform-unplated sem a
-  "placa" colorida na barra de tarefas). Indexar a pasta inteira do publish faria
-  o makepri tratar as pastas de assemblies satélite (de, fr, cs...) como idiomas
-  do pacote, e a Loja passaria a exigir uma página para cada um deles.
+  Configuração do makepri, para o Windows escolher a variante certa de cada logo
+  (scale-100/200, targetsize, altform-unplated sem a "placa" colorida na barra de
+  tarefas). O gerar-msix.ps1 roda o makepri sobre uma pasta que só tem Imagens/,
+  não sobre o publish inteiro: indexar o publish faria o makepri tratar as pastas
+  de assemblies satélite (de, fr, cs...) como idiomas do pacote, e a Loja passaria
+  a exigir uma página para cada um deles.
+
+  O índice começa na raiz (startIndexAt="\") de propósito: o nome de cada recurso
+  é o caminho a partir de startIndexAt, e o manifesto aponta para
+  "Imagens\StoreLogo.png". Com startIndexAt="\Imagens" o nome virava só
+  "StoreLogo.png" e a validação da Loja recusava o pacote com "as imagens
+  especificadas no appxManifest.xml não foram encontradas".
 -->
 <resources targetOsVersion="10.0.0" majorVersion="1">
-  <index root="\" startIndexAt="\Imagens">
+  <index root="\" startIndexAt="\">
     <default>
       <qualifier name="Language" value="pt-BR" />
       <qualifier name="Contrast" value="standard" />

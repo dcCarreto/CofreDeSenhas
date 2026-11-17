@@ -277,6 +277,7 @@ namespace CofreDeSenhas
             ("Login.SubtitleUnlock", "Geben Sie Ihr Master-Passwort zum Entsperren ein"),
             ("Login.MasterPassword", "Master-Passwort"), ("Login.ConfirmPassword", "Passwort bestätigen"),
             ("Login.CreateVault", "Tresor erstellen"), ("Login.Unlock", "Entsperren"),
+            ("Login.HideGenerator", "Passwortgenerator einklappen"), ("Login.ShowGenerator", "Passwortgenerator anzeigen"),
             ("Login.WindowsHello", "Mit Windows Hello entsperren"),
             ("Login.EnableWindowsHello", "Windows Hello aktivieren"),
             ("Login.WindowsHelloHint", "Mit Fingerabdruck, Gesicht oder PIN schneller entsperren."),

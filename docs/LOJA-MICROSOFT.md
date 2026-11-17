@@ -31,8 +31,11 @@ assinatura de código.
    uma conta individual (gratuita) com a sua conta Microsoft. A verificação de
    identidade pode levar alguns dias.
 2. **Reservar o nome.** No [Partner Center](https://partner.microsoft.com/dashboard/apps-and-games/overview),
-   *Apps e jogos → Novo produto → Aplicativo MSIX ou PWA*, reserve
-   "Cofre de Senhas".
+   *Apps e jogos → Novo produto → Aplicativo MSIX ou PWA*. "Cofre de Senhas"
+   já estava reservado por outra conta; o nome reservado foi **"Cofre de Senhas
+   - Gerenciador de Senhas"** (ID da Loja `9ND5J5DZBH90`), e é o que vai em
+   `Package/Properties/DisplayName` no manifesto. No menu Iniciar o app continua
+   aparecendo como "Cofre de Senhas".
 3. **Identidade do pacote.** Em *Gerenciamento do produto → Identidade do
    produto*, copie os três valores para variáveis do repositório
    (*Settings → Secrets and variables → Actions → Variables*):

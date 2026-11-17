@@ -39,6 +39,35 @@ namespace App.Testes
             });
         }
 
+        [Fact]
+        public void GeradorLoginRecolhidoEOpcoesDoGerador_SobrevivemASalvarECarregar()
+        {
+            ComConfig("{}", () =>
+            {
+                Assert.False(Preferencias.GeradorLoginRecolhido);
+                Assert.Null(Preferencias.Gerador);
+
+                Preferencias.GeradorLoginRecolhido = true;
+                Preferencias.Gerador = new OpcoesGerador
+                {
+                    Modo = 1, Quantidade = 3, Tamanho = 32,
+                    Maiusculas = false, Minusculas = true, Numeros = false, Especiais = true,
+                    Palavras = 7, Separador = 2, CapitalizarFrase = true, NumeroFrase = false
+                };
+                Preferencias.Salvar();
+
+                Preferencias.GeradorLoginRecolhido = false;
+                Preferencias.Gerador = null;
+                Preferencias.Carregar();
+
+                Assert.True(Preferencias.GeradorLoginRecolhido);
+                var o = Assert.IsType<OpcoesGerador>(Preferencias.Gerador);
+                Assert.Equal((1, 3, 32, 7, 2), (o.Modo, o.Quantidade, o.Tamanho, o.Palavras, o.Separador));
+                Assert.Equal((false, true, false, true), (o.Maiusculas, o.Minusculas, o.Numeros, o.Especiais));
+                Assert.Equal((true, false), (o.CapitalizarFrase, o.NumeroFrase));
+            });
+        }
+
         private static void ComConfig(string json, Action verificar)
         {
             var caminho = Path.Combine(CaminhosApp.PastaDados, "config.json");

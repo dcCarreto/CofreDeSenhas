@@ -10,6 +10,11 @@ in the sidebar, or directly on an entry's form.
 - **Character types**: uppercase, lowercase, digits and symbols. Turn
   symbols off only when the service doesn't accept them.
 - The strength meter shows in real time how resistant the password is.
+- The generator **remembers the options you choose** (mode, quantity, length,
+  character types and passphrase options) and uses them next time. Generated
+  passwords are never stored.
+- On the unlock screen, the arrow on the edge of the form **collapses the
+  generator** to the right and shows it again. The app remembers your choice.
 
 ## Use the generated password
 

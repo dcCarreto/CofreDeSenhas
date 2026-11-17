@@ -12,6 +12,12 @@ formulaire d'une entrée.
   Désactivez les symboles seulement quand le service ne les accepte pas.
 - L'indicateur de robustesse montre en temps réel à quel point le mot de
   passe résiste.
+- Le générateur **retient les options choisies** (mode, quantité, longueur,
+  types de caractères et options de la phrase de passe) et les réutilise la
+  fois suivante. Les mots de passe générés ne sont jamais conservés.
+- Sur l’écran de déverrouillage, la flèche au bord du formulaire **replie le
+  générateur** vers la droite et l’affiche à nouveau. L’application retient
+  votre choix.
 
 ## Utiliser le mot de passe généré
 
