@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using Avalonia;
 using Avalonia.Automation;
@@ -25,9 +27,21 @@ namespace CofreDeSenhas.Janelas
         private BiometriaModo _modoBiometria = BiometriaModo.Desbloquear;
         private DispatcherTimer? _timerBloqueioTentativas;
 
-        // Coluna do gerador (360) + separador (1), em DIPs antes da escala de acessibilidade.
-        private const double LarguraPainelGerador = 361;
+        // Gaveta do gerador: coluna (360) + separador (1), em DIPs antes da escala
+        // de acessibilidade. _abertura vai de 0 (recolhida) a 1 (aberta).
+        private const double LarguraGaveta = 361;
+        private const double MargemMoldura = 18;
+        private static readonly TimeSpan DuracaoGaveta = TimeSpan.FromMilliseconds(320);
         private bool _geradorRecolhido;
+        private double _abertura = 1;
+        private int _animacaoGaveta;
+        private bool _regiaoAtiva;
+
+        [DllImport("gdi32.dll")]
+        private static extern IntPtr CreateRectRgn(int esquerda, int topo, int direita, int baixo);
+
+        [DllImport("user32.dll")]
+        private static extern int SetWindowRgn(IntPtr hwnd, IntPtr regiao, bool redesenhar);
 
         public JanelaLogin(AutenticacaoMestra auth, Action<byte[], string?> aoAutenticar)
         {
@@ -41,15 +55,25 @@ namespace CofreDeSenhas.Janelas
 
             InitializeComponent();
 
-            // Antes do Vincular: a escala de acessibilidade multiplica a largura
-            // que estiver definida, então a janela já nasce estreita se recolhido.
-            AplicarEstadoGerador(Preferencias.GeradorLoginRecolhido);
-            if (_geradorRecolhido)
-                Width -= LarguraPainelGerador;
+            // Sem Material.Aplicar: o Mica faz da janela inteira a moldura, e a
+            // gaveta precisa de uma janela de tamanho fixo com moldura desenhada
+            // por dentro (margem transparente + sombra), para que só o gerador se
+            // mova. Redimensionar a janela pela esquerda treme no Windows.
+            _geradorRecolhido = Preferencias.GeradorLoginRecolhido;
+            AtualizarAlcaGerador();
+            AplicarAbertura(_geradorRecolhido ? 0 : 1);
 
-            Material.Aplicar(this);
             Icon = Recursos.IconeApp();
             Acessibilidade.Vincular(this);
+            if (_geradorRecolhido)
+                CentralizarParteVisivel();
+
+            PropertyChanged += (s, e) =>
+            {
+                if (e.Property == ClientSizeProperty)
+                    AtualizarRegiaoVisivel();
+            };
+            ScalingChanged += (s, e) => AtualizarRegiaoVisivel();
             this.AtalhoAjuda("senha-mestra");
             Acessibilidade.RegistrarAnunciador(this, LblAnuncioLeitorTela);
 
@@ -92,6 +116,7 @@ namespace CofreDeSenhas.Janelas
 
             Opened += async (s, e) =>
             {
+                AtualizarRegiaoVisivel();
                 TxtSenha.Focus();
                 await ConfigurarBotaoBiometriaAsync();
 
@@ -132,43 +157,120 @@ namespace CofreDeSenhas.Janelas
 
         private void AlternarGerador_Click(object? sender, RoutedEventArgs e) => AlternarGerador();
 
-        // Recolhe para a direita: a janela perde a largura do painel pela borda
-        // esquerda (encolhe e anda para a direita na mesma medida), então o
-        // formulário de desbloqueio não sai do lugar. Mostrar faz o inverso, sem
-        // deixar a borda esquerda passar da área de trabalho da tela.
+        // Gaveta que recolhe para a direita, por baixo do formulário. Só o gerador
+        // se move: a janela e o formulário ficam parados.
         private void AlternarGerador()
         {
-            bool recolher = !_geradorRecolhido;
-            double delta = LarguraPainelGerador * Acessibilidade.EscalaEfetiva;
-            int deltaPx = (int)Math.Round(delta * DesktopScaling);
+            _geradorRecolhido = !_geradorRecolhido;
+            AtualizarAlcaGerador();
 
-            var posicao = Position;
-            int novoX = recolher ? posicao.X + deltaPx : posicao.X - deltaPx;
-            if (!recolher && Screens.ScreenFromWindow(this)?.WorkingArea is { } area)
-                novoX = Math.Max(novoX, area.X);
+            if (!_geradorRecolhido)
+                TrazerParteEsquerdaParaTela();
 
-            AplicarEstadoGerador(recolher);
-            if (recolher)
-            {
-                Width -= delta;
-                Position = new PixelPoint(novoX, posicao.Y);
-            }
-            else
-            {
-                Position = new PixelPoint(novoX, posicao.Y);
-                Width += delta;
-            }
+            AnimarGaveta(_geradorRecolhido ? 0 : 1);
 
-            Preferencias.GeradorLoginRecolhido = recolher;
+            Preferencias.GeradorLoginRecolhido = _geradorRecolhido;
             Preferencias.Salvar();
         }
 
-        private void AplicarEstadoGerador(bool recolhido)
+        private void AnimarGaveta(double alvo)
         {
-            _geradorRecolhido = recolhido;
-            Gerador.IsVisible = !recolhido;
-            SeparadorGerador.IsVisible = !recolhido;
-            IconeAlternarGerador.Chave = recolhido ? "IconeSetaEsquerda" : "IconeSetaDireita";
+            int animacao = ++_animacaoGaveta;
+            if (Acessibilidade.ReduzirAnimacoes)
+            {
+                AplicarAbertura(alvo);
+                return;
+            }
+
+            double inicio = _abertura;
+            var relogio = Stopwatch.StartNew();
+
+            void Quadro(TimeSpan _)
+            {
+                if (animacao != _animacaoGaveta)
+                    return;
+
+                double t = Math.Min(1, relogio.Elapsed / DuracaoGaveta);
+                // ease-in-out cúbico: a gaveta arranca e assenta devagar.
+                double suavizado = t < 0.5 ? 4 * t * t * t : 1 - Math.Pow(-2 * t + 2, 3) / 2;
+                AplicarAbertura(inicio + (alvo - inicio) * suavizado);
+
+                if (t < 1)
+                    RequestAnimationFrame(Quadro);
+            }
+
+            RequestAnimationFrame(Quadro);
+        }
+
+        // A gaveta estreita com o gerador preso à borda esquerda da moldura (ele
+        // some por baixo do formulário) e a moldura anda para a direita na mesma
+        // medida, então a coluna do formulário não muda de largura nem de lugar.
+        private void AplicarAbertura(double abertura)
+        {
+            _abertura = abertura;
+            bool visivel = abertura > 0;
+
+            GavetaGerador.Width = Math.Max(0, LarguraGaveta * abertura - 1);
+            GavetaGerador.IsVisible = visivel;
+            SeparadorGerador.IsVisible = visivel;
+            Moldura.Margin = new Thickness(MargemMoldura + LarguraGaveta * (1 - abertura),
+                MargemMoldura, MargemMoldura, MargemMoldura);
+
+            AtualizarRegiaoVisivel();
+        }
+
+        // A janela mantém a largura cheia; com a gaveta fechada, a faixa vazia à
+        // esquerda sai da região da janela para não segurar cliques do que está
+        // atrás dela. A margem da sombra continua dentro da região.
+        private void AtualizarRegiaoVisivel()
+        {
+            if (!OperatingSystem.IsWindows() || !IsVisible || TryGetPlatformHandle()?.Handle is not { } hwnd || hwnd == IntPtr.Zero)
+                return;
+
+            if (_abertura >= 1)
+            {
+                if (_regiaoAtiva)
+                    SetWindowRgn(hwnd, IntPtr.Zero, true);
+                _regiaoAtiva = false;
+                return;
+            }
+
+            int esquerda = (int)Math.Floor(LarguraGaveta * (1 - _abertura) * Acessibilidade.EscalaEfetiva * RenderScaling);
+            SetWindowRgn(hwnd, CreateRectRgn(esquerda, 0, 32767, 32767), true);
+            _regiaoAtiva = true;
+        }
+
+        // Mesma conta do CenterScreen do Avalonia, mas centralizando só a parte
+        // visível quando a janela abre com a gaveta fechada.
+        private void CentralizarParteVisivel()
+        {
+            var tela = Screens.ScreenFromPoint(Position) ?? Screens.Primary;
+            if (tela is null)
+                return;
+
+            double escala = tela.Scaling;
+            int largura = (int)(Width * escala);
+            int altura = (int)(Height * escala);
+            int oculta = (int)(LarguraGaveta * Acessibilidade.EscalaEfetiva * escala);
+            var area = tela.WorkingArea;
+
+            WindowStartupLocation = WindowStartupLocation.Manual;
+            Position = new PixelPoint(
+                area.X + (area.Width - (largura - oculta)) / 2 - oculta,
+                area.Y + Math.Max(0, (area.Height - altura) / 2));
+        }
+
+        // Se o usuário arrastou a janela recolhida para perto da borda esquerda,
+        // a gaveta abriria fora da tela: empurra a janela para dentro antes.
+        private void TrazerParteEsquerdaParaTela()
+        {
+            if (Screens.ScreenFromWindow(this)?.WorkingArea is { } area && Position.X < area.X)
+                Position = new PixelPoint(area.X, Position.Y);
+        }
+
+        private void AtualizarAlcaGerador()
+        {
+            IconeAlternarGerador.Chave = _geradorRecolhido ? "IconeSetaEsquerda" : "IconeSetaDireita";
             AtualizarTextoAlternarGerador();
         }
 
@@ -183,6 +285,7 @@ namespace CofreDeSenhas.Janelas
         {
             ConfigurarAcessibilidadeLeitorTela();
             Gerador.AtualizarTema();
+            Dispatcher.UIThread.Post(AtualizarRegiaoVisivel, DispatcherPriority.Background);
         }
 
         private void Daltonismo_Alterado(object? sender, RoutedEventArgs e) => Acessibilidade.TratarClickDaltonismo(sender);

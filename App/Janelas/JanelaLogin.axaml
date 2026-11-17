@@ -16,17 +16,21 @@
             Margin="18"
             CornerRadius="20"
             ClipToBounds="True"
-            Background="{DynamicResource MaterialWorkspace}"
+            Background="{DynamicResource WorkspaceBackground}"
             BorderBrush="{DynamicResource CardBorder}"
             BorderThickness="1"
             BoxShadow="{StaticResource DialogShadow}"
             PointerPressed="Arrastar">
 
-      <!-- O gerador é retrátil e recolhe para a direita: a janela perde a largura
-           dele pela borda esquerda e o formulário fica parado na tela (ver
-           AlternarGerador no code-behind). -->
+      <!-- O gerador é uma gaveta que recolhe para a direita, por baixo do
+           formulário: a gaveta estreita com o conteúdo preso à borda esquerda
+           da moldura, e a moldura anda para a direita na mesma medida. A janela
+           nunca muda de tamanho nem de lugar; a faixa vazia sai da região dela
+           (ver AplicarAbertura no code-behind). -->
       <Grid ColumnDefinitions="Auto,Auto,*">
-        <c:GeradorSenha Name="Gerador" Grid.Column="0" Width="360" />
+        <Panel Name="GavetaGerador" Grid.Column="0" Width="360" ClipToBounds="True">
+          <c:GeradorSenha Name="Gerador" Width="360" HorizontalAlignment="Left" />
+        </Panel>
 
         <Border Name="SeparadorGerador" Grid.Column="1" Width="1" Background="{DynamicResource Separator}" />
 
