@@ -278,6 +278,7 @@ namespace CofreDeSenhas
             ("Login.SubtitleUnlock", "Saisissez votre mot de passe maître pour déverrouiller"),
             ("Login.MasterPassword", "Mot de passe maître"), ("Login.ConfirmPassword", "Confirmer le mot de passe"),
             ("Login.CreateVault", "Créer le coffre"), ("Login.Unlock", "Déverrouiller"),
+            ("Login.HideGenerator", "Replier le générateur de mots de passe"), ("Login.ShowGenerator", "Afficher le générateur de mots de passe"),
             ("Login.WindowsHello", "Déverrouiller avec Windows Hello"),
             ("Login.EnableWindowsHello", "Activer Windows Hello"),
             ("Login.WindowsHelloHint", "Utilisez l'empreinte, le visage ou le code PIN pour déverrouiller plus vite."),

@@ -277,6 +277,7 @@ namespace CofreDeSenhas
             ("Login.SubtitleUnlock", "Inserisci la password principale per sbloccare"),
             ("Login.MasterPassword", "Password principale"), ("Login.ConfirmPassword", "Conferma password"),
             ("Login.CreateVault", "Crea cassaforte"), ("Login.Unlock", "Sblocca"),
+            ("Login.HideGenerator", "Comprimi generatore di password"), ("Login.ShowGenerator", "Mostra generatore di password"),
             ("Login.WindowsHello", "Sblocca con Windows Hello"),
             ("Login.EnableWindowsHello", "Attiva Windows Hello"),
             ("Login.WindowsHelloHint", "Usa impronta, volto o PIN per sbloccare più rapidamente."),

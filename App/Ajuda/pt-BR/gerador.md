@@ -10,6 +10,11 @@ barra lateral ou direto na tela de cadastro de uma senha.
 - **Tipos de caractere**: maiúsculas, minúsculas, números e símbolos.
   Desligue os símbolos apenas quando o serviço não os aceitar.
 - O medidor de força mostra na hora o quão resistente a senha ficou.
+- O gerador **lembra as opções escolhidas** (modo, quantidade, comprimento,
+  tipos de caractere e opções da frase-senha) e as usa da próxima vez. As
+  senhas geradas nunca são guardadas.
+- Na tela de desbloqueio, a seta na borda do formulário **recolhe o
+  gerador** para a direita e o mostra de novo. O app lembra a sua escolha.
 
 ## Usar a senha gerada
 

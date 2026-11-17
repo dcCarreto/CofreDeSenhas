@@ -277,6 +277,7 @@ namespace CofreDeSenhas
             ("Login.SubtitleUnlock", "Escribe tu contraseña maestra para desbloquear"),
             ("Login.MasterPassword", "Contraseña maestra"), ("Login.ConfirmPassword", "Confirmar contraseña"),
             ("Login.CreateVault", "Crear caja"), ("Login.Unlock", "Desbloquear"),
+            ("Login.HideGenerator", "Contraer generador de contraseñas"), ("Login.ShowGenerator", "Mostrar generador de contraseñas"),
             ("Login.WindowsHello", "Desbloquear con Windows Hello"),
             ("Login.EnableWindowsHello", "Activar Windows Hello"),
             ("Login.WindowsHelloHint", "Usa huella, rostro o PIN para desbloquear más rápido."),

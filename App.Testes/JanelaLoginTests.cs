@@ -13,6 +13,50 @@ namespace App.Testes
     public class JanelaLoginTests
     {
         [AvaloniaFact]
+        public async Task GavetaDoGerador_EscolhaDoUsuarioEGravadaEVoltaAoReabrir()
+        {
+            var original = Preferencias.GeradorLoginRecolhido;
+            try
+            {
+                Preferencias.GeradorLoginRecolhido = false;
+                var auth = new AutenticacaoMestra(TesteUtil.CriarPastaTemporaria());
+
+                var login = new JanelaLogin(auth, (chave, senha) => { });
+                login.Show();
+                Assert.True(login.Encontrar<Panel>("GavetaGerador").IsVisible);
+
+                var alca = login.Encontrar<Button>("BtnAlternarGerador");
+                alca.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                Assert.True(Preferencias.GeradorLoginRecolhido);
+                await TesteUtil.AguardarAsync(() => !login.Encontrar<Panel>("GavetaGerador").IsVisible);
+                Assert.False(login.Encontrar<Panel>("GavetaGerador").IsVisible);
+                login.Close();
+
+                // Relê do disco, como num reinício do app.
+                Preferencias.GeradorLoginRecolhido = false;
+                Preferencias.Carregar();
+                Assert.True(Preferencias.GeradorLoginRecolhido);
+
+                var reaberta = new JanelaLogin(auth, (chave, senha) => { });
+                reaberta.Show();
+                Assert.False(reaberta.Encontrar<Panel>("GavetaGerador").IsVisible);
+                Assert.Equal(Idioma.Texto("Login.ShowGenerator"),
+                    Avalonia.Automation.AutomationProperties.GetName(reaberta.Encontrar<Button>("BtnAlternarGerador")));
+
+                reaberta.Encontrar<Button>("BtnAlternarGerador").RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                Assert.False(Preferencias.GeradorLoginRecolhido);
+                await TesteUtil.AguardarAsync(() => reaberta.Encontrar<Panel>("GavetaGerador").Width >= 359);
+                Assert.True(reaberta.Encontrar<Panel>("GavetaGerador").IsVisible);
+                reaberta.Close();
+            }
+            finally
+            {
+                Preferencias.GeradorLoginRecolhido = original;
+                Preferencias.Salvar();
+            }
+        }
+
+        [AvaloniaFact]
         public async Task Desbloqueio_ComSenhaCorreta_DisparaCallbackComAChave()
         {
             var pasta = TesteUtil.CriarPastaTemporaria();

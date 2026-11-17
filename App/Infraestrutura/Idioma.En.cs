@@ -315,6 +315,7 @@ namespace CofreDeSenhas
             ("Login.ConfirmPassword", "Confirm password"),
             ("Login.CreateVault", "Create vault"),
             ("Login.Unlock", "Unlock"),
+            ("Login.HideGenerator", "Collapse password generator"), ("Login.ShowGenerator", "Show password generator"),
             ("Login.WindowsHello", "Unlock with Windows Hello"),
             ("Login.EnableWindowsHello", "Enable Windows Hello"),
             ("Login.WindowsHelloHint", "Use your fingerprint, face, or PIN to unlock faster."),
