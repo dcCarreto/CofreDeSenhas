@@ -72,6 +72,7 @@ namespace CofreDeSenhas
             public bool AvisarAntesBloqueio { get; set; }
             public bool LeitorTela { get; set; }
             public bool IconesOnline { get; set; }
+            public bool GeradorLoginRecolhido { get; set; }
             public int SegundosLimpezaClipboard { get; set; } = SegundosLimpezaClipboardPadrao;
             public string FrequenciaBackup { get; set; } = FrequenciaBackupPadrao;
             public int MaximoBackups { get; set; } = MaximoBackupsPadrao;
@@ -110,6 +111,8 @@ namespace CofreDeSenhas
         public static bool AvisarAntesBloqueio { get; set; }
         public static bool LeitorTela { get; set; }
         public static bool IconesOnline { get; set; }
+        // Painel do gerador na tela de desbloqueio (JanelaLogin) recolhido pelo usuário.
+        public static bool GeradorLoginRecolhido { get; set; }
         public static int SegundosLimpezaClipboard { get; set; } = SegundosLimpezaClipboardPadrao;
         public static string FrequenciaBackup { get; set; } = FrequenciaBackupPadrao;
         public static int MaximoBackups { get; set; } = MaximoBackupsPadrao;
@@ -163,6 +166,7 @@ namespace CofreDeSenhas
                         AvisarAntesBloqueio = d.AvisarAntesBloqueio;
                         LeitorTela = d.LeitorTela;
                         IconesOnline = d.IconesOnline;
+                        GeradorLoginRecolhido = d.GeradorLoginRecolhido;
                         SegundosLimpezaClipboard = d.SegundosLimpezaClipboard;
                         FrequenciaBackup = string.IsNullOrEmpty(d.FrequenciaBackup) ? FrequenciaBackupPadrao : d.FrequenciaBackup;
                         MaximoBackups = d.MaximoBackups <= 0 ? MaximoBackupsPadrao : d.MaximoBackups;
@@ -196,7 +200,7 @@ namespace CofreDeSenhas
             {
                 var dir = Path.GetDirectoryName(_caminho)!;
                 if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
-                File.WriteAllText(_caminho, JsonSerializer.Serialize(new Dados { UltimoBanco = UltimoBanco, MinutosBloqueio = MinutosBloqueio, Idioma = Idioma, ModoTema = ModoTema, Densidade = Densidade, LayoutDetalhe = LayoutDetalhe, OrdenacaoColuna = OrdenacaoColuna, OrdenacaoDescendente = OrdenacaoDescendente, ColunasLista = ColunasLista, PerfisAparencia = PerfisAparencia, Daltonismo = Daltonismo, AltoContraste = AltoContraste, NivelContraste = NivelContraste, EscalaInterface = EscalaInterface, EscalaAutomatica = EscalaAutomatica, ReduzirAnimacoes = ReduzirAnimacoes, NivelMovimento = NivelMovimento, FonteLeitura = FonteLeitura, EspacamentoTexto = EspacamentoTexto, VerbosidadeLeitor = VerbosidadeLeitor, SublinharLinks = SublinharLinks, FocoReforcado = FocoReforcado, AnunciarAcoes = AnunciarAcoes, AvisarAntesBloqueio = AvisarAntesBloqueio, LeitorTela = LeitorTela, IconesOnline = IconesOnline, SegundosLimpezaClipboard = SegundosLimpezaClipboard, FrequenciaBackup = FrequenciaBackup, MaximoBackups = MaximoBackups, RegistrarHistoricoUso = RegistrarHistoricoUso, AtualizacaoAutomatica = AtualizacaoAutomatica, AvisoAtualizacaoAutomaticaPendente = AvisoAtualizacaoAutomaticaPendente, Sincronizacao = Sincronizacao }));
+                File.WriteAllText(_caminho, JsonSerializer.Serialize(new Dados { UltimoBanco = UltimoBanco, MinutosBloqueio = MinutosBloqueio, Idioma = Idioma, ModoTema = ModoTema, Densidade = Densidade, LayoutDetalhe = LayoutDetalhe, OrdenacaoColuna = OrdenacaoColuna, OrdenacaoDescendente = OrdenacaoDescendente, ColunasLista = ColunasLista, PerfisAparencia = PerfisAparencia, Daltonismo = Daltonismo, AltoContraste = AltoContraste, NivelContraste = NivelContraste, EscalaInterface = EscalaInterface, EscalaAutomatica = EscalaAutomatica, ReduzirAnimacoes = ReduzirAnimacoes, NivelMovimento = NivelMovimento, FonteLeitura = FonteLeitura, EspacamentoTexto = EspacamentoTexto, VerbosidadeLeitor = VerbosidadeLeitor, SublinharLinks = SublinharLinks, FocoReforcado = FocoReforcado, AnunciarAcoes = AnunciarAcoes, AvisarAntesBloqueio = AvisarAntesBloqueio, LeitorTela = LeitorTela, IconesOnline = IconesOnline, GeradorLoginRecolhido = GeradorLoginRecolhido, SegundosLimpezaClipboard = SegundosLimpezaClipboard, FrequenciaBackup = FrequenciaBackup, MaximoBackups = MaximoBackups, RegistrarHistoricoUso = RegistrarHistoricoUso, AtualizacaoAutomatica = AtualizacaoAutomatica, AvisoAtualizacaoAutomaticaPendente = AvisoAtualizacaoAutomaticaPendente, Sincronizacao = Sincronizacao }));
             }
             catch (Exception ex)
             {

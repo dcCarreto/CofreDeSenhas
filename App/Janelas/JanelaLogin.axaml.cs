@@ -25,6 +25,10 @@ namespace CofreDeSenhas.Janelas
         private BiometriaModo _modoBiometria = BiometriaModo.Desbloquear;
         private DispatcherTimer? _timerBloqueioTentativas;
 
+        // Coluna do gerador (360) + separador (1), em DIPs antes da escala de acessibilidade.
+        private const double LarguraPainelGerador = 361;
+        private bool _geradorRecolhido;
+
         public JanelaLogin(AutenticacaoMestra auth, Action<byte[], string?> aoAutenticar)
         {
             _auth = auth;
@@ -36,6 +40,13 @@ namespace CofreDeSenhas.Janelas
             _controleTentativas = new ControleTentativasLogin(auth.PastaApp);
 
             InitializeComponent();
+
+            // Antes do Vincular: a escala de acessibilidade multiplica a largura
+            // que estiver definida, então a janela já nasce estreita se recolhido.
+            AplicarEstadoGerador(Preferencias.GeradorLoginRecolhido);
+            if (_geradorRecolhido)
+                Width -= LarguraPainelGerador;
+
             Material.Aplicar(this);
             Icon = Recursos.IconeApp();
             Acessibilidade.Vincular(this);
@@ -118,6 +129,55 @@ namespace CofreDeSenhas.Janelas
             origem.FindAncestorOfType<ScrollBar>(true) != null;
 
         private void Fechar_Click(object? sender, RoutedEventArgs e) => Close();
+
+        private void AlternarGerador_Click(object? sender, RoutedEventArgs e) => AlternarGerador();
+
+        // Recolhe para a direita: a janela perde a largura do painel pela borda
+        // esquerda (encolhe e anda para a direita na mesma medida), então o
+        // formulário de desbloqueio não sai do lugar. Mostrar faz o inverso, sem
+        // deixar a borda esquerda passar da área de trabalho da tela.
+        private void AlternarGerador()
+        {
+            bool recolher = !_geradorRecolhido;
+            double delta = LarguraPainelGerador * Acessibilidade.EscalaEfetiva;
+            int deltaPx = (int)Math.Round(delta * DesktopScaling);
+
+            var posicao = Position;
+            int novoX = recolher ? posicao.X + deltaPx : posicao.X - deltaPx;
+            if (!recolher && Screens.ScreenFromWindow(this)?.WorkingArea is { } area)
+                novoX = Math.Max(novoX, area.X);
+
+            AplicarEstadoGerador(recolher);
+            if (recolher)
+            {
+                Width -= delta;
+                Position = new PixelPoint(novoX, posicao.Y);
+            }
+            else
+            {
+                Position = new PixelPoint(novoX, posicao.Y);
+                Width += delta;
+            }
+
+            Preferencias.GeradorLoginRecolhido = recolher;
+            Preferencias.Salvar();
+        }
+
+        private void AplicarEstadoGerador(bool recolhido)
+        {
+            _geradorRecolhido = recolhido;
+            Gerador.IsVisible = !recolhido;
+            SeparadorGerador.IsVisible = !recolhido;
+            IconeAlternarGerador.Chave = recolhido ? "IconeSetaEsquerda" : "IconeSetaDireita";
+            AtualizarTextoAlternarGerador();
+        }
+
+        private void AtualizarTextoAlternarGerador()
+        {
+            var texto = Idioma.Texto(_geradorRecolhido ? "Login.ShowGenerator" : "Login.HideGenerator");
+            ToolTip.SetTip(BtnAlternarGerador, texto);
+            AutomationProperties.SetName(BtnAlternarGerador, texto);
+        }
 
         private void Acessibilidade_Alterado(object? sender, EventArgs e)
         {
@@ -325,6 +385,7 @@ namespace CofreDeSenhas.Janelas
                 ? "Login.CreateVault"
                 : "Login.Unlock");
             AtualizarTextoBiometria();
+            AtualizarTextoAlternarGerador();
             AutomationProperties.SetName(BtnPrincipal, BtnPrincipal.Content?.ToString() ?? "");
         }
 

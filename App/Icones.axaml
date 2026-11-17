@@ -9,6 +9,8 @@
   <StreamGeometry x:Key="IconeMinimizar">M5 11.25 H19 V12.75 H5 Z</StreamGeometry>
   <StreamGeometry x:Key="IconeMaximizar">M5 5 H19 V19 H5 Z</StreamGeometry>
   <StreamGeometry x:Key="IconeRestaurar">M6 8 H16 V18 H6 Z M9 5 H17 V13</StreamGeometry>
+  <StreamGeometry x:Key="IconeSetaDireita">M9 18 L15 12 L9 6</StreamGeometry>
+  <StreamGeometry x:Key="IconeSetaEsquerda">M15 18 L9 12 L15 6</StreamGeometry>
   <StreamGeometry x:Key="IconeFechar">M18 6 L6 18 M6 6 L18 18</StreamGeometry>
 
   <StreamGeometry x:Key="IconeRevelar">M2.062 12.348 A1 1 0 0 1 2.062 11.652 A10.75 10.75 0 0 1 21.938 11.652 A1 1 0 0 1 21.938 12.348 A10.75 10.75 0 0 1 2.062 12.348 Z M9 12 A3 3 0 1 0 15 12 A3 3 0 1 0 9 12 Z</StreamGeometry>

@@ -320,6 +320,7 @@ namespace CofreDeSenhas
             ("Login.ConfirmPassword", "Confirmar senha"),
             ("Login.CreateVault", "Criar cofre"),
             ("Login.Unlock", "Desbloquear"),
+            ("Login.HideGenerator", "Recolher gerador de senha"), ("Login.ShowGenerator", "Mostrar gerador de senha"),
             ("Login.WindowsHello", "Desbloquear com Windows Hello"),
             ("Login.EnableWindowsHello", "Ativar Windows Hello"),
             ("Login.WindowsHelloHint", "Use digital, rosto ou PIN para desbloquear mais rápido."),
