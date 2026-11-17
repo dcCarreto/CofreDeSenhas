@@ -11,6 +11,11 @@ chiave nella barra laterale, o direttamente nel modulo di una voce.
   Disattiva i simboli solo quando il servizio non li accetta.
 - L'indicatore di forza mostra in tempo reale quanto è resistente la
   password.
+- Il generatore **ricorda le opzioni scelte** (modalità, quantità, lunghezza,
+  tipi di carattere e opzioni della passphrase) e le usa la volta successiva.
+  Le password generate non vengono mai salvate.
+- Nella schermata di sblocco, la freccia sul bordo del modulo **comprime il
+  generatore** verso destra e lo mostra di nuovo. L’app ricorda la tua scelta.
 
 ## Usare la password generata
 

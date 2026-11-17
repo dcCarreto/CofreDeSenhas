@@ -11,6 +11,12 @@ llave en la barra lateral, o directamente en el formulario de una entrada.
   Desactiva los símbolos solo cuando el servicio no los acepte.
 - El medidor de fuerza muestra en tiempo real lo resistente que es la
   contraseña.
+- El generador **recuerda las opciones elegidas** (modo, cantidad, longitud,
+  tipos de caracteres y opciones de la frase de contraseña) y las usa la
+  próxima vez. Las contraseñas generadas nunca se guardan.
+- En la pantalla de desbloqueo, la flecha en el borde del formulario
+  **contrae el generador** hacia la derecha y lo vuelve a mostrar. La app
+  recuerda tu elección.
 
 ## Usar la contraseña generada
 
