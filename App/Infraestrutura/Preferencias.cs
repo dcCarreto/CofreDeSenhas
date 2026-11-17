@@ -35,6 +35,23 @@ namespace CofreDeSenhas
         public bool SincronizarAnexos { get; set; }
     }
 
+    // Opções escolhidas no gerador de senha (nunca as senhas geradas). Os padrões
+    // são os mesmos do GeradorSenha.axaml, para quem ainda não mexeu em nada.
+    public sealed class OpcoesGerador
+    {
+        public int Modo { get; set; }
+        public int Quantidade { get; set; } = 1;
+        public int Tamanho { get; set; } = 12;
+        public bool Maiusculas { get; set; } = true;
+        public bool Minusculas { get; set; } = true;
+        public bool Numeros { get; set; } = true;
+        public bool Especiais { get; set; }
+        public int Palavras { get; set; } = 5;
+        public int Separador { get; set; }
+        public bool CapitalizarFrase { get; set; }
+        public bool NumeroFrase { get; set; } = true;
+    }
+
     public static class Preferencias
     {
         private const int MinutosBloqueioPadrao = 5;
@@ -73,6 +90,7 @@ namespace CofreDeSenhas
             public bool LeitorTela { get; set; }
             public bool IconesOnline { get; set; }
             public bool GeradorLoginRecolhido { get; set; }
+            public OpcoesGerador? Gerador { get; set; }
             public int SegundosLimpezaClipboard { get; set; } = SegundosLimpezaClipboardPadrao;
             public string FrequenciaBackup { get; set; } = FrequenciaBackupPadrao;
             public int MaximoBackups { get; set; } = MaximoBackupsPadrao;
@@ -113,6 +131,8 @@ namespace CofreDeSenhas
         public static bool IconesOnline { get; set; }
         // Painel do gerador na tela de desbloqueio (JanelaLogin) recolhido pelo usuário.
         public static bool GeradorLoginRecolhido { get; set; }
+        // null = o usuário ainda não mexeu no gerador (vale o padrão do controle).
+        public static OpcoesGerador? Gerador { get; set; }
         public static int SegundosLimpezaClipboard { get; set; } = SegundosLimpezaClipboardPadrao;
         public static string FrequenciaBackup { get; set; } = FrequenciaBackupPadrao;
         public static int MaximoBackups { get; set; } = MaximoBackupsPadrao;
@@ -167,6 +187,7 @@ namespace CofreDeSenhas
                         LeitorTela = d.LeitorTela;
                         IconesOnline = d.IconesOnline;
                         GeradorLoginRecolhido = d.GeradorLoginRecolhido;
+                        Gerador = d.Gerador;
                         SegundosLimpezaClipboard = d.SegundosLimpezaClipboard;
                         FrequenciaBackup = string.IsNullOrEmpty(d.FrequenciaBackup) ? FrequenciaBackupPadrao : d.FrequenciaBackup;
                         MaximoBackups = d.MaximoBackups <= 0 ? MaximoBackupsPadrao : d.MaximoBackups;
@@ -200,7 +221,7 @@ namespace CofreDeSenhas
             {
                 var dir = Path.GetDirectoryName(_caminho)!;
                 if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
-                File.WriteAllText(_caminho, JsonSerializer.Serialize(new Dados { UltimoBanco = UltimoBanco, MinutosBloqueio = MinutosBloqueio, Idioma = Idioma, ModoTema = ModoTema, Densidade = Densidade, LayoutDetalhe = LayoutDetalhe, OrdenacaoColuna = OrdenacaoColuna, OrdenacaoDescendente = OrdenacaoDescendente, ColunasLista = ColunasLista, PerfisAparencia = PerfisAparencia, Daltonismo = Daltonismo, AltoContraste = AltoContraste, NivelContraste = NivelContraste, EscalaInterface = EscalaInterface, EscalaAutomatica = EscalaAutomatica, ReduzirAnimacoes = ReduzirAnimacoes, NivelMovimento = NivelMovimento, FonteLeitura = FonteLeitura, EspacamentoTexto = EspacamentoTexto, VerbosidadeLeitor = VerbosidadeLeitor, SublinharLinks = SublinharLinks, FocoReforcado = FocoReforcado, AnunciarAcoes = AnunciarAcoes, AvisarAntesBloqueio = AvisarAntesBloqueio, LeitorTela = LeitorTela, IconesOnline = IconesOnline, GeradorLoginRecolhido = GeradorLoginRecolhido, SegundosLimpezaClipboard = SegundosLimpezaClipboard, FrequenciaBackup = FrequenciaBackup, MaximoBackups = MaximoBackups, RegistrarHistoricoUso = RegistrarHistoricoUso, AtualizacaoAutomatica = AtualizacaoAutomatica, AvisoAtualizacaoAutomaticaPendente = AvisoAtualizacaoAutomaticaPendente, Sincronizacao = Sincronizacao }));
+                File.WriteAllText(_caminho, JsonSerializer.Serialize(new Dados { UltimoBanco = UltimoBanco, MinutosBloqueio = MinutosBloqueio, Idioma = Idioma, ModoTema = ModoTema, Densidade = Densidade, LayoutDetalhe = LayoutDetalhe, OrdenacaoColuna = OrdenacaoColuna, OrdenacaoDescendente = OrdenacaoDescendente, ColunasLista = ColunasLista, PerfisAparencia = PerfisAparencia, Daltonismo = Daltonismo, AltoContraste = AltoContraste, NivelContraste = NivelContraste, EscalaInterface = EscalaInterface, EscalaAutomatica = EscalaAutomatica, ReduzirAnimacoes = ReduzirAnimacoes, NivelMovimento = NivelMovimento, FonteLeitura = FonteLeitura, EspacamentoTexto = EspacamentoTexto, VerbosidadeLeitor = VerbosidadeLeitor, SublinharLinks = SublinharLinks, FocoReforcado = FocoReforcado, AnunciarAcoes = AnunciarAcoes, AvisarAntesBloqueio = AvisarAntesBloqueio, LeitorTela = LeitorTela, IconesOnline = IconesOnline, GeradorLoginRecolhido = GeradorLoginRecolhido, Gerador = Gerador, SegundosLimpezaClipboard = SegundosLimpezaClipboard, FrequenciaBackup = FrequenciaBackup, MaximoBackups = MaximoBackups, RegistrarHistoricoUso = RegistrarHistoricoUso, AtualizacaoAutomatica = AtualizacaoAutomatica, AvisoAtualizacaoAutomaticaPendente = AvisoAtualizacaoAutomaticaPendente, Sincronizacao = Sincronizacao }));
             }
             catch (Exception ex)
             {

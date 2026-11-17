@@ -25,7 +25,7 @@ namespace CofreDeSenhas.Controles
         private bool _mostrarSenha = true;
         private bool _permiteSalvar = true;
         private int _nivelForca;
-
+        private DispatcherTimer? _timerSalvarOpcoes;
 
         public event EventHandler<string>? SolicitouSalvar;
 
@@ -44,14 +44,89 @@ namespace CofreDeSenhas.Controles
                 foreach (var timer in _timersFeedbackCopia)
                     timer.Stop();
                 _timersFeedbackCopia.Clear();
+                SalvarOpcoesPendentes();
             };
 
             AtualizarTextos();
             CmbModoGerador.SelectedIndex = 0;
             CmbSeparadorFrase.SelectedIndex = 0;
+            AplicarOpcoesSalvas();
             AtualizarModoGerador();
             ConfigurarAcessibilidade();
             AplicarPermiteSalvar();
+
+            // Só depois de aplicar as salvas, para a restauração não regravar o arquivo.
+            SliderQuantidade.ValueChanged += (s, e) => AgendarSalvarOpcoes();
+            SliderTamanho.ValueChanged += (s, e) => AgendarSalvarOpcoes();
+            SliderPalavras.ValueChanged += (s, e) => AgendarSalvarOpcoes();
+            ToggleMaiusculas.CheckedChanged += (s, e) => AgendarSalvarOpcoes();
+            ToggleMinusculas.CheckedChanged += (s, e) => AgendarSalvarOpcoes();
+            ToggleNumeros.CheckedChanged += (s, e) => AgendarSalvarOpcoes();
+            ToggleEspeciais.CheckedChanged += (s, e) => AgendarSalvarOpcoes();
+            ToggleCapitalizarFrase.CheckedChanged += (s, e) => AgendarSalvarOpcoes();
+            ToggleNumeroFrase.CheckedChanged += (s, e) => AgendarSalvarOpcoes();
+            CmbModoGerador.SelectionChanged += (s, e) => AgendarSalvarOpcoes();
+            CmbSeparadorFrase.SelectionChanged += (s, e) => AgendarSalvarOpcoes();
+        }
+
+        // As escolhas do usuário (modo, quantidade, comprimento, caracteres, opções
+        // da frase-senha) valem para todo gerador do app e sobrevivem ao reinício.
+        private void AplicarOpcoesSalvas()
+        {
+            if (Preferencias.Gerador is not { } opcoes)
+                return;
+
+            CmbModoGerador.SelectedIndex = Math.Clamp(opcoes.Modo, 0, 1);
+            CmbSeparadorFrase.SelectedIndex = Math.Clamp(opcoes.Separador, 0, 3);
+            SliderQuantidade.Value = opcoes.Quantidade;
+            SliderTamanho.Value = opcoes.Tamanho;
+            SliderPalavras.Value = opcoes.Palavras;
+            ToggleMaiusculas.Checked = opcoes.Maiusculas;
+            ToggleMinusculas.Checked = opcoes.Minusculas;
+            ToggleNumeros.Checked = opcoes.Numeros;
+            ToggleEspeciais.Checked = opcoes.Especiais;
+            ToggleCapitalizarFrase.Checked = opcoes.CapitalizarFrase;
+            ToggleNumeroFrase.Checked = opcoes.NumeroFrase;
+        }
+
+        // Arrastar um slider dispara dezenas de mudanças: grava uma vez só, quando
+        // o usuário para. Fechar a janela antes disso grava na hora (Detached).
+        private void AgendarSalvarOpcoes()
+        {
+            if (_timerSalvarOpcoes == null)
+            {
+                _timerSalvarOpcoes = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(400) };
+                _timerSalvarOpcoes.Tick += (s, e) => SalvarOpcoesPendentes();
+            }
+            _timerSalvarOpcoes.Stop();
+            _timerSalvarOpcoes.Start();
+        }
+
+        private void SalvarOpcoesPendentes()
+        {
+            if (_timerSalvarOpcoes is not { IsEnabled: true })
+                return;
+            _timerSalvarOpcoes.Stop();
+            SalvarOpcoes();
+        }
+
+        internal void SalvarOpcoes()
+        {
+            Preferencias.Gerador = new OpcoesGerador
+            {
+                Modo = (int)Modo,
+                Quantidade = SliderQuantidade.Value,
+                Tamanho = SliderTamanho.Value,
+                Maiusculas = ToggleMaiusculas.Checked,
+                Minusculas = ToggleMinusculas.Checked,
+                Numeros = ToggleNumeros.Checked,
+                Especiais = ToggleEspeciais.Checked,
+                Palavras = SliderPalavras.Value,
+                Separador = (int)Separador,
+                CapitalizarFrase = ToggleCapitalizarFrase.Checked,
+                NumeroFrase = ToggleNumeroFrase.Checked
+            };
+            Preferencias.Salvar();
         }
 
         public bool PermiteSalvar
