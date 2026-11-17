@@ -37,7 +37,8 @@ namespace CofreDeSenhas
 
     // Opções escolhidas no gerador de senha (nunca as senhas geradas). Os padrões
     // são os mesmos do GeradorSenha.axaml, para quem ainda não mexeu em nada.
-    public sealed class OpcoesGerador
+    // record: igualdade por valor, para não regravar o arquivo sem mudança real.
+    public sealed record OpcoesGerador
     {
         public int Modo { get; set; }
         public int Quantidade { get; set; } = 1;

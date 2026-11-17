@@ -26,6 +26,7 @@ namespace CofreDeSenhas.Controles
         private bool _permiteSalvar = true;
         private int _nivelForca;
         private DispatcherTimer? _timerSalvarOpcoes;
+        private bool _atualizandoTextos;
 
         public event EventHandler<string>? SolicitouSalvar;
 
@@ -93,6 +94,9 @@ namespace CofreDeSenhas.Controles
         // o usuário para. Fechar a janela antes disso grava na hora (Detached).
         private void AgendarSalvarOpcoes()
         {
+            if (_atualizandoTextos)
+                return;
+
             if (_timerSalvarOpcoes == null)
             {
                 _timerSalvarOpcoes = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(400) };
@@ -112,7 +116,7 @@ namespace CofreDeSenhas.Controles
 
         internal void SalvarOpcoes()
         {
-            Preferencias.Gerador = new OpcoesGerador
+            var opcoes = new OpcoesGerador
             {
                 Modo = (int)Modo,
                 Quantidade = SliderQuantidade.Value,
@@ -126,6 +130,10 @@ namespace CofreDeSenhas.Controles
                 CapitalizarFrase = ToggleCapitalizarFrase.Checked,
                 NumeroFrase = ToggleNumeroFrase.Checked
             };
+            if (opcoes == Preferencias.Gerador)
+                return;
+
+            Preferencias.Gerador = opcoes;
             Preferencias.Salvar();
         }
 
@@ -194,6 +202,8 @@ namespace CofreDeSenhas.Controles
             var modo = Math.Max(0, CmbModoGerador.SelectedIndex);
             var separador = Math.Max(0, CmbSeparadorFrase.SelectedIndex);
 
+            // Trocar o ItemsSource por causa do idioma não é escolha do usuário.
+            _atualizandoTextos = true;
             CmbModoGerador.SelectionChanged -= ModoGerador_Alterado;
             CmbModoGerador.ItemsSource = new[]
             {
@@ -205,6 +215,7 @@ namespace CofreDeSenhas.Controles
 
             CmbSeparadorFrase.ItemsSource = new[] { "-", "_", ".", Idioma.Texto("Generator.Separator.Space") };
             CmbSeparadorFrase.SelectedIndex = separador;
+            _atualizandoTextos = false;
 
             AtualizarModoGerador();
             AtualizarBarraForca();
