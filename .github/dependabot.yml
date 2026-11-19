@@ -10,7 +10,16 @@ updates:
     target-branch: "prodUnstable"
     schedule:
       interval: "weekly"
+    ignore:
+      # A 12 muda a API (GotFocusEventArgs, OnLostFocus) e exige migrar os
+      # controles próprios à mão; fica para uma branch dedicada.
+      - dependency-name: "Avalonia*"
+        update-types: ["version-update:semver-major"]
     groups:
+      # Os pacotes do Avalonia precisam estar todos na mesma versão.
+      avalonia:
+        patterns:
+          - "Avalonia*"
       sintese-de-voz:
         patterns:
           - "org.k2fsa.*"
