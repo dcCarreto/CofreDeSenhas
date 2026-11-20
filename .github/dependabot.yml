@@ -15,6 +15,11 @@ updates:
       # controles próprios à mão; fica para uma branch dedicada.
       - dependency-name: "Avalonia*"
         update-types: ["version-update:semver-major"]
+      # A 2 tirou o fonemizador espeak-ng embutido (o vits-data-dir passou a ser
+      # ignorado): as vozes Piper compilam, mas não geram áudio sem um
+      # fonemizador externo. Fica para uma branch dedicada.
+      - dependency-name: "org.k2fsa.sherpa.onnx*"
+        update-types: ["version-update:semver-major"]
     groups:
       # Os pacotes do Avalonia precisam estar todos na mesma versão.
       avalonia:
