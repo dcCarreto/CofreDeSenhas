@@ -2,7 +2,7 @@
 
 [English version](PRIVACY.en.md)
 
-**Vigente desde:** 12 de novembro de 2026
+**Vigente desde:** 21 de novembro de 2026
 **Aplica-se a:** Cofre de Senhas — aplicativo desktop para Windows e Linux, a
 linha de comando `cofre` e os instaladores distribuídos pelas
 [releases do GitHub](https://github.com/dcCarreto/CofreDeSenhas/releases), pelo
@@ -19,8 +19,8 @@ Microsoft Store.
   uso, relatório de falhas automático nem publicidade.
 - Por padrão, o aplicativo só acessa a internet para **procurar e baixar as
   próprias atualizações** nas releases do GitHub, sem enviar nenhum dado seu
-  (seção 3.3); isso pode ser desligado. Os demais recursos que usam a rede são
-  opcionais, ligados por você, e estão descritos abaixo com exatamente o que
+  (seção 3.3); isso não pode ser desligado. Os demais recursos que usam a rede
+  são opcionais, ligados por você, e estão descritos abaixo com exatamente o que
   enviam e para quem.
 
 ## 1. Dados que o aplicativo guarda no seu computador
@@ -118,9 +118,9 @@ com esses dados é regido pela política de privacidade dele, não por esta.
 
 ### 3.3 Verificação e instalação de atualizações
 
-- **Quando:** com "Atualizar automaticamente" ligado nas configurações (ligado
-  por padrão), o aplicativo consulta a última release ao abrir o cofre e depois a
-  cada 6 horas enquanto ele fica aberto.
+- **Quando:** sempre (não há opção para desligar): o aplicativo consulta a
+  última release ao abrir o cofre e depois a cada 6 horas enquanto ele fica
+  aberto.
 - **O que é enviado:** uma consulta pública à API do GitHub
   (`api.github.com/repos/dcCarreto/CofreDeSenhas/releases/latest`), sem nenhum
   dado do cofre nem identificador seu ou do seu dispositivo.
@@ -131,8 +131,10 @@ com esses dados é regido pela política de privacidade dele, não por esta.
 - Até a versão de 6 de novembro de 2026 esta verificação vinha desligada e nada
   era instalado sem confirmação. Quem já usava o aplicativo passa a ter a
   atualização automática ligada e vê um aviso na primeira abertura depois da
-  mudança. Ela pode ser desligada a qualquer momento em Configurações >
-  Comportamento.
+  mudança.
+- Até a versão de 21 de novembro de 2026 a atualização automática podia ser
+  desligada em Configurações > Comportamento. A opção foi removida: quem a tinha
+  desligado passa a atualizar sozinho e vê o mesmo aviso uma vez.
 - **Versão da Microsoft Store:** não consulta o GitHub. Quem atualiza é a
   própria Loja, conforme a configuração de atualização de aplicativos dela, sob a
   [política de privacidade da Microsoft](https://privacy.microsoft.com/privacystatement).
@@ -225,7 +227,7 @@ Como os dados ficam no seu computador, você controla quanto tempo eles existem:
 | Recurso | Padrão | Onde mudar |
 |---|---|---|
 | Ícones online | Desligado | Configurações |
-| Atualizar automaticamente | Ligado | Configurações |
+| Atualização automática | Sempre ligada | Não pode ser desligada |
 | Verificação de vazamentos | Só sob demanda | Relatório de segurança |
 | Registro da última cópia | Ligado (fica dentro do cofre cifrado) | Configurações |
 | Sincronização por pasta | Desligada | Configurações |

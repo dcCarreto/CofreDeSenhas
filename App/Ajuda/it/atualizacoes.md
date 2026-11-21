@@ -24,12 +24,10 @@ Nessun dato della cassaforte viene inviato. Il controllo e il download sono
 letture pubbliche, senza nulla che identifichi te o il tuo computer. Vedi
 anche [Privacy e rete](privacidade-rede).
 
-## Come disattivarlo
+## Sempre attivo
 
-In *Impostazioni → Comportamento → Aggiorna automaticamente*. Disattivato,
-l'app non controlla nulla, e un aggiornamento già scaricato viene scartato.
-Per aggiornare a mano, scarica la nuova versione dalla pagina delle release
-del progetto.
+Non c'è un'opzione per disattivarlo: così le correzioni, comprese quelle di
+sicurezza, arrivano a tutti senza dipendere dal ricordarsi di aggiornare.
 
 ## In base a come l'hai installata
 
@@ -42,8 +40,7 @@ del progetto.
   Download o il desktop.
 - **Microsoft Store**: aggiorna lo Store, secondo la sua impostazione di
   aggiornamento delle app. L'app scarica l'aggiornamento appena lo Store lo
-  offre e lo installa al blocco della cassaforte. L'opzione "Aggiorna
-  automaticamente" non compare.
+  offre e lo installa al blocco della cassaforte.
 - **Linux, AppImage**: come su Windows; il file `.AppImage` viene sostituito
   con quello nuovo.
 - **Linux, pacchetto `.tar.gz` o compilato dal codice sorgente**: non si

@@ -6,9 +6,9 @@ O Cofre de Senhas não tem número de versão: é um produto único, atualizado 
 updates comuns, sem branches de manutenção paralelas. Correções de segurança
 entram na release mais recente, disponível nas
 [releases do GitHub](https://github.com/dcCarreto/CofreDeSenhas/releases). O próprio
-aplicativo se atualiza sozinho ("Atualizar automaticamente", ligado por padrão
-e desligável nas configurações): baixa a release nova em segundo plano, confere a
-assinatura do `CHECKSUMS.txt` e o SHA256 e instala quando o cofre é bloqueado.
+aplicativo se atualiza sozinho (sempre ligado, sem opção para desligar): baixa a
+release nova em segundo plano, confere a assinatura do `CHECKSUMS.txt` e o
+SHA256 e instala quando o cofre é bloqueado.
 
 ## Confiança nos binários e verificação dos downloads
 

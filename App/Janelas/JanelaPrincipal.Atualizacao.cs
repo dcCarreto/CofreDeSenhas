@@ -9,17 +9,6 @@ namespace CofreDeSenhas.Janelas
 {
     public partial class JanelaPrincipal
     {
-        internal void AplicarAtualizacaoAutomatica(bool ligado)
-        {
-            Preferencias.AtualizacaoAutomatica = ligado;
-            Preferencias.Salvar();
-
-            if (ligado)
-                AtualizacaoAutomatica.Iniciar();
-            else
-                AtualizacaoAutomatica.Parar();
-        }
-
         // Chamado ao abrir o cofre. A atualização é baixada em segundo plano e instalada
         // no próximo bloqueio (App.Bloquear); o rodapé avisa quando ela está pronta e
         // oferece instalar na hora.

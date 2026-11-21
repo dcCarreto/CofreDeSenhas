@@ -47,8 +47,7 @@ ordinateur ; le QR est indépendant. Si vous pouvez encore ouvrir le coffre
 
 Oui. Elle télécharge les nouvelles versions en arrière-plan, vérifie leur
 signature et les installe au verrouillage du coffre ; le coffre et les
-préférences restent les mêmes. Détails et désactivation dans
-[Mises à jour](atualizacoes).
+préférences restent les mêmes. Détails dans [Mises à jour](atualizacoes).
 
 ## Puis-je l'utiliser sans rien installer d'autre que l'application ?
 

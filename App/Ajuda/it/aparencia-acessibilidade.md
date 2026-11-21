@@ -26,7 +26,6 @@ schede.
   viene cancellata dagli appunti.
 - **Registra cronologia d'uso**: registra la data dell'ultima copia di
   ogni credenziale, che alimenta il [Rapporto di sicurezza](seguranca).
-- **Aggiorna automaticamente**: vedi [Privacy e rete](privacidade-rede).
 
 ## Accessibilità
 

@@ -26,12 +26,10 @@ No se envía ningún dato de la caja. La consulta y la descarga son lecturas
 públicas, sin nada que te identifique a ti o a tu ordenador. Consulta también
 [Privacidad y red](privacidade-rede).
 
-## Cómo desactivarla
+## Siempre activada
 
-En *Configuración → Comportamiento → Actualizar automáticamente*. Desactivada,
-la aplicación no consulta nada, y una actualización ya descargada se descarta.
-Para actualizar a mano, descarga la versión nueva en la página de versiones del
-proyecto.
+No hay opción para desactivarla: así las correcciones, incluidas las de
+seguridad, llegan a todos sin depender de que nadie se acuerde de actualizar.
 
 ## Según cómo la instalaste
 
@@ -44,8 +42,7 @@ proyecto.
   Descargas o el escritorio.
 - **Microsoft Store**: actualiza la propia tienda, según su configuración de
   actualización de aplicaciones. La aplicación descarga la actualización en
-  cuanto la tienda la ofrece y la instala al bloquear la caja. La opción
-  "Actualizar automáticamente" no aparece.
+  cuanto la tienda la ofrece y la instala al bloquear la caja.
 - **Linux, AppImage**: igual que en Windows; el archivo `.AppImage` se
   sustituye por el nuevo.
 - **Linux, paquete `.tar.gz` o compilado desde el código fuente**: no se

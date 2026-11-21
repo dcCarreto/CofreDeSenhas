@@ -2,8 +2,8 @@
 
 Por defecto, la aplicación solo usa internet para buscar y descargar sus
 propias actualizaciones, sin enviar ningún dato tuyo (consulta
-[Actualizaciones](atualizacoes)); se puede desactivar. Las demás funciones de
-abajo son opcionales y activas cada una sabiendo lo que hace.
+[Actualizaciones](atualizacoes)). Las demás funciones de abajo son
+opcionales y activas cada una sabiendo lo que hace.
 
 ## Iconos en línea de los servicios
 
@@ -13,15 +13,16 @@ público de iconos, enviando **solo el dominio** (por ejemplo,
 iconos descargados se guardan en caché en el disco. Cuando está
 desactivado, la caja muestra solo iniciales y no toca la red.
 
-## Actualizar automáticamente
+## Actualización automática
 
-Activado por defecto. Consulta la página de versiones del proyecto al abrir
-la caja y cada 6 horas; si hay una versión nueva, la descarga en segundo
-plano, verifica su firma y su SHA256 y la instala cuando se bloquea la caja.
-La aplicación se cierra y vuelve a abrirse ya actualizada, en la pantalla de
-desbloqueo. Para instalarla en el momento, usa **Instalar ahora** en el pie.
-No se envía ningún dato de la caja. Si se instaló desde Microsoft Store, la
-propia tienda se encarga de actualizar y esta opción no aparece.
+Siempre activada, sin opción para desactivarla. Consulta la página de
+versiones del proyecto al abrir la caja y cada 6 horas; si hay una versión
+nueva, la descarga en segundo plano, verifica su firma y su SHA256 y la
+instala cuando se bloquea la caja. La aplicación se cierra y vuelve a
+abrirse ya actualizada, en la pantalla de desbloqueo. Para instalarla en el
+momento, usa **Instalar ahora** en el pie. No se envía ningún dato de la
+caja. Si se instaló desde Microsoft Store, la propia tienda se encarga de
+actualizar.
 
 ## Comprobación de filtraciones
 

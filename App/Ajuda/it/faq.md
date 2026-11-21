@@ -48,7 +48,7 @@ computer; il QR è indipendente. Se riesci ancora ad aprire la cassaforte
 
 Sì. Scarica le nuove versioni in background, ne verifica la firma e le
 installa al blocco della cassaforte; la cassaforte e le preferenze restano
-le stesse. Dettagli e come disattivarlo in [Aggiornamenti](atualizacoes).
+le stesse. Dettagli in [Aggiornamenti](atualizacoes).
 
 ## Posso usarla senza installare nient'altro oltre all'applicazione?
 

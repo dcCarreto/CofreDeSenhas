@@ -43,9 +43,9 @@ and keep it.
 
 ## Does the app update itself?
 
-Yes. It downloads new versions in the background, checks their signature
-and installs them when the vault is locked; your vault and preferences stay
-the same. Details and how to turn it off in [Updates](atualizacoes).
+Yes. It downloads new versions in the background, checks their signature and
+installs them when the vault is locked; your vault and preferences stay the
+same. Details in [Updates](atualizacoes).
 
 ## Can I use it without installing anything besides the app?
 

@@ -14,18 +14,18 @@ namespace App.Testes
             // passa a atualizar sozinho e recebe o aviso único.
             ComConfig("{\"MinutosBloqueio\":5,\"VerificarAtualizacoes\":false}", () =>
             {
-                Assert.True(Preferencias.AtualizacaoAutomatica);
                 Assert.True(Preferencias.AvisoAtualizacaoAutomaticaPendente);
             });
         }
 
         [Fact]
-        public void AtualizacaoAutomatica_DesligadaPeloUsuario_ContinuaDesligada()
+        public void AtualizacaoAutomatica_DesligadaQuandoAindaHaviaAOpcao_DeixaOAvisoPendente()
         {
+            // A opção de desligar foi removida: quem a tinha desligado passa a
+            // atualizar sozinho e, como quem nunca teve, recebe o aviso único.
             ComConfig("{\"AtualizacaoAutomatica\":false,\"AvisoAtualizacaoAutomaticaPendente\":false}", () =>
             {
-                Assert.False(Preferencias.AtualizacaoAutomatica);
-                Assert.False(Preferencias.AvisoAtualizacaoAutomaticaPendente);
+                Assert.True(Preferencias.AvisoAtualizacaoAutomaticaPendente);
             });
         }
 
@@ -34,7 +34,11 @@ namespace App.Testes
         {
             ComConfig("{\"AtualizacaoAutomatica\":true,\"AvisoAtualizacaoAutomaticaPendente\":false}", () =>
             {
-                Assert.True(Preferencias.AtualizacaoAutomatica);
+                Assert.False(Preferencias.AvisoAtualizacaoAutomaticaPendente);
+
+                // Salvar grava o marcador ligado, para o aviso não voltar no próximo Carregar.
+                Preferencias.Salvar();
+                Preferencias.Carregar();
                 Assert.False(Preferencias.AvisoAtualizacaoAutomaticaPendente);
             });
         }
