@@ -365,7 +365,6 @@ namespace CofreDeSenhas.Janelas
                 LimparCofre = () => LimparCofre_Click(this, vazio),
                 ExcluirCofre = () => ExcluirCofre_Click(this, vazio),
                 DefinirBloqueioAutomatico = AplicarBloqueioAutomatico,
-                DefinirAtualizacaoAutomatica = AplicarAtualizacaoAutomatica,
                 DefinirIconesOnline = AplicarIconesOnline,
                 WindowsHelloSuportado = _biometria.SistemaSuportado,
                 WindowsHelloAtivo = _biometria.EstaHabilitado,

@@ -25,7 +25,6 @@ Todo esto está en **Configuración**, dividido en pestañas.
   contraseña se borra del portapapeles.
 - **Registrar historial de uso**: guarda la fecha de la última copia de
   cada credencial, que alimenta el [Informe de seguridad](seguranca).
-- **Actualizar automáticamente**: consulta [Privacidad y red](privacidade-rede).
 
 ## Accesibilidad
 

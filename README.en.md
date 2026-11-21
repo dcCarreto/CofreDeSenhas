@@ -63,8 +63,7 @@ are still available under **Settings > Appearance** and **Accessibility**.
   release](../../releases/latest), `chmod +x` it and run it.
 
 Once installed, the app updates itself: it downloads new versions in the
-background, checks their signature and installs them when the vault is locked
-(you can turn this off under **Settings > Behavior**).
+background, checks their signature and installs them when the vault is locked.
 
 Full walkthrough, updates, the `cofre` command-line tool and file integrity
 verification in [docs/INSTALACAO.md](docs/INSTALACAO.md) (in Portuguese).

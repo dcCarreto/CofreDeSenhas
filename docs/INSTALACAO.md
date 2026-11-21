@@ -24,8 +24,7 @@ winget install dcCarreto.CofreDeSenhas
 Ele baixa da página de releases o mesmo instalador descrito abaixo, confere o
 SHA256 e instala só para o usuário atual, sem pedir administrador. Para
 atualizar não é preciso fazer nada: o próprio programa baixa as versões novas
-e as instala quando o cofre é bloqueado (dá para desligar em Configurações >
-Comportamento). `winget upgrade dcCarreto.CofreDeSenhas` também funciona. O pacote no `winget`
+e as instala quando o cofre é bloqueado. `winget upgrade dcCarreto.CofreDeSenhas` também funciona. O pacote no `winget`
 costuma chegar algumas horas depois de cada release, porque cada versão passa
 pela validação da Microsoft.
 
@@ -133,10 +132,10 @@ O programa se atualiza sozinho, sem você precisar baixar nem clicar em nada:
    de novo, já na tela de desbloqueio. O botão **Instalar agora** do rodapé
    antecipa, mostrando antes o que muda na versão.
 
-Para desligar: **Configurações > Comportamento > Atualizar automaticamente**.
-Quem já usava o programa antes dessa mudança (quando a verificação era opcional
-e só avisava) passa a ter a atualização automática ligada e vê um aviso no
-rodapé na primeira abertura.
+Não há opção para desligar. Quem já usava o programa antes dessa mudança
+(quando a verificação era opcional e só avisava, ou quando ainda dava para
+desligar e estava desligada) passa a ter a atualização automática ligada e vê
+um aviso no rodapé na primeira abertura.
 
 | Instalado por | Como atualiza |
 |---|---|

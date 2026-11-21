@@ -1,9 +1,9 @@
 # Privacidade e rede
 
-Por padrão, o aplicativo só usa a internet para procurar e baixar as
-própias atualizações, sem enviar nenhum dado seu (veja
-[Atualizações](atualizacoes)); dá para desligar. Os demais recursos abaixo
-são opcionais e você liga cada um sabendo o que ele faz.
+Por padrão, o aplicativo só usa a internet para procurar e baixar as próprias
+atualizações, sem enviar nenhum dado seu (veja
+[Atualizações](atualizacoes)). Os demais recursos abaixo são opcionais e
+você liga cada um sabendo o que ele faz.
 
 ## Ícones online dos serviços
 
@@ -13,15 +13,15 @@ senha, usuário ou nota sai do computador. Os ícones baixados ficam em
 cache no disco. Desligado, o cofre mostra só as iniciais e não toca na
 rede.
 
-## Atualizar automaticamente
+## Atualização automática
 
-Ligado por padrão. Consulta a página de lançamentos do projeto ao abrir o
-cofre e a cada 6 horas; havendo versão nova, baixa em segundo plano, confere
-a assinatura e o SHA256 e instala quando o cofre é bloqueado. O aplicativo
-fecha e abre de novo já atualizado, na tela de desbloqueio. Para instalar na
-hora, use **Instalar agora** no rodapé. Nenhum dado do cofre é enviado.
-Instalado pela Microsoft Store, quem atualiza é a própria Loja e a opção não
-aparece.
+Sempre ligada, sem opção para desligar. Consulta a página de lançamentos do
+projeto ao abrir o cofre e a cada 6 horas; havendo versão nova, baixa em
+segundo plano, confere a assinatura e o SHA256 e instala quando o cofre é
+bloqueado. O aplicativo fecha e abre de novo já atualizado, na tela de
+desbloqueio. Para instalar na hora, use **Instalar agora** no rodapé. Nenhum
+dado do cofre é enviado. Instalado pela Microsoft Store, quem atualiza é a
+própria Loja.
 
 ## Verificação de vazamentos
 

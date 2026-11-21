@@ -27,12 +27,11 @@ Aucune donnée du coffre n'est envoyée. La consultation et le téléchargement
 sont des lectures publiques, sans rien qui vous identifie, vous ou votre
 ordinateur. Voyez aussi [Confidentialité et réseau](privacidade-rede).
 
-## Comment la désactiver
+## Toujours activée
 
-Dans *Paramètres → Comportement → Mettre à jour automatiquement*. Désactivée,
-l'application ne consulte rien, et une mise à jour déjà téléchargée est
-abandonnée. Pour mettre à jour à la main, téléchargez la nouvelle version sur
-la page des versions du projet.
+Il n'y a pas d'option pour la désactiver : c'est ainsi que les correctifs, y
+compris de sécurité, arrivent à tout le monde sans dépendre de la mémoire de
+chacun.
 
 ## Selon la façon dont vous l'avez installée
 
@@ -45,8 +44,7 @@ la page des versions du projet.
   Téléchargements ou le Bureau.
 - **Microsoft Store** : c'est le Store qui met à jour, selon son réglage de
   mise à jour des applications. L'application télécharge la mise à jour dès
-  que le Store la propose et l'installe au verrouillage du coffre. L'option
-  « Mettre à jour automatiquement » n'apparaît pas.
+  que le Store la propose et l'installe au verrouillage du coffre.
 - **Linux, AppImage** : comme sous Windows ; le fichier `.AppImage` est
   remplacé par le nouveau.
 - **Linux, paquet `.tar.gz` ou compilé depuis le code source** : ne se met

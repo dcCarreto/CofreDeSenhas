@@ -26,12 +26,10 @@ Es werden keine Tresordaten gesendet. Abfrage und Download sind öffentliche
 Lesezugriffe, ohne etwas, das Sie oder Ihren Computer identifiziert. Siehe
 auch [Datenschutz und Netzwerk](privacidade-rede).
 
-## So schalten Sie es aus
+## Immer aktiv
 
-Unter *Einstellungen → Verhalten → Automatisch aktualisieren*. Ausgeschaltet
-fragt die App nichts ab, und ein bereits heruntergeladenes Update wird
-verworfen. Zum manuellen Aktualisieren laden Sie die neue Version von der
-Release-Seite des Projekts herunter.
+Es gibt keine Option zum Ausschalten: So erreichen Korrekturen, auch
+Sicherheitskorrekturen, alle, ohne dass jemand ans Aktualisieren denken muss.
 
 ## Je nach Installationsart
 
@@ -44,8 +42,7 @@ Release-Seite des Projekts herunter.
   Downloads oder der Desktop.
 - **Microsoft Store**: Der Store aktualisiert, gemäß seiner Einstellung für
   App-Updates. Die App lädt das Update herunter, sobald der Store es anbietet,
-  und installiert es beim Sperren des Tresors. Die Option „Automatisch
-  aktualisieren" wird nicht angezeigt.
+  und installiert es beim Sperren des Tresors.
 - **Linux, AppImage**: wie unter Windows; die `.AppImage`-Datei wird durch die
   neue ersetzt.
 - **Linux, `.tar.gz`-Paket oder aus dem Quellcode gebaut**: aktualisiert sich

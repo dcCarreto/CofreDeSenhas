@@ -24,11 +24,10 @@ Nenhum dado do cofre é enviado. A consulta e o download são leituras públicas
 sem nada que identifique você ou o computador. Veja também
 [Privacidade e rede](privacidade-rede).
 
-## Como desligar
+## Sempre ligada
 
-Em *Configurações → Comportamento → Atualizar automaticamente*. Desligado, o
-aplicativo não consulta nada, e uma atualização já baixada é descartada. Para
-atualizar à mão, baixe a versão nova na página de lançamentos do projeto.
+Não há opção para desligar: é assim que as correções, inclusive as de
+segurança, chegam a todo mundo sem depender de ninguém lembrar de atualizar.
 
 ## Conforme a forma de instalação
 
@@ -41,8 +40,7 @@ atualizar à mão, baixe a versão nova na página de lançamentos do projeto.
   de trabalho.
 - **Microsoft Store**: quem atualiza é a Loja, conforme a configuração de
   atualização de aplicativos dela. O aplicativo baixa a atualização assim que
-  a Loja a oferece e a instala no bloqueio do cofre. A opção "Atualizar
-  automaticamente" não aparece.
+  a Loja a oferece e a instala no bloqueio do cofre.
 - **Linux, AppImage**: como no Windows; o arquivo `.AppImage` é trocado pelo
   novo.
 - **Linux, pacote `.tar.gz` ou compilado do código-fonte**: não se atualiza

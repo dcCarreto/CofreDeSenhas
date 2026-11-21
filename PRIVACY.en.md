@@ -2,7 +2,7 @@
 
 [Versão em português](PRIVACY.md) — the Portuguese version is the reference text.
 
-**Effective:** November 12, 2026
+**Effective:** November 21, 2026
 **Applies to:** Cofre de Senhas — the desktop app for Windows and Linux, the
 `cofre` command-line tool, and the installers distributed through
 [GitHub releases](https://github.com/dcCarreto/CofreDeSenhas/releases), the
@@ -19,9 +19,9 @@ Microsoft Store.
   analytics, automatic crash reporting or advertising.
 - By default, the app only accesses the internet to **check for and download
   its own updates** from GitHub releases, without sending any of your data
-  (section 3.3); this can be turned off. The other features that use the network
-  are optional, turned on by you, and described below with exactly what they send
-  and to whom.
+  (section 3.3); this cannot be turned off. The other features that use the
+  network are optional, turned on by you, and described below with exactly what
+  they send and to whom.
 
 ## 1. Data the app stores on your computer
 
@@ -115,9 +115,9 @@ data is governed by its own privacy policy, not this one.
 
 ### 3.3 Update check and installation
 
-- **When:** with "Update automatically" on in settings (on by default), the app
-  checks for the latest release when the vault is opened and then every 6 hours
-  while it stays open.
+- **When:** always (there is no option to turn it off): the app checks for the
+  latest release when the vault is opened and then every 6 hours while it stays
+  open.
 - **What is sent:** a public GitHub API request
   (`api.github.com/repos/dcCarreto/CofreDeSenhas/releases/latest`), with no vault
   data and no identifier of you or your device.
@@ -129,7 +129,9 @@ data is governed by its own privacy policy, not this one.
 - Up to the November 6, 2026 version this check was off by default and nothing
   was installed without confirmation. Existing users now have automatic updates
   turned on and see a notice the first time they open the app after the change.
-  It can be turned off at any time under Settings > Behavior.
+- Up to the November 21, 2026 version automatic updates could be turned off
+  under Settings > Behavior. The option was removed: users who had turned it off
+  now update automatically and see the same notice once.
 - **Microsoft Store version:** does not contact GitHub. Updates come from the
   Store itself, according to its app update setting, under the
   [Microsoft privacy statement](https://privacy.microsoft.com/privacystatement).
@@ -220,7 +222,7 @@ Because the data stays on your computer, you control how long it exists:
 | Feature | Default | Where to change |
 |---|---|---|
 | Online icons | Off | Settings |
-| Update automatically | On | Settings |
+| Automatic updates | Always on | Cannot be turned off |
 | Breached-password check | On demand only | Security report |
 | Last-copy tracking | On (kept inside the encrypted vault) | Settings |
 | Folder synchronization | Off | Settings |

@@ -24,11 +24,10 @@ No vault data is sent. The check and the download are public reads, with
 nothing that identifies you or your computer. See also
 [Privacy and network](privacidade-rede).
 
-## How to turn it off
+## Always on
 
-Under *Settings → Behavior → Update automatically*. When off, the app checks
-nothing, and an update that was already downloaded is discarded. To update
-manually, download the new version from the project's releases page.
+There is no option to turn it off: this is how fixes, including security
+fixes, reach everyone without relying on anyone remembering to update.
 
 ## Depending on how you installed
 
@@ -40,8 +39,7 @@ manually, download the new version from the project's releases page.
   It must be in a folder you can write to, such as Downloads or the desktop.
 - **Microsoft Store**: the Store handles updates, according to its app update
   setting. The app downloads the update as soon as the Store offers it and
-  installs it when the vault is locked. The "Update automatically" option is
-  not shown.
+  installs it when the vault is locked.
 - **Linux, AppImage**: same as on Windows; the `.AppImage` file is replaced
   with the new one.
 - **Linux, `.tar.gz` package or built from source**: does not update itself.
