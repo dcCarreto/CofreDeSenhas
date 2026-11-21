@@ -47,7 +47,7 @@ Seguridad* y guárdalo.
 
 Sí. Descarga las versiones nuevas en segundo plano, verifica la firma y las
 instala cuando se bloquea la caja; la caja y las preferencias siguen igual.
-Detalles y cómo desactivarlo en [Actualizaciones](atualizacoes).
+Detalles en [Actualizaciones](atualizacoes).
 
 ## ¿Puedo usarla sin instalar nada más que la aplicación?
 

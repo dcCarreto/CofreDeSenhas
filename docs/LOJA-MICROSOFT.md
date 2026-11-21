@@ -8,9 +8,8 @@ assinatura de código.
 ## O que muda na versão da Loja
 
 - **Atualizações vêm da Loja.** O app detecta que está empacotado
-  (`PacoteLoja.Empacotado`), não consulta o GitHub e esconde a opção
-  "Atualizar automaticamente" nas Configurações — a política da Loja proíbe
-  app empacotado se atualizar por fora. Em vez de esperar o ritmo da Loja (que
+  (`PacoteLoja.Empacotado`), não consulta o GitHub nem usa o atualizador
+  embutido — a política da Loja proíbe app empacotado se atualizar por fora. Em vez de esperar o ritmo da Loja (que
   prefere o app fechado, e um cofre fica aberto na bandeja o dia todo), o app
   usa as APIs da Loja (`AtualizacaoLoja`): baixa a atualização assim que ela é
   oferecida e pede a instalação no próximo bloqueio do cofre; o Windows fecha e

@@ -36,11 +36,11 @@ namespace CofreDeSenhas
         // Notas da versão baixada (markdown cru do GitHub); na Loja não há.
         public static string? NotasVersao { get; private set; }
 
-        // Na Loja vale a configuração de atualização da própria Loja (ver
-        // AtualizacaoLoja); fora dela, a preferência do app — e só onde a atualização
-        // embutida funciona (não em Debug/COFRE_BASE, nem no .tar.gz do Linux).
+        // Sempre ligada, sem opção para desligar. Na Loja vale a configuração de
+        // atualização da própria Loja (ver AtualizacaoLoja); fora dela, só onde a
+        // atualização embutida funciona (não em Debug/COFRE_BASE, nem no .tar.gz do Linux).
         public static bool Ativa =>
-            PacoteLoja.Empacotado || (Preferencias.AtualizacaoAutomatica && ServicoAtualizacao.Suportada);
+            PacoteLoja.Empacotado || ServicoAtualizacao.Suportada;
 
         public static void Iniciar()
         {
@@ -54,19 +54,6 @@ namespace CofreDeSenhas
                 _relogio.Start();
             }
             _ = VerificarAsync();
-        }
-
-        public static void Parar()
-        {
-            _relogio?.Stop();
-            _relogio = null;
-            if (_baixada != null)
-            {
-                ServicoAtualizacao.Descartar(_baixada);
-                _baixada = null;
-                NotasVersao = null;
-                ProntaMudou?.Invoke();
-            }
         }
 
         private static async Task VerificarAsync()

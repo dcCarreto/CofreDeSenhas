@@ -58,8 +58,7 @@ texto continuam disponíveis em **Configurações > Aparência** e
   [última release](../../releases/latest), dê permissão de execução e rode.
 
 Depois de instalado, o programa se atualiza sozinho: baixa as versões novas em
-segundo plano, confere a assinatura e instala quando o cofre é bloqueado (dá para
-desligar em **Configurações > Comportamento**).
+segundo plano, confere a assinatura e instala quando o cofre é bloqueado.
 
 Passo a passo completo, atualizações, linha de comando `cofre` e verificação
 de integridade dos arquivos em [docs/INSTALACAO.md](docs/INSTALACAO.md).

@@ -46,7 +46,7 @@ senha ou pelo Hello), gere um **novo QR code** em
 
 Sim. Ele baixa as versões novas em segundo plano, confere a assinatura e
 instala quando o cofre é bloqueado; o cofre e as preferências continuam os
-mesmos. Detalhes e como desligar em [Atualizações](atualizacoes).
+mesmos. Detalhes em [Atualizações](atualizacoes).
 
 ## Posso usar sem instalar nada além do aplicativo?
 

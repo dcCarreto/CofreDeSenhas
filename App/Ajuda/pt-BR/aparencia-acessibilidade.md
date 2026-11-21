@@ -25,7 +25,6 @@ Tudo aqui fica em **Configurações**, dividido em abas.
   uma senha ela é apagada da área de transferência.
 - **Registrar histórico de uso**: guarda a data da última cópia de cada
   credencial, o que alimenta o [Relatório de segurança](seguranca).
-- **Atualizar automaticamente**: veja [Privacidade e rede](privacidade-rede).
 
 ## Acessibilidade
 

@@ -50,8 +50,7 @@ auf.
 
 Ja. Sie lädt neue Versionen im Hintergrund herunter, prüft die Signatur und
 installiert sie, wenn der Tresor gesperrt wird; Tresor und Einstellungen
-bleiben gleich. Details und wie Sie es ausschalten unter
-[Updates](atualizacoes).
+bleiben gleich. Details unter [Updates](atualizacoes).
 
 ## Kann ich es nutzen, ohne außer der Anwendung etwas zu installieren?
 

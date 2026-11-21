@@ -314,9 +314,9 @@ Hello, o backup e a sincronização, a acessibilidade e a ajuda, além de uma ab
 
 ## Atualização automática
 
-- **Ligada por padrão** ("Atualizar automaticamente", em Configurações >
-  Comportamento). Ao abrir o cofre e a cada 6 horas, o aplicativo consulta a
-  release mais recente do GitHub; havendo versão nova, baixa em segundo plano
+- **Sempre ligada**, sem opção para desligar nas Configurações. Ao abrir o
+  cofre e a cada 6 horas, o aplicativo consulta a release mais recente do
+  GitHub; havendo versão nova, baixa em segundo plano
   o instalador (ou o executável portátil, conforme como o cofre está rodando)
   ou, no Linux, o `.AppImage` novo.
 - Confere a assinatura do `CHECKSUMS.txt` contra a chave pública fixada no
