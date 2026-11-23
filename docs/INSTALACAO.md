@@ -36,12 +36,17 @@ Para instalar sem o `winget`:
    programa é instalado só para o usuário atual, com atalho no menu iniciar
    (e, opcionalmente, na área de trabalho) e entrada em "Aplicativos e
    recursos" para desinstalar depois.
-4. Se preferir não instalar nada, o executável autocontido `CofreDeSenhas.exe`
-   (sem instalador) também fica disponível na página da release — é só
-   baixar e executar.
+
+A versão portátil (`CofreDeSenhas-*-win-x64-portatil.exe`, sem instalador) foi
+descontinuada. Quem ainda a usa não precisa fazer nada: na próxima atualização
+ela instala o programa só para o usuário atual, sem pedir administrador, com o
+mesmo cofre e as mesmas preferências. O `.exe` portátil continua funcionando
+como atalho, abrindo a versão instalada, e pode ser apagado. O arquivo ainda
+aparece nas releases por um tempo, só para as cópias antigas conseguirem se
+atualizar.
 
 Quem só quer gerar senhas, sem abrir o cofre, pode baixar
-`GeradorDeSenhas-*-win-x64-portatil.exe` na mesma [página de
+`GeradorDeSenhas-*-win-x64.exe` na mesma [página de
 releases](../../../releases/latest): é o mesmo gerador do Cofre, num executável
 autocontido à parte, sem instalador e sem nenhuma das regras do cofre (sem
 senha mestra, sem salvar nada).
@@ -72,10 +77,26 @@ nunca imprime uma senha do cofre — ela só sai pela área de transferência. N
 cria nem edita credenciais (isso é só pelo aplicativo). Aponta para o mesmo
 cofre do app; `COFRE_BASE=<pasta>` usa outro. Veja `cofre --help`.
 
-Cada release gera também os manifests do `winget`
-(`winget-manifests-*.zip`), que são enviados para o
+Cada execução do workflow de release gera também os manifests do `winget`
+(artefato `winget-manifests-*` do workflow, fora da release), que são enviados
+para o
 [`microsoft/winget-pkgs`](https://github.com/microsoft/winget-pkgs/tree/master/manifests/d/dcCarreto/CofreDeSenhas)
 a cada versão.
+
+## Arquivos de cada release
+
+O fim das notas de cada release traz esta mesma lista. Para instalar, só
+importam as duas primeiras linhas.
+
+| Arquivo | O que é |
+|---|---|
+| `CofreDeSenhas-Setup-*.exe` | Instalador do Windows. É o que o `winget` usa. |
+| `CofreDeSenhas-*-x86_64.AppImage` | O aplicativo para Linux. |
+| `GeradorDeSenhas-*-win-x64.exe` | Só o gerador de senhas, sem o cofre (Windows, avulso). |
+| `cofre-*-win-x64.exe` / `cofre-*-linux-x64` | A [linha de comando `cofre`](#linha-de-comando-cofre). |
+| `CofreDeSenhas-*-win-x64-portatil.exe` | Portátil descontinuado; fica só para as cópias antigas se atualizarem. |
+| `CHECKSUMS.txt` e `CHECKSUMS.txt.sig` | Hash SHA-256 de cada arquivo e a assinatura dessa lista ([como conferir](#verificando-a-integridade-dos-arquivos)). |
+| `CofreDeSenhas-*-sbom.json` | Lista das bibliotecas usadas na versão (SBOM, CycloneDX). |
 
 ## Linux
 
@@ -140,9 +161,9 @@ um aviso no rodapé na primeira abertura.
 | Instalado por | Como atualiza |
 |---|---|
 | Instalador ou `winget` | Sozinho. Se você instalou "para todos os usuários" (em Arquivos de Programas), o Windows pede permissão de administrador: clique em **Instalar agora** quando o rodapé avisar. `winget upgrade dcCarreto.CofreDeSenhas` também funciona. |
-| Executável portátil | Sozinho; o próprio `.exe` é trocado pela versão nova. Ele precisa estar numa pasta em que você possa gravar. |
+| Executável portátil (descontinuado) | Na próxima atualização, passa para a versão instalada (só para o usuário atual, sem pedir administrador). Depois disso, o `.exe` portátil só abre a versão instalada. |
 | AppImage (Linux) | Sozinho; o `.AppImage` é trocado pelo novo. |
-| `.tar.gz` ou `instalar.sh` (Linux) | Manualmente: baixe a release nova (ou, compilando do código-fonte, atualize o repositório e rode `instalar.sh` de novo). |
+| `instalar.sh` (Linux, compilando do código-fonte) | Manualmente: atualize o repositório e rode `instalar.sh` de novo. |
 | Linha de comando `cofre` e gerador avulso | Manualmente: são arquivos à parte; baixe as versões novas na [página de releases](../../../releases/latest). |
 
 A atualização não toca no cofre, nos backups nem nas preferências. O arquivo
@@ -193,6 +214,6 @@ gh attestation verify arquivo-baixado --owner dcCarreto
 
 Os arquivos ainda não são assinados digitalmente (Authenticode, no caso do
 Windows) — por ora, hash + attestation são as formas de verificação
-disponíveis. Veja também a [verificação com assinatura
-RSA/GPG](../SECURITY.md#confiança-nos-binários-e-verificação-dos-downloads)
+disponíveis. Veja também a [verificação da assinatura
+RSA](../SECURITY.md#confiança-nos-binários-e-verificação-dos-downloads)
 usada pelo atualizador automático.

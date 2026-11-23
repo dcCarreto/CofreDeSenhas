@@ -18,6 +18,11 @@ namespace CofreDeSenhas
         [STAThread]
         public static void Main(string[] args)
         {
+            // Executável solto (o antigo portátil) depois que a atualização já instalou
+            // o app: só abre a versão instalada.
+            if (InstalacaoWindows.RedirecionarParaInstalado(args))
+                return;
+
             // Instância única só no app instalado; Debug/testes/verify (COFRE_BASE) rodam em paralelo.
             if (!GerenciadorDeSenhas.AmbienteCofre.Isolado)
             {
@@ -39,7 +44,7 @@ namespace CofreDeSenhas
                 .UsePlatformDetect()
                 .WithInterFont();
 
-        // A atualização do portátil/AppImage abre a versão nova enquanto a antiga ainda
+        // A atualização do AppImage abre a versão nova enquanto a antiga ainda
         // está fechando. Sem esperar, a nova via o mutex ocupado, só "ativava" a antiga
         // e saía — e o app sumia quando a antiga terminasse de fechar.
         private static bool EsperarInstanciaAnteriorSair(string[] args)
@@ -91,6 +96,8 @@ namespace CofreDeSenhas
 
         private static void LimparAtualizacaoPendente()
         {
+            // Sobra da troca do executável portátil por uma versão nova (versões que ainda
+            // tinham portátil). Removível quando ninguém mais vier de uma dessas.
             try
             {
                 var exeAntigo = Environment.ProcessPath + ".old";

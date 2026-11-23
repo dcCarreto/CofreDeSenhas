@@ -317,8 +317,10 @@ Hello, o backup e a sincronização, a acessibilidade e a ajuda, além de uma ab
 - **Sempre ligada**, sem opção para desligar nas Configurações. Ao abrir o
   cofre e a cada 6 horas, o aplicativo consulta a release mais recente do
   GitHub; havendo versão nova, baixa em segundo plano
-  o instalador (ou o executável portátil, conforme como o cofre está rodando)
-  ou, no Linux, o `.AppImage` novo.
+  o instalador ou, no Linux, o `.AppImage` novo. O antigo executável portátil
+  (descontinuado) também baixa o instalador e passa para a versão instalada,
+  só para o usuário atual e sem pedir administrador; dali em diante, abrir o
+  `.exe` portátil só abre a versão instalada.
 - Confere a assinatura do `CHECKSUMS.txt` contra a chave pública fixada no
   binário e o SHA256 do arquivo; sem isso, a atualização é descartada.
 - **Instala no próximo bloqueio do cofre**, manual ou por inatividade — o
@@ -335,6 +337,6 @@ Hello, o backup e a sincronização, a acessibilidade e a ajuda, além de uma ab
   baixa a atualização assim que ela é oferecida e a instala no bloqueio do
   cofre, conforme a configuração de atualização de aplicativos da Loja.
 - Builds de desenvolvimento e execuções com `COFRE_BASE` nunca se atualizam,
-  nem a versão do `.tar.gz` no Linux (só o AppImage). A consulta e o download
+  nem, no Linux, o que foi compilado do código-fonte (só o AppImage). A consulta e o download
   são leitura pública da API do GitHub, sem enviar nenhum dado do cofre.
 

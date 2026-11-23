@@ -7,7 +7,7 @@ using System.Text.Json.Serialization;
 
 namespace CofreDeSenhas
 {
-    internal enum TipoAtualizacao { Instalador, Portatil, AppImage }
+    internal enum TipoAtualizacao { Instalador, AppImage }
 
     internal readonly record struct AtualizacaoDisponivel(string Tag, string? NotasVersao);
 
@@ -86,7 +86,7 @@ namespace CofreDeSenhas
                 if (versaoRemota == null || versaoAtual == null || versaoRemota <= versaoAtual)
                     return null;
 
-                return new AtualizacaoDisponivel(tag, resposta?.Body);
+                return new AtualizacaoDisponivel(tag, NotasSemGuiaDeArquivos(resposta?.Body));
             }
             catch
             {
@@ -94,16 +94,15 @@ namespace CofreDeSenhas
             }
         }
 
-        // Argumento com que o app se reabre depois de trocar o próprio executável
-        // (portátil/AppImage): a instância nova espera a antiga liberar o mutex de
+        // Argumento com que o app se reabre depois de trocar o próprio arquivo
+        // (AppImage): a instância nova espera a antiga liberar o mutex de
         // instância única em vez de só ativá-la e sair — ver Program.Main.
         public const string ArgumentoAposAtualizacao = "--apos-atualizacao";
 
-        // A atualização embutida só vale para o app instalado ou portátil de verdade.
-        // Na Microsoft Store quem atualiza é a Loja; num build de desenvolvimento
-        // (Debug ou COFRE_BASE) ela trocaria o .exe de bin/ por uma release. No Linux,
-        // só rodando como AppImage — o único pacote de arquivo único, análogo ao
-        // portátil do Windows.
+        // A atualização embutida só vale para o app de verdade. Na Microsoft Store quem
+        // atualiza é a Loja; num build de desenvolvimento (Debug ou COFRE_BASE) ela
+        // instalaria uma release por cima do ambiente de teste. No Linux, só rodando
+        // como AppImage — o único pacote que se troca sozinho.
         public static bool Suportada =>
             !PacoteLoja.Empacotado &&
             !GerenciadorDeSenhas.AmbienteCofre.Isolado &&
@@ -139,14 +138,11 @@ namespace CofreDeSenhas
                 }
                 else
                 {
-                    var instaladoViaSetup = File.Exists(Path.Combine(AppContext.BaseDirectory, "unins000.exe"));
-                    if (!instaladoViaSetup && string.IsNullOrEmpty(Environment.ProcessPath))
-                        return ResultadoDownload.Erro(Idioma.Texto("Update.Error.ExecutableNotFound"));
-
-                    tipo = instaladoViaSetup ? TipoAtualizacao.Instalador : TipoAtualizacao.Portatil;
-                    nomeAtivo = instaladoViaSetup
-                        ? $"CofreDeSenhas-Setup-{versaoTexto}.exe"
-                        : $"CofreDeSenhas-{versaoTexto}-win-x64-portatil.exe";
+                    // Sempre o instalador, inclusive no executável solto (o antigo
+                    // portátil, descontinuado): ele migra para a versão instalada —
+                    // ver ArgumentosInstalador e InstalacaoWindows.
+                    tipo = TipoAtualizacao.Instalador;
+                    nomeAtivo = $"CofreDeSenhas-Setup-{versaoTexto}.exe";
                 }
 
                 var ativo = resposta.Assets.Find(a => string.Equals(a.Name, nomeAtivo, StringComparison.OrdinalIgnoreCase));
@@ -187,7 +183,8 @@ namespace CofreDeSenhas
                 }
 
                 return ResultadoDownload.Ok(new AtualizacaoBaixada(tag, caminhoTemp, hashEsperado, tipo,
-                    ExigeAdministrador: tipo == TipoAtualizacao.Instalador && InstaladoParaTodosUsuarios()));
+                    ExigeAdministrador: tipo == TipoAtualizacao.Instalador &&
+                        InstalacaoWindows.InstaladoViaSetup && InstaladoParaTodosUsuarios()));
             }
             catch (Exception ex)
             {
@@ -201,7 +198,7 @@ namespace CofreDeSenhas
         // e a instalação (o próximo bloqueio do cofre) podem ter passado horas, e o que
         // vai ser executado é o que está no disco agora. Se voltar sem exceção, quem
         // chamou deve encerrar o app: o instalador silencioso fecha e reabre o app
-        // sozinho, e no portátil/AppImage a instância nova já foi iniciada.
+        // sozinho, e no AppImage a instância nova já foi iniciada.
         public static async Task AplicarAsync(AtualizacaoBaixada atualizacao)
         {
             var hashAtual = await CalcularSha256Async(atualizacao.Caminho);
@@ -214,10 +211,7 @@ namespace CofreDeSenhas
             switch (atualizacao.Tipo)
             {
                 case TipoAtualizacao.Instalador:
-                    Process.Start(new ProcessStartInfo(atualizacao.Caminho, "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART") { UseShellExecute = true });
-                    break;
-                case TipoAtualizacao.Portatil:
-                    AtualizarPortatil(atualizacao.Caminho);
+                    Process.Start(new ProcessStartInfo(atualizacao.Caminho, ArgumentosInstalador(InstalacaoWindows.InstaladoViaSetup)) { UseShellExecute = true });
                     break;
                 case TipoAtualizacao.AppImage:
                     AtualizarAppImage(atualizacao.Caminho, Environment.GetEnvironmentVariable("APPIMAGE")!);
@@ -226,6 +220,30 @@ namespace CofreDeSenhas
         }
 
         public static void Descartar(AtualizacaoBaixada atualizacao) => LimparPastaTemp(atualizacao.Caminho);
+
+        // Instalação existente: o Inno repete o modo dela (usuário atual ou todos os
+        // usuários). Executável solto (antigo portátil): instala só para o usuário
+        // atual, sem pedir administrador — dá para fazer sem ninguém por perto, e os
+        // dados já estão em %APPDATA%, os mesmos que o executável solto usava.
+        internal static string ArgumentosInstalador(bool instaladoViaSetup) =>
+            instaladoViaSetup
+                ? "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART"
+                : "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /CURRENTUSER";
+
+        // Marca onde começa, no corpo da release, a tabela que explica cada arquivo
+        // (montada pelo workflow de release). Interessa a quem baixa pela página, não a
+        // quem vê "o que mudou" antes de instalar — o app corta dali para baixo.
+        internal const string MarcadorGuiaDeArquivos = "<!-- arquivos-da-release -->";
+
+        internal static string? NotasSemGuiaDeArquivos(string? corpo)
+        {
+            if (corpo == null)
+                return null;
+
+            var inicio = corpo.IndexOf(MarcadorGuiaDeArquivos, StringComparison.Ordinal);
+            var notas = (inicio >= 0 ? corpo[..inicio] : corpo).TrimEnd();
+            return notas.Length > 0 ? notas : null;
+        }
 
         private static bool InstaladoParaTodosUsuarios()
         {
@@ -249,28 +267,6 @@ namespace CofreDeSenhas
                     Directory.Delete(pasta, recursive: true);
             }
             catch { }
-        }
-
-        private static void AtualizarPortatil(string caminhoNovoExe)
-        {
-            var exeAtual = Environment.ProcessPath!;
-            var exeAntigo = exeAtual + ".old";
-
-            if (File.Exists(exeAntigo))
-                File.Delete(exeAntigo);
-
-            File.Move(exeAtual, exeAntigo);
-            try
-            {
-                File.Move(caminhoNovoExe, exeAtual);
-            }
-            catch
-            {
-                File.Move(exeAntigo, exeAtual);
-                throw;
-            }
-
-            Process.Start(new ProcessStartInfo(exeAtual, ArgumentoAposAtualizacao) { UseShellExecute = true });
         }
 
         private static void AtualizarAppImage(string caminhoNovoAppImage, string appImageAtual)

@@ -1,6 +1,6 @@
 # Assina executáveis do Windows com Authenticode, se os secrets de assinatura
-# estiverem configurados. Sem eles, não faz nada — mesma ideia da assinatura GPG
-# opcional do pipeline: os binários saem sem Authenticode (o SmartScreen mostra
+# estiverem configurados. Sem eles, não faz nada: os binários saem sem
+# Authenticode (o SmartScreen mostra
 # "editor desconhecido"), enquanto o CHECKSUMS assinado e a attestation seguem
 # como a forma de conferir a procedência.
 #
