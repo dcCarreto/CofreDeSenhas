@@ -62,5 +62,76 @@ namespace App.Testes
             Assert.Contains("JsonException em $[0].Notas", conteudo);
             Assert.Contains("linha 3", conteudo);
         }
+
+        [Fact]
+        public void Registrar_ComExcecaoLancada_GravaAPilhaDeChamadas()
+        {
+            try { MetodoQueFalha(); }
+            catch (Exception ex) { Diagnostico.Registrar(ex, "Pilha"); }
+
+            var conteudo = File.ReadAllText(_log);
+            Assert.Contains("[Pilha] InvalidOperationException: falhou", conteudo);
+            Assert.Contains(nameof(MetodoQueFalha), conteudo);
+        }
+
+        private static void MetodoQueFalha() => throw new InvalidOperationException("falhou");
+
+        [Fact]
+        public void Registrar_ComLogCheio_GuardaOAnteriorEmPontoUm()
+        {
+            File.WriteAllText(_log, new string('x', 1_000_001));
+
+            Diagnostico.Registrar("depois-da-virada");
+
+            Assert.True(File.Exists(_log + ".1"));
+            Assert.DoesNotContain("xxx", File.ReadAllText(_log));
+        }
+
+        [Fact]
+        public void Redigir_ComSenhaDeStringDeConexao_MascaraOValor()
+        {
+            var redigida = Diagnostico.Redigir("Host=db;Username=app;Password=Segr3do!;Port=5432");
+
+            Assert.DoesNotContain("Segr3do!", redigida);
+            Assert.Contains("Password=***", redigida);
+        }
+
+        [Fact]
+        public void Redigir_ComNomeDoUsuarioDoSistema_SubstituiPeloPlaceholder()
+        {
+            if (Environment.UserName.Length < 3)
+                return;
+
+            var redigida = Diagnostico.Redigir($"acesso negado para {Environment.UserName}.");
+
+            Assert.Contains("%USERNAME%", redigida);
+        }
+
+        [Fact]
+        public void MontarRelatorio_IncluiAmbienteELogSemONomeDoServicoEmConflito()
+        {
+            var marcador = "erro-" + Guid.NewGuid();
+            Diagnostico.Registrar(marcador, "Teste");
+            Diagnostico.Registrar("IntegridadeViolada em \"Banco Secreto\" (id 42)", "ConflitoSincronizacao");
+
+            var relatorio = Diagnostico.MontarRelatorio();
+
+            Assert.Contains("== Ambiente ==", relatorio);
+            Assert.Contains(Diagnostico.VersaoApp(), relatorio);
+            Assert.Contains(marcador, relatorio);
+            Assert.DoesNotContain("Banco Secreto", relatorio);
+            Assert.Contains("IntegridadeViolada em \"***\" (id 42)", relatorio);
+        }
+
+        [Fact]
+        public void MontarRelatorio_ComLogGrande_MantemSoOFim()
+        {
+            File.WriteAllText(_log, new string('a', 5_000) + "FIM-DO-LOG");
+
+            var relatorio = Diagnostico.MontarRelatorio(maxCaracteresLog: 100);
+
+            Assert.Contains("FIM-DO-LOG", relatorio);
+            Assert.DoesNotContain(new string('a', 200), relatorio);
+        }
     }
 }

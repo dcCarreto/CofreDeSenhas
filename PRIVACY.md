@@ -16,7 +16,8 @@ Microsoft Store.
   no seu computador, cifrado com uma chave derivada da sua senha mestra.
 - O autor **não opera nenhum servidor** para o aplicativo e **não recebe, coleta
   nem armazena** nenhum dado seu. Não há conta, cadastro, telemetria, análise de
-  uso, relatório de falhas automático nem publicidade.
+  uso, relatório de falhas automático nem publicidade. O único envio de log é o
+  relato de problema que você mesmo escreve e envia (seção 3.7).
 - Por padrão, o aplicativo só acessa a internet para **procurar e baixar as
   próprias atualizações** nas releases do GitHub, sem enviar nenhum dado seu
   (seção 3.3); isso não pode ser desligado. Os demais recursos que usam a rede
@@ -75,18 +76,24 @@ desinstalá-la não apaga o cofre.
 
 O aplicativo grava erros inesperados em `logs/erros.log`, na pasta de dados, para
 ajudar você (ou o mantenedor, se você decidir compartilhar) a entender um
-problema. Cada linha tem a data e hora (UTC), o tipo do erro e a mensagem dele.
+problema. Cada registro tem a data e hora (UTC), o tipo do erro, a mensagem e a
+pilha de chamadas (nomes de métodos do programa). Cada abertura do aplicativo
+também grava uma linha com a versão, o sistema operacional e o runtime .NET.
 
-- O log **nunca é enviado** a lugar nenhum pelo aplicativo. Ele só sai do seu
-  computador se você mesmo anexá-lo a um relato.
+- O log só sai do seu computador se você enviar um relato em "Relatar um
+  problema" (seção 3.7) ou anexá-lo você mesmo a um relato. O aplicativo nunca
+  o envia sozinho.
 - Senhas, notas, segredos TOTP e o conteúdo decifrado do cofre não são gravados
   no log. O caminho da pasta do seu perfil do Windows, que contém seu nome de
-  usuário do sistema, é substituído por `%USERPROFILE%`.
+  usuário do sistema, é substituído por `%USERPROFILE%`; o nome de usuário e o
+  nome do computador, por `%USERNAME%` e `%COMPUTERNAME%`; e senhas de string de
+  conexão (`password=`), por `***`.
 - **Exceção:** quando a sincronização com um banco de dados externo detecta um
   conflito (por exemplo, uma linha adulterada), o log registra o tipo do
   conflito, o **nome do serviço** do item afetado e o identificador interno dele,
   para que você possa revisar depois. Revise o arquivo antes de compartilhá-lo.
-- O arquivo é apagado e recomeçado quando passa de cerca de 1 MB.
+- Quando passa de cerca de 1 MB, o arquivo vira `erros.log.1` (substituindo o
+  anterior) e um novo é começado.
 
 ## 3. Recursos que usam a rede
 
@@ -177,10 +184,27 @@ com esses dados é regido pela política de privacidade dele, não por esta.
 - A conexão é sempre cifrada em trânsito (TLS). Os detalhes estão no
   [modelo de ameaça](THREAT_MODEL.md).
 
+### 3.7 Relatar um problema
+
+- **Quando:** só quando você abre "Relatar um problema" (ícone de inseto na barra
+  de título), escreve a descrição e clica em **Enviar**.
+- **O que é enviado:** o texto que você escreveu e um relatório de diagnóstico:
+  versão do aplicativo, forma de instalação, sistema operacional, arquitetura,
+  runtime .NET, idioma, tema, escala, uso de leitor de tela, tempo aberto, memória
+  em uso e o fim do log de erros (seção 2). O relatório inteiro aparece na janela,
+  em "Ver o relatório de diagnóstico", antes do envio. O nome do serviço dos
+  itens em conflito de sincronização é trocado por `***`. Nenhuma senha, nota,
+  segredo TOTP ou outro conteúdo do cofre é enviado.
+- **Onde fica:** vira uma **issue pública** no repositório
+  `github.com/dcCarreto/CofreDeSenhas`, visível para qualquer pessoa. Ela é
+  criada pela conta do projeto, sem nenhum vínculo com uma conta sua do GitHub.
+  Para remover uma issue, peça ao mantenedor.
+- **Destino:** GitHub — <https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement>.
+
 ## 4. O que o aplicativo não faz
 
-- Não envia telemetria, estatísticas de uso, relatórios de falha nem
-  identificadores de dispositivo.
+- Não envia telemetria, estatísticas de uso, relatórios de falha automáticos
+  nem identificadores de dispositivo.
 - Não exibe anúncios e não vende, aluga nem compartilha dados com ninguém — o
   autor não tem acesso a dados para compartilhar.
 - Não exige conta nem cadastro.
