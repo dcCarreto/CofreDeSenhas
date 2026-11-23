@@ -233,6 +233,10 @@ Because the data stays on your computer, you control how long it exists:
 - **To delete everything**, including logs, icon cache, voices and preferences,
   delete the whole data folder (section 1). On Windows, the uninstaller offers this
   option at the end of uninstallation.
+- On Linux, the **AppImage** creates its menu shortcut and icon at
+  `~/.local/share/applications/cofre-de-senhas.desktop` and
+  `~/.local/share/icons/hicolor/256x256/apps/cofre-de-senhas.png`; they hold no
+  data of yours, only the path of the `.AppImage`, and can be deleted along with it.
 - **Update downloads** stay in the system's temporary folder only until they
   are installed and are deleted the next time the app opens.
 - Uninstalling the app from the **Microsoft Store** does not delete the data
