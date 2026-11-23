@@ -11,13 +11,35 @@ namespace App.Testes
 {
     public class JanelaCriarSenhaTests
     {
-        private static (IServicoSenha servico, byte[] chave) CriarServico()
+        private static (IServicoSenha servico, byte[] chave) CriarServico(Task? liberarGravacao = null)
         {
             var chave = new AutenticacaoMestra(TesteUtil.CriarPastaTemporaria()).CriarSenhaMestra("SenhaDeTeste123!");
             var criptografia = new ServicoCriptografia(chave);
-            var persistencia = new PersistenciaLocal(criptografia, TesteUtil.CriarPastaTemporaria());
+            IPersistenciaLocal persistencia = new PersistenciaLocal(criptografia, TesteUtil.CriarPastaTemporaria());
+            if (liberarGravacao != null)
+                persistencia = new PersistenciaSegurada(persistencia, liberarGravacao);
             var repositorio = new RepositorioSenha(persistencia, chave);
             return (new ServicoSenha(repositorio, criptografia), chave);
+        }
+
+        // Segura a gravação até o teste liberar. Sem isso, quando a escrita terminava de forma
+        // síncrona (comum no Linux do CI), o salvamento inteiro (até o finally que reabilita o
+        // botão) rodava dentro do RaiseEvent e o teste nunca via o botão desabilitado.
+        private sealed class PersistenciaSegurada(IPersistenciaLocal real, Task liberar) : IPersistenciaLocal
+        {
+            public async Task SalvarSenhasAsync(List<Senha> senhas, byte[] chave)
+            {
+                await liberar;
+                await real.SalvarSenhasAsync(senhas, chave);
+            }
+
+            public Task<List<Senha>> CarregarSenhasAsync(byte[] chave) => real.CarregarSenhasAsync(chave);
+            public Task BackupAutomaticoAsync(List<Senha> senhas, byte[] chave, int quantidadeMaxima = PersistenciaLocal.QuantidadeMaximaBackupsPadrao)
+                => real.BackupAutomaticoAsync(senhas, chave, quantidadeMaxima);
+            public List<InfoBackup> ListarBackups() => real.ListarBackups();
+            public Task<List<Senha>> CarregarBackupAsync(string caminhoArquivo) => real.CarregarBackupAsync(caminhoArquivo);
+            public bool ValidarIntegridade() => real.ValidarIntegridade();
+            public Task ApagarTudoAsync() => real.ApagarTudoAsync();
         }
 
         [AvaloniaFact]
@@ -48,7 +70,8 @@ namespace App.Testes
         [AvaloniaFact]
         public async Task Salvar_DesabilitaOBotaoEnquantoSalvaEReabilitaDepois_ImpedindoDuploClique()
         {
-            var (servico, _) = CriarServico();
+            var liberar = new TaskCompletionSource();
+            var (servico, _) = CriarServico(liberar.Task);
             var janela = new JanelaCriarSenha(servico);
             janela.Show();
 
@@ -61,6 +84,7 @@ namespace App.Testes
 
             Assert.False(botao.IsEnabled);
 
+            liberar.SetResult();
             await TesteUtil.AguardarAsync(() => botao.IsEnabled);
 
             Assert.True(botao.IsEnabled);
