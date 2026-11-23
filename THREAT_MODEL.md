@@ -240,8 +240,8 @@ acesso com uma chave desatualizada.
   TPM) — fora do modelo de ameaça de um gerenciador de senhas para uso pessoal em desktop.
 - **Compromissos de cadeia de suprimento em dependências de terceiros** (pacotes NuGet,
   o próprio .NET) antes de chegarem a este repositório — isso continua fora de alcance.
-  O que o pipeline de release cobre: cada artefato publicado (instalador, portátil,
-  pacote Linux, AppImage) tem hash SHA256 em `CHECKSUMS.txt` e uma *attestation* de
+  O que o pipeline de release cobre: cada artefato publicado (instalador, AppImage,
+  linha de comando, gerador avulso) tem hash SHA256 em `CHECKSUMS.txt` e uma *attestation* de
   proveniência (SLSA/Sigstore, via `actions/attest-build-provenance`) verificável
   publicamente contra o log de transparência do Sigstore/Rekor — não é só um arquivo de
   hash ao lado do binário na mesma release (que um comprometimento da release trocaria
@@ -252,7 +252,7 @@ acesso com uma chave desatualizada.
   Linux tem versão fixa com hash conferido antes de rodar. O atualizador automático
   embutido no aplicativo (ligado por padrão), além de conferir o SHA256, exige uma
   assinatura destacada de `CHECKSUMS.txt` verificada contra uma chave pública fixada no
-  binário antes de executar o instalador/portátil/AppImage baixado, e confere o SHA256 de
+  binário antes de executar o instalador/AppImage baixado, e confere o SHA256 de
   novo no momento da instalação (no bloqueio do cofre, que pode ser horas depois do
   download) — se a assinatura faltar ou algo não conferir, a atualização é descartada e
   tentada de novo na próxima verificação. Como agora a instalação não passa por
@@ -260,9 +260,7 @@ acesso com uma chave desatualizada.
   código rodando na máquina de todos os usuários: a chave privada (secret
   `UPDATE_SIGNING_KEY`) é o ativo mais sensível do pipeline.
   Essa mesma chave pública RSA está versionada no repositório (`update-signing-public.pem`)
-  para conferência manual da assinatura, e a release ainda carrega uma assinatura GPG
-  destacada do `CHECKSUMS.txt` quando há chave configurada; o `SECURITY.md` descreve os
-  passos. Assinatura de código (Authenticode) no instalador e nos executáveis do Windows
+  para conferência manual da assinatura; o `SECURITY.md` descreve os passos. Assinatura de código (Authenticode) no instalador e nos executáveis do Windows
   já está montada no pipeline de release (`App/distribuicao/assinar-windows.ps1`),
   mas inativa: falta um certificado de assinatura (com custo anual). Configurados
   os secrets `WINDOWS_CERT_BASE64`/`WINDOWS_CERT_PASSWORD`, toda build passa a sair

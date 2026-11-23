@@ -19,7 +19,7 @@ assinatura de código.
   um app MSIX grava em uma cópia privada dessa pasta, que o Windows apaga ao
   desinstalar; o manifesto desliga esse desvio (`FileSystemWriteVirtualization`)
   para que desinstalar nunca apague o cofre e o CLI `cofre` continue enxergando
-  os mesmos dados. Instalar pela Loja quem já usa o instalador ou o portátil
+  os mesmos dados. Instalar pela Loja quem já usa o instalador
   reaproveita o cofre existente.
 - **Versão:** o carimbo `aaaa.M.d[.N]` vira `aaaa.MMDD.N.0` no pacote (a Loja
   exige quatro partes e a última zero). Ex.: `2026.11.12.1` → `2026.1112.1.0`.
@@ -105,7 +105,7 @@ assinatura de código.
 > %APPDATA%\GerenciadorSenhas. Com a virtualização de gravação ativada, essa
 > pasta seria apagada ao desinstalar o aplicativo, levando junto todas as
 > senhas do usuário sem aviso. A mesma pasta é usada pela ferramenta de linha
-> de comando do projeto e pelas versões instalador/portátil, para que o usuário
+> de comando do projeto e pela versão com instalador, para que o usuário
 > possa migrar entre elas sem perder dados. Fora dessa pasta, o aplicativo só
 > grava onde o usuário escolhe (exportações e cópias de backup) e em arquivos
 > temporários.

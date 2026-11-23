@@ -28,7 +28,7 @@ completa, com o que é cifrado e o que não é, está na
 
 A versão da **Microsoft Store** usa exatamente a mesma pasta: o pacote não
 redireciona a gravação para uma pasta privada. Por isso o cofre é o mesmo do
-instalador, do portátil e da linha de comando `cofre`, e desinstalar a versão
+instalador e da linha de comando `cofre`, e desinstalar a versão
 da Loja não o apaga.
 
 Os **downloads de atualização** ficam numa pasta `CofreDeSenhas-update-*`

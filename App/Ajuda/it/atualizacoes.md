@@ -35,19 +35,21 @@ sicurezza, arrivano a tutti senza dipendere dal ricordarsi di aggiornare.
   installata "per tutti gli utenti" (in Programmi), devi cliccare su
   **Installa ora**, perché Windows chiede l'autorizzazione di amministratore;
   l'avviso nel piè di pagina te lo segnala.
-- **Eseguibile portatile**: il file stesso viene sostituito con la nuova
-  versione. Deve trovarsi in una cartella in cui puoi scrivere, come
-  Download o il desktop.
+- **Eseguibile portatile (non più distribuito)**: al prossimo aggiornamento,
+  l'app viene installata solo per il tuo utente, senza chiedere
+  l'autorizzazione di amministratore, con la stessa cassaforte e le stesse
+  preferenze. Da quel momento il file portatile apre soltanto la versione
+  installata e puoi eliminarlo.
 - **Microsoft Store**: aggiorna lo Store, secondo la sua impostazione di
   aggiornamento delle app. L'app scarica l'aggiornamento appena lo Store lo
   offre e lo installa al blocco della cassaforte.
 - **Linux, AppImage**: come su Windows; il file `.AppImage` viene sostituito
   con quello nuovo.
-- **Linux, pacchetto `.tar.gz` o compilato dal codice sorgente**: non si
-  aggiorna da solo. Scarica la nuova versione dalla pagina delle release.
+- **Linux, compilato dal codice sorgente**: non si aggiorna da solo.
+  Aggiorna il codice e ricompilalo.
 
 La riga di comando `cofre` e il generatore di password autonomo
-(`GeradorDeSenhas-*-portatil.exe`) sono file separati e **non** si aggiornano
+(`GeradorDeSenhas-*-win-x64.exe`) sono file separati e **non** si aggiornano
 da soli. Scarica le nuove versioni dalla pagina delle release quando vuoi.
 
 ## I tuoi dati durante l'aggiornamento

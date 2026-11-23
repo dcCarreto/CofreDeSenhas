@@ -60,9 +60,9 @@ namespace App.Testes
         public void ExtrairHash_EncontraHashDoArquivoNoFormatoDoSha256Sum()
         {
             var checksums = "d3b07384d113edec49eaa6238ad5ff00f6bc4033  CofreDeSenhas-Setup-2.1.0.exe\n" +
-                             "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d  CofreDeSenhas-2.1.0-win-x64-portatil.exe\n";
+                             "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d  GeradorDeSenhas-2.1.0-win-x64.exe\n";
 
-            var hash = ServicoAtualizacao.ExtrairHash(checksums, "CofreDeSenhas-2.1.0-win-x64-portatil.exe");
+            var hash = ServicoAtualizacao.ExtrairHash(checksums, "GeradorDeSenhas-2.1.0-win-x64.exe");
 
             Assert.Equal("aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d", hash);
         }
@@ -125,6 +125,45 @@ namespace App.Testes
             // de outro dia tem que ganhar da segunda release do mesmo dia anterior.
             Assert.True(ServicoAtualizacao.ExtrairVersao("v2026.9.10") >
                         ServicoAtualizacao.ExtrairVersao("v2026.9.9.2"));
+        }
+
+        [Fact]
+        public void NotasSemGuiaDeArquivos_CortaATabelaDeArquivosDoFimDoCorpo()
+        {
+            var corpo = "## O que mudou\n* Corrige X por @fulano\n\n" +
+                        ServicoAtualizacao.MarcadorGuiaDeArquivos + "\n## Arquivos\n| Arquivo | Para quê |";
+
+            Assert.Equal("## O que mudou\n* Corrige X por @fulano", ServicoAtualizacao.NotasSemGuiaDeArquivos(corpo));
+        }
+
+        [Fact]
+        public void NotasSemGuiaDeArquivos_SemMarcadorDevolveOCorpoESoComGuiaDevolveNulo()
+        {
+            // Releases antigas não têm o marcador; uma release sem notas geradas fica só
+            // com a tabela, e aí o app mostra "sem notas" em vez da tabela.
+            Assert.Equal("Notas antigas", ServicoAtualizacao.NotasSemGuiaDeArquivos("Notas antigas\n"));
+            Assert.Null(ServicoAtualizacao.NotasSemGuiaDeArquivos(ServicoAtualizacao.MarcadorGuiaDeArquivos + "\n| a | b |"));
+            Assert.Null(ServicoAtualizacao.NotasSemGuiaDeArquivos(null));
+        }
+
+        [Fact]
+        public void ArgumentosInstalador_ExecutavelSoltoInstalaSoParaOUsuarioAtual()
+        {
+            // O antigo portátil migra para a versão instalada sem pedir administrador;
+            // uma instalação existente mantém o modo dela (o Inno repete o anterior).
+            Assert.EndsWith("/CURRENTUSER", ServicoAtualizacao.ArgumentosInstalador(instaladoViaSetup: false));
+            Assert.DoesNotContain("/CURRENTUSER", ServicoAtualizacao.ArgumentosInstalador(instaladoViaSetup: true));
+            Assert.Contains("/VERYSILENT", ServicoAtualizacao.ArgumentosInstalador(instaladoViaSetup: true));
+        }
+
+        [Fact]
+        public void RedirecionarParaInstalado_ForaDoAppDeVerdade_NuncaAbreOutroExecutavel()
+        {
+            // Como a atualização, o redirecionamento do antigo portátil para a cópia
+            // instalada não pode disparar num teste, num build Debug ou na skill verify —
+            // abriria o app instalado de verdade, com o cofre real, no lugar do isolado.
+            Assert.True(GerenciadorDeSenhas.AmbienteCofre.Isolado);
+            Assert.False(InstalacaoWindows.RedirecionarParaInstalado(Array.Empty<string>()));
         }
 
         [Fact]

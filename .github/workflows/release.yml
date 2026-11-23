@@ -121,7 +121,7 @@ jobs:
       - name: Publicar executável e gerar instalador
         # Os secrets WINDOWS_CERT_* ativam a assinatura Authenticode dentro do
         # gerar-instalador.ps1 (executável e instalador). Sem eles, o passo de
-        # assinatura não faz nada — mesma convenção da assinatura GPG opcional.
+        # assinatura não faz nada.
         shell: pwsh
         env:
           WINDOWS_CERT_BASE64: ${{ secrets.WINDOWS_CERT_BASE64 }}
@@ -129,8 +129,8 @@ jobs:
         run: .\App\distribuicao\gerar-instalador.ps1 -Versao "${{ needs.versao.outputs.versao }}"
 
       - name: Publicar o gerador de senhas standalone
-        # Só o executável portátil autocontido, sem instalador próprio: é uma
-        # variante de conveniência do mesmo gerador que já vive dentro do Cofre.
+        # Um executável avulso autocontido, sem instalador próprio: é uma variante
+        # de conveniência do mesmo gerador que já vive dentro do Cofre.
         shell: pwsh
         run: |
           dotnet publish Gerador\Gerador.csproj `
@@ -166,12 +166,17 @@ jobs:
           WINDOWS_CERT_PASSWORD: ${{ secrets.WINDOWS_CERT_PASSWORD }}
         run: .\App\distribuicao\assinar-windows.ps1 publish-cli\cofre.exe
 
-      - name: Empacotar os executáveis portáteis
+      - name: Juntar os executáveis avulsos
+        # O -portatil.exe é só transição: o portátil foi descontinuado, mas as cópias
+        # portáteis de versões anteriores procuram exatamente esse nome para se
+        # atualizar (e a versão nova, ao abrir, se instala pelo Setup — ver
+        # InstalacaoWindows.cs). Pode sair quando ninguém mais estiver numa versão
+        # anterior a esta mudança; a partir de 2027 já não deve fazer falta.
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path dist | Out-Null
           Copy-Item "publish\CofreDeSenhas.exe" "dist\CofreDeSenhas-${{ needs.versao.outputs.versao }}-win-x64-portatil.exe"
-          Copy-Item "publish-gerador\GeradorDeSenhas.exe" "dist\GeradorDeSenhas-${{ needs.versao.outputs.versao }}-win-x64-portatil.exe"
+          Copy-Item "publish-gerador\GeradorDeSenhas.exe" "dist\GeradorDeSenhas-${{ needs.versao.outputs.versao }}-win-x64.exe"
           Copy-Item "publish-cli\cofre.exe" "dist\cofre-${{ needs.versao.outputs.versao }}-win-x64.exe"
 
       - name: Enviar artefatos do Windows
@@ -216,21 +221,17 @@ jobs:
           cache: true
           cache-dependency-path: '**/*.csproj'
 
-      - name: Publicar (linux-x64, autocontido)
-        run: |
-          dotnet publish App/App.csproj -f net10.0 -c Release -r linux-x64 \
-            --self-contained true -p:Version=${{ needs.versao.outputs.versao }} -o publish-linux
-
       - name: Publicar o CLI (linux-x64)
         run: |
           dotnet publish Cli/Cli.csproj -f net10.0 -c Release -r linux-x64 \
             --self-contained true -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true \
             -p:Version=${{ needs.versao.outputs.versao }} -o publish-cli
 
-      - name: Empacotar em tar.gz
+      - name: Separar o CLI
+        # Sem .tar.gz do app: o AppImage (abaixo) é o pacote do Linux — e o único
+        # que se atualiza sozinho.
         run: |
           mkdir -p dist
-          tar -czf "dist/CofreDeSenhas-${{ needs.versao.outputs.versao }}-linux-x64.tar.gz" -C publish-linux .
           cp publish-cli/cofre "dist/cofre-${{ needs.versao.outputs.versao }}-linux-x64"
           chmod +x "dist/cofre-${{ needs.versao.outputs.versao }}-linux-x64"
 
@@ -287,14 +288,19 @@ jobs:
       - name: Gerar manifests winget
         # Só monta os YAML prontos para o mantenedor copiar num fork de microsoft/winget-pkgs
         # e abrir o PR manualmente — submissão automática num repositório de terceiros fica
-        # fora do escopo deste pipeline. Roda antes do CHECKSUMS.txt de propósito, pra esse
-        # zip também entrar na lista de checksums publicada.
+        # fora do escopo deste pipeline. Interessam só ao mantenedor, então ficam nos
+        # artefatos desta execução do workflow, não na release.
         run: |
           versao="${{ needs.versao.outputs.versao }}"
           sha256_instalador=$(sha256sum "artefatos/CofreDeSenhas-Setup-$versao.exe" | cut -d' ' -f1)
           python3 .github/scripts/gerar_manifesto_winget.py "$versao" "$sha256_instalador" winget-manifests
-          mkdir -p dist
-          (cd winget-manifests && zip -r "../dist/winget-manifests-$versao.zip" manifests)
+
+      - name: Guardar os manifests winget
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: winget-manifests-${{ needs.versao.outputs.versao }}
+          path: winget-manifests/
+          if-no-files-found: error
 
       - name: Gerar CHECKSUMS.txt
         run: |
@@ -324,50 +330,34 @@ jobs:
           rm -f chave-assinatura.pem chave-assinatura.pub
           echo "CHECKSUMS.txt.sig gerado."
 
-      - name: Assinar CHECKSUMS.txt com GPG
-        # Assinatura complementar à RSA acima, na convenção que as ferramentas de
-        # linha de comando do Linux esperam (gpg --verify). É opcional: sem o
-        # secret GPG_PRIVATE_KEY o passo se ignora sem falhar — quem valida a
-        # atualização automática continua conferindo a assinatura RSA.
-        env:
-          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
-          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-        run: |
-          if [ -z "$GPG_PRIVATE_KEY" ]; then
-            echo "Secret GPG_PRIVATE_KEY não configurado — pulando a assinatura GPG (opcional)."
-            exit 0
-          fi
-          GNUPGHOME="$(mktemp -d)"
-          export GNUPGHOME
-          chmod 700 "$GNUPGHOME"
-          printf '%s\n' "$GPG_PRIVATE_KEY" | gpg --batch --quiet --import
-          fpr=$(gpg --batch --with-colons --list-secret-keys | awk -F: '/^fpr:/ {print $10; exit}')
-          if [ -z "$fpr" ]; then
-            echo "Não consegui ler a impressão digital da chave GPG importada." >&2
-            exit 1
-          fi
-          gpg --batch --yes --pinentry-mode loopback --passphrase "$GPG_PASSPHRASE" \
-            --local-user "$fpr" --armor --detach-sign --output dist/CHECKSUMS.txt.asc dist/CHECKSUMS.txt
-          gpg --batch --verify dist/CHECKSUMS.txt.asc dist/CHECKSUMS.txt
-          gpg --batch --armor --export "$fpr" > dist/CofreDeSenhas-gpg-public-key.asc
-          gpgconf --kill gpg-agent || true
-          rm -rf "$GNUPGHOME"
-          echo "CHECKSUMS.txt.asc gerado (chave GPG $fpr)."
-
       - name: Assinar proveniência dos artefatos (SLSA/Sigstore)
         uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2.4.0
         with:
           subject-path: 'dist/*'
 
+      - name: Montar as notas da release
+        # O GitHub gera "o que mudou" a partir dos PRs desde a última release (não há
+        # CHANGELOG.md); embaixo vai a tabela que explica cada arquivo. A tabela fica
+        # no fim, depois do marcador <!-- arquivos-da-release -->, porque o app mostra
+        # este corpo antes de instalar e corta dali para baixo (ServicoAtualizacao).
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          versao="${{ needs.versao.outputs.versao }}"
+          gh api -X POST "repos/${{ github.repository }}/releases/generate-notes" \
+            -f tag_name="v$versao" -f target_commitish="${{ github.sha }}" \
+            --jq .body > notas-release.md
+          printf '\n\n' >> notas-release.md
+          sed "s/{versao}/$versao/g" .github/notas-release-arquivos.md >> notas-release.md
+          cat notas-release.md
+
       - name: Criar e publicar release
-        # generate_release_notes deixa o GitHub montar o corpo a partir dos commits
-        # e PRs desde a última tag — não há mais CHANGELOG.md nem modelo próprio.
         uses: softprops/action-gh-release@8a0cd651e5b2365bd640854a3fa5dfc70e4875f3 # v3.0.4
         with:
           tag_name: v${{ needs.versao.outputs.versao }}
           target_commitish: ${{ github.sha }}
           draft: false
-          generate_release_notes: true
+          body_path: notas-release.md
           files: dist/*
 
       - name: Enviar artefatos ao VirusTotal
@@ -385,8 +375,7 @@ jobs:
           request_rate: 4
           files: |
             dist/CofreDeSenhas-Setup-*.exe
-            dist/CofreDeSenhas-*-win-x64-portatil.exe
-            dist/GeradorDeSenhas-*-win-x64-portatil.exe
+            dist/GeradorDeSenhas-*-win-x64.exe
             dist/cofre-*-win-x64.exe
 
   publicar-loja:

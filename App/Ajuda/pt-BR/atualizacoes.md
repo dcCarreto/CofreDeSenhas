@@ -35,19 +35,20 @@ segurança, chegam a todo mundo sem depender de ninguém lembrar de atualizar.
   usuários" (em Arquivos de Programas) precisa clicar em **Instalar agora**,
   porque o Windows pede permissão de administrador; o aviso do rodapé avisa
   quando for esse o caso.
-- **Executável portátil**: o próprio arquivo é trocado pela versão nova. Ele
-  precisa estar numa pasta em que você possa gravar, como Downloads ou a área
-  de trabalho.
+- **Executável portátil (descontinuado)**: na próxima atualização, o
+  aplicativo é instalado só para o seu usuário, sem pedir administrador, com o
+  mesmo cofre e as mesmas preferências. Depois disso, o arquivo portátil só
+  abre a versão instalada e pode ser apagado.
 - **Microsoft Store**: quem atualiza é a Loja, conforme a configuração de
   atualização de aplicativos dela. O aplicativo baixa a atualização assim que
   a Loja a oferece e a instala no bloqueio do cofre.
 - **Linux, AppImage**: como no Windows; o arquivo `.AppImage` é trocado pelo
   novo.
-- **Linux, pacote `.tar.gz` ou compilado do código-fonte**: não se atualiza
-  sozinho. Baixe a versão nova na página de lançamentos.
+- **Linux, compilado do código-fonte**: não se atualiza sozinho. Atualize o
+  código e compile de novo.
 
 A linha de comando `cofre` e o gerador de senhas avulso
-(`GeradorDeSenhas-*-portatil.exe`) são arquivos à parte e **não** se atualizam
+(`GeradorDeSenhas-*-win-x64.exe`) são arquivos à parte e **não** se atualizam
 sozinhos. Baixe as versões novas na página de lançamentos quando quiser.
 
 ## Seus dados durante a atualização

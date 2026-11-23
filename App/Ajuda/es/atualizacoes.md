@@ -37,19 +37,20 @@ seguridad, llegan a todos sin depender de que nadie se acuerde de actualizar.
   todos los usuarios" (en Archivos de programa), tienes que hacer clic en
   **Instalar ahora**, porque Windows pide permiso de administrador; el aviso
   del pie te indica cuándo es el caso.
-- **Ejecutable portátil**: el propio archivo se sustituye por la versión
-  nueva. Tiene que estar en una carpeta en la que puedas escribir, como
-  Descargas o el escritorio.
+- **Ejecutable portátil (descontinuado)**: en la próxima actualización, la
+  aplicación se instala solo para tu usuario, sin pedir permiso de
+  administrador, con la misma caja y las mismas preferencias. Después, el
+  archivo portátil solo abre la versión instalada y puedes borrarlo.
 - **Microsoft Store**: actualiza la propia tienda, según su configuración de
   actualización de aplicaciones. La aplicación descarga la actualización en
   cuanto la tienda la ofrece y la instala al bloquear la caja.
 - **Linux, AppImage**: igual que en Windows; el archivo `.AppImage` se
   sustituye por el nuevo.
-- **Linux, paquete `.tar.gz` o compilado desde el código fuente**: no se
-  actualiza solo. Descarga la versión nueva en la página de versiones.
+- **Linux, compilado desde el código fuente**: no se actualiza solo.
+  Actualiza el código y vuelve a compilarlo.
 
 La línea de comandos `cofre` y el generador de contraseñas independiente
-(`GeradorDeSenhas-*-portatil.exe`) son archivos aparte y **no** se actualizan
+(`GeradorDeSenhas-*-win-x64.exe`) son archivos aparte y **no** se actualizan
 solos. Descarga las versiones nuevas en la página de versiones cuando quieras.
 
 ## Tus datos durante la actualización

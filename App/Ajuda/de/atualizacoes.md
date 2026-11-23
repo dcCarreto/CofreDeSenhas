@@ -37,19 +37,20 @@ Sicherheitskorrekturen, alle, ohne dass jemand ans Aktualisieren denken muss.
   alle Benutzer" (unter Programme) installiert haben, müssen Sie auf **Jetzt
   installieren** klicken, weil Windows nach Administratorrechten fragt; der
   Hinweis in der Fußleiste sagt Ihnen, wann das der Fall ist.
-- **Portable Datei**: Die Datei selbst wird durch die neue Version ersetzt.
-  Sie muss in einem Ordner liegen, in den Sie schreiben dürfen, etwa
-  Downloads oder der Desktop.
+- **Portable Datei (eingestellt)**: Beim nächsten Update wird die App nur für
+  Ihren Benutzer installiert, ohne Administratorrechte, mit demselben Tresor
+  und denselben Einstellungen. Danach öffnet die portable Datei nur noch die
+  installierte Version und kann gelöscht werden.
 - **Microsoft Store**: Der Store aktualisiert, gemäß seiner Einstellung für
   App-Updates. Die App lädt das Update herunter, sobald der Store es anbietet,
   und installiert es beim Sperren des Tresors.
 - **Linux, AppImage**: wie unter Windows; die `.AppImage`-Datei wird durch die
   neue ersetzt.
-- **Linux, `.tar.gz`-Paket oder aus dem Quellcode gebaut**: aktualisiert sich
-  nicht selbst. Laden Sie die neue Version von der Release-Seite herunter.
+- **Linux, aus dem Quellcode gebaut**: aktualisiert sich nicht selbst.
+  Aktualisieren Sie den Code und bauen Sie ihn neu.
 
 Die Befehlszeile `cofre` und der eigenständige Passwortgenerator
-(`GeradorDeSenhas-*-portatil.exe`) sind separate Dateien und aktualisieren
+(`GeradorDeSenhas-*-win-x64.exe`) sind separate Dateien und aktualisieren
 sich **nicht** selbst. Laden Sie die neuen Versionen bei Bedarf von der
 Release-Seite herunter.
 
