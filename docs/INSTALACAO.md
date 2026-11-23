@@ -6,7 +6,7 @@ Passo a passo completo de instalação, atualização, desinstalação, CLI e
 verificação de integridade.
 
 A forma mais simples de usar o programa é baixar o executável pronto na página de
-[releases](../../../releases). Em qualquer plataforma, o binário é autocontido: não
+[releases](https://github.com/dcCarreto/CofreDeSenhas/releases). Em qualquer plataforma, o binário é autocontido: não
 é necessário instalar o .NET nem qualquer dependência. Os binários do Windows
 ainda não têm certificado de assinatura de código (Authenticode) — veja em
 [SECURITY.md](../SECURITY.md#confiança-nos-binários-e-verificação-dos-downloads)
@@ -30,7 +30,7 @@ pela validação da Microsoft.
 
 Para instalar sem o `winget`:
 
-1. Acesse a [última release](../../../releases/latest).
+1. Acesse a [última release](https://github.com/dcCarreto/CofreDeSenhas/releases/latest).
 2. Baixe o instalador `CofreDeSenhas-Setup-*.exe`.
 3. Execute e siga o assistente. Não é preciso ser administrador: por padrão o
    programa é instalado só para o usuário atual, com atalho no menu iniciar
@@ -47,7 +47,7 @@ atualizar.
 
 Quem só quer gerar senhas, sem abrir o cofre, pode baixar
 `GeradorDeSenhas-*-win-x64.exe` na mesma [página de
-releases](../../../releases/latest): é o mesmo gerador do Cofre, num executável
+releases](https://github.com/dcCarreto/CofreDeSenhas/releases/latest): é o mesmo gerador do Cofre, num executável
 autocontido à parte, sem instalador e sem nenhuma das regras do cofre (sem
 senha mestra, sem salvar nada).
 
@@ -101,7 +101,7 @@ importam as duas primeiras linhas.
 ## Linux
 
 A forma mais simples é o **AppImage**: baixe
-`CofreDeSenhas-*-x86_64.AppImage` na [última release](../../../releases/latest),
+`CofreDeSenhas-*-x86_64.AppImage` na [última release](https://github.com/dcCarreto/CofreDeSenhas/releases/latest),
 dê permissão de execução e rode — não precisa instalar o .NET nem nada além
 disso:
 
@@ -110,14 +110,18 @@ chmod +x CofreDeSenhas-*-x86_64.AppImage
 ./CofreDeSenhas-*-x86_64.AppImage
 ```
 
-Funciona em qualquer distribuição x86_64 recente, com integração automática de
-ícone e atalho de menu se você usar um integrador de AppImage (AppImageLauncher,
-Gear Lever etc.); sem um, basta executar o arquivo diretamente. O AppImage
-também pode ser gerado localmente com `App/distribuicao/gerar-appimage.sh`
-(com o .NET 10 SDK e `appimagetool` disponíveis).
+Funciona em qualquer distribuição x86_64 recente. Na primeira execução o app
+se registra no menu de aplicativos (atalho "Cofre de Senhas" e ícone em
+`~/.local/share`, sem sudo); daí em diante basta abri-lo pelo menu. O atalho
+aponta para o arquivo `.AppImage` onde ele estiver: se você movê-lo, abra-o uma
+vez pelo novo lugar e o atalho é corrigido; se apagá-lo, o atalho some do menu.
+Se você usa um integrador de AppImage (AppImageLauncher, Gear Lever etc.), o
+atalho dele é mantido e o do app não é criado, para não duplicar a entrada. O
+AppImage também pode ser gerado localmente com
+`App/distribuicao/gerar-appimage.sh` (com o .NET 10 SDK e `appimagetool`
+disponíveis).
 
-Quem preferir compilar a partir do código-fonte, ou quer o atalho no menu de
-aplicativos sem depender de um integrador de AppImage, pode usar o script de
+Quem preferir compilar a partir do código-fonte pode usar o script de
 instalação, que exige o .NET 10 SDK instalado e compila, publica e registra o
 aplicativo para o usuário atual (sem sudo):
 
@@ -164,7 +168,7 @@ um aviso no rodapé na primeira abertura.
 | Executável portátil (descontinuado) | Na próxima atualização, passa para a versão instalada (só para o usuário atual, sem pedir administrador). Depois disso, o `.exe` portátil só abre a versão instalada. |
 | AppImage (Linux) | Sozinho; o `.AppImage` é trocado pelo novo. |
 | `instalar.sh` (Linux, compilando do código-fonte) | Manualmente: atualize o repositório e rode `instalar.sh` de novo. |
-| Linha de comando `cofre` e gerador avulso | Manualmente: são arquivos à parte; baixe as versões novas na [página de releases](../../../releases/latest). |
+| Linha de comando `cofre` e gerador avulso | Manualmente: são arquivos à parte; baixe as versões novas na [página de releases](https://github.com/dcCarreto/CofreDeSenhas/releases/latest). |
 
 A atualização não toca no cofre, nos backups nem nas preferências. O arquivo
 baixado fica na pasta temporária do sistema até ser instalado e é apagado na

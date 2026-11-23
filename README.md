@@ -53,9 +53,10 @@ texto continuam disponíveis em **Configurações > Aparência** e
 
 - **Windows**: `winget install dcCarreto.CofreDeSenhas`, ou baixe e rode
   `CofreDeSenhas-Setup-*.exe` (instalador, não exige administrador) na
-  [última release](../../releases/latest).
+  [última release](https://github.com/dcCarreto/CofreDeSenhas/releases/latest).
 - **Linux**: baixe `CofreDeSenhas-*-x86_64.AppImage` na
-  [última release](../../releases/latest), dê permissão de execução e rode.
+  [última release](https://github.com/dcCarreto/CofreDeSenhas/releases/latest), dê permissão de execução e rode;
+  na primeira vez ele já se adiciona ao menu de aplicativos.
 
 Depois de instalado, o programa se atualiza sozinho: baixa as versões novas em
 segundo plano, confere a assinatura e instala quando o cofre é bloqueado.
