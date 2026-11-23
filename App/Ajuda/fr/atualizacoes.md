@@ -39,20 +39,21 @@ chacun.
   installée « pour tous les utilisateurs » (dans Program Files), vous devez
   cliquer sur **Installer maintenant**, car Windows demande l'autorisation
   d'un administrateur ; l'avis en bas de la fenêtre vous le signale.
-- **Exécutable portable** : le fichier lui-même est remplacé par la nouvelle
-  version. Il doit se trouver dans un dossier où vous pouvez écrire, comme
-  Téléchargements ou le Bureau.
+- **Exécutable portable (abandonné)** : à la prochaine mise à jour,
+  l'application est installée pour votre seul utilisateur, sans demander
+  l'autorisation d'un administrateur, avec le même coffre et les mêmes
+  préférences. Ensuite, le fichier portable ouvre simplement la version
+  installée et peut être supprimé.
 - **Microsoft Store** : c'est le Store qui met à jour, selon son réglage de
   mise à jour des applications. L'application télécharge la mise à jour dès
   que le Store la propose et l'installe au verrouillage du coffre.
 - **Linux, AppImage** : comme sous Windows ; le fichier `.AppImage` est
   remplacé par le nouveau.
-- **Linux, paquet `.tar.gz` ou compilé depuis le code source** : ne se met
-  pas à jour tout seul. Téléchargez la nouvelle version sur la page des
-  versions.
+- **Linux, compilé depuis le code source** : ne se met pas à jour tout seul.
+  Mettez le code à jour et recompilez-le.
 
 La ligne de commande `cofre` et le générateur de mots de passe autonome
-(`GeradorDeSenhas-*-portatil.exe`) sont des fichiers séparés et **ne** se
+(`GeradorDeSenhas-*-win-x64.exe`) sont des fichiers séparés et **ne** se
 mettent **pas** à jour tout seuls. Téléchargez les nouvelles versions sur la
 page des versions quand vous le souhaitez.
 

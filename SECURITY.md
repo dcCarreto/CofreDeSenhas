@@ -22,7 +22,7 @@ pipeline (`App/distribuicao/assinar-windows.ps1`) e passa a valer assim que
 esse certificado existir (secrets `WINDOWS_CERT_BASE64`/`WINDOWS_CERT_PASSWORD`).
 Na prática, hoje:
 
-- **Windows**: ao executar o instalador ou o portátil pela primeira vez, o
+- **Windows**: ao executar o instalador pela primeira vez, o
   SmartScreen pode mostrar "O Windows protegeu o computador" e o controle de
   conta de usuário pode exibir "Editor: desconhecido". Para prosseguir, clique
   em "Mais informações" e depois em "Executar assim mesmo". A reputação do
@@ -39,12 +39,14 @@ foi baixado. Toda release traz, além dos binários:
   mesma chave que o atualizador embutido exige antes de aplicar qualquer
   atualização. A chave pública correspondente está versionada no repositório em
   [`update-signing-public.pem`](update-signing-public.pem).
-- `CHECKSUMS.txt.asc` — assinatura GPG destacada do `CHECKSUMS.txt`. A chave
-  pública está versionada em
-  [`update-signing-gpg-public.asc`](update-signing-gpg-public.asc); a impressão
-  digital é `A5C8 5888 D40B 03F8 A91E  38F2 9366 CF1E 74DE 2C7D`.
 
-Conferir o hash e as assinaturas:
+Até a release `v2026.11.21.1`, cada release também trazia uma assinatura GPG
+(`CHECKSUMS.txt.asc`), que deixou de ser publicada por repetir a assinatura RSA
+acima. A chave pública para conferir essas releases antigas continua em
+[`update-signing-gpg-public.asc`](update-signing-gpg-public.asc) (impressão
+digital `A5C8 5888 D40B 03F8 A91E  38F2 9366 CF1E 74DE 2C7D`).
+
+Conferir o hash e a assinatura:
 
 ```sh
 # 1. o binário bate com o hash publicado
@@ -53,10 +55,6 @@ sha256sum -c CHECKSUMS.txt --ignore-missing
 # 2. o CHECKSUMS.txt foi assinado pela chave RSA do projeto
 openssl dgst -sha256 -verify update-signing-public.pem \
   -signature CHECKSUMS.txt.sig CHECKSUMS.txt
-
-# 3. alternativa: conferir a assinatura GPG
-gpg --import update-signing-gpg-public.asc
-gpg --verify CHECKSUMS.txt.asc CHECKSUMS.txt
 ```
 
 No Windows, o passo 1 equivale a `Get-FileHash <arquivo> -Algorithm SHA256` e

@@ -57,8 +57,8 @@ are still available under **Settings > Appearance** and **Accessibility**.
 ## Download and install
 
 - **Windows**: `winget install dcCarreto.CofreDeSenhas`, or download and run
-  `CofreDeSenhas-Setup-*.exe` (installer, no admin rights required) or
-  `CofreDeSenhas.exe` (portable) from the [latest release](../../releases/latest).
+  `CofreDeSenhas-Setup-*.exe` (installer, no admin rights required) from the
+  [latest release](../../releases/latest).
 - **Linux**: download `CofreDeSenhas-*-x86_64.AppImage` from the [latest
   release](../../releases/latest), `chmod +x` it and run it.
 

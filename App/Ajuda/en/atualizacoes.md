@@ -35,18 +35,20 @@ fixes, reach everyone without relying on anyone remembering to update.
   users" (in Program Files), you need to click **Install now**, because
   Windows asks for administrator permission; the footer notice tells you
   when that's the case.
-- **Portable executable**: the file itself is replaced with the new version.
-  It must be in a folder you can write to, such as Downloads or the desktop.
+- **Portable executable (discontinued)**: on the next update, the app is
+  installed for your user only, without asking for administrator permission,
+  with the same vault and preferences. After that, the portable file just
+  opens the installed version and can be deleted.
 - **Microsoft Store**: the Store handles updates, according to its app update
   setting. The app downloads the update as soon as the Store offers it and
   installs it when the vault is locked.
 - **Linux, AppImage**: same as on Windows; the `.AppImage` file is replaced
   with the new one.
-- **Linux, `.tar.gz` package or built from source**: does not update itself.
-  Download the new version from the releases page.
+- **Linux, built from source**: does not update itself. Update the source
+  code and build it again.
 
 The `cofre` command-line tool and the standalone password generator
-(`GeradorDeSenhas-*-portatil.exe`) are separate files and **do not** update
+(`GeradorDeSenhas-*-win-x64.exe`) are separate files and **do not** update
 themselves. Download the new versions from the releases page whenever you
 like.
 
