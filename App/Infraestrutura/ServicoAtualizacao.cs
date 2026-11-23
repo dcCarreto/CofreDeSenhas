@@ -7,7 +7,7 @@ using System.Text.Json.Serialization;
 
 namespace CofreDeSenhas
 {
-    internal enum TipoAtualizacao { Instalador, AppImage }
+    internal enum TipoAtualizacao { Instalador, AppImage, Deb }
 
     internal readonly record struct AtualizacaoDisponivel(string Tag, string? NotasVersao);
 
@@ -101,13 +101,14 @@ namespace CofreDeSenhas
 
         // A atualização embutida só vale para o app de verdade. Na Microsoft Store quem
         // atualiza é a Loja; num build de desenvolvimento (Debug ou COFRE_BASE) ela
-        // instalaria uma release por cima do ambiente de teste. No Linux, só rodando
-        // como AppImage — o único pacote que se troca sozinho.
+        // instalaria uma release por cima do ambiente de teste. No Linux, só como AppImage
+        // ou pelo pacote .deb — compilado do código-fonte não tem como se trocar.
         public static bool Suportada =>
             !PacoteLoja.Empacotado &&
             !GerenciadorDeSenhas.AmbienteCofre.Isolado &&
             (OperatingSystem.IsWindows() ||
-             (OperatingSystem.IsLinux() && !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("APPIMAGE"))));
+             (OperatingSystem.IsLinux() &&
+              (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("APPIMAGE")) || PacoteDeb.Instalado)));
 
         // Baixa e confere a atualização da release `tag`, sem instalar. O arquivo fica
         // numa pasta temporária até AplicarAsync (ou Descartar).
@@ -129,7 +130,12 @@ namespace CofreDeSenhas
 
                 TipoAtualizacao tipo;
                 string nomeAtivo;
-                if (OperatingSystem.IsLinux())
+                if (PacoteDeb.Instalado)
+                {
+                    tipo = TipoAtualizacao.Deb;
+                    nomeAtivo = $"cofre-de-senhas_{versaoTexto}_amd64.deb";
+                }
+                else if (OperatingSystem.IsLinux())
                 {
                     // $APPIMAGE (convenção do runtime do AppImage) aponta pro .AppImage de
                     // verdade; Environment.ProcessPath aponta pro ponto de montagem FUSE.
@@ -182,6 +188,13 @@ namespace CofreDeSenhas
                     return ResultadoDownload.Erro(Idioma.Texto("Update.Error.ChecksumMismatch"));
                 }
 
+                // O atualizar-pacote roda como root e confere tudo de novo por conta própria.
+                if (tipo == TipoAtualizacao.Deb)
+                {
+                    await File.WriteAllBytesAsync(Path.Combine(pastaTemp, NomeChecksums), checksumsBytes);
+                    await File.WriteAllBytesAsync(Path.Combine(pastaTemp, NomeAssinaturaChecksums), assinaturaChecksums);
+                }
+
                 return ResultadoDownload.Ok(new AtualizacaoBaixada(tag, caminhoTemp, hashEsperado, tipo,
                     ExigeAdministrador: tipo == TipoAtualizacao.Instalador &&
                         InstalacaoWindows.InstaladoViaSetup && InstaladoParaTodosUsuarios()));
@@ -215,6 +228,9 @@ namespace CofreDeSenhas
                     break;
                 case TipoAtualizacao.AppImage:
                     AtualizarAppImage(atualizacao.Caminho, Environment.GetEnvironmentVariable("APPIMAGE")!);
+                    break;
+                case TipoAtualizacao.Deb:
+                    await AtualizarDebAsync(atualizacao.Caminho);
                     break;
             }
         }
@@ -295,6 +311,26 @@ namespace CofreDeSenhas
             }
 
             Process.Start(new ProcessStartInfo(appImageAtual, ArgumentoAposAtualizacao) { UseShellExecute = false });
+        }
+
+        // pkexec sem senha (regra do polkit do pacote); o ajudante confere assinatura e
+        // versão e instala com o dpkg. Os arquivos do app em execução são trocados por
+        // baixo dele, o que no Linux não atrapalha: o processo novo já abre a versão nova.
+        private static async Task AtualizarDebAsync(string caminhoDeb)
+        {
+            var inicio = new ProcessStartInfo("pkexec") { UseShellExecute = false, RedirectStandardError = true, RedirectStandardOutput = true };
+            inicio.ArgumentList.Add(PacoteDeb.Ajudante);
+            inicio.ArgumentList.Add(caminhoDeb);
+            using var processo = Process.Start(inicio)!;
+            var saida = processo.StandardOutput.ReadToEndAsync();
+            var erro = await processo.StandardError.ReadToEndAsync();
+            await processo.WaitForExitAsync();
+            await saida;
+            LimparPastaTemp(caminhoDeb);
+            if (processo.ExitCode != 0)
+                throw new InvalidOperationException($"atualizar-pacote saiu com {processo.ExitCode}: {erro.Trim()}");
+
+            Process.Start(new ProcessStartInfo(Environment.ProcessPath!, ArgumentoAposAtualizacao) { UseShellExecute = false });
         }
 
         private static async Task BaixarArquivoAsync(HttpClient http, string url, string destino)

@@ -28,8 +28,10 @@ Na prática, hoje:
   em "Mais informações" e depois em "Executar assim mesmo". A reputação do
   SmartScreen tende a se acumular sozinha conforme mais gente baixa a mesma
   release.
-- **Linux**: o `.AppImage` precisa de permissão de execução (`chmod +x`) e não
-  há, por ora, pacote assinado em repositório de distribuição nem loja.
+- **Linux**: o `.deb` é instalado pelo instalador de pacotes do sistema, que
+  pode avisar que o pacote não vem de um repositório da distribuição; o
+  `.AppImage` precisa de permissão de execução (`chmod +x`). Não há, por ora,
+  repositório apt próprio nem loja.
 
 Em vez de confiar no aviso do sistema, dá para verificar a autenticidade do que
 foi baixado. Toda release traz, além dos binários:
@@ -87,7 +89,7 @@ Ao reportar, inclua o quanto conseguir:
 
 - Sistema operacional (Windows ou Linux), como o aplicativo foi instalado e a
   data da release em uso (no Windows, "Programas e Recursos"; no Linux, o nome
-  do arquivo do AppImage).
+  do arquivo do AppImage ou a versão do pacote `.deb`).
 - Passos para reproduzir o problema.
 - Impacto esperado — o que um atacante conseguiria fazer.
 - Prova de conceito, se houver, sem incluir dados reais de nenhum cofre.

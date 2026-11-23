@@ -46,6 +46,8 @@ seguridad, llegan a todos sin depender de que nadie se acuerde de actualizar.
   cuanto la tienda la ofrece y la instala al bloquear la caja.
 - **Linux, AppImage**: igual que en Windows; el archivo `.AppImage` se
   sustituye por el nuevo.
+- **Linux, paquete `.deb`**: igual que en Windows, sin pedir contraseña; el
+  paquete nuevo se instala encima del anterior.
 - **Linux, compilado desde el código fuente**: no se actualiza solo.
   Actualiza el código y vuelve a compilarlo.
 

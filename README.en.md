@@ -59,9 +59,9 @@ are still available under **Settings > Appearance** and **Accessibility**.
 - **Windows**: `winget install dcCarreto.CofreDeSenhas`, or download and run
   `CofreDeSenhas-Setup-*.exe` (installer, no admin rights required) from the
   [latest release](https://github.com/dcCarreto/CofreDeSenhas/releases/latest).
-- **Linux**: download `CofreDeSenhas-*-x86_64.AppImage` from the [latest
-  release](https://github.com/dcCarreto/CofreDeSenhas/releases/latest), `chmod +x` it and run it;
-  the first run adds it to your applications menu.
+- **Linux Mint, Ubuntu and derivatives**: download `cofre-de-senhas_*_amd64.deb` from the
+  [latest release](https://github.com/dcCarreto/CofreDeSenhas/releases/latest) and double-click it to install.
+  On other distributions, use `CofreDeSenhas-*-x86_64.AppImage`.
 
 Once installed, the app updates itself: it downloads new versions in the
 background, checks their signature and installs them when the vault is locked.

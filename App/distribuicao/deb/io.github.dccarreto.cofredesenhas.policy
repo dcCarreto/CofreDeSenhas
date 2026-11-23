@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policyconfig PUBLIC
+ "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
+ "http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
+<!-- Deixa o Cofre de Senhas instalar a própria atualização sem pedir senha, como no
+     Windows. Só vale para o atualizar-pacote, que confere assinatura e versão antes
+     de instalar qualquer coisa. -->
+<policyconfig>
+  <vendor>Cofre de Senhas</vendor>
+  <vendor_url>https://github.com/dcCarreto/CofreDeSenhas</vendor_url>
+  <action id="io.github.dccarreto.cofredesenhas.atualizar">
+    <description>Instalar uma atualização do Cofre de Senhas</description>
+    <message>O Cofre de Senhas quer instalar uma atualização assinada.</message>
+    <defaults>
+      <allow_any>no</allow_any>
+      <allow_inactive>no</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/opt/cofre-de-senhas/atualizar-pacote</annotate>
+  </action>
+</policyconfig>

@@ -128,7 +128,7 @@ data is governed by its own privacy policy, not this one.
 - **What is sent:** a public GitHub API request
   (`api.github.com/repos/dcCarreto/CofreDeSenhas/releases/latest`), with no vault
   data and no identifier of you or your device.
-- When there is a new version, the installer (or, on Linux, the AppImage)
+- When there is a new version, the installer (or, on Linux, the `.deb` package or the AppImage)
   and the verification files (`CHECKSUMS.txt` and its signature) are downloaded
   from GitHub releases in the background. The update is only installed if the
   signature and the SHA-256 hash match, and it is installed when the vault is
