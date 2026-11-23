@@ -45,6 +45,8 @@ sicurezza, arrivano a tutti senza dipendere dal ricordarsi di aggiornare.
   offre e lo installa al blocco della cassaforte.
 - **Linux, AppImage**: come su Windows; il file `.AppImage` viene sostituito
   con quello nuovo.
+- **Linux, pacchetto `.deb`**: come su Windows, senza chiedere la password;
+  il nuovo pacchetto viene installato sopra quello vecchio.
 - **Linux, compilato dal codice sorgente**: non si aggiorna da solo.
   Aggiorna il codice e ricompilalo.
 

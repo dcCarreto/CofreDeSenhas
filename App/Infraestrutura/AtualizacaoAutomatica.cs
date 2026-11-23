@@ -8,7 +8,7 @@ namespace CofreDeSenhas
     // App.Bloquear). É o único momento em que reiniciar o app não interrompe nada: o
     // cofre acabou de ser fechado e ninguém está digitando nele.
     //
-    // Instalação comum (instalador, winget, AppImage): releases do GitHub com
+    // Instalação comum (instalador, winget, AppImage, .deb): releases do GitHub com
     // assinatura conferida (ServicoAtualizacao). Microsoft Store: APIs da própria Loja
     // (AtualizacaoLoja).
     internal static class AtualizacaoAutomatica
@@ -38,7 +38,7 @@ namespace CofreDeSenhas
 
         // Sempre ligada, sem opção para desligar. Na Loja vale a configuração de
         // atualização da própria Loja (ver AtualizacaoLoja); fora dela, só onde a
-        // atualização embutida funciona (não em Debug/COFRE_BASE, nem no Linux fora do AppImage).
+        // atualização embutida funciona (não em Debug/COFRE_BASE, nem no Linux fora do AppImage e do .deb).
         public static bool Ativa =>
             PacoteLoja.Empacotado || ServicoAtualizacao.Suportada;
 
@@ -109,7 +109,7 @@ namespace CofreDeSenhas
         }
 
         // Fora da Loja: inicia a instalação da atualização baixada (instalador
-        // silencioso, ou troca do AppImage). true = quem chamou deve
+        // silencioso, troca do AppImage ou dpkg do .deb). true = quem chamou deve
         // encerrar o app agora — a versão nova é aberta sozinha.
         public static async Task<bool> AplicarLocalAsync()
         {

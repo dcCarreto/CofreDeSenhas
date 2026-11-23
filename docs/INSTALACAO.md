@@ -86,12 +86,13 @@ a cada versão.
 ## Arquivos de cada release
 
 O fim das notas de cada release traz esta mesma lista. Para instalar, só
-importam as duas primeiras linhas.
+importam as três primeiras linhas.
 
 | Arquivo | O que é |
 |---|---|
 | `CofreDeSenhas-Setup-*.exe` | Instalador do Windows. É o que o `winget` usa. |
-| `CofreDeSenhas-*-x86_64.AppImage` | O aplicativo para Linux. |
+| `cofre-de-senhas_*_amd64.deb` | O aplicativo para Linux Mint, Ubuntu, Debian e derivados (dois cliques para instalar). |
+| `CofreDeSenhas-*-x86_64.AppImage` | O aplicativo para as outras distribuições Linux. |
 | `GeradorDeSenhas-*-win-x64.exe` | Só o gerador de senhas, sem o cofre (Windows, avulso). |
 | `cofre-*-win-x64.exe` / `cofre-*-linux-x64` | A [linha de comando `cofre`](#linha-de-comando-cofre). |
 | `CofreDeSenhas-*-win-x64-portatil.exe` | Portátil descontinuado; fica só para as cópias antigas se atualizarem. |
@@ -100,10 +101,27 @@ importam as duas primeiras linhas.
 
 ## Linux
 
-A forma mais simples é o **AppImage**: baixe
-`CofreDeSenhas-*-x86_64.AppImage` na [última release](https://github.com/dcCarreto/CofreDeSenhas/releases/latest),
-dê permissão de execução e rode — não precisa instalar o .NET nem nada além
-disso:
+No **Linux Mint, Ubuntu, Debian e derivados**, baixe
+`cofre-de-senhas_*_amd64.deb` na [última release](https://github.com/dcCarreto/CofreDeSenhas/releases/latest)
+e clique duas vezes nele. O instalador de pacotes do sistema abre, pede a sua
+senha uma vez e instala o app em `/opt/cofre-de-senhas`, com o atalho "Cofre de
+Senhas" no menu de aplicativos. Não precisa instalar o .NET nem nada além disso.
+Pelo terminal, o equivalente é:
+
+```
+sudo apt install ./cofre-de-senhas_*_amd64.deb
+```
+
+Depois disso o app se atualiza sozinho, sem pedir a senha de novo: o pacote
+instala uma regra do polkit que deixa a sessão ativa rodar **só** o
+`/opt/cofre-de-senhas/atualizar-pacote`, e esse ajudante só instala um pacote
+de uma release assinada pela chave do projeto e mais novo que o instalado
+(detalhes no [modelo de ameaça](../THREAT_MODEL.md)). Para remover:
+`sudo apt remove cofre-de-senhas` (o cofre em `~/.config/GerenciadorSenhas` é
+preservado).
+
+Nas **outras distribuições**, use o **AppImage**: baixe
+`CofreDeSenhas-*-x86_64.AppImage`, dê permissão de execução e rode:
 
 ```
 chmod +x CofreDeSenhas-*-x86_64.AppImage
@@ -166,6 +184,7 @@ um aviso no rodapé na primeira abertura.
 |---|---|
 | Instalador ou `winget` | Sozinho. Se você instalou "para todos os usuários" (em Arquivos de Programas), o Windows pede permissão de administrador: clique em **Instalar agora** quando o rodapé avisar. `winget upgrade dcCarreto.CofreDeSenhas` também funciona. |
 | Executável portátil (descontinuado) | Na próxima atualização, passa para a versão instalada (só para o usuário atual, sem pedir administrador). Depois disso, o `.exe` portátil só abre a versão instalada. |
+| Pacote `.deb` (Linux) | Sozinho, sem pedir senha; o pacote novo é instalado por cima. |
 | AppImage (Linux) | Sozinho; o `.AppImage` é trocado pelo novo. |
 | `instalar.sh` (Linux, compilando do código-fonte) | Manualmente: atualize o repositório e rode `instalar.sh` de novo. |
 | Linha de comando `cofre` e gerador avulso | Manualmente: são arquivos à parte; baixe as versões novas na [página de releases](https://github.com/dcCarreto/CofreDeSenhas/releases/latest). |

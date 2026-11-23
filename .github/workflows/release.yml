@@ -234,8 +234,8 @@ jobs:
             -p:Version=${{ needs.versao.outputs.versao }} -o publish-cli
 
       - name: Separar o CLI
-        # Sem .tar.gz do app: o AppImage (abaixo) é o pacote do Linux — e o único
-        # que se atualiza sozinho.
+        # Sem .tar.gz do app: os pacotes do Linux são o .deb e o AppImage (abaixo),
+        # os dois que se atualizam sozinhos.
         run: |
           mkdir -p dist
           cp publish-cli/cofre "dist/cofre-${{ needs.versao.outputs.versao }}-linux-x64"
@@ -247,6 +247,13 @@ jobs:
           sudo apt-get install -y -qq --no-install-recommends libice6 libsm6
           chmod +x App/distribuicao/gerar-appimage.sh
           ./App/distribuicao/gerar-appimage.sh "${{ needs.versao.outputs.versao }}"
+
+      - name: Gerar pacote .deb
+        # O que o Linux Mint/Ubuntu instalam com dois cliques (o AppImage baixado pelo
+        # navegador vem sem permissão de execução e não abre com dois cliques).
+        run: |
+          chmod +x App/distribuicao/gerar-deb.sh
+          ./App/distribuicao/gerar-deb.sh "${{ needs.versao.outputs.versao }}"
 
       - name: Enviar artefato do Linux
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

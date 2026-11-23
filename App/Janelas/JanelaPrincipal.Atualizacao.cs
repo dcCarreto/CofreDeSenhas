@@ -39,7 +39,7 @@ namespace CofreDeSenhas.Janelas
         // completo fica na dica e no texto de ajuda do leitor de tela.
         //
         // Só onde a atualização de fato roda: em Debug, com COFRE_BASE ou no Linux
-        // fora do AppImage não haveria o que avisar; na Loja quem atualiza é ela.
+        // fora do AppImage e do .deb não haveria o que avisar; na Loja quem atualiza é ela.
         internal void MostrarAvisoAtualizacaoAutomatica()
         {
             if (!Preferencias.AvisoAtualizacaoAutomaticaPendente)

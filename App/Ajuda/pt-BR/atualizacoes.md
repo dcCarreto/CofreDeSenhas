@@ -44,6 +44,8 @@ segurança, chegam a todo mundo sem depender de ninguém lembrar de atualizar.
   a Loja a oferece e a instala no bloqueio do cofre.
 - **Linux, AppImage**: como no Windows; o arquivo `.AppImage` é trocado pelo
   novo.
+- **Linux, pacote `.deb`**: como no Windows, sem pedir senha; o pacote novo
+  é instalado por cima.
 - **Linux, compilado do código-fonte**: não se atualiza sozinho. Atualize o
   código e compile de novo.
 

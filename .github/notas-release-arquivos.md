@@ -7,7 +7,8 @@
 | Arquivo | O que é |
 |---|---|
 | `CofreDeSenhas-Setup-{versao}.exe` | **Windows: é este.** Instalador do Cofre de Senhas. Não pede administrador e, depois de instalado, se atualiza sozinho. É o mesmo que `winget install dcCarreto.CofreDeSenhas` instala. |
-| `CofreDeSenhas-{versao}-x86_64.AppImage` | **Linux: é este.** Baixe, dê permissão de execução (`chmod +x`) e rode. Também se atualiza sozinho. |
+| `cofre-de-senhas_{versao}_amd64.deb` | **Linux Mint, Ubuntu, Debian e derivados: é este.** Dois cliques no arquivo baixado abrem o instalador de pacotes do sistema; ele pede a senha uma vez e o app vai para o menu de aplicativos. Depois se atualiza sozinho, sem pedir nada. |
+| `CofreDeSenhas-{versao}-x86_64.AppImage` | **Outras distribuições Linux.** Baixe, dê permissão de execução (`chmod +x`) e rode; na primeira vez ele se adiciona ao menu. Também se atualiza sozinho. |
 | `GeradorDeSenhas-{versao}-win-x64.exe` | Só o gerador de senhas, sem o cofre (Windows). Executável avulso: não instala nada nem salva senhas. |
 | `cofre-{versao}-win-x64.exe`<br>`cofre-{versao}-linux-x64` | Linha de comando `cofre`, para consultar o cofre pelo terminal (somente leitura). Não é o aplicativo de janela. |
 | `CofreDeSenhas-{versao}-win-x64-portatil.exe` | **Descontinuado, não baixe.** Fica aqui só para as cópias portáteis antigas conseguirem se atualizar; ao se atualizar, elas passam para a versão instalada. |

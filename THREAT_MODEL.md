@@ -259,6 +259,17 @@ acesso com uma chave desatualizada.
   confirmação, essa assinatura é a única barreira entre um comprometimento da release e
   código rodando na máquina de todos os usuários: a chave privada (secret
   `UPDATE_SIGNING_KEY`) é o ativo mais sensível do pipeline.
+  No pacote `.deb` (Linux), a atualização é instalada como root sem pedir senha: uma
+  regra do polkit (`allow_active`) deixa qualquer processo da sessão local ativa rodar
+  `/opt/cofre-de-senhas/atualizar-pacote` via `pkexec` — só esse programa; qualquer
+  outro comando pelo `pkexec` continua pedindo senha. Por isso o ajudante não confia
+  em quem o chamou: copia o pacote, o `CHECKSUMS.txt` e a assinatura para uma pasta só
+  do root (recusando links simbólicos), confere a assinatura contra a chave pública
+  instalada pelo próprio pacote em `/opt` (do root), o SHA256, o nome do pacote, e exige
+  versão mais nova que a instalada — sem isso daria para "atualizar" para uma release
+  antiga, assinada mas vulnerável. Só então roda o `dpkg -i`. Um programa malicioso
+  rodando como o usuário consegue, no máximo, adiantar a instalação de uma release
+  legítima e mais nova.
   Essa mesma chave pública RSA está versionada no repositório (`update-signing-public.pem`)
   para conferência manual da assinatura; o `SECURITY.md` descreve os passos. Assinatura de código (Authenticode) no instalador e nos executáveis do Windows
   já está montada no pipeline de release (`App/distribuicao/assinar-windows.ps1`),

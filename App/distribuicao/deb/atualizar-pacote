@@ -1,0 +1,44 @@
+#!/bin/bash
+# Instala uma atualização do Cofre de Senhas já baixada pelo app. Roda como root via
+# pkexec SEM pedir senha (polkit: io.github.dccarreto.cofredesenhas.atualizar), então
+# qualquer programa do usuário pode chamá-lo: só instala o pacote se ele vier de uma
+# release assinada pela chave do projeto e for mais novo que o instalado.
+#
+# Uso: pkexec /opt/cofre-de-senhas/atualizar-pacote <pasta>/cofre-de-senhas_<versão>_amd64.deb
+# A mesma pasta precisa ter o CHECKSUMS.txt e o CHECKSUMS.txt.sig da release.
+set -euo pipefail
+export PATH=/usr/sbin:/usr/bin:/sbin:/bin
+umask 022
+
+falhar() { echo "atualizar-pacote: $*" >&2; exit 1; }
+
+[ $# -eq 1 ] || falhar "uso: atualizar-pacote <arquivo .deb>"
+pasta=$(dirname -- "$1")
+nome=$(basename -- "$1")
+[[ "$nome" =~ ^cofre-de-senhas_[0-9]+(\.[0-9]+)*_amd64\.deb$ ]] || falhar "nome de pacote inesperado"
+
+# Copia tudo para uma pasta só do root antes de conferir: o que é conferido é
+# exatamente o que é instalado, sem o usuário poder trocar no meio.
+tmp=$(mktemp -d)
+trap 'rm -rf -- "$tmp"' EXIT
+for arquivo in "$nome" CHECKSUMS.txt CHECKSUMS.txt.sig; do
+    origem="$pasta/$arquivo"
+    [ -f "$origem" ] && [ ! -L "$origem" ] || falhar "$arquivo não encontrado"
+    cp -- "$origem" "$tmp/$arquivo"
+done
+
+openssl dgst -sha256 -verify /opt/cofre-de-senhas/chave-atualizacao.pem \
+    -signature "$tmp/CHECKSUMS.txt.sig" "$tmp/CHECKSUMS.txt" >/dev/null 2>&1 ||
+    falhar "assinatura do CHECKSUMS.txt inválida"
+
+esperado=$(awk -v n="$nome" '$2 == n || $2 == "*" n { print $1; exit }' "$tmp/CHECKSUMS.txt")
+obtido=$(sha256sum -- "$tmp/$nome" | cut -d ' ' -f 1)
+[ -n "$esperado" ] && [ "$esperado" = "$obtido" ] || falhar "SHA-256 do pacote não confere"
+
+[ "$(dpkg-deb -f "$tmp/$nome" Package)" = "cofre-de-senhas" ] || falhar "pacote não é o cofre-de-senhas"
+nova=$(dpkg-deb -f "$tmp/$nome" Version)
+atual=$(dpkg-query -W -f='${Version}' cofre-de-senhas 2>/dev/null || true)
+# Impede instalar uma release antiga (e talvez vulnerável), mesmo que assinada.
+[ -z "$atual" ] || dpkg --compare-versions "$nova" gt "$atual" || falhar "versão $nova não é mais nova que $atual"
+
+DEBIAN_FRONTEND=noninteractive dpkg -i "$tmp/$nome"

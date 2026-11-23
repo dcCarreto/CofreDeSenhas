@@ -190,6 +190,10 @@ dist-loja/
 publish-appimage/
 *.AppImage
 
+# Pacote .deb gerado
+publish-deb/
+*.deb
+
 # Publish Web Output
 *.[Pp]ublish.xml
 *.azurePubxml
