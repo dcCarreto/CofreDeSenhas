@@ -227,11 +227,19 @@ namespace CofreDeSenhas.Controles
         // O LostFocus seguinte é a virtualização tirando a linha, não o usuário confirmando.
         internal void PrepararReciclagem() => _reciclando = true;
 
+        // Linhas recicladas guardam as cores do tema em que foram pintadas; a janela chama
+        // isto quando o tema muda, e a próxima realização repinta tudo via Vincular.
+        private static int _versaoTema;
+        private int _versaoTemaAplicada = _versaoTema;
+        internal static void InvalidarTema() => _versaoTema++;
+
         internal void AoRealizar(Senha s)
         {
             _reciclando = false;
             if (!ReferenceEquals(s, _senha))
                 DataContext = s;
+            else if (_versaoTemaAplicada != _versaoTema)
+                Vincular(s);
             else
                 EstadoExternoNecessario?.Invoke(this, EventArgs.Empty);
         }
@@ -265,6 +273,11 @@ namespace CofreDeSenhas.Controles
 
             _senha = nova;
             _txtServico.Text = nova.NomeServico;
+
+            _versaoTemaAplicada = _versaoTema;
+            BorderBrush = Tema.Pincel(Tema.Separator);
+            _lblServico.Foreground = Tema.Pincel(Tema.TextPrimary);
+            _lblData.Foreground = Tema.Pincel(Tema.TextTertiary);
 
             AplicarEstrela();
             AplicarPin();

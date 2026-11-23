@@ -520,6 +520,7 @@ namespace CofreDeSenhas.Janelas
                 AplicarLargurasColunas();
             AtualizarDetalheVisual();
             AtualizarHistoricoDetalhes();
+            LinhaSenha.InvalidarTema();
             FiltrarSenhas(reordenar: false);
         }
 

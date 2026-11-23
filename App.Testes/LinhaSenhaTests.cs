@@ -208,6 +208,32 @@ namespace App.Testes
         }
 
         [AvaloniaFact]
+        public void AoRealizar_DepoisDeTrocarOTema_RepintaONomeDoServico()
+        {
+            // Linha reciclada pintada no escuro mantinha o texto branco no tema claro.
+            var modoOriginal = Acessibilidade.Modo;
+            try
+            {
+                Acessibilidade.DefinirModoTema(ModoTema.Escuro);
+                var senha = new Senha { Id = Guid.NewGuid(), NomeServico = "Servico Tema", Usuario = "usuario", SenhaHash = "irrelevante-para-o-teste" };
+                var (_, linha) = CriarLinhaEmJanela(senha, "SenhaSecreta123!");
+                var rotulo = linha.TextoPorConteudo("Servico Tema");
+                var corEscuro = rotulo.Foreground;
+
+                Acessibilidade.DefinirModoTema(ModoTema.Claro);
+                LinhaSenha.InvalidarTema();
+                linha.AoRealizar(senha);
+
+                Assert.NotEqual(corEscuro, rotulo.Foreground);
+                Assert.Equal(Tema.Pincel(Tema.TextPrimary), rotulo.Foreground);
+            }
+            finally
+            {
+                Acessibilidade.DefinirModoTema(modoOriginal);
+            }
+        }
+
+        [AvaloniaFact]
         public async Task CopiarAsync_DisparaCallbackDeRegistrarCopiaComCampoSenha()
         {
             var senha = new Senha { Id = Guid.NewGuid(), NomeServico = "Servico", Usuario = "usuario", SenhaHash = "irrelevante-para-o-teste" };
