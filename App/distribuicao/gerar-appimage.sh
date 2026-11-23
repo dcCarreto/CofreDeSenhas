@@ -46,6 +46,17 @@ echo "Publicando o aplicativo (linux-x64, autocontido, atualização $versao)...
 dotnet publish "$raiz/App/App.csproj" -f net10.0 -c Release -r linux-x64 \
     --self-contained true -p:Version="$versao" -o "$appdir/usr/bin"
 
+# O Avalonia (X11) carrega libICE/libSM na abertura; sistemas sem elas (ex.: Ubuntu
+# mínimo) fechavam o app antes de qualquer janela. Vão junto, ao lado do executável.
+for lib in libICE.so.6 libSM.so.6; do
+    caminho=$(ldconfig -p | awk -v l="$lib" '$1 == l && /x86-64/ { print $NF; exit }')
+    if [ -z "$caminho" ]; then
+        echo "Erro: $lib não encontrada. Instale: sudo apt-get install libice6 libsm6" >&2
+        exit 1
+    fi
+    cp -L "$caminho" "$appdir/usr/bin/$lib"
+done
+
 echo "Montando o AppDir..."
 cp "$raiz/App/Ativos/app.png" "$appdir/cofre-de-senhas.png"
 sed "s|^Exec=.*|Exec=CofreDeSenhas|" "$raiz/App/distribuicao/cofre-de-senhas.desktop" \
