@@ -340,6 +340,9 @@ namespace CofreDeSenhas.Janelas
 
         private void Ajuda_Click(object? sender, RoutedEventArgs e) => JanelaAjuda.AbrirOuFocar(this);
 
+        private async void RelatarBug_Click(object? sender, RoutedEventArgs e) =>
+            await new JanelaRelatarBug().ShowDialog(this);
+
         private async void Configuracoes_Click(object? sender, RoutedEventArgs e)
         {
             var vazio = new RoutedEventArgs();

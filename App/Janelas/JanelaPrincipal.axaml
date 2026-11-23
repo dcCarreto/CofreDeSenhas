@@ -45,6 +45,13 @@
                 <c:Icone Width="16" Height="16"
                        Chave="IconeInfo" />
               </Button>
+              <Button Name="BtnRelatarBug" Classes="janela"
+                      ToolTip.Tip="{DynamicResource BugReport.Tooltip}"
+                      AutomationProperties.Name="{DynamicResource BugReport.Tooltip}"
+                      Click="RelatarBug_Click">
+                <c:Icone Width="16" Height="16"
+                       Chave="IconeBug" />
+              </Button>
               <Button Name="BtnConfig" Classes="janela"
                       ToolTip.Tip="{DynamicResource Settings.Tooltip}"
                       AutomationProperties.Name="{DynamicResource Settings.Tooltip}"

@@ -16,7 +16,8 @@ Microsoft Store.
   your computer, encrypted with a key derived from your master password.
 - The author **runs no server** for the app and **does not receive, collect or
   store** any of your data. There is no account, sign-up, telemetry, usage
-  analytics, automatic crash reporting or advertising.
+  analytics, automatic crash reporting or advertising. The only time a log is
+  sent is a problem report that you write and send yourself (section 3.7).
 - By default, the app only accesses the internet to **check for and download
   its own updates** from GitHub releases, without sending any of your data
   (section 3.3); this cannot be turned off. The other features that use the
@@ -72,18 +73,24 @@ delete the vault.
 
 The app writes unexpected errors to `logs/erros.log` in the data folder, to help
 you (or the maintainer, if you choose to share it) understand a problem. Each
-line holds the date and time (UTC), the error type and its message.
+entry holds the date and time (UTC), the error type, its message and the call
+stack (the program's method names). Each app launch also writes a line with the
+version, operating system and .NET runtime.
 
-- The app **never sends** the log anywhere. It only leaves your computer if you
-  attach it to a report yourself.
+- The log only leaves your computer if you send a report through "Report a
+  problem" (section 3.7) or attach it to a report yourself. The app never sends
+  it on its own.
 - Passwords, notes, TOTP secrets and decrypted vault content are not written to
   the log. The path of your Windows profile folder, which contains your OS user
-  name, is replaced with `%USERPROFILE%`.
+  name, is replaced with `%USERPROFILE%`; the user name and computer name with
+  `%USERNAME%` and `%COMPUTERNAME%`; and connection-string passwords
+  (`password=`) with `***`.
 - **Exception:** when synchronization with an external database detects a
   conflict (for example, a tampered row), the log records the conflict type, the
   affected item's **service name** and its internal identifier, so you can review
   it later. Review the file before sharing it.
-- The file is deleted and restarted once it exceeds about 1 MB.
+- Once it exceeds about 1 MB, the file becomes `erros.log.1` (replacing the
+  previous one) and a new one is started.
 
 ## 3. Features that use the network
 
@@ -174,9 +181,26 @@ data is governed by its own privacy policy, not this one.
 - The connection is always encrypted in transit (TLS). Details are in the
   [threat model](THREAT_MODEL.md).
 
+### 3.7 Report a problem
+
+- **When:** only when you open "Report a problem" (bug icon in the title bar),
+  write a description and click **Send**.
+- **What is sent:** the text you wrote and a diagnostic report: app version,
+  installation type, operating system, architecture, .NET runtime, language,
+  theme, scale, screen reader use, time open, memory in use and the end of the
+  error log (section 2). The whole report is shown in the window, under "Show the
+  diagnostic report that will be sent", before sending. The service name of items
+  in a synchronization conflict is replaced with `***`. No password, note, TOTP
+  secret or other vault content is sent.
+- **Where it ends up:** it becomes a **public issue** in the
+  `github.com/dcCarreto/CofreDeSenhas` repository, visible to anyone. It is
+  created by the project's account, with no link to a GitHub account of yours.
+  To have an issue removed, ask the maintainer.
+- **Destination:** GitHub — <https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement>.
+
 ## 4. What the app does not do
 
-- It sends no telemetry, usage statistics, crash reports or device identifiers.
+- It sends no telemetry, usage statistics, automatic crash reports or device identifiers.
 - It shows no ads and does not sell, rent or share data with anyone — the author
   has no access to any data to share.
 - It requires no account or sign-up.
