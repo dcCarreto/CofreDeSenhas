@@ -61,6 +61,7 @@
   <StaticResource x:Key="IconeChaveGerador" ResourceKey="IconeChave" />
   <StreamGeometry x:Key="IconeAtalhoTeclado">M4 4 H20 A2 2 0 0 1 22 6 V18 A2 2 0 0 1 20 20 H4 A2 2 0 0 1 2 18 V6 A2 2 0 0 1 4 4 Z M10 8 L10.01 8 M12 12 L12.01 12 M14 8 L14.01 8 M16 12 L16.01 12 M18 8 L18.01 8 M6 8 L6.01 8 M8 12 L8.01 12 M7 16 L17 16</StreamGeometry>
 
+  <StreamGeometry x:Key="IconeBug">M12 20 V11 M14 7 A4 4 0 0 1 18 11 V14 A6 6 0 0 1 6 14 V11 A4 4 0 0 1 10 7 Z M14.12 3.88 L16 2 M21 21 A4 4 0 0 0 17.19 17 M21 5 A4 4 0 0 1 17.45 8.97 M22 13 H18 M3 21 A4 4 0 0 1 6.81 17 M3 5 A4 4 0 0 0 6.55 8.97 M6 13 H2 M8 2 L9.88 3.88 M9 7.13 V6 A3 3 0 1 1 15 6 V7.13</StreamGeometry>
   <StreamGeometry x:Key="IconeInfo">M2 12 A10 10 0 1 0 22 12 A10 10 0 1 0 2 12 Z M12 16 L12 12 M12 8 L12.01 8</StreamGeometry>
   <StreamGeometry x:Key="IconeAviso">M21.73 18 L13.73 4 A2 2 0 0 0 10.25 4 L2.25 18 A2 2 0 0 0 4 21 L20 21 A2 2 0 0 0 21.73 18 Z M12 9 L12 13 M12 17 L12.01 17</StreamGeometry>
   <StreamGeometry x:Key="IconeErro">M4 12 A8 8 0 0 0 20 12 A8 8 0 0 0 4 12 Z M9.5 9.5 L14.5 14.5 M14.5 9.5 L9.5 14.5</StreamGeometry>

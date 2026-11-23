@@ -41,6 +41,13 @@
     <DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
   </PropertyGroup>
 
+  <!-- Token do "Relatar um problema" (RelatoBug.cs). O MSBuild lê a variável de
+       ambiente COFRE_TOKEN_RELATO, que só a release define a partir do secret de
+       mesmo nome; build local sai sem token e o envio avisa que não está disponível. -->
+  <ItemGroup Condition="'$(COFRE_TOKEN_RELATO)' != ''">
+    <AssemblyMetadata Include="TokenRelatoBug" Value="$(COFRE_TOKEN_RELATO)" />
+  </ItemGroup>
+
   <ItemGroup>
     <AvaloniaResource Include="Ativos\**" />
   </ItemGroup>
