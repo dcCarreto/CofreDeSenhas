@@ -131,7 +131,7 @@ com esses dados é regido pela política de privacidade dele, não por esta.
 - **O que é enviado:** uma consulta pública à API do GitHub
   (`api.github.com/repos/dcCarreto/CofreDeSenhas/releases/latest`), sem nenhum
   dado do cofre nem identificador seu ou do seu dispositivo.
-- Havendo uma versão nova, o instalador (ou, no Linux, o AppImage) e os
+- Havendo uma versão nova, o instalador (ou, no Linux, o pacote `.deb` ou o AppImage) e os
   arquivos de verificação (`CHECKSUMS.txt` e assinatura) são baixados das releases
   do GitHub em segundo plano. A atualização só é instalada se a assinatura e o
   SHA256 conferirem, e a instalação acontece quando o cofre é bloqueado.

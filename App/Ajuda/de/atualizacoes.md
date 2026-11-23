@@ -46,6 +46,8 @@ Sicherheitskorrekturen, alle, ohne dass jemand ans Aktualisieren denken muss.
   und installiert es beim Sperren des Tresors.
 - **Linux, AppImage**: wie unter Windows; die `.AppImage`-Datei wird durch die
   neue ersetzt.
+- **Linux, `.deb`-Paket**: wie unter Windows, ohne Passwortabfrage; das neue
+  Paket wird über das alte installiert.
 - **Linux, aus dem Quellcode gebaut**: aktualisiert sich nicht selbst.
   Aktualisieren Sie den Code und bauen Sie ihn neu.
 

@@ -63,5 +63,5 @@ o envio e o teste local estão em [LOJA-MICROSOFT.md](LOJA-MICROSOFT.md).
 
 O script `App/distribuicao/instalar.sh` faz o publish para Linux e ainda
 registra o atalho e o ícone no ambiente de trabalho; `gerar-appimage.sh` gera
-o `.AppImage`. Veja [Download e instalação](INSTALACAO.md#linux) para o uso
+o `.AppImage` e `gerar-deb.sh` gera o pacote `.deb` (precisa de `dpkg-deb`). Veja [Download e instalação](INSTALACAO.md#linux) para o uso
 de cada um.

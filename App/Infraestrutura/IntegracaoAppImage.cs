@@ -16,23 +16,41 @@ namespace CofreDeSenhas
         {
             var appImage = Environment.GetEnvironmentVariable("APPIMAGE");
             var appDir = Environment.GetEnvironmentVariable("APPDIR");
+            var debInstalado = PacoteDeb.PresenteNoSistema;
             if (!OperatingSystem.IsLinux() || GerenciadorDeSenhas.AmbienteCofre.Isolado ||
-                string.IsNullOrEmpty(appImage) || string.IsNullOrEmpty(appDir))
+                (!debInstalado && (string.IsNullOrEmpty(appImage) || string.IsNullOrEmpty(appDir))))
                 return;
 
             Task.Run(() =>
             {
                 try
                 {
-                    // No Linux é $XDG_DATA_HOME ou ~/.local/share.
-                    Integrar(appImage, appDir,
-                        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
+                    // No Linux é $XDG_DATA_HOME ou ~/.local/share. DoNotVerify: sem ele, uma
+                    // pasta que ainda não existe vira "" e o atalho iria para a pasta atual.
+                    var pastaDados = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData,
+                        Environment.SpecialFolderOption.DoNotVerify);
+                    // Com o pacote .deb instalado, o atalho do menu é o dele: um atalho do
+                    // AppImage com o mesmo nome em ~/.local/share teria prioridade e abriria o AppImage.
+                    if (debInstalado)
+                        RemoverAtalho(pastaDados);
+                    else
+                        Integrar(appImage!, appDir!, pastaDados);
                 }
                 catch (Exception ex)
                 {
                     Diagnostico.Registrar(ex, "Integração do AppImage ao menu");
                 }
             });
+        }
+
+        // Apaga o atalho criado pelo AppImage, se houver. true = apagou.
+        internal static bool RemoverAtalho(string pastaDados)
+        {
+            var atalho = Path.Combine(pastaDados, "applications", NomeArquivo);
+            if (!File.Exists(atalho) || !File.ReadAllText(atalho).Contains(Marca))
+                return false;
+            File.Delete(atalho);
+            return true;
         }
 
         // Devolve true se gravou ou apagou o atalho.

@@ -49,6 +49,8 @@ chacun.
   que le Store la propose et l'installe au verrouillage du coffre.
 - **Linux, AppImage** : comme sous Windows ; le fichier `.AppImage` est
   remplacé par le nouveau.
+- **Linux, paquet `.deb`** : comme sous Windows, sans demander de mot de passe ;
+  le nouveau paquet est installé par-dessus l'ancien.
 - **Linux, compilé depuis le code source** : ne se met pas à jour tout seul.
   Mettez le code à jour et recompilez-le.
 

@@ -72,6 +72,18 @@ namespace App.Testes
         }
 
         [Fact]
+        public void RemoverAtalho_ApagaSoOAtalhoDoAppImage()
+        {
+            IntegracaoAppImage.Integrar("/opt/Cofre.AppImage", _appDir, _dados);
+            Assert.True(IntegracaoAppImage.RemoverAtalho(_dados));
+            Assert.False(File.Exists(Atalho));
+
+            File.WriteAllText(Atalho, "[Desktop Entry]\nExec=/home/ana/.local/opt/cofre-de-senhas/CofreDeSenhas\n");
+            Assert.False(IntegracaoAppImage.RemoverAtalho(_dados));
+            Assert.True(File.Exists(Atalho));
+        }
+
+        [Fact]
         public void Integrar_JaIntegradoPorOutro_NaoDuplicaERemoveONosso()
         {
             IntegracaoAppImage.Integrar("/opt/Cofre.AppImage", _appDir, _dados);

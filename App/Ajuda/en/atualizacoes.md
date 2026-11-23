@@ -44,6 +44,8 @@ fixes, reach everyone without relying on anyone remembering to update.
   installs it when the vault is locked.
 - **Linux, AppImage**: same as on Windows; the `.AppImage` file is replaced
   with the new one.
+- **Linux, `.deb` package**: same as on Windows, without asking for a
+  password; the new package is installed over the old one.
 - **Linux, built from source**: does not update itself. Update the source
   code and build it again.
 
