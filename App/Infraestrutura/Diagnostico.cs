@@ -126,7 +126,7 @@ namespace CofreDeSenhas
             var sb = new StringBuilder();
             sb.AppendLine("== Ambiente ==");
             sb.AppendLine($"Versão: {VersaoApp()}");
-            sb.AppendLine($"Distribuição: {(PacoteLoja.Empacotado ? "Microsoft Store" : GerenciadorDeSenhas.AmbienteCofre.Isolado ? "Desenvolvimento (isolado)" : "Instalado")}");
+            sb.AppendLine($"Distribuição: {(PacoteLoja.Empacotado ? "Microsoft Store" : GerenciadorDeSenhas.AmbienteCofre.Isolado ? "Desenvolvimento (isolado)" : string.IsNullOrEmpty(Environment.GetEnvironmentVariable("APPIMAGE")) ? "Instalado" : "AppImage")}");
             sb.AppendLine($"Sistema: {RuntimeInformation.OSDescription} ({RuntimeInformation.OSArchitecture})");
             sb.AppendLine($"Processo: {RuntimeInformation.ProcessArchitecture}, {RuntimeInformation.FrameworkDescription}");
             sb.AppendLine($"Idioma do app: {Idioma.Atual.Cultura.Name} | Cultura do sistema: {CultureInfo.CurrentCulture.Name}");

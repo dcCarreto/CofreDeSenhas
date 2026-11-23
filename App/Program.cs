@@ -38,6 +38,7 @@ namespace CofreDeSenhas
             Diagnostico.InstalarCapturaGlobal();
             Diagnostico.RegistrarInicio();
             LimparAtualizacaoPendente();
+            IntegracaoAppImage.Integrar();
             BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
         }
 

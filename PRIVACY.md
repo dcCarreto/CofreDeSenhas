@@ -238,6 +238,10 @@ Como os dados ficam no seu computador, você controla quanto tempo eles existem:
 - **Para apagar tudo**, inclusive logs, cache de ícones, vozes e preferências,
   apague a pasta de dados inteira (seção 1). No Windows, o desinstalador oferece
   essa opção ao final da desinstalação.
+- No Linux, o **AppImage** cria o atalho do menu e o ícone em
+  `~/.local/share/applications/cofre-de-senhas.desktop` e
+  `~/.local/share/icons/hicolor/256x256/apps/cofre-de-senhas.png`; sem dados
+  seus, só o caminho do `.AppImage`. Podem ser apagados junto com o arquivo.
 - **Downloads de atualização** ficam na pasta temporária do sistema só até
   serem instalados e são apagados na abertura seguinte do aplicativo.
 - Desinstalar o aplicativo pela **Microsoft Store** não apaga a pasta de dados;
