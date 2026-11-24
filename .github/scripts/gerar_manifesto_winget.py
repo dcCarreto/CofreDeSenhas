@@ -3,9 +3,8 @@
 Uso: python3 gerar_manifesto_winget.py <versao> <sha256_do_instalador> <pasta_saida>
 
 Escreve os três arquivos YAML no layout que o repositório microsoft/winget-pkgs
-espera (manifests/d/dcCarreto/CofreDeSenhas/<versao>/), prontos para copiar num
-fork e abrir PR — a submissão em si continua manual, esse script só evita
-montar os YAML à mão a cada release.
+espera (manifests/d/dcCarreto/CofreDeSenhas/<versao>/); quem abre o PR é o
+enviar_winget.sh.
 """
 
 import re
