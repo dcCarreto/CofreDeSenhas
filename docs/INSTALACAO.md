@@ -82,7 +82,7 @@ Cada execução do workflow de release gera também os manifests do `winget`
 publicar a release, abre sozinha o PR no
 [`microsoft/winget-pkgs`](https://github.com/microsoft/winget-pkgs/tree/master/manifests/d/dcCarreto/CofreDeSenhas)
 com `.github/scripts/enviar_winget.sh` (precisa do secret `WINGET_TOKEN`: um
-token clássico com o escopo `public_repo`; sem ele o passo é pulado).
+token clássico só com o escopo `public_repo`; sem ele o passo é pulado).
 
 ## Arquivos de cada release
 

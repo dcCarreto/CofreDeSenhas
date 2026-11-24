@@ -4,9 +4,9 @@
 # Uso: GH_TOKEN=<token> enviar_winget.sh <versao> <pasta_dos_manifests>
 #
 # <pasta_dos_manifests> é a saída de gerar_manifesto_winget.py. Tudo pela API do
-# GitHub (sem clonar o winget-pkgs, que tem gigabytes): sincroniza o fork, cria
-# a branch nele, grava os três YAML e abre o PR. O token precisa poder escrever
-# no fork e abrir PR no repositório da Microsoft (PAT clássico com public_repo;
+# GitHub (sem clonar o winget-pkgs, que tem gigabytes): cria a branch no fork,
+# grava os três YAML e abre o PR. O token precisa poder escrever no fork e abrir
+# PR no repositório da Microsoft (PAT clássico só com public_repo;
 # token fine-grained não abre PR em repositório de outra conta).
 set -euo pipefail
 
@@ -23,8 +23,10 @@ if [ -n "$(gh pr list -R "$upstream" --head "$branch" --state all --json number 
   exit 0
 fi
 
-gh api -X POST "repos/$fork/merge-upstream" -f branch=master > /dev/null
-base=$(gh api "repos/$fork/git/ref/heads/master" -q .object.sha)
+# A branch nasce direto do master da Microsoft (o fork compartilha os objetos com
+# ele). Sincronizar o master do fork exigiria o escopo workflow sempre que a
+# Microsoft mexe nos workflows dela, e o GitHub não deixa marcar workflow sem repo.
+base=$(gh api "repos/$upstream/git/ref/heads/master" -q .object.sha)
 
 # Sobra de uma tentativa anterior que falhou no meio: recomeça do zero.
 gh api -X DELETE "repos/$fork/git/refs/heads/$branch" > /dev/null 2>&1 || true
