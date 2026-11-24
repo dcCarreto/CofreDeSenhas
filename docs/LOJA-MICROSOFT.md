@@ -79,8 +79,8 @@ assinatura de código.
    - **Pacotes:** envie o `.msix`.
    - **Páginas da Loja:** uma em **português (Brasil)** e uma em **inglês
      (Estados Unidos)**, os dois idiomas que o manifesto declara. Textos e
-     palavras de busca abaixo. Capturas: as de `docs/*.png` servem (mínimo
-     1366×768).
+     palavras de busca abaixo. Capturas: as de `docs/loja/` (1440×900; as
+     de `docs/*.png` ficam abaixo do mínimo de 1366×768 da Loja).
    - **Notas para a certificação:** cole o texto de [Notas para a
      certificação](#notas-para-a-certificação), abaixo.
 5. A certificação costuma levar de algumas horas a 3 dias úteis.
