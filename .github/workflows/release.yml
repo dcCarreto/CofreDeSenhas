@@ -273,6 +273,7 @@ jobs:
       attestations: write
     env:
       VT_API_KEY: ${{ secrets.VT_API_KEY }}
+      WINGET_TOKEN: ${{ secrets.WINGET_TOKEN }}
     steps:
       - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
@@ -301,10 +302,8 @@ jobs:
             -fn "CofreDeSenhas-${{ needs.versao.outputs.versao }}-sbom.json"
 
       - name: Gerar manifests winget
-        # Só monta os YAML prontos para o mantenedor copiar num fork de microsoft/winget-pkgs
-        # e abrir o PR manualmente — submissão automática num repositório de terceiros fica
-        # fora do escopo deste pipeline. Interessam só ao mantenedor, então ficam nos
-        # artefatos desta execução do workflow, não na release.
+        # Os YAML ficam nos artefatos desta execução (não na release) e são enviados ao
+        # winget-pkgs pelo passo "Abrir PR no winget-pkgs", depois da release publicada.
         run: |
           versao="${{ needs.versao.outputs.versao }}"
           sha256_instalador=$(sha256sum "artefatos/CofreDeSenhas-Setup-$versao.exe" | cut -d' ' -f1)
@@ -374,6 +373,17 @@ jobs:
           draft: false
           body_path: notas-release.md
           files: dist/*
+
+      - name: Abrir PR no winget-pkgs
+        # Precisa da release já publicada (o manifest aponta para o instalador dela).
+        # Best-effort como o VirusTotal: sem o secret WINGET_TOKEN o passo é pulado, e
+        # uma falha não derruba a publicação — os YAML continuam no artefato
+        # winget-manifests-* para enviar à mão com o mesmo script.
+        if: ${{ env.WINGET_TOKEN != '' }}
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ env.WINGET_TOKEN }}
+        run: bash .github/scripts/enviar_winget.sh "${{ needs.versao.outputs.versao }}" winget-manifests
 
       - name: Enviar artefatos ao VirusTotal
         # Opcional e best-effort: sem o secret VT_API_KEY o passo é pulado, e uma
