@@ -10,7 +10,7 @@
 
   <ItemGroup>
     <!-- Conexão a banco externo e sincronização por pasta. Depende do .Core. -->
-    <PackageReference Include="Microsoft.Data.SqlClient" Version="7.0.2" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="7.1.2" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.9" />
     <PackageReference Include="MySqlConnector" Version="2.6.1" />
     <PackageReference Include="Npgsql" Version="10.0.3" />
